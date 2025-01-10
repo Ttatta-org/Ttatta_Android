@@ -11,6 +11,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven("https://repository.map.naver.com/archive/maven")
     }
 }
 
@@ -24,3 +25,4 @@ include(":feature:mypage")
 include(":feature:home")
 include(":feature:record")
 include(":data")
+include(":design")
