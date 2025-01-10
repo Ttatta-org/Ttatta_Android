@@ -5,24 +5,86 @@
 
 다음은 프로젝트의 구현을 위해 사용하는 기술 스택을 정리한 표입니다.
 
-| 이름 | 설명 |
-| - | - |
-| Kotlin | 프로그래밍 언어 |
-| Jetpack Compose | 인-코드 선언형 앱 설계 |
-| Git | 체계적인 코드 관리 및 협업 |
+<div align=center>
+    <table>
+        <thead>
+            <tr>
+                <th>이름</th>
+                <th>설명</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Kotlin</td>
+                <td>프로그래밍 언어</td>
+            </tr>
+            <tr>
+                <td>Jetpack Compose</td>
+                <td>인-코드 선언형 앱 설계</td>
+            </tr>
+            <tr>
+                <td>Git</td>
+                <td>체계적인 코드 관리 및 협업</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
 다음과 같은 라이브러리 의존성을 가지고 있습니다.
 
-| 이름 | 버전 | 설명 |
-| - | - | - |
-| Jetpack Navigation | 2.0.21 | 화면 전환 관리를 위한 라이브러리 |
-| Hilt | 2.51.1 | 의존성 주입을 위한 라이브러리 |
-| Retrofit2 | 2.11.0 | HTTP 통신을 위한 라이브러리 |
-| SharedPreference | 1.2.1 | 로컬 데이터 저장 라이브러리 |
-| Room | 2.6.1 | 로컬 데이터베이스 라이브러리 |
-| Naver Map SDK | 3.20.0 | 네이버 지도 사용을 위한 SDK |
-| KakaoSDK | 2.20.6 | 카카오 로그인을 위한 SDK |
-| Android JUnit | 1.2.1 | 단위 테스트를 위한 라이브러리 |
+<div align=center>
+    <table>
+        <thead>
+            <tr>
+                <th>이름</th>
+                <th>버전</th>
+                <th>설명</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Jetpack Navigation</td>
+                <td>2.0.21</td>
+                <td>화면 전환 관리를 위한 라이브러리</td>
+            </tr>
+            <tr>
+                <td>Hilt</td>
+                <td>2.51.1</td>
+                <td>의존성 주입을 위한 라이브러리</td>
+            </tr>
+            <tr>
+                <td>Retrofit2</td>
+                <td>2.11.0</td>
+                <td>HTTP 통신을 위한 라이브러리</td>
+            </tr>
+            <tr>
+                <td>SharedPreference</td>
+                <td>1.2.1</td>
+                <td>로컬 데이터 저장 라이브러리</td>
+            </tr>
+            <tr>
+                <td>Room</td>
+                <td>2.6.1</td>
+                <td>로컬 데이터베이스 라이브러리</td>
+            </tr>
+            <tr>
+                <td>Naver Map SDK</td>
+                <td>3.20.0</td>
+                <td>네이버 지도 사용을 위한 SDK</td>
+            </tr>
+            <tr>
+                <td>KakaoSDK</td>
+                <td>2.20.6</td>
+                <td>카카오 로그인을 위한 SDK</td>
+            </tr>
+            <tr>
+                <td>Android JUnit</td>
+                <td>1.2.1</td>
+                <td>단위 테스트를 위한 라이브러리</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
 본 프로젝트는 멀티 모듈 아키텍쳐를 기반으로, 뷰모델을 사용한 MVVM 디자인 패턴으로 구성합니다.
 
@@ -95,7 +157,7 @@
 - 콜백 함수를 전달하는 변수일 경우 `on`으로 시작합니다. ex) `onButtonClicked`, `onDataLoaded`
 - 안드로이드 스튜디오 상의 IDE의 노란 줄에 주의합니다.
 
-# Development Environment
+# Environment
 
 다음은 본 프로젝트의 안드로이드 개발 환경입니다.
 
