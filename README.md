@@ -1,6 +1,31 @@
 # 따따 Android
 따따 프로젝트의 안드로이드 리포지토리입니다.
 
+# Tech Stack
+
+다음은 프로젝트의 구현을 위해 사용하는 기술 스택을 정리한 표입니다.
+
+| 이름 | 설명 |
+| - | - |
+| Kotlin | 프로그래밍 언어 |
+| Jetpack Compose | 인-코드 선언형 앱 설계 |
+| Git | 체계적인 코드 관리 및 협업 |
+
+다음과 같은 라이브러리 의존성을 가지고 있습니다.
+
+| 이름 | 버전 | 설명 |
+| - | - | - |
+| Jetpack Navigation | 2.0.21 | 화면 전환 관리를 위한 라이브러리 |
+| Hilt | 2.51.1 | 의존성 주입을 위한 라이브러리 |
+| Retrofit2 | 2.11.0 | HTTP 통신을 위한 라이브러리 |
+| SharedPreference | 1.2.1 | 로컬 데이터 저장 라이브러리 |
+| Room | 2.6.1 | 로컬 데이터베이스 라이브러리 |
+| Naver Map SDK | 3.20.0 | 네이버 지도 사용을 위한 SDK |
+| KakaoSDK | 2.20.6 | 카카오 로그인을 위한 SDK |
+| Android JUnit | 1.2.1 | 단위 테스트를 위한 라이브러리 |
+
+본 프로젝트는 멀티 모듈 아키텍쳐를 기반으로, 뷰모델을 사용한 MVVM 디자인 패턴으로 구성합니다.
+
 # Conventions
 
 다음은 본 프로젝트에 기여하는 개발자가 지켜야 할 컨벤션입니다.
@@ -59,3 +84,24 @@
 ## Pull Request
 
 풀 요청은 본 리포지토리에 등록된 템플릿을 사용하여 작성합니다.
+
+## Code
+
+코드의 스타일은 [Android 공식문서의 Kotlin 스타일 가이드](https://developer.android.com/kotlin/style-guide?hl=ko)를 최대한 따릅니다. 다음은 주요 네이밍 규칙입니다.
+
+- 작성되는 모든 소스 파일은 UTF-8로 인코딩되어야 합니다.
+- 코틀린 파일의 제목은 되도록이면 `PascalCase`를 사용하여야 합니다.
+- 컴포저블 함수의 이름은 `PascalCase`, 그 외 함수의 이름은 동사로 시작하는 `camelCase`를 사용하며, 변수명은 `camelCase`를 사용합니다. (람다식을 저장하는 변수도 `camelCase`를 사용합니다.)
+- 콜백 함수를 전달하는 변수일 경우 `on`으로 시작합니다. ex) `onButtonClicked`, `onDataLoaded`
+- 안드로이드 스튜디오 상의 IDE의 노란 줄에 주의합니다.
+
+# Development Environment
+
+다음은 본 프로젝트의 안드로이드 개발 환경입니다.
+
+- `targetSDK`: 35, `minSDK`: 26
+- 안드로이드 스튜디오 버전: Ladybug | 2024.2.1 또는 그 히상
+- 테스트 환경: 안드로이드 스튜디오 제공 에뮬레이터(AVD)
+- - 기기명: Pixel 8
+  - API 35 (Android 15.0, x86_64)
+  - 1080 x 2400 px (412 x 915 dp)
