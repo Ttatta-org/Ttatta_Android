@@ -53,6 +53,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+
     // 의존성 정의
     implementation(project(":core"))
 }
