@@ -157,7 +157,7 @@ fun InputTextField(
         keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
         modifier = Modifier
             .width(310.dp)
-            .height(40.dp),
+            .height(52.dp),
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color.Transparent,
             focusedContainerColor = Color.Transparent,
