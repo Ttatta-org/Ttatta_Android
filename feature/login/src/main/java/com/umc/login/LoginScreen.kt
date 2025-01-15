@@ -52,6 +52,7 @@ fun LoginScreen() {
         LoginTopView()
         LoginMiddleView()
         LoginButton()
+        LoginLinkText()
 
     }
 }
@@ -225,6 +226,10 @@ fun LoginLinkText() {
         )
     }
 }
+
+
+
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewLoginScreen() {
