@@ -2,6 +2,7 @@ package com.umc.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,10 +31,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -53,6 +58,8 @@ fun LoginScreen() {
         LoginMiddleView()
         LoginButton()
         LoginLinkText()
+        LoginOrDivider()
+        KakaoLoginButton()
 
     }
 }
@@ -66,7 +73,7 @@ fun LoginTopView() {
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_ttatta_logo),
-            modifier = Modifier.size(55.38.dp, 48.dp),
+            modifier = Modifier.size(55.36.dp, 48.dp),
             contentDescription = "ttatta_login_logo"
         )
         Spacer(modifier = Modifier.height(6.dp))
@@ -91,7 +98,7 @@ fun LoginMiddleView() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 99.dp),
+            .padding(top = 75.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 아이디 입력 필드
@@ -101,7 +108,7 @@ fun LoginMiddleView() {
             placeholder = "아이디 입력",
             isPassword = false
         )
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         // 비밀번호 입력 필드
         InputTextField(
@@ -134,18 +141,20 @@ fun InputTextField(
             fontSize = 14.sp
         ),
         placeholder = {
-            Text(
-                text = placeholder,
-                textAlign = TextAlign.Center,
-                fontSize = 14.sp,
-                color = Color.LightGray
-            )
+            Box (modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center){
+                Text(
+                    text = placeholder,
+                    fontSize = 14.sp,
+                    color = colorResource(R.color.gray_500)
+                )
+            }
         },
         visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
         trailingIcon = if (isPassword) {
             {
                 IconButton(onClick = { onPasswordToggleClick?.invoke() }) {
-                    Icon(
+                    Image(
                         painter = painterResource(
                             id = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility
                         ),
@@ -172,14 +181,14 @@ fun InputTextField(
 fun LoginButton() {
     Button(
         elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 2.dp, // 기본 그림자
+            defaultElevation = 1.dp, // 기본 그림자
             pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
             disabledElevation = 0.dp // enabled가 false일때 그림자
         ),
         onClick = { /* TODO: 로그인 로직 */ },
         modifier = Modifier
             .width(310.dp)
-            .padding(top = 24.dp)
+            .padding(top = 30.dp)
             .height(45.dp),
         shape = RoundedCornerShape(24.dp), // 라운딩 처리
         colors = ButtonDefaults.buttonColors(
@@ -188,7 +197,7 @@ fun LoginButton() {
     ) {
         Text(
             text = stringResource(R.string.login_button),
-            fontSize = 16.sp,
+            fontSize = 15.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
@@ -227,8 +236,79 @@ fun LoginLinkText() {
     }
 }
 
+@Composable
+fun LoginOrDivider() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .width(310.dp)
+            .padding(top = 25.dp)
+    ) {
+        // 왼쪽 구분선
+        Divider(
+            color = colorResource(R.color.gray_500),
+            thickness = 1.dp,
+            modifier = Modifier.weight(1f) // 가로 여백 비율로 확장
+        )
 
+        Spacer(modifier = Modifier.width(8.dp))
 
+        // '또는' 텍스트
+        Text(
+            text = "또는",
+            fontSize = 12.sp,
+            color = colorResource(R.color.gray_500),
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // 오른쪽 구분선
+        Divider(
+            color = colorResource(R.color.gray_500),
+            thickness = 1.dp,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+fun KakaoLoginButton() {
+    Button(
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 1.dp, // 기본 그림자
+            pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
+            disabledElevation = 0.dp // enabled가 false일때 그림자
+        ),
+        onClick = { /* TODO: 카카오로그인 로직 */ },
+        modifier = Modifier
+            .width(310.dp)
+            .padding(top = 10.dp)
+            .height(45.dp),
+        shape = RoundedCornerShape(24.dp), // 라운딩 처리
+        colors = ButtonDefaults.buttonColors(
+            containerColor = colorResource(R.color.kakaoYellow)
+        )
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_kakao),
+                contentDescription = "Kakao Login",
+                modifier = Modifier.size(12.99.dp, 12.dp)
+            )
+            Spacer(modifier = Modifier.padding(horizontal = 7.dp))
+
+            Text(
+                text = stringResource(R.string.kakao_login),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
