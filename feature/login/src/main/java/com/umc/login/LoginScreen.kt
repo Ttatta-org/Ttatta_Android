@@ -1,6 +1,8 @@
 package com.umc.login
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,7 +54,8 @@ fun LoginScreen() {
     // TODO: 화면 구현
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
     ) {
         LoginTopView()
         LoginMiddleView()
@@ -142,7 +145,7 @@ fun InputTextField(
         ),
         placeholder = {
             Box (modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center){
+                contentAlignment = Alignment.Center){ // 가운데 정렬 왜 안돼!!!?!
                 Text(
                     text = placeholder,
                     fontSize = 14.sp,
@@ -213,6 +216,7 @@ fun LoginLinkText() {
         horizontalArrangement = Arrangement.Center
     ) {
         Text(
+            modifier = Modifier.clickable { /* TODO: 아이디 찾기 로직 */ },
             text = stringResource(R.string.loginLink_id),
             fontSize = 12.sp,
             color = colorResource(R.color.orange_500)
@@ -221,6 +225,7 @@ fun LoginLinkText() {
         Text(text = "|",  color = colorResource(R.color.orange_500))
         Spacer(modifier = Modifier.width(6.dp))
         Text(
+            modifier = Modifier.clickable { /* TODO: 비밀번호 찾기 로직 */ },
             text = stringResource(R.string.loginLink_pw),
             fontSize = 12.sp,
             color = colorResource(R.color.orange_500)
@@ -229,6 +234,7 @@ fun LoginLinkText() {
         Text(text = "|",  color = colorResource(R.color.orange_500))
         Spacer(modifier = Modifier.width(6.dp))
         Text(
+            modifier = Modifier.clickable { /* TODO: 회원가입 로직 */ },
             text = stringResource(R.string.loginLink_join),
             fontSize = 12.sp,
             color = colorResource(R.color.orange_500)
