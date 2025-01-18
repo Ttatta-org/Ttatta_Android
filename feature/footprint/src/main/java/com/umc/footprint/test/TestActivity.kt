@@ -11,9 +11,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.umc.footprint.FootprintApp
 import com.umc.footprint.FootprintViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class TestActivity: ComponentActivity() {
-    val viewModel: FootprintViewModel by viewModels()
+    private val viewModel: FootprintViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,5 +30,7 @@ class TestActivity: ComponentActivity() {
                 }
             }
         }
+
+        viewModel.markPositionOnMap(37.450511, 126.681061)
     }
 }
