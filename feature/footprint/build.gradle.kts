@@ -6,6 +6,10 @@ plugins {
     // alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
+    // Hilt
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 val localProperties = Properties()
@@ -76,4 +80,10 @@ dependencies {
 
     // 네이버 지도 SDK
     implementation(libs.naver.map)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
+    ksp(libs.androidx.hilt.complier)
+    implementation(libs.androidx.hilt.navigation)
 }
