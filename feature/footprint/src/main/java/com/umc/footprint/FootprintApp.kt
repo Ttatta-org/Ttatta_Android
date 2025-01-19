@@ -39,6 +39,6 @@ fun FootprintApp(
         categoryItemProps = listOf(),
         onNewCategoryButtonClicked = {},
         onCategoryButtonClicked = { isCategoryCardVisible = !isCategoryCardVisible },
-        onLocationButtonClicked = {},
+        onLocationButtonClicked = { viewModel.moveMapToCurrentPosition() },
     )
 }

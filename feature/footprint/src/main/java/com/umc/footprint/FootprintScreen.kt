@@ -35,7 +35,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
@@ -99,7 +98,7 @@ fun FootprintScreen(
                     modifier = Modifier
                         .offset(
                             x = with(density) { prop.x.toDp() - diaryCardWidth / 2 },
-                            y = with(density) { prop.y.toDp() - diaryCardHeight },
+                            y = with(density) { prop.y.toDp() - diaryCardHeight - 12.dp },
                         )
                         .width(diaryCardWidth)
                         .height(diaryCardHeight)

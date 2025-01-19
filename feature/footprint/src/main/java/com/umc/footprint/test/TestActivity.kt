@@ -11,10 +11,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.umc.footprint.FootprintApp
 import com.umc.footprint.FootprintViewModel
+import com.umc.footprint.design.CategoryColor
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class TestActivity: ComponentActivity() {
+class TestActivity : ComponentActivity() {
     private val viewModel: FootprintViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,6 +32,10 @@ class TestActivity: ComponentActivity() {
             }
         }
 
-        viewModel.markPositionOnMap(37.450511, 126.681061)
+        viewModel.markPositionOnMap(
+            latitude = 37.55324496403485,
+            longitude = 126.97274865741072,
+            category = CategoryColor.BLUE,
+        )
     }
 }
