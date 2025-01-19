@@ -81,6 +81,10 @@ dependencies {
     // 네이버 지도 SDK
     implementation(libs.naver.map)
 
+    // Play Services Location
+    implementation(libs.play.services.location)
+    implementation(libs.kotlinx.coroutines.play.services)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
