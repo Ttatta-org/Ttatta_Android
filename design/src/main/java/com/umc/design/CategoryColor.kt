@@ -1,7 +1,6 @@
-package com.umc.footprint.design
+package com.umc.design
 
 import androidx.annotation.DrawableRes
-import com.umc.footprint.R
 
 enum class CategoryColor(
     @DrawableRes val flowerIconId: Int,
