@@ -11,7 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.umc.footprint.FootprintApp
 import com.umc.footprint.FootprintViewModel
-import com.umc.footprint.design.CategoryColor
+import com.umc.design.CategoryColor
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

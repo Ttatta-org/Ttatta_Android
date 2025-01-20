@@ -6,10 +6,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.umc.footprint.core.MapHandler
 import com.umc.footprint.core.MapMarker
-import com.umc.footprint.design.CategoryColor
+import com.umc.design.CategoryColor
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.umc.design.R
 
 @HiltViewModel
 class FootprintViewModel @Inject constructor(
@@ -36,7 +37,7 @@ class FootprintViewModel @Inject constructor(
         val marker = MapMarker(
             latitude = latitude,
             longitude = longitude,
-            icon = category?.footIconId,
+            icon = category?.footIconId ?: R.drawable.ic_foot,
             onClicked = onClicked@{ x, y ->
                 clickedMarkerPositionState.value = x to y
                 return@onClicked { clickedMarkerPositionState.value = null }

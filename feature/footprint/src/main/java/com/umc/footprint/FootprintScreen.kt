@@ -41,14 +41,15 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.umc.footprint.design.CategoryColor
-import com.umc.footprint.design.Grey400
-import com.umc.footprint.design.Grey500
-import com.umc.footprint.design.Primary400
-import com.umc.footprint.design.Secondary100
-import com.umc.footprint.design.Secondary300
+import com.umc.design.CategoryColor
+import com.umc.design.Grey400
+import com.umc.design.Grey500
+import com.umc.design.Primary400
+import com.umc.design.Secondary100
+import com.umc.design.Secondary300
 import com.umc.footprint.design.ShadowedImage
 import java.time.LocalDate
+import com.umc.design.R as Res
 
 data class CategoryItemProp(
     val name: String,
@@ -132,7 +133,7 @@ fun FootprintScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.ic_header_deco),
+                                    painter = painterResource(id = Res.drawable.ic_header_deco),
                                     contentDescription = null,
                                     modifier = Modifier.width(32.dp),
                                 )
@@ -242,7 +243,7 @@ fun FootprintScreen(
                 ) {
                     // 제목 라인
                     Image(
-                        painter = painterResource(id = R.drawable.ic_header_deco),
+                        painter = painterResource(id = Res.drawable.ic_header_deco),
                         contentDescription = null,
                         modifier = Modifier.width(32.dp),
                     )
@@ -332,7 +333,7 @@ fun CategoryItem(prop: CategoryItemProp) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
-                    painter = painterResource(id = prop.color?.footIconId ?: R.drawable.ic_foot),
+                    painter = painterResource(id = prop.color?.footIconId ?: Res.drawable.ic_foot),
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
                 )
