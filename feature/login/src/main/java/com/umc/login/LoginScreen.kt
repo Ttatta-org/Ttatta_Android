@@ -35,7 +35,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.focusModifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,9 +50,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(navController: NavHostController) {
     // TODO: 화면 구현
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -59,8 +62,7 @@ fun LoginScreen() {
     ) {
         LoginTopView()
         LoginMiddleView()
-        LoginButton()
-        LoginLinkText()
+        LoginLinkText(navController)
         LoginOrDivider()
         KakaoLoginButton()
 
@@ -97,6 +99,7 @@ fun LoginMiddleView() {
     var idState by remember { mutableStateOf("") }
     var pwState by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var isTextFieldFocused by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -109,7 +112,8 @@ fun LoginMiddleView() {
             value = idState,
             onValueChange = { idState = it },
             placeholder = "아이디 입력",
-            isPassword = false
+            isPassword = false,
+            onFocusChange = { isTextFieldFocused = it }
         )
         Spacer(modifier = Modifier.height(6.dp))
 
@@ -120,10 +124,35 @@ fun LoginMiddleView() {
             placeholder = "비밀번호 입력",
             isPassword = true,
             passwordVisible = passwordVisible,
-            onPasswordToggleClick = { passwordVisible = !passwordVisible }
+            onPasswordToggleClick = { passwordVisible = !passwordVisible },
+            onFocusChange = { isTextFieldFocused = it }
         )
+        Button(
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 1.dp, // 기본 그림자
+                pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
+                disabledElevation = 0.dp // enabled가 false일때 그림자
+            ),
+            onClick = { /* TODO: 로그인 로직 */ },
+            modifier = Modifier
+                .width(310.dp)
+                .padding(top = 30.dp)
+                .height(45.dp),
+            shape = RoundedCornerShape(24.dp), // 라운딩 처리
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isTextFieldFocused) Color(0xFFFCAD98) else colorResource(R.color.yellow_300)
+            )
+        ) {
+            Text(
+                text = stringResource(R.string.login_button),
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,55 +162,65 @@ fun InputTextField(
     placeholder: String,
     isPassword: Boolean,
     passwordVisible: Boolean = false,
-    onPasswordToggleClick: (() -> Unit)? = null
+    onPasswordToggleClick: (() -> Unit)? = null,
+    onFocusChange: (Boolean) -> Unit
 ) {
-    TextField(
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = true,
-        textStyle = LocalTextStyle.current.copy(
-            textAlign = TextAlign.Center,
-            fontSize = 14.sp
-        ),
-        placeholder = {
-            Box (modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center){ // 가운데 정렬 왜 안돼!!!?!
-                Text(
-                    text = placeholder,
-                    fontSize = 14.sp,
-                    color = colorResource(R.color.gray_500)
-                )
-            }
-        },
-        visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
-        trailingIcon = if (isPassword) {
-            {
-                IconButton(onClick = { onPasswordToggleClick?.invoke() }) {
-                    Image(
-                        painter = painterResource(
-                            id = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility
-                        ),
-                        contentDescription = "Toggle Password Visibility"
-                    )
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(
+                textAlign = TextAlign.Center,
+                fontSize = 14.sp
+            ),
+            placeholder = {
+            },
+            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+            trailingIcon = if (isPassword) {
+                {
+                    IconButton(onClick = { onPasswordToggleClick?.invoke() }) {
+                        Image(
+                            painter = painterResource(
+                                id = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility
+                            ),
+                            contentDescription = "Toggle Password Visibility"
+                        )
+                    }
                 }
-            }
-        } else null,
-        keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
-        modifier = Modifier
-            .width(310.dp)
-            .height(52.dp),
-        colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color.Transparent,
-            focusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.Black,
-            unfocusedIndicatorColor = colorResource(R.color.gray_500),
-            cursorColor = Color.Black
+            } else null,
+            keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
+            modifier = Modifier
+                .width(310.dp)
+                .height(52.dp)
+                .onFocusChanged { onFocusChange(it.isFocused) },
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = colorResource(R.color.gray_500),
+                unfocusedIndicatorColor = colorResource(R.color.gray_500),
+                cursorColor = Color.Black
+            )
         )
-    )
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = placeholder,
+                fontSize = 14.sp,
+                color = colorResource(R.color.gray_500)
+            )
+        }
+    }
 }
 
 @Composable
 fun LoginButton() {
+    var isButtonActive by remember { mutableStateOf(false) }
     Button(
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 1.dp, // 기본 그림자
@@ -195,7 +234,7 @@ fun LoginButton() {
             .height(45.dp),
         shape = RoundedCornerShape(24.dp), // 라운딩 처리
         colors = ButtonDefaults.buttonColors(
-            containerColor = colorResource(R.color.yellow_300)
+            containerColor = if (isButtonActive) colorResource(R.color.yellow_300) else Color.Gray
         )
     ) {
         Text(
@@ -208,7 +247,7 @@ fun LoginButton() {
 }
 
 @Composable
-fun LoginLinkText() {
+fun LoginLinkText(navController: NavHostController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -234,7 +273,7 @@ fun LoginLinkText() {
         Text(text = "|",  color = colorResource(R.color.orange_500))
         Spacer(modifier = Modifier.width(6.dp))
         Text(
-            modifier = Modifier.clickable { /* TODO: 회원가입 로직 */ },
+            modifier = Modifier.clickable { navController.navigate("join") },
             text = stringResource(R.string.loginLink_join),
             fontSize = 12.sp,
             color = colorResource(R.color.orange_500)
@@ -319,5 +358,5 @@ fun KakaoLoginButton() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewLoginScreen() {
-    LoginScreen()
+    LoginScreen(navController = NavHostController(LocalContext.current))
 }
