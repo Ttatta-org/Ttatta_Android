@@ -13,7 +13,7 @@ import javax.inject.Singleton
 object GeocoderModule {
     @Provides
     @Singleton
-    fun bindGeocoder(): Geocoder {
+    fun provideGeocoder(): Geocoder {
         return GeocoderImpl()
     }
 }
