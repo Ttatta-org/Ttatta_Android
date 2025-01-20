@@ -5,7 +5,9 @@
     <color name="orange_500">#FFFF8072</color>
     <color name="orange_200">#FFFCAD98</color>
     <color name="kakaoYellow">#FFFAE100</color>
+    <color name="negativeRed">#FFFF6060</color>
 
     <color name="gray_500">#FFCACACA</color>
+    <color name="gray_400">#FFE1E1E1</color>
 
 </resources>
