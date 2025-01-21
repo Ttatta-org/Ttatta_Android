@@ -15,7 +15,13 @@ fun MainNavigation(navController: NavHostController) {
             LoginScreen(navController)
         }
         composable("join") {
-            JoinScreen()
+            JoinScreen(navController)
+        }
+        composable("join_id") {
+            JoinIdScreen(navController)
+        }
+        composable("join_pw") {
+            JoinPwScreen(navController)
         }
     }
 }
