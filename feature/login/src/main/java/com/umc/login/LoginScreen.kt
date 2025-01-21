@@ -100,10 +100,11 @@ fun LoginTopView() {
 fun LoginMiddleView(loginViewModel: LoginViewModel = viewModel()) {
     val idState by loginViewModel.idState
     val pwState by loginViewModel.pwState
-    var passwordVisible by remember { mutableStateOf(false) }
-    var isTextFieldFocused by remember { mutableStateOf(false) }
-
-    Column(
+    var passwordVisible by loginViewModel.passwordVisible
+    var idTextFieldFocused by remember { mutableStateOf(false) }
+    var pwTextFieldFocused by remember { mutableStateOf(false) }
+    val isButtonActive = loginViewModel.isButtonActive()
+        Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 75.dp),
@@ -115,7 +116,7 @@ fun LoginMiddleView(loginViewModel: LoginViewModel = viewModel()) {
             onValueChange = { loginViewModel.onIdChange(it)},
             placeholder = "아이디 입력",
             isPassword = false,
-            onFocusChange = { isTextFieldFocused = it }
+            onFocusChange = { idTextFieldFocused = it }
         )
         Spacer(modifier = Modifier.height(6.dp))
 
@@ -127,7 +128,7 @@ fun LoginMiddleView(loginViewModel: LoginViewModel = viewModel()) {
             isPassword = true,
             passwordVisible = passwordVisible,
             onPasswordToggleClick = { passwordVisible = !passwordVisible },
-            onFocusChange = { isTextFieldFocused = it }
+            onFocusChange = { pwTextFieldFocused = it }
         )
         Button(
             elevation = ButtonDefaults.buttonElevation(
@@ -142,7 +143,7 @@ fun LoginMiddleView(loginViewModel: LoginViewModel = viewModel()) {
                 .height(45.dp),
             shape = RoundedCornerShape(24.dp), // 라운딩 처리
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (isTextFieldFocused) Color(0xFFFCAD98) else colorResource(R.color.yellow_300)
+                containerColor = if (isButtonActive) colorResource(R.color.orange_200) else colorResource(R.color.yellow_300)
             )
         ) {
             Text(

@@ -121,7 +121,7 @@ fun JoinIdView(navController: NavHostController) {
         )
 
         // Input Text Field
-        PwInputTextField(
+        IdInputTextField(
             value = idState,
             onValueChange = {
                 idState = it
@@ -171,6 +171,55 @@ fun JoinIdView(navController: NavHostController) {
             )
         }
     }
+}
+
+@Composable
+fun IdInputTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    onFocusChange: (Boolean) -> Unit,
+    isWarning: Boolean
+) {
+    TextField(
+        value = value,
+        onValueChange = {
+            if (it.length > 8) { // 8글자 제한
+                onValueChange(it)
+            }
+        },
+        singleLine = true,
+        textStyle = LocalTextStyle.current.copy(
+            textAlign = TextAlign.Center,
+            fontSize = 14.sp,
+            color = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
+        ),
+        placeholder = {
+            Box (
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = placeholder,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorResource(R.color.gray_500)
+                )
+            }
+        },
+        keyboardOptions = KeyboardOptions.Default,
+        modifier = Modifier
+            .width(310.dp)
+            .height(52.dp)
+            .onFocusChanged { onFocusChange(it.isFocused) },
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = colorResource(R.color.gray_500),
+            unfocusedIndicatorColor = colorResource(R.color.gray_500),
+            cursorColor = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
+        )
+    )
 }
 
 @Composable
