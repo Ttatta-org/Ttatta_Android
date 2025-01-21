@@ -50,7 +50,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import kotlin.math.log
 
 @Composable
 fun LoginScreen(navController: NavHostController) {
@@ -95,9 +97,9 @@ fun LoginTopView() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginMiddleView() {
-    var idState by remember { mutableStateOf("") }
-    var pwState by remember { mutableStateOf("") }
+fun LoginMiddleView(loginViewModel: LoginViewModel = viewModel()) {
+    val idState by loginViewModel.idState
+    val pwState by loginViewModel.pwState
     var passwordVisible by remember { mutableStateOf(false) }
     var isTextFieldFocused by remember { mutableStateOf(false) }
 
@@ -110,7 +112,7 @@ fun LoginMiddleView() {
         // 아이디 입력 필드
         InputTextField(
             value = idState,
-            onValueChange = { idState = it },
+            onValueChange = { loginViewModel.onIdChange(it)},
             placeholder = "아이디 입력",
             isPassword = false,
             onFocusChange = { isTextFieldFocused = it }
@@ -120,7 +122,7 @@ fun LoginMiddleView() {
         // 비밀번호 입력 필드
         InputTextField(
             value = pwState,
-            onValueChange = { pwState = it },
+            onValueChange = { loginViewModel.onPwChange(it) },
             placeholder = "비밀번호 입력",
             isPassword = true,
             passwordVisible = passwordVisible,
