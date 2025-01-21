@@ -2,6 +2,7 @@ package com.umc.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -29,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,17 +40,37 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 
 @Composable
-fun JoinIdScreen() {
+fun JoinIdScreen(navController: NavHostController) {
     Column (
-        horizontalAlignment = Alignment.CenterHorizontally,
+        //horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize()
     ){
+        IdBackButton(navController)
         JoinIdTopView(currentStep = 2, totalSteps = 4)
-        JoinIdView()
+        JoinIdView(navController)
 
 
+    }
+}
+
+@Composable
+fun IdBackButton(navController: NavHostController) {
+    Box (
+        modifier = Modifier
+            .wrapContentSize()
+            .padding(top = 50.dp, start = 30.dp)
+    ){
+        Image(
+            painter = painterResource(R.drawable.ic_back),
+            modifier = Modifier
+                .size(15.dp, 21.dp)
+                .clickable { navController.navigate("join") },
+            contentDescription = "back_button",
+
+            )
     }
 }
 
@@ -57,7 +80,7 @@ fun JoinIdTopView(currentStep: Int, totalSteps: Int) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .padding(top = 92.dp)
+            .padding(top = 20.dp)
             .fillMaxWidth()
 
     ) {
@@ -75,7 +98,7 @@ fun JoinIdTopView(currentStep: Int, totalSteps: Int) {
 }
 
 @Composable
-fun JoinIdView() {
+fun JoinIdView(navController: NavHostController) {
     var idState by remember { mutableStateOf("") }
     var isTextFieldFocused by remember { mutableStateOf(false) }
     var isWarningVisible by remember { mutableStateOf(false) }
@@ -130,7 +153,7 @@ fun JoinIdView() {
                 pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
                 disabledElevation = 0.dp // enabled가 false일때 그림자
             ),
-            onClick = { /* TODO: 로그인 로직 */ },
+            onClick = { navController.navigate("join_pw") },
             modifier = Modifier
                 .width(310.dp)
                 .padding(top = 139.dp)
@@ -152,19 +175,18 @@ fun JoinIdView() {
 
 @Composable
 fun IdProgressBar(currentStep: Int, totalSteps: Int) {
-    // 전체 진행률을 계산합니다.
-    val progress = currentStep.toFloat() / totalSteps
+    // 각 단계별 진행률을 설정합니다. 총합은 1.0이어야 합니다.
+    val stepRatios = listOf(0.25f, 0.25f, 0.25f, 0.25f) // 단계별 비율 (1단계: 25%, 2단계: 25% 등)
 
+    // 현재 단계까지의 진행률을 계산합니다.
+    val progress = stepRatios.take(currentStep).sum()
+    val barStep = (progress*1000)
     Box(
         modifier = Modifier
             .width(340.dp)
             .height(5.dp)
             .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(Color(0xFFFF9681), Color(0xFFFDDDC1)), // 그라데이션 색상
-                    startX = 0f,
-                    endX = 1000f // 그라데이션이 전체 너비를 덮도록 설정
-                ),
+                color = colorResource(R.color.gray_500), // 그라데이션이 전체 너비를 덮도록 설정
                 shape = RoundedCornerShape(4.dp)
             )
     ) {
@@ -174,9 +196,9 @@ fun IdProgressBar(currentStep: Int, totalSteps: Int) {
                 .height(8.dp)
                 .background(
                     brush = Brush.horizontalGradient(
-                        colors = listOf(Color(0xFFFFA07A), Color(0xFFFFC1A1)), // 채워진 부분 색상
+                        colors = listOf(Color(0xFFFF9861), Color(0xFFFDDDC1)), // 채워진 부분 색상
                         startX = 0f,
-                        endX = 1000f
+                        endX = barStep
                     ),
                     shape = RoundedCornerShape(4.dp)
                 )
@@ -188,5 +210,5 @@ fun IdProgressBar(currentStep: Int, totalSteps: Int) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewJoinIdScreen() {
-    JoinIdScreen()
+    JoinIdScreen(navController = NavHostController(LocalContext.current))
 }
