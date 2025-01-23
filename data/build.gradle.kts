@@ -15,7 +15,7 @@ localProperties.load(FileInputStream(rootProject.file("local.properties")))
 
 android {
     namespace = "com.umc.data"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26
