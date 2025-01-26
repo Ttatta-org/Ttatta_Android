@@ -1,4 +1,4 @@
-package com.umc.data.api.response
+package com.umc.data.api.dto
 
 data class GeocodingResponse(
     val status: String,
