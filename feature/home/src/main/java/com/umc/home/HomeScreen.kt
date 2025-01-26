@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -34,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -48,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import com.umc.home.components.BottomNavigationBarWithFAB
 import com.umc.home.components.TopBarComponent
 import com.umc.home.HomeViewModel
+import com.umc.home.components.SearchBar
 import com.umc.home.utils.formatToKorean
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.LocalDate
@@ -60,10 +63,13 @@ fun HomeScreen(
     onCalendarToggle: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val searchResults by viewModel.searchResults.collectAsState()
 
     // 캘린더가 보이는지 여부를 관리하는 상태
     var isCalendarVisible by remember { mutableStateOf(false) }
     var isSearchVisible by remember { mutableStateOf(false) }
+
+    var searchQuery by remember { mutableStateOf("") }
 
     // 드래그 버튼의 상태 (ic_bottom_arrow 또는 ic_top_arrow)
     val dragIcon = when {
@@ -82,8 +88,17 @@ fun HomeScreen(
             TopBarComponent(
                 isExpanded = isCalendarVisible,
                 isSearchVisible = isSearchVisible,
-                onSearchToggle = { isSearchVisible = !isSearchVisible },
-                onCalendarToggle = { isCalendarVisible = !isCalendarVisible },
+                searchQuery = searchQuery,
+                onQueryChange = { searchQuery = it },
+                onSearch = { viewModel.searchDiaries(searchQuery) },
+                onSearchToggle = {
+                    isSearchVisible = !isSearchVisible
+                    if (isSearchVisible) isCalendarVisible = false // 검색창 활성화 시 달력 비활성화
+                },
+                onCalendarToggle = {
+                    isCalendarVisible = !isCalendarVisible
+                    if (isCalendarVisible) isSearchVisible = false // 달력 활성화 시 검색창 비활성화
+                },
                 calendarContent = { modifier ->
                     CalendarView(
                         modifier = modifier,
@@ -102,21 +117,25 @@ fun HomeScreen(
             )
         }
     ) { innerPadding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFFEF6F2))
                 .padding(innerPadding)
                 .padding(start = 25.dp, end = 25.dp)
+
         ) {
             // 드래그 가능 영역
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(30.dp),
+                    .height(30.dp)
+                    .background(Color.Transparent),
                 contentAlignment = Alignment.Center
             ) {
                 IconButton(
+                    modifier = Modifier.size(42.dp, 14.dp),
                     onClick = {
                         // 아이콘 클릭 시 동작
                         if (isSearchVisible || isCalendarVisible) {
@@ -162,11 +181,21 @@ fun HomeScreen(
 //                    )
 //                }
 
+//            if (isSearchVisible) {
+//                SearchBar(
+//                    query = searchQuery,
+//                    onQueryChange = { searchQuery = it },
+//                    onSearch = { viewModel.searchDiaries(searchQuery) }
+//                )
+//            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 다이어리 리스트
+            // 검색 결과 또는 전체 리스트 표시
             LazyColumn {
-                items(uiState.diaries) { diary ->
+                // 검색창에 입력된 경우 검색 결과 표시
+                val itemsToShow = if (searchQuery.isNotEmpty()) searchResults else uiState.diaries
+                items(itemsToShow) { diary ->
                     DiaryCard(
                         diary = diary,
                         onDetailClick = { isDetailModalVisible = true }
@@ -628,15 +657,23 @@ fun PreviewHomeScreen() {
     val mockUiState = HomeUiState(
         diaries = listOf(
             Diary(LocalDate.of(2025, 1, 25), R.drawable.pudding, "귀여운 깜찍 토끼 초코푸딩!"),
-            Diary(LocalDate.of(2025, 1, 22), R.drawable.cafe, "오늘의 다짐: 더 나은 내가 되자!")
+            Diary(LocalDate.of(2025, 1, 22), R.drawable.cafe, "오늘의 다짐: 더 나은 내가 되자!"),
+            Diary(LocalDate.of(2025, 1, 21), R.drawable.cafe, "토끼 모양 케이크가 정말 귀엽다. very cute ><")
         )
     )
 
+    // ViewModel 생성 및 검색 상태 관리
+    val viewModel = object : HomeViewModel() {
+        override val uiState = MutableStateFlow(mockUiState)
+    }
+
+    // 검색 상태 관리ㄱ
+    var searchQuery by remember { mutableStateOf("") }
+
     HomeScreen(
-        viewModel = object : HomeViewModel() {
-            override val uiState = MutableStateFlow(mockUiState)
-        },
+        viewModel = viewModel,
         onFabClick = { /* Do nothing */ },
         onCalendarToggle = { /* Do nothing */ }
     )
 }
+
