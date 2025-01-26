@@ -1,12 +1,12 @@
 package com.umc.footprint.core
 
-import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
+import com.umc.design.CategoryColor
 
 data class MapMarker(
     val latitude: Double,
     val longitude: Double,
-    @DrawableRes val icon: Int? = null,
+    val color: CategoryColor? = null,
     val title: String? = null,
     val description: String? = null,
     val onClicked: ((Float, Float) -> (() -> Unit)?)? = null,
