@@ -1,4 +1,4 @@
-package com.umc.footprint.design
+package com.umc.footprint.component
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
