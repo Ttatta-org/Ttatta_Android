@@ -44,10 +44,17 @@ open class HomeViewModel : ViewModel() {
 
     fun searchDiaries(query: String) {
         viewModelScope.launch {
-            val filteredDiaries = _uiState.value.diaries.filter {
-                it.content.contains(query, ignoreCase = true)
+            // 검색어를 공백 기준으로 분리
+            val queryKeywords = query.trim().split("\\s+".toRegex())
+
+            val filteredDiaries = _uiState.value.diaries.filter { diary ->
+                // 각 다이어리 콘텐츠를 공백 제거한 뒤, 검색어 키워드들이 포함되어 있는지 확인
+                val normalizedContent = diary.content.replace("\\s+".toRegex(), "")
+                queryKeywords.all { normalizedContent.contains(it, ignoreCase = true) }
             }.sortedByDescending { it.date } // 최신순 정렬
+
             _searchResults.value = filteredDiaries
         }
     }
+
 }

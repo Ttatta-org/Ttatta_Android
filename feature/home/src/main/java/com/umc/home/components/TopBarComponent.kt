@@ -8,6 +8,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -194,31 +197,46 @@ fun SearchBar(
     onSearch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = Modifier
+    Box(
+        modifier = modifier
             .background(
                 color = Color(0xFFFEF6F2),
                 shape = RoundedCornerShape(15.dp)
             )
-            .padding(start = 10.dp, end = 55.dp, top = 5.dp, bottom = 5.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = 10.dp, vertical = 5.dp)
+            .fillMaxWidth()
     ) {
-        androidx.compose.material3.TextField(
+        // Placeholder 텍스트를 기본 텍스트처럼 보이게
+        if (query.isEmpty()) {
+            Text(
+                text = "찾고 싶은 내용을 입력해주세요!",
+                fontSize = 13.sp,
+                color = Color(0xFFCACACA)
+            )
+        }
+
+        BasicTextField(
             value = query,
             onValueChange = onQueryChange,
-            placeholder = {
-                Text(
-                    text = "찾고 싶은 내용을 입력해주세요!",
-                    fontSize = 13.sp,
-                    color = Color(0xFFCACACA)
-                )
-            },
-            modifier = Modifier.fillMaxWidth()
+            singleLine = true,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = androidx.compose.ui.text.input.ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    onSearch() // "검색" 버튼 클릭 시 동작
+                }
+            ),
+            textStyle = androidx.compose.ui.text.TextStyle(
+                color = Color.Black,
+                fontSize = 13.sp
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp)
         )
     }
 }
-
-
 
 
 
