@@ -228,22 +228,42 @@ fun HomeScreen(
         }
 
         // 디테일 모달창 (수정/삭제)
-        Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter // 하단 중앙 정렬
-        ) {
-            AnimatedVisibility(
-                visible = isDetailModalVisible,
-                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+        // 모달이 열렸을 때만 FullSize 배경 클릭 이벤트 처리
+        if (isDetailModalVisible) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        onClick = { isDetailModalVisible = false }, // 모달 외부 클릭 시 닫기
+                        indication = null, // 클릭 애니메이션 제거
+                        interactionSource = remember { MutableInteractionSource() }
+                    )
+            )
+
+            // 디테일 모달창 (수정/삭제)
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.BottomCenter // 하단 중앙 정렬
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
+                AnimatedVisibility(
+                    visible = isDetailModalVisible,
+                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
                 ) {
-                    DetailModal(onDismiss = { isDetailModalVisible = false })
+                    // 모달 내용
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .clickable(
+                                onClick = { /* 모달 내부 클릭 시 닫히지 않음 */ },
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            )
+                    ) {
+                        DetailModal(onDismiss = { isDetailModalVisible = false })
+                    }
                 }
             }
         }
