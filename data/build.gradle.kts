@@ -26,6 +26,7 @@ android {
         listOf(
             "NAVER_SDK_CLIENT_SECRET",
             "NAVER_SDK_CLIENT_ID",
+            "SERVER_BASE_URL"
         ).forEach {
             buildConfigField("String", it, "\"${localProperties.getProperty(it)}\"")
         }
@@ -65,6 +66,7 @@ dependencies {
 
     // 의존성 정의
     implementation(project(":core"))
+    implementation(project(":design"))
 
     // Hilt
     implementation(libs.hilt.android)
