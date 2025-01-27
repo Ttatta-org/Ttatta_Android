@@ -193,8 +193,11 @@ fun HomeScreen(
 
             // 검색 결과 또는 전체 리스트 표시
             LazyColumn {
-                // 검색창에 입력된 경우 검색 결과 표시
-                val itemsToShow = if (searchQuery.isNotEmpty()) searchResults else uiState.diaries
+                val itemsToShow = if (searchQuery.isNotEmpty() && searchResults.isNotEmpty()) {
+                    searchResults // 검색 결과 표시
+                } else {
+                    uiState.diaries // 검색 결과가 없거나 검색 쿼리가 비어 있을 때 기본 다이어리 표시
+                }
                 items(itemsToShow) { diary ->
                     DiaryCard(
                         diary = diary,
