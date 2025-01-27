@@ -71,6 +71,10 @@ fun HomeScreen(
 
     var searchQuery by remember { mutableStateOf("") }
 
+    // 최근 검색어 관리
+    val recentSearches = remember { mutableStateListOf<String>() } // 최근 검색어 리스트
+
+
     // 드래그 버튼의 상태 (ic_bottom_arrow 또는 ic_top_arrow)
     val dragIcon = when {
         isSearchVisible -> R.drawable.ic_top_arrow // 검색 상태에서는 아래로 화살표
@@ -90,7 +94,13 @@ fun HomeScreen(
                 isSearchVisible = isSearchVisible,
                 searchQuery = searchQuery,
                 onQueryChange = { searchQuery = it },
-                onSearch = { viewModel.searchDiaries(searchQuery) },
+                onSearch = {
+                    if (searchQuery.isNotEmpty()) {
+                        recentSearches.add(0, searchQuery) // 최근 검색어 추가
+                        if (recentSearches.size > 3) recentSearches.removeAt(recentSearches.size - 1) // 최대 3개 유지
+                    }
+                    viewModel.searchDiaries(searchQuery) // 검색 실행
+                },
                 onSearchToggle = {
                     isSearchVisible = !isSearchVisible
                     if (isSearchVisible) isCalendarVisible = false // 검색창 활성화 시 달력 비활성화
@@ -107,7 +117,9 @@ fun HomeScreen(
                         },
                         diaryDates = uiState.diaries.map { it.date }
                     )
-                }
+                },
+                recentSearches = recentSearches,
+                onRecentSearchClick = { query -> searchQuery = query } // 최근 검색어 클릭 시 동작
             )
         },
         bottomBar = {
@@ -477,6 +489,45 @@ fun CalendarView(
     }
 }
 
+@Composable
+fun RecentSearches(
+    recentSearches: List<String>, // 최근 검색어 리스트
+    onRecentSearchClick: (String) -> Unit // 클릭 시 동작
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 13.dp, start = 36.dp)
+    ) {
+        Text(
+            text = "최근 검색어",
+            fontSize = 12.sp,
+            color = (Color(0xFF4B4B4B)),
+            modifier = Modifier.padding(bottom = 5.dp)
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            recentSearches.take(3).forEach { search -> // 최대 3개만 표시
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, Color(0xFFFDDDC1), RoundedCornerShape(16.dp))
+                        .background(Color(0xFFFEF6F2))
+                        .clickable { onRecentSearchClick(search) }
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = search,
+                        fontSize = 10.sp,
+                        color = Color(0xFF8E8E8E)
+                    )
+                }
+            }
+        }
+    }
+}
 
 
 

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.umc.home.R
+import com.umc.home.RecentSearches
 
 @Composable
 fun TopBarComponent(
@@ -40,7 +41,9 @@ fun TopBarComponent(
     onSearch: () -> Unit,
     onSearchToggle: () -> Unit,
     onCalendarToggle: () -> Unit,
-    calendarContent: @Composable (Modifier) -> Unit
+    calendarContent: @Composable (Modifier) -> Unit,
+    recentSearches: List<String>, // 최근 검색어 리스트 추가
+    onRecentSearchClick: (String) -> Unit // 최근 검색어 클릭 동작 추가
 ) {
     val baseHeight = when {
         isSearchVisible -> 230.dp
@@ -150,6 +153,20 @@ fun TopBarComponent(
 
                     calendarContent(Modifier.height(400.dp))
 
+                }
+            }
+
+            if (isSearchVisible) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 40.dp),
+                    contentAlignment = Alignment.TopStart
+                ){
+                    RecentSearches(
+                        recentSearches = recentSearches,
+                        onRecentSearchClick = onRecentSearchClick
+                    )
                 }
             }
         }
