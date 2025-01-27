@@ -1,7 +1,7 @@
 package com.umc.data.api
 
-import com.umc.data.api.dto.GeocodingResponse
-import com.umc.data.api.dto.ReverseGeocodingResponse
+import com.umc.data.api.dto.naver.GeocodingResponse
+import com.umc.data.api.dto.naver.ReverseGeocodingResponse
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Query
