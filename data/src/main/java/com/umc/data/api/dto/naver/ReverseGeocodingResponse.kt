@@ -1,4 +1,4 @@
-package com.umc.data.api.dto
+package com.umc.data.api.dto.naver
 
 data class ReverseGeocodingResponse(
     val status: RGStatus,
