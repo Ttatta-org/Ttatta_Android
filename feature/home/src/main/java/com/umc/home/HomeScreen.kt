@@ -54,13 +54,15 @@ import com.umc.home.components.SearchBar
 import com.umc.home.utils.formatToKorean
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.YearMonth
 
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
     onFabClick: () -> Unit,
-    onCalendarToggle: () -> Unit
+    onCalendarToggle: () -> Unit,
+    onNavigateToFilteredDiaryScreen: (LocalDate) -> Unit // 캘린더 날짜
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val searchResults by viewModel.searchResults.collectAsState()
@@ -113,9 +115,9 @@ fun HomeScreen(
                     CalendarView(
                         modifier = modifier,
                         onDateSelected = { selectedDate ->
-                            println("Selected Date: $selectedDate")
+                            onNavigateToFilteredDiaryScreen(selectedDate)
                         },
-                        diaryDates = uiState.diaries.map { it.date }
+                        diaryDates = uiState.diaries.map { it.date.toLocalDate() }
                     )
                 },
                 recentSearches = recentSearches,
@@ -208,7 +210,7 @@ fun HomeScreen(
                 val itemsToShow = if (searchQuery.isNotEmpty() && searchResults.isNotEmpty()) {
                     searchResults // 검색 결과 표시
                 } else {
-                    uiState.diaries // 검색 결과가 없거나 검색 쿼리가 비어 있을 때 기본 다이어리 표시
+                    viewModel.getSortedDiaries() // 검색 결과가 없거나 검색 쿼리가 비어 있을 때 기본 다이어리 표시
                 }
                 items(itemsToShow) { diary ->
                     DiaryCard(
@@ -730,9 +732,10 @@ fun DashedDivider() {
 fun PreviewHomeScreen() {
     val mockUiState = HomeUiState(
         diaries = listOf(
-            Diary(LocalDate.of(2025, 1, 25), R.drawable.pudding, "귀여운 깜찍 토끼 초코푸딩!"),
-            Diary(LocalDate.of(2025, 1, 22), R.drawable.cafe, "오늘의 다짐: 더 나은 내가 되자!"),
-            Diary(LocalDate.of(2025, 1, 21), R.drawable.cafe, "토끼 모양 케이크가 정말 귀엽다. very cute ><")
+            Diary(LocalDateTime.of(2025, 1, 25, 14, 30), R.drawable.pudding, "귀여운 깜찍 토끼 초코푸딩!"),
+            Diary(LocalDateTime.of(2025, 1, 22, 18, 45), R.drawable.letter, "항상 건강하고 행복하게!"),
+            Diary(LocalDateTime.of(2025, 1, 22, 9, 15), R.drawable.cafe, "오늘의 다짐: 더 나은 내가 되자!"),
+            Diary(LocalDateTime.of(2025, 1, 21, 11, 0), R.drawable.cafe, "토끼 모양 케이크가 정말 귀엽다.")
         )
     )
 
@@ -747,6 +750,7 @@ fun PreviewHomeScreen() {
     HomeScreen(
         viewModel = viewModel,
         onFabClick = { /* Do nothing */ },
+        onNavigateToFilteredDiaryScreen = { selectedDate -> println("Navigating to $selectedDate") },
         onCalendarToggle = { /* Do nothing */ }
     )
 }

@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 data class HomeUiState(
@@ -13,7 +14,7 @@ data class HomeUiState(
 )
 
 data class Diary(
-    val date: LocalDate,
+    val date: LocalDateTime,
     // 나중에 string으로 변경 필요
     val imageUrl: Int,
     val content: String
@@ -34,12 +35,18 @@ open class HomeViewModel : ViewModel() {
     private fun loadDiaries() {
         viewModelScope.launch {
             val dummyDiaries = listOf(
-                Diary(LocalDate.of(2025, 1, 25), R.drawable.pudding, "귀여운 깜찍 토끼 초코푸딩!"),
-                Diary(LocalDate.of(2025, 1, 22), R.drawable.cafe, "오늘의 다짐: 더 나은 내가 되자!"),
-                Diary(LocalDate.of(2025, 1, 21), R.drawable.cafe, "토끼 모양 케이크가 정말 귀엽다.")
+                Diary(LocalDateTime.of(2025, 1, 25, 14, 30), R.drawable.pudding, "귀여운 깜찍 토끼 초코푸딩!"),
+                Diary(LocalDateTime.of(2025, 1, 22, 18, 45), R.drawable.letter, "항상 건강하고 행복하게!"),
+                Diary(LocalDateTime.of(2025, 1, 22, 9, 15), R.drawable.cafe, "오늘의 다짐: 더 나은 내가 되자!"),
+                Diary(LocalDateTime.of(2025, 1, 21, 11, 0), R.drawable.cafe, "토끼 모양 케이크가 정말 귀엽다.")
             )
             _uiState.value = HomeUiState(diaries = dummyDiaries)
         }
+    }
+
+    // 다이어리 최신순 정렬
+    fun getSortedDiaries(): List<Diary> {
+        return _uiState.value.diaries.sortedByDescending { it.date } // 최신순 정렬
     }
 
     fun searchDiaries(query: String) {

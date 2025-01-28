@@ -15,6 +15,7 @@ class HomeApp : ComponentActivity() {
             HomeScreen(
                 viewModel = homeViewModel,
                 onFabClick = { /* FAB 클릭 이벤트 */ },
+                onNavigateToFilteredDiaryScreen = { selectedDate -> println("Navigating to $selectedDate") },
                 onCalendarToggle = { /* 캘린더 열기/닫기 이벤트 */ }
             )
         }
