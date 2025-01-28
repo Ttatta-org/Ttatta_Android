@@ -1,5 +1,6 @@
 plugins {
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.android.application)
+    //alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
@@ -12,7 +13,7 @@ android {
         minSdk = 26
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
+        // consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
@@ -55,4 +56,5 @@ dependencies {
 
     // 의존성 정의
     implementation(project(":core"))
+    implementation(project(":design"))
 }
