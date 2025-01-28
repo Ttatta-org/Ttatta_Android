@@ -11,20 +11,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -43,11 +42,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.size.Size
+import android.content.Context
 import com.umc.design.R as Res
 
 @Composable
 fun RecordScreen() {
-    var showCustomDialog by remember { mutableStateOf(false) } // 다이얼로그 초기 상태 off
+    var showCustomDialog by remember { mutableStateOf(true) } // 다이얼로그 초기 상태 off
+
+    val categories = listOf(
+        "친구들" to "Red",
+        "가족" to "Blue",
+        "남자친구" to "Pink",
+        "일상" to "Yellow",
+        "다시 오고 싶은 장소" to "Green",
+        "제주여행" to "Turquoise"
+    )
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -80,7 +92,17 @@ fun RecordScreen() {
 
         // 다이얼로그
         if (showCustomDialog) {
-            CustomCategoryDialog(onDismiss = { showCustomDialog = false })
+            CustomCategoryDialog(
+                categories = categories,
+                onDismiss = { showCustomDialog = false }
+//                onCategorySelected = { selectedCategory ->
+//                    if (selectedCategory == "new") {
+//                        // 새 발자국 생성 로직
+//                    } else {
+//                        // 선택된 기존 카테고리 처리
+//                    }
+//                }
+            )
         }
     }
 }
@@ -289,68 +311,90 @@ fun RecordBottomSheet(name: String) {
 }
 
 @Composable
-fun CustomCategoryDialog(onDismiss: () -> Unit) {
+fun CustomCategoryDialog(
+    onDismiss: () -> Unit,
+    categories: List<Pair<String, String>> // 외부에서 받아오는 카테고리 데이터
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .clickable { onDismiss() }, // 바깥 클릭 시 닫기
+        contentAlignment = Alignment.TopCenter
+    ) {
+        // 배경 이미지
+        Box(
+            modifier = Modifier
+                .wrapContentSize()
+                .padding(start = 90.dp, top = 90.dp) // 상단 여백 설정
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.img_catebackground), // 배경 이미지 리소스
+                contentDescription = "Background Image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(), // 높이는 내용에 맞춤
+                contentScale = ContentScale.Fit // 배경 이미지를 맞춤
+            )
 
+            // 카테고리 리스트
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 60.dp, vertical = 12.dp) // 배경 안쪽 여백
+            ) {
+                categories.forEach { (name, colorKey) ->
+                    val (backgroundColor, iconRes) = getCategoryStyle(colorKey) // 카테고리 스타일
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .widthIn(max = 100.dp) // 카테고리 항목 너비 제한
+                            .padding(vertical = 4.dp) // 항목 간격
+                    ) {
+                        Icon(
+                            painter = painterResource(id = iconRes),
+                            contentDescription = name,
+                            modifier = Modifier.size(24.dp),
+                            tint = Color.Unspecified
+                        )
+
+                        Spacer(modifier = Modifier.width(11.17.dp)) // 아이콘과 텍스트 간격
+
+                        Text(
+                            text = name,
+                            fontSize = 12.sp,
+                            color = Color.Black
+                        )
+                    }
+                }
+
+                // "발자국 새로 만들기" 항목
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .clickable { /* 새 발자국 생성 로직 추가 */ }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_foot_new),
+                        contentDescription = "발자국 새로 만들기",
+                        modifier = Modifier.size(24.dp),
+                        tint = Color.Unspecified
+                    )
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Text(
+                        text = "발자국 새로 만들기",
+                        fontSize = 12.sp,
+                        color = Color(0xFFFF9681)
+                    )
+                }
+            }
+        }
+    }
 }
-
-//@Composable
-//fun CustomDialog(onDismiss: () -> Unit) {
-//    Box(
-//        modifier = Modifier
-//            .fillMaxSize(),
-//        contentAlignment = Alignment.TopStart // 화면 상단 기준으로 위치를 맞춤
-//    ) {
-//        Card(
-//            shape = RoundedCornerShape(16.dp),
-//            modifier = Modifier
-//                .width(280.dp)
-//                .wrapContentHeight()
-//                .padding(start = 100.dp, top = 100.dp) // 발자국 아이콘 위치에 맞게 조정
-//                .background(Color(0xFFFFF6F4)) // 배경색 설정
-//        ) {
-//            Column(
-//                verticalArrangement = Arrangement.Center,
-//                horizontalAlignment = Alignment.Start,
-//                modifier = Modifier.padding(16.dp)
-//            ) {
-//                Text(
-//                    text = "발자국 선택",
-//                    fontSize = 16.sp,
-//                    color = Color(0xFFFF9681),
-//                    modifier = Modifier.padding(bottom = 8.dp)
-//                )
-//                Spacer(modifier = Modifier.height(8.dp))
-//                // 옵션 리스트
-//                val options = listOf("친구들", "가족", "남자친구", "일상", "다시 오고 싶은 장소", "제주여행", "발자국 새로 만들기")
-//                options.forEach { option ->
-//                    Row(
-//                        verticalAlignment = Alignment.CenterVertically,
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .clickable {
-//                                // 클릭 시 동작 (필요에 따라 수정)
-//                                onDismiss()
-//                            }
-//                            .padding(vertical = 8.dp)
-//                    ) {
-//                        Icon(
-//                            painter = painterResource(id = R.drawable.ic_foot_default), // 발자국 아이콘
-//                            contentDescription = null,
-//                            tint = Color(0xFFFF9681),
-//                            modifier = Modifier.size(24.dp)
-//                        )
-//                        Spacer(modifier = Modifier.width(8.dp))
-//                        Text(
-//                            text = option,
-//                            fontSize = 14.sp,
-//                            color = Color.Black
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
 
 @Preview(showBackground = true)
 @Composable

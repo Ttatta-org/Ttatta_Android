@@ -58,4 +58,8 @@ dependencies {
     // 의존성 정의
     implementation(project(":core"))
     implementation(project(":design"))
+
+    // Coil
+    implementation("io.coil-kt.coil3:coil-compose:3.0.4")
+    implementation("io.coil-kt.coil3:coil-svg:3.0.4")
 }
