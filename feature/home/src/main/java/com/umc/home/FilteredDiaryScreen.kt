@@ -76,6 +76,8 @@ fun FilteredDiaryScreen(
                 searchQuery = "",
                 onQueryChange = { /* 검색 로직 필요 시 추가 */ },
                 onSearch = { /* 검색 실행 */ },
+                searchResults = listOf(),
+                isSearchTriggered = false,
                 onSearchToggle = { /* 검색 상태 토글 */ },
                 onCalendarToggle = { /* 캘린더 토글 */ },
                 calendarContent = {}, // 캘린더 미표시
@@ -94,7 +96,6 @@ fun FilteredDiaryScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFFEF6F2))
-                .padding(start = 30.dp, end = 30.dp)
 
         ) {
             LazyColumn(
@@ -125,7 +126,6 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
             modifier = Modifier
                 .padding(top = 13.dp, bottom = 20.dp, start = 30.dp, end = 30.dp)
                 .fillMaxWidth()
-                .background(Color.White)
 
         ) {
             Column(
@@ -140,13 +140,13 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
                         .height(16.dp)
                 )
 
-                Spacer(modifier = Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(7.dp))
 
                 Text(
                     text = diary.date.formatToKorean(), // 날짜 텍스트
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = Color(0xFFFF9681), // 텍스트 색상
-                        fontSize = 12.sp
+                        fontSize = 14.sp
                     )
                 )
             }
@@ -181,7 +181,8 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
             Row(
                 modifier = Modifier
                     .wrapContentWidth()
-                    .background(Color(0xFFFEF6F2), RoundedCornerShape(20.dp)) // 배경색 및 모양 설정
+                    .border(1.dp, Color(0xFFFDE9D9), RoundedCornerShape(20.dp))
+                    .background(Color.White, RoundedCornerShape(20.dp))
                     .padding(horizontal = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -193,7 +194,7 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
                         .height(10.dp),
                 )
 
-                Spacer(modifier = Modifier.width(5.dp))
+                Spacer(modifier = Modifier.width(12.dp))
 
                 Text(
                     text = diary.date.formatToKorean(), // 날짜 텍스트
@@ -204,7 +205,7 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
                 )
             }
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(6.5.dp))
 
             // 내용 텍스트
             Box(

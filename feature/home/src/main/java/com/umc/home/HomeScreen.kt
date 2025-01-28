@@ -88,6 +88,10 @@ fun HomeScreen(
     var isExpanded by remember { mutableStateOf(false) }
     // 디테일 모달의 표시 여부 상태 관리
     var isDetailModalVisible by remember { mutableStateOf(false) }
+    // 🔹 검색 실행 여부를 추적하는 변수
+
+    var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
+
 
     Scaffold(
         topBar = {
@@ -96,8 +100,11 @@ fun HomeScreen(
                 isSearchVisible = isSearchVisible,
                 searchQuery = searchQuery,
                 onQueryChange = { searchQuery = it },
+                searchResults = searchResults,
+                isSearchTriggered = isSearchTriggered,
                 onSearch = {
                     if (searchQuery.isNotEmpty()) {
+                        isSearchTriggered = true // 🔹 검색 버튼을 눌렀을 때만 검색 결과 검사 활성화
                         recentSearches.add(0, searchQuery) // 최근 검색어 추가
                         if (recentSearches.size > 3) recentSearches.removeAt(recentSearches.size - 1) // 최대 3개 유지
                     }
@@ -474,12 +481,15 @@ fun CalendarView(
             // 날짜 버튼 표시
             items(daysInMonth) { day ->
                 val date = LocalDate.of(currentYear, currentMonth, day + 1)
+                val hasDiary = diaryDates.contains(date) // 해당 날짜에 일기 있는지 확인
 
                 Box(
                     modifier = Modifier
                         .size(40.dp)
                         .padding(5.dp)
-                        .clickable { onDateSelected(date) },
+                        .clickable(enabled = hasDiary) { // 해당 날짜에 일기가 있을 때만 클릭 가능
+                            onDateSelected(date)
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     // 일기 날짜일 경우 배경 이미지
@@ -519,7 +529,7 @@ fun RecentSearches(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 13.dp, start = 36.dp)
+            //.padding(top = 13.dp, start = 36.dp)
     ) {
         Text(
             text = "최근 검색어",

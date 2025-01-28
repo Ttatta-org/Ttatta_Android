@@ -29,6 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.umc.home.Diary
 import com.umc.home.R
 import com.umc.home.RecentSearches
 
@@ -37,6 +38,8 @@ fun TopBarComponent(
     isExpanded: Boolean,
     isSearchVisible: Boolean,
     searchQuery: String,
+    searchResults: List<Diary>,
+    isSearchTriggered: Boolean,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
     onSearchToggle: () -> Unit,
@@ -162,13 +165,41 @@ fun TopBarComponent(
                         .fillMaxWidth()
                         .padding(horizontal = 40.dp),
                     contentAlignment = Alignment.TopStart
-                ){
-                    RecentSearches(
-                        recentSearches = recentSearches,
-                        onRecentSearchClick = onRecentSearchClick
-                    )
+                ) {
+                    if (isSearchTriggered && searchResults.isEmpty()) { // 🔹 검색 버튼을 눌렀을 때만 검사
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_error), // 에러 아이콘
+                                contentDescription = "찾으시는 검색어의 결과가 없어요 !",
+                                modifier = Modifier.size(15.dp)
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            Text(
+                                text = "찾으시는 검색어의 결과가 없어요!",
+                                fontSize = 12.sp,
+                                color = Color(0xFF4B4B4B) // 텍스트 색상
+                            )
+                        }
+                    } else {
+                        // 🔹 검색 결과가 있거나 검색을 실행하지 않은 상태면 최근 검색어 표시
+                        RecentSearches(
+                            recentSearches = recentSearches,
+                            onRecentSearchClick = { query ->
+                                onQueryChange(query)
+                            }
+                        )
+                    }
                 }
             }
+
+
         }
     }
 }
