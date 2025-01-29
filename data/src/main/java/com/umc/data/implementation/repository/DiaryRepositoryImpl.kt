@@ -6,7 +6,7 @@ import com.umc.core.model.DiaryForCard
 import com.umc.core.model.Footprint
 import com.umc.core.repository.DiaryRepository
 import com.umc.data.api.ServerApi
-import com.umc.data.api.dto.server.CategoryDetail
+import com.umc.data.api.dto.server.CategoryDetailDTO
 import com.umc.data.api.dto.server.CreateCategoryDTO
 import com.umc.data.api.dto.server.EditDTO
 import com.umc.data.api.dto.server.MapDTO
@@ -30,7 +30,18 @@ class DiaryRepositoryImpl @Inject constructor(
 ) : DiaryRepository {
 
     override suspend fun getDiaries(page: Int, date: LocalDate?): List<Diary> {
-        TODO("Not yet implemented.")
+        val response = serverApi.withAuth(authPreference) {
+            getKeepDiary(requestNum = page, date = date?.atStartOfDay())
+        }
+        return response.diaryList?.map {
+            Diary(
+                id = it.diaryId!!,
+                date = it.date!!,
+                content = it.content!!,
+                imageUrl = it.image!!,
+                locationName = it.locationName!!,
+            )
+        } ?: listOf()
     }
 
     override suspend fun getDiaries(page: Int, searchWord: String): List<Diary> {
@@ -115,18 +126,18 @@ class DiaryRepositoryImpl @Inject constructor(
                 id = it.categoryId!!,
                 name = it.categoryName!!,
                 color = when (it.categoryColor) {
-                    CategoryDetail.CategoryColor.RED -> CategoryColor.RED
-                    CategoryDetail.CategoryColor.ORANGE -> CategoryColor.ORANGE
-                    CategoryDetail.CategoryColor.YELLOW -> CategoryColor.YELLOW
-                    CategoryDetail.CategoryColor.GREEN -> CategoryColor.GREEN
-                    CategoryDetail.CategoryColor.SKYBLUE -> CategoryColor.TURQUOISE
-                    CategoryDetail.CategoryColor.BLUE -> CategoryColor.BLUE
-                    CategoryDetail.CategoryColor.INDIGO -> CategoryColor.NAVY
-                    CategoryDetail.CategoryColor.VIOLET -> CategoryColor.PURPLE
-                    CategoryDetail.CategoryColor.BROWN -> CategoryColor.BROWN
-                    CategoryDetail.CategoryColor.PINK -> CategoryColor.PINK
-                    CategoryDetail.CategoryColor.WHITE -> CategoryColor.WHITE
-                    CategoryDetail.CategoryColor.BLACK -> CategoryColor.BLACK
+                    CategoryDetailDTO.CategoryColor.RED -> CategoryColor.RED
+                    CategoryDetailDTO.CategoryColor.ORANGE -> CategoryColor.ORANGE
+                    CategoryDetailDTO.CategoryColor.YELLOW -> CategoryColor.YELLOW
+                    CategoryDetailDTO.CategoryColor.GREEN -> CategoryColor.GREEN
+                    CategoryDetailDTO.CategoryColor.SKYBLUE -> CategoryColor.TURQUOISE
+                    CategoryDetailDTO.CategoryColor.BLUE -> CategoryColor.BLUE
+                    CategoryDetailDTO.CategoryColor.INDIGO -> CategoryColor.NAVY
+                    CategoryDetailDTO.CategoryColor.VIOLET -> CategoryColor.PURPLE
+                    CategoryDetailDTO.CategoryColor.BROWN -> CategoryColor.BROWN
+                    CategoryDetailDTO.CategoryColor.PINK -> CategoryColor.PINK
+                    CategoryDetailDTO.CategoryColor.WHITE -> CategoryColor.WHITE
+                    CategoryDetailDTO.CategoryColor.BLACK -> CategoryColor.BLACK
                     else -> null
                 },
                 count = it.diaryCount!!,

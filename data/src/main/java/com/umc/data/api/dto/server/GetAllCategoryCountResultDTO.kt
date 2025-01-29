@@ -18,6 +18,6 @@ package com.umc.data.api.dto.server
  */
 data class GetAllCategoryCountResultDTO (
 
-    val categoryDetails: Array<CategoryDetail>? = null,
+    val categoryDetails: Array<CategoryDetailDTO>? = null,
     val totalDiaryCount: Int? = null
 )

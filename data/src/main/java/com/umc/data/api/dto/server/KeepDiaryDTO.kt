@@ -18,11 +18,13 @@ package com.umc.data.api.dto.server
  * @param date 
  * @param content 
  * @param image 
+ * @param locationName 
  */
-data class KeepDiary (
+data class KeepDiaryDTO (
 
     val diaryId: Long? = null,
     val date: java.time.LocalDateTime? = null,
     val content: String? = null,
-    val image: String? = null
+    val image: String? = null,
+    val locationName: String? = null
 )

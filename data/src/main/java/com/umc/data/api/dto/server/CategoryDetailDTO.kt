@@ -19,7 +19,7 @@ package com.umc.data.api.dto.server
  * @param diaryCount 
  * @param categoryColor 
  */
-data class CategoryDetail (
+data class CategoryDetailDTO (
 
     val categoryId: Long? = null,
     val categoryName: String? = null,

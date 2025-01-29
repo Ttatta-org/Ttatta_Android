@@ -5,6 +5,7 @@ import com.umc.data.api.dto.server.*
 import com.umc.data.preference.AuthPreference
 import okhttp3.MultipartBody
 import retrofit2.http.*
+import java.time.LocalDateTime
 
 interface ServerApi {
     // 유저 관련 API
@@ -53,7 +54,7 @@ interface ServerApi {
     @DELETE("/users/{userId}")
     suspend fun deleteUser(
         @Path("userId") userId: Long
-    ): BaseResponse<Unit>
+    ): BaseResponse<Any?>
 
     @GET("/users/verify/pw")
     suspend fun verifyPasswordCode(
@@ -70,10 +71,10 @@ interface ServerApi {
         @Query("username") username: String
     ): BaseResponse<VerifyUsernameOverlapResultDTO>
 
-    @DELETE("/users/logout")
+    @HTTP(method = "DELETE", path = "/users/logout", hasBody = true)
     suspend fun logout(
         @Body body: LogoutRequestDTO
-    ): BaseResponse<Unit>
+    ): BaseResponse<Any?>
 
     // 일기 관련 API
     @POST("/diaries/post")
@@ -92,7 +93,7 @@ interface ServerApi {
     @DELETE("/diaries/delete/{diaryId}")
     suspend fun deleteDiary(
         @Path("diaryId") diaryId: Long
-    ): BaseResponse<Unit>
+    ): BaseResponse<Any?>
 
     @GET("/diaries/search/{requestNum}")
     suspend fun searchDiary(
@@ -109,8 +110,8 @@ interface ServerApi {
     @GET("/diaries/keep/{requestNum}")
     suspend fun getKeepDiary(
         @Path("requestNum") requestNum: Int,
-        @Query("request") request: KeepDTO
-    ): BaseResponse<KeepResultDTO>
+        @Query("date") date: LocalDateTime?,
+    ): BaseResponse<KeepDiaryListDTO>
 
     // 카테고리 관련 API
     @POST("/categories/")
@@ -121,12 +122,12 @@ interface ServerApi {
     @DELETE("/categories/{categoryId}")
     suspend fun deleteCategory(
         @Path("categoryId") categoryId: Long
-    ): BaseResponse<Unit>
+    ): BaseResponse<Any?>
 
     @DELETE("/categories/all/{categoryId}")
     suspend fun deleteCategoryWithDiaries(
         @Path("categoryId") categoryId: Long
-    ): BaseResponse<Unit>
+    ): BaseResponse<Any?>
 
     @PATCH("/categories/{categoryId}")
     suspend fun modifyCategory(

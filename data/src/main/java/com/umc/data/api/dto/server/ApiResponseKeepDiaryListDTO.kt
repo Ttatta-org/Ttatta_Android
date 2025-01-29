@@ -18,10 +18,10 @@ package com.umc.data.api.dto.server
  * @param message 
  * @param result 
  */
-data class ApiResponseDiaryCategoryExceptionDTO (
+data class ApiResponseKeepDiaryListDTO (
 
     val isSuccess: Boolean? = null,
     val code: String? = null,
     val message: String? = null,
-    val result: DiaryCategoryExceptionDTO? = null
+    val result: KeepDiaryListDTO? = null
 )

@@ -46,6 +46,7 @@ class UserRepositoryImpl @Inject constructor(
         val response = serverApi.withCheck { login(body = body) }
         authPreference.accessToken = response.accessToken
         authPreference.refreshToken = response.refreshToken
+        authPreference.userId = response.userId
     }
 
     override suspend fun join(
@@ -70,6 +71,7 @@ class UserRepositoryImpl @Inject constructor(
         val response = serverApi.withCheck { loginWithKakao(body = body) }
         authPreference.accessToken = response.accessToken
         authPreference.refreshToken = response.refreshToken
+        authPreference.userId = response.userId
     }
 
     override suspend fun joinWithKakao(
@@ -88,6 +90,9 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun logout() {
         val body = LogoutRequestDTO(userId = authPreference.userId!!)
         serverApi.withCheck { logout(body = body) }
+        authPreference.accessToken = null
+        authPreference.refreshToken = null
+        authPreference.userId = null
     }
 
     override suspend fun getUserInfo(): UserInfo {
@@ -102,12 +107,9 @@ class UserRepositoryImpl @Inject constructor(
                 UserInfoResultDTO.LoginType.REGULAR -> LoginType.REGULAR
             },
             email = response.email!!,
-            profileImageUrl = response.profileImg!!,
+            profileImageUrl = response.profileImg,
             point = response.point!!,
-            status = when (response.status!!) {
-                UserInfoResultDTO.Status.ACTIVE -> UserStatus.ACTIVE
-                UserInfoResultDTO.Status.INACTIVE -> UserStatus.INACTIVE
-            },
+            status = UserStatus.ACTIVE /* TODO: 백엔드 구현 완료 시 연결 */,
         )
     }
 

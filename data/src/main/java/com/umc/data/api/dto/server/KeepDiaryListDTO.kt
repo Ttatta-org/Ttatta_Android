@@ -11,12 +11,11 @@
  */
 package com.umc.data.api.dto.server
 
-
 /**
  * 
- * @param categoryId 
+ * @param diaryList 
  */
-data class DiaryCategoryExceptionDTO (
+data class KeepDiaryListDTO (
 
-    val categoryId: Long? = null
+    val diaryList: Array<KeepDiaryDTO>? = null
 )
