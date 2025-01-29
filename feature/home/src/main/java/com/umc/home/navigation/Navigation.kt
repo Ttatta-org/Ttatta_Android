@@ -42,6 +42,7 @@ fun AppNavHost(
             val uiState by viewModel.uiState.collectAsState() // StateFlow를 Compose에서 안전하게 사용
 
             FilteredDiaryScreen(
+                viewModel = viewModel,
                 selectedDate = selectedDate,
                 diaries = uiState.diaries, // collectAsState를 통해 가져온 diaries
                 onBack = { navController.popBackStack() },

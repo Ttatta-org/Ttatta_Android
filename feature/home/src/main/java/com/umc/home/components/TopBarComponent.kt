@@ -29,9 +29,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import coil3.compose.AsyncImage
 import com.umc.home.Diary
 import com.umc.home.R
 import com.umc.home.RecentSearches
+import coil3.compose.rememberAsyncImagePainter
 
 @Composable
 fun TopBarComponent(
@@ -68,7 +70,11 @@ fun TopBarComponent(
             contentScale = ContentScale.FillBounds,
             modifier = Modifier.fillMaxSize()
         )
-
+//        AsyncImage(
+//            model = "android.resource://com.umc.home/raw/bar", // ✅ res/raw/union.svg
+//            contentDescription = "Union Icon",
+//            modifier = Modifier.size(50.dp)
+//        )
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)

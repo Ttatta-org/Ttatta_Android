@@ -71,10 +71,8 @@ fun HomeScreen(
     var isCalendarVisible by remember { mutableStateOf(false) }
     var isSearchVisible by remember { mutableStateOf(false) }
 
-    var searchQuery by remember { mutableStateOf("") }
-
-    // 최근 검색어 관리
-    val recentSearches = remember { mutableStateListOf<String>() } // 최근 검색어 리스트
+    val recentSearches by viewModel.recentSearches.collectAsState() // ✅ ViewModel의 최근 검색어 사용
+    val searchQuery by viewModel.searchQuery.collectAsState() // ✅ ViewModel의 검색어 사용
 
 
     // 드래그 버튼의 상태 (ic_bottom_arrow 또는 ic_top_arrow)
@@ -99,16 +97,12 @@ fun HomeScreen(
                 isExpanded = isCalendarVisible,
                 isSearchVisible = isSearchVisible,
                 searchQuery = searchQuery,
-                onQueryChange = { searchQuery = it },
+                onQueryChange = { viewModel.updateSearchQuery(it) },
                 searchResults = searchResults,
                 isSearchTriggered = isSearchTriggered,
                 onSearch = {
-                    if (searchQuery.isNotEmpty()) {
-                        isSearchTriggered = true // 🔹 검색 버튼을 눌렀을 때만 검색 결과 검사 활성화
-                        recentSearches.add(0, searchQuery) // 최근 검색어 추가
-                        if (recentSearches.size > 3) recentSearches.removeAt(recentSearches.size - 1) // 최대 3개 유지
-                    }
-                    viewModel.searchDiaries(searchQuery) // 검색 실행
+                    viewModel.searchDiaries(searchQuery) // ✅ 검색 실행 (최근 검색어 자동 저장됨)
+                    isSearchTriggered = true // 🔹 검색 버튼을 눌렀을 때 검색 결과 검사 활성화
                 },
                 onSearchToggle = {
                     isSearchVisible = !isSearchVisible
@@ -128,7 +122,7 @@ fun HomeScreen(
                     )
                 },
                 recentSearches = recentSearches,
-                onRecentSearchClick = { query -> searchQuery = query } // 최근 검색어 클릭 시 동작
+                onRecentSearchClick = { viewModel.updateSearchQuery(it) } // 최근 검색어 클릭 시 동작
             )
         },
         bottomBar = {
@@ -214,7 +208,7 @@ fun HomeScreen(
 
             // 검색 결과 또는 전체 리스트 표시
             LazyColumn {
-                val itemsToShow = if (searchQuery.isNotEmpty() && searchResults.isNotEmpty()) {
+                val itemsToShow = if (searchResults.isNotEmpty()) {
                     searchResults // 검색 결과 표시
                 } else {
                     viewModel.getSortedDiaries() // 검색 결과가 없거나 검색 쿼리가 비어 있을 때 기본 다이어리 표시
@@ -584,7 +578,7 @@ fun DiaryCard(diary: Diary, onDetailClick: () -> Unit) {
         ) {
             Column(
                 modifier = Modifier
-                    .padding(top = 13.dp, bottom = 20.dp, start = 30.dp, end = 30.dp)
+                    .padding(top = 13.dp, bottom = 20.dp, start = 25.dp, end = 25.dp)
                     .fillMaxWidth()
                     .background(Color.White)
 

@@ -1,5 +1,6 @@
 package com.umc.home
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +29,12 @@ open class HomeViewModel : ViewModel() {
     private val _searchResults = MutableStateFlow<List<Diary>>(emptyList())
     val searchResults: StateFlow<List<Diary>> = _searchResults
 
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
+
+    private val _recentSearches = MutableStateFlow<List<String>>(emptyList())
+    val recentSearches: StateFlow<List<String>> = _recentSearches
+
     init {
         loadDiaries()
     }
@@ -49,6 +56,10 @@ open class HomeViewModel : ViewModel() {
         return _uiState.value.diaries.sortedByDescending { it.date } // 최신순 정렬
     }
 
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
     fun searchDiaries(query: String) {
         viewModelScope.launch {
             // 검색어를 공백 기준으로 분리
@@ -61,6 +72,17 @@ open class HomeViewModel : ViewModel() {
             }.sortedByDescending { it.date } // 최신순 정렬
 
             _searchResults.value = filteredDiaries
+            addRecentSearch(query)
+            _searchQuery.value = ""
+        }
+    }
+
+    private fun addRecentSearch(query: String) {
+        if (query.isNotEmpty() && !_recentSearches.value.contains(query)) { // ✅ 중복 검색어 방지
+            val updatedList = _recentSearches.value.toMutableList()
+            updatedList.add(0, query)
+            if (updatedList.size > 3) updatedList.removeAt(updatedList.size - 1)
+            _recentSearches.value = updatedList
         }
     }
 

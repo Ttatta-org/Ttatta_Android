@@ -60,6 +60,7 @@ import java.time.YearMonth
 
 @Composable
 fun FilteredDiaryScreen(
+    viewModel: HomeViewModel,
     selectedDate: LocalDate,
     diaries: List<Diary>,
     onBack: () -> Unit,
@@ -68,21 +69,31 @@ fun FilteredDiaryScreen(
     val filteredDiaries = diaries.filter { it.date.toLocalDate() == selectedDate }
         .sortedByDescending { it.date }
 
+    val recentSearches by viewModel.recentSearches.collectAsState() // ✅ ViewModel의 최근 검색어 사용
+    val searchQuery by viewModel.searchQuery.collectAsState() // ✅ ViewModel의 검색어 사용
+    val searchResults by viewModel.searchResults.collectAsState()
+    var isSearchVisible by remember { mutableStateOf(false) }
+    var isSearchTriggered by remember { mutableStateOf(false) }
+
+
     Scaffold(
         topBar = {
             TopBarComponent(
-                isExpanded = false,
-                isSearchVisible = false,
-                searchQuery = "",
-                onQueryChange = { /* 검색 로직 필요 시 추가 */ },
-                onSearch = { /* 검색 실행 */ },
-                searchResults = listOf(),
-                isSearchTriggered = false,
-                onSearchToggle = { /* 검색 상태 토글 */ },
-                onCalendarToggle = { /* 캘린더 토글 */ },
-                calendarContent = {}, // 캘린더 미표시
-                recentSearches = listOf(), // 최근 검색 없음
-                onRecentSearchClick = { /* 없음 */ }
+                isExpanded = false,  // 필터된 화면에서는 달력 기능 없음
+                isSearchVisible = isSearchVisible,
+                searchQuery = searchQuery,
+                onQueryChange = { viewModel.updateSearchQuery(it) },
+                searchResults = searchResults,
+                isSearchTriggered = isSearchTriggered,
+                onSearch = {
+                    viewModel.searchDiaries(searchQuery)
+                    isSearchTriggered = true
+                },
+                onSearchToggle = { isSearchVisible = !isSearchVisible },
+                onCalendarToggle = { /* 캘린더 없음 */ },
+                calendarContent = {}, // 달력 비활성화
+                recentSearches = recentSearches,
+                onRecentSearchClick = { viewModel.updateSearchQuery(it) }
             )
         },
         bottomBar = {
@@ -103,12 +114,30 @@ fun FilteredDiaryScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                items(filteredDiaries) { diary ->
-                    FillteredDiaryByDate(
-                        diary = diary,
-                        onDetailClick = { /* 디테일 보기 동작 */ }
-                    )
+                if (searchResults.isNotEmpty() && isSearchTriggered) {
+
+                    item { // ✅ Column을 사용해 padding 적용
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 25.dp, end = 25.dp) // ✅ 검색 결과에만 padding 추가
+                        ) {
+                            searchResults.forEach { diary ->
+                                DiaryCard(
+                                    diary = diary,
+                                    onDetailClick = { /* isDetailModalVisible = true */ }
+                                )
+                            }
+                        }
+                    }
+                } else {
+
+                    items(filteredDiaries) { diary ->
+                        FillteredDiaryByDate(diary = diary, onDetailClick = { /* 디테일 보기 */ })
+                    }
                 }
+
+
             }
         }
 
