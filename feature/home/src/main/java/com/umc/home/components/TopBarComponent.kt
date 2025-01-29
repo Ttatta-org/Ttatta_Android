@@ -67,7 +67,8 @@ fun TopBarComponent(
         Image(
             painter = painterResource(id = R.drawable.full_top_bar),
             contentDescription = "배경 이미지",
-            contentScale = ContentScale.FillBounds,
+            alignment = Alignment.BottomCenter,
+            contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
 //        AsyncImage(
