@@ -9,7 +9,6 @@ import com.umc.data.api.ServerApi
 import com.umc.data.api.dto.server.CategoryDetail
 import com.umc.data.api.dto.server.CreateCategoryDTO
 import com.umc.data.api.dto.server.EditDTO
-import com.umc.data.api.dto.server.KeepDTO
 import com.umc.data.api.dto.server.MapDTO
 import com.umc.data.api.dto.server.ModifyCategoryDTO
 import com.umc.data.api.dto.server.PostDTO
@@ -17,9 +16,9 @@ import com.umc.data.api.dto.server.SearchDTO
 import com.umc.data.api.withAuth
 import com.umc.data.preference.AuthPreference
 import com.umc.design.CategoryColor
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -27,23 +26,11 @@ import javax.inject.Inject
 
 class DiaryRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
-    private val authPreference: AuthPreference
-): DiaryRepository {
+    private val authPreference: AuthPreference,
+) : DiaryRepository {
 
     override suspend fun getDiaries(page: Int, date: LocalDate?): List<Diary> {
-        val body = KeepDTO(date = date?.atStartOfDay())
-        val response = serverApi.withAuth(authPreference) {
-            getKeepDiary(requestNum = page, request = body)
-        }
-        return response.diaryList?.map {
-            Diary(
-                id = it.diaryId!!,
-                date = it.date!!,
-                content = it.content!!,
-                imageUrl = it.image!!,
-                locationName = "API 상에서 지원하지 않음",
-            )
-        } ?: listOf()
+        TODO("Not yet implemented.")
     }
 
     override suspend fun getDiaries(page: Int, searchWord: String): List<Diary> {
@@ -96,16 +83,15 @@ class DiaryRepositoryImpl @Inject constructor(
             longitude = longitude,
             locationName = locationName,
         )
-        val part = MultipartBody.Part.createFormData(
-            image.nameWithoutExtension,
-            image.name,
-            RequestBody.create(
-                MediaType.parse("image/${image.extension}"),
-                image.readBytes()
-            )
-        )
         serverApi.withAuth(authPreference) {
-            postDiary(request = request, image = part)
+            postDiary(
+                request = request,
+                image = MultipartBody.Part.createFormData(
+                    "image",
+                    image.name,
+                    image.readBytes().toRequestBody("image/${image.extension}".toMediaType())
+                )
+            )
         }
     }
 

@@ -5,7 +5,6 @@ import com.umc.data.api.dto.server.*
 import com.umc.data.preference.AuthPreference
 import okhttp3.MultipartBody
 import retrofit2.http.*
-import javax.inject.Inject
 
 interface ServerApi {
     // 유저 관련 API
@@ -134,11 +133,6 @@ interface ServerApi {
         @Path("categoryId") categoryId: Long,
         @Body body: ModifyCategoryDTO
     ): BaseResponse<ModifyCategoryResultDTO>
-
-    @PATCH("/categories/exception")
-    suspend fun categoryException(
-        @Query("categoryId") categoryId: Long
-    ): BaseResponse<DiaryCategoryExceptionDTO>
 
     @GET("/categories/diary-counts")
     suspend fun getCategoryCounts(): BaseResponse<GetAllCategoryCountResultDTO>

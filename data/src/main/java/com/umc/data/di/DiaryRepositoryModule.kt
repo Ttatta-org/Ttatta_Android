@@ -17,7 +17,7 @@ object DiaryRepositoryModule {
     @Singleton
     fun provideDiaryRepository(
         serverApi: ServerApi,
-        authPreference: AuthPreference
+        authPreference: AuthPreference,
     ): DiaryRepository {
         return DiaryRepositoryImpl(
             serverApi = serverApi,

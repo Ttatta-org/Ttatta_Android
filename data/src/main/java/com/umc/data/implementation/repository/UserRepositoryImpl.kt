@@ -43,24 +43,41 @@ class UserRepositoryImpl @Inject constructor(
             username = id,
             password = password,
         )
-        serverApi.withCheck { login(body = body) }
+        val response = serverApi.withCheck { login(body = body) }
+        authPreference.accessToken = response.accessToken
+        authPreference.refreshToken = response.refreshToken
     }
 
-    override suspend fun join(id: String, name: String, password: String) {
+    override suspend fun join(
+        id: String,
+        password: String,
+        name: String,
+        nickname: String,
+        email: String
+    ) {
         val body = SignUpRequestDTO(
+            name = name,
+            email = email,
+            nickname = nickname,
             username = id,
-            nickname = name,
-            password = password,
+            password = password
         )
         serverApi.withCheck { join(body = body) }
     }
 
     override suspend fun loginWithKakao(kakaoToken: String) {
         val body = SignInKakaoRequestDTO(kakaoToken = kakaoToken)
-        serverApi.withCheck { loginWithKakao(body = body) }
+        val response = serverApi.withCheck { loginWithKakao(body = body) }
+        authPreference.accessToken = response.accessToken
+        authPreference.refreshToken = response.refreshToken
     }
 
-    override suspend fun joinWithKakao(kakaoToken: String, name: String) {
+    override suspend fun joinWithKakao(
+        kakaoToken: String,
+        name: String,
+        nickname: String,
+        email: String
+    ) {
         val body = SignUpKakaoRequestDTO(
             kakaoToken = kakaoToken,
             nickname = name,
