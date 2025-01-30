@@ -1,5 +1,6 @@
 package com.umc.home.components
 
+import android.graphics.BitmapFactory
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
@@ -24,7 +25,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,6 +38,8 @@ import com.umc.home.Diary
 import com.umc.home.R
 import com.umc.home.RecentSearches
 import coil3.compose.rememberAsyncImagePainter
+import coil3.request.ImageRequest
+import coil3.svg.SvgDecoder
 
 @Composable
 fun TopBarComponent(
@@ -57,6 +63,8 @@ fun TopBarComponent(
     }
     val imageHeight by animateDpAsState(targetValue = baseHeight)
 
+    val context = LocalContext.current
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -64,18 +72,30 @@ fun TopBarComponent(
         contentAlignment = Alignment.BottomCenter,
     ) {
         // 배경 이미지
+//        Image(
+//            painter = painterResource(id = R.drawable.full_top_bar),
+//            contentDescription = "배경 이미지",
+//            alignment = Alignment.BottomCenter,
+//            contentScale = ContentScale.Crop,
+//            modifier = Modifier.fillMaxSize()
+//        )
         Image(
-            painter = painterResource(id = R.drawable.full_top_bar),
+            painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(context)
+                    .data("android.resource://${context.packageName}/${R.raw.view_top_bar}") // ✅ SVG 파일
+                    .decoderFactory(SvgDecoder.Factory()) // ✅ SVG 지원
+                    .build(),
+                error = BitmapPainter( // ✅ 에러 시 사용할 기본 이미지
+                    BitmapFactory.decodeResource(
+                        context.resources, R.raw.view_top_bar_for_preview
+                    ).asImageBitmap()
+                )
+            ),
             contentDescription = "배경 이미지",
             alignment = Alignment.BottomCenter,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxWidth(), // 필요에 따라 수정
         )
-//        AsyncImage(
-//            model = "android.resource://com.umc.home/raw/bar", // ✅ res/raw/union.svg
-//            contentDescription = "Union Icon",
-//            modifier = Modifier.size(50.dp)
-//        )
         Column(
             modifier = Modifier
                 .align(Alignment.TopCenter)
