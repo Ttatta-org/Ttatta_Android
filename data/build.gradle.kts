@@ -26,6 +26,7 @@ android {
         listOf(
             "NAVER_SDK_CLIENT_SECRET",
             "NAVER_SDK_CLIENT_ID",
+            "SERVER_BASE_URL"
         ).forEach {
             buildConfigField("String", it, "\"${localProperties.getProperty(it)}\"")
         }
@@ -62,9 +63,11 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 
     // 의존성 정의
     implementation(project(":core"))
+    implementation(project(":design"))
 
     // Hilt
     implementation(libs.hilt.android)
@@ -75,6 +78,7 @@ dependencies {
     // Retrofit2
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
 
     // SharedPreference
     implementation(libs.preference.ktx)
