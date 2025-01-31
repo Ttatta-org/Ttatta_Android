@@ -157,7 +157,6 @@ fun LoginMiddleView(loginViewModel: LoginViewModel = viewModel()) {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InputTextField(
     value: String,
