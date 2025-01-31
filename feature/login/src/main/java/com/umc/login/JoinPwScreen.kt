@@ -50,10 +50,6 @@ fun JoinPwScreen(navController: NavHostController) {
         modifier = Modifier.fillMaxSize()
     ){
         PwBackButton(navController)
-        JoinPwTopView(currentStep = 3, totalSteps = 4)
-        JoinPwView(navController)
-
-
     }
 }
 
@@ -75,33 +71,10 @@ fun PwBackButton(navController: NavHostController) {
     }
 }
 
-@Composable
-fun JoinPwTopView(currentStep: Int, totalSteps: Int) {
-    val nickname = remember { mutableStateOf("") }
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .padding(top = 20.dp)
-            .fillMaxWidth()
-
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_ttatta_logo),
-            modifier = Modifier
-                .size(55.36.dp, 48.dp),
-            contentDescription = "main_logo_join"
-        )
-        Spacer(modifier = Modifier.height(35.dp))
-        PwProgressBar(currentStep = currentStep, totalSteps = totalSteps)
-        Spacer(modifier = Modifier.height(12.dp))
-
-    }
-}
-
 
 
 @Composable
-fun JoinPwView(navController: NavHostController) {
+fun JoinPwView(onNext: () -> Unit, onBack: () -> Unit) {
     var pwState by remember { mutableStateOf("") }
     var isTextFieldFocused by remember { mutableStateOf(false) }
     var isWarningVisible by remember { mutableStateOf(false) }
@@ -156,14 +129,14 @@ fun JoinPwView(navController: NavHostController) {
                 pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
                 disabledElevation = 0.dp // enabled가 false일때 그림자
             ),
-            onClick = { /* TODO: 로그인 로직 */ },
+            onClick = onNext,
             modifier = Modifier
                 .width(310.dp)
                 .padding(top = 139.dp)
                 .height(45.dp),
             shape = RoundedCornerShape(24.dp), // 라운딩 처리
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (isTextFieldFocused) Color(0xFFFCAD98) else colorResource(R.color.yellow_300)
+                containerColor = if (isTextFieldFocused) colorResource(R.color.orange_200) else colorResource(R.color.yellow_300)
             )
         ) {
             Text(
@@ -187,7 +160,7 @@ fun PwInputTextField(
     TextField(
         value = value,
         onValueChange = {
-            if (it.length > 8) { // 8글자 제한
+            if (it.length < 8) { // 8글자 제한
                 onValueChange(it)
             }
         },
@@ -223,39 +196,6 @@ fun PwInputTextField(
             cursorColor = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
         )
     )
-}
-
-@Composable
-fun PwProgressBar(currentStep: Int, totalSteps: Int) {
-    // 각 단계별 진행률을 설정합니다. 총합은 1.0이어야 합니다.
-    val stepRatios = listOf(0.25f, 0.25f, 0.25f, 0.25f) // 단계별 비율 (1단계: 25%, 2단계: 25% 등)
-
-    // 현재 단계까지의 진행률을 계산합니다.
-    val progress = stepRatios.take(currentStep).sum()
-    val barStep = (progress*1000)
-    Box(
-        modifier = Modifier
-            .width(340.dp)
-            .height(5.dp)
-            .background(
-                color = colorResource(R.color.gray_500), // 그라데이션이 전체 너비를 덮도록 설정
-                shape = RoundedCornerShape(4.dp)
-            )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(progress) // 진행률에 따라 너비 설정
-                .height(8.dp)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(Color(0xFFFF9861), Color(0xFFFDDDC1)), // 채워진 부분 색상
-                        startX = 0f,
-                        endX = barStep
-                    ),
-                    shape = RoundedCornerShape(4.dp)
-                )
-        )
-    }
 }
 
 

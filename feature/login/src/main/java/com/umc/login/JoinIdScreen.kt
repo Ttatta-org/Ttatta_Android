@@ -1,5 +1,6 @@
 package com.umc.login
 
+import android.graphics.Paint.Align
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -48,10 +49,10 @@ fun JoinIdScreen(navController: NavHostController) {
         //horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize()
     ){
-        IdBackButton(navController)
-        JoinIdTopView(currentStep = 2, totalSteps = 4)
-        JoinIdView(navController)
-
+        JoinIdView(
+            onNext = { navController.navigate("join/pw") },
+            onBack = { navController.navigate("join") }
+        )
 
     }
 }
@@ -74,34 +75,30 @@ fun IdBackButton(navController: NavHostController) {
     }
 }
 
-@Composable
-fun JoinIdTopView(currentStep: Int, totalSteps: Int) {
-    val nickname = remember { mutableStateOf("") }
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .padding(top = 20.dp)
-            .fillMaxWidth()
-
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_ttatta_logo),
-            modifier = Modifier
-                .size(55.36.dp, 48.dp),
-            contentDescription = "main_logo_join"
-        )
-        Spacer(modifier = Modifier.height(35.dp))
-        IdProgressBar(currentStep = currentStep, totalSteps = totalSteps)
-        Spacer(modifier = Modifier.height(12.dp))
-
-    }
-}
 
 @Composable
-fun JoinIdView(navController: NavHostController) {
+fun JoinIdView(onNext: () -> Unit, onBack: () -> Unit) {
     var idState by remember { mutableStateOf("") }
     var isTextFieldFocused by remember { mutableStateOf(false) }
     var isWarningVisible by remember { mutableStateOf(false) }
+
+    // [규칙 요약]
+    // A. 아무것도 입력하지 않은 경우 (idState.isEmpty()):
+    //     - 버튼 배경색: #FDDDC1
+    //     - 버튼 비활성화 (enabled=false)
+    // B. 닉네임 칸에 한 글자 이상 입력된 경우 (idState.isNotEmpty()):
+    //     - 버튼 배경색: #FCAD98
+    // C. 1글자 이상 && 8글자 이하인 경우에만 다음 화면 이동 가능
+
+    // 버튼 활성/비활성 조건
+    val isButtonEnabled = idState.isNotEmpty() && idState.length <= 15
+
+    // 버튼 색상 조건
+    val buttonColor = if (idState.isNotEmpty()) {
+        Color(0xFFFCAD98) // FCAD98
+    } else {
+        Color(0xFFFDDDC1) // FDDDC1
+    }
 
     Column(
         modifier = Modifier
@@ -120,26 +117,30 @@ fun JoinIdView(navController: NavHostController) {
             color = colorResource(R.color.yellow_200)
         )
 
-        // Input Text Field
+        // TextField
         IdInputTextField(
             value = idState,
-            onValueChange = {
-                idState = it
-                isWarningVisible = it.length == 15 // Show warning when 8 characters reached
+            onValueChange = { newText ->
+                if (newText.length < 15) {
+                    idState = newText
+                    isWarningVisible = (newText.length == 15)
+                }
             },
             placeholder = stringResource(R.string.id_comment),
             onFocusChange = { isTextFieldFocused = it },
             isWarning = isWarningVisible
         )
+
         Spacer(modifier = Modifier.height(5.dp))
 
+        // 기존 경고 표시 로직
         if (isWarningVisible)
             Text(
                 text = stringResource(R.string.join_id_small_comment),
                 color = colorResource(R.color.negativeRed),
                 fontSize = 12.sp,
             )
-        else if (!isWarningVisible)
+        else
             Text(
                 text = stringResource(R.string.join_id_small_comment),
                 color = colorResource(R.color.gray_400),
@@ -148,19 +149,26 @@ fun JoinIdView(navController: NavHostController) {
 
         // Button
         Button(
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 1.dp, // 기본 그림자
-                pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
-                disabledElevation = 0.dp // enabled가 false일때 그림자
-            ),
-            onClick = { navController.navigate("join_pw") },
+            // [중요] 버튼 활성/비활성
+            enabled = isButtonEnabled,
+            onClick = {
+                // 조건 만족 시만 다음 화면 이동
+                if (isButtonEnabled) {
+                    onNext()
+                }
+            },
             modifier = Modifier
                 .width(310.dp)
                 .padding(top = 139.dp)
                 .height(45.dp),
-            shape = RoundedCornerShape(24.dp), // 라운딩 처리
+            shape = RoundedCornerShape(24.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (isTextFieldFocused) Color(0xFFFCAD98) else colorResource(R.color.yellow_300)
+                containerColor = buttonColor
+            ),
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 1.dp,
+                pressedElevation = 0.dp,
+                disabledElevation = 0.dp
             )
         ) {
             Text(
@@ -173,6 +181,7 @@ fun JoinIdView(navController: NavHostController) {
     }
 }
 
+
 @Composable
 fun IdInputTextField(
     value: String,
@@ -181,21 +190,57 @@ fun IdInputTextField(
     onFocusChange: (Boolean) -> Unit,
     isWarning: Boolean
 ) {
-    TextField(
-        value = value,
-        onValueChange = {
-            if (it.length > 8) { // 8글자 제한
-                onValueChange(it)
-            }
-        },
-        singleLine = true,
-        textStyle = LocalTextStyle.current.copy(
-            textAlign = TextAlign.Center,
-            fontSize = 14.sp,
-            color = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
-        ),
-        placeholder = {
-            Box (
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        TextField(
+            value = value,
+            onValueChange = {
+                // 글자 수 제한 로직
+                if (it.length < 15) {
+                    onValueChange(it)
+                }
+            },
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(
+                textAlign = TextAlign.Center,    // 가운데 정렬
+                fontSize = 14.sp,
+                color = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
+            ),
+            // 기본 placeholder 대신, 아래 Box 를 통해 직접 표시하므로 비워 둡니다.
+            placeholder = { /* No-op */ },
+
+            // trailingIcon을 이용해 "중복확인" 버튼을 텍스트필드 안 오른쪽에 추가
+            trailingIcon = {
+                Text(
+                    text = "중복확인",
+                    color = colorResource(R.color.gray_500),
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .clickable {
+                            // TODO: 여기에 '중복확인' 로직을 넣으세요.
+                        }
+                        .padding(end = 6.dp)
+                )
+            },
+            keyboardOptions = KeyboardOptions.Default,
+            modifier = Modifier
+                .width(310.dp)
+                .height(52.dp)
+                .onFocusChanged { onFocusChange(it.isFocused) },
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = colorResource(R.color.gray_500),
+                unfocusedIndicatorColor = colorResource(R.color.gray_500),
+                cursorColor = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
+            )
+        )
+
+        // 값이 비었을 때만(== 실제 입력이 없을 때만) 직접 플레이스홀더를 가운데 표시
+        if (value.isEmpty()) {
+            Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
@@ -206,54 +251,11 @@ fun IdInputTextField(
                     color = colorResource(R.color.gray_500)
                 )
             }
-        },
-        keyboardOptions = KeyboardOptions.Default,
-        modifier = Modifier
-            .width(310.dp)
-            .height(52.dp)
-            .onFocusChanged { onFocusChange(it.isFocused) },
-        colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color.Transparent,
-            focusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = colorResource(R.color.gray_500),
-            unfocusedIndicatorColor = colorResource(R.color.gray_500),
-            cursorColor = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
-        )
-    )
-}
-
-@Composable
-fun IdProgressBar(currentStep: Int, totalSteps: Int) {
-    // 각 단계별 진행률을 설정합니다. 총합은 1.0이어야 합니다.
-    val stepRatios = listOf(0.25f, 0.25f, 0.25f, 0.25f) // 단계별 비율 (1단계: 25%, 2단계: 25% 등)
-
-    // 현재 단계까지의 진행률을 계산합니다.
-    val progress = stepRatios.take(currentStep).sum()
-    val barStep = (progress*1000)
-    Box(
-        modifier = Modifier
-            .width(340.dp)
-            .height(5.dp)
-            .background(
-                color = colorResource(R.color.gray_500), // 그라데이션이 전체 너비를 덮도록 설정
-                shape = RoundedCornerShape(4.dp)
-            )
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth(progress) // 진행률에 따라 너비 설정
-                .height(8.dp)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(Color(0xFFFF9861), Color(0xFFFDDDC1)), // 채워진 부분 색상
-                        startX = 0f,
-                        endX = barStep
-                    ),
-                    shape = RoundedCornerShape(4.dp)
-                )
-        )
+        }
     }
 }
+
+
 
 
 @Preview(showBackground = true)
