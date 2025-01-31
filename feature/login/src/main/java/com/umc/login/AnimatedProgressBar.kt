@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -35,7 +36,7 @@ fun AnimatedProgressBar(
         modifier = Modifier
             .width(340.dp)
             .height(5.dp)
-            .background(Color.LightGray, shape = RoundedCornerShape(4.dp))
+            .background(colorResource(R.color.gray_200), shape = RoundedCornerShape(2.5.dp))
     ) {
         Box(
             modifier = Modifier
@@ -45,7 +46,7 @@ fun AnimatedProgressBar(
                     brush = Brush.horizontalGradient(
                         colors = listOf(Color(0xFFFF9861), Color(0xFFFDDDC1))
                     ),
-                    shape = RoundedCornerShape(4.dp)
+                    shape = RoundedCornerShape(2.5.dp)
                 )
         )
     }
