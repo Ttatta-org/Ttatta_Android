@@ -30,5 +30,8 @@
     <string name="join_pw_comment">비밀번호</string>
     <string name="join_pw_small_comment">비밀번호는 특수문자를 포함한 8자리 이상으로 정해주세요!</string>
 
+    <string name="join_name">본인인증을 위해 이름을 입력해주세요</string>
+    <string name="join_name_comment">이름</string>"
+    <string name="join_name_small_comment">특수문자나, 숫자, 초성은 사용할 수 없습니다</string>"
     <string name="next_button">다음으로</string>
 </resources>
