@@ -9,5 +9,8 @@
 
     <color name="gray_500">#FFCACACA</color>
     <color name="gray_400">#FFE1E1E1</color>
+    <color name="gray_200">#FFF5F5F5</color>"
+    
+    <color name="positiveGreen">#FF4CD955</color>
 
 </resources>
