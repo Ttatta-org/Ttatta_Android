@@ -1,4 +1,4 @@
-package com.umc.login
+package com.umc.login.Join
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -39,101 +39,74 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.umc.login.R
+
 
 @Composable
-fun JoinNameScreen(navController: NavHostController) {
-    Column (
-        //horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-    ){
-        NameBackButton(navController)
+fun JoinScreen(navController: NavHostController) {
+    Column(modifier = Modifier.wrapContentSize()) {
+        JoinNicknameView(onNext = { navController.navigate("join_id") })
     }
 }
 
 @Composable
-fun NameBackButton(navController: NavHostController) {
-    Box (
-        modifier = Modifier
-            .wrapContentSize()
-            .padding(top = 50.dp, start = 30.dp)
-    ){
-        Image(
-            painter = painterResource(R.drawable.ic_back),
-            modifier = Modifier
-                .size(15.dp, 21.dp)
-                .clickable { navController.navigate("join_id") },
-            contentDescription = "back_button",
-
-            )
-    }
-}
-
-
-
-@Composable
-fun JoinNameView(onNext: () -> Unit, onBack: () -> Unit) {
-    var pwState by remember { mutableStateOf("") }
-    var isTextFieldFocused by remember { mutableStateOf(false) }
+fun JoinNicknameView(onNext: () -> Unit) {
+    var nickNameState by remember { mutableStateOf("") }
     var isWarningVisible by remember { mutableStateOf(false) }
+    val isButtonEnabled = nickNameState.isNotEmpty() && nickNameState.length <= 8
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 5.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = stringResource(R.string.join_name),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
+            text = stringResource(R.string.join_nickname),
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .width(280.dp)
-                .padding(bottom = 35.dp),
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight(600),
             color = colorResource(R.color.yellow_200)
         )
+        Spacer(modifier = Modifier.height(35.dp))
 
-        // Input Text Field
-        NameInputTextField(
-            value = pwState,
+        NicknameInputTextField(
+            value = nickNameState,
             onValueChange = {
-                pwState = it
-                isWarningVisible = it.length > 8 // Show warning when 8 characters reached
+                if (it.length <= 9) {
+                    nickNameState = it
+                    isWarningVisible = (it.length == 9)
+                }
             },
-            placeholder = stringResource(R.string.join_name_comment),
-            onFocusChange = { isTextFieldFocused = it },
+            placeholder = stringResource(R.string.nickname_comment),
             isWarning = isWarningVisible
         )
+
         Spacer(modifier = Modifier.height(5.dp))
 
-        if (isWarningVisible)
-            Text(
-                text = stringResource(R.string.join_name_small_comment),
-                color = colorResource(R.color.negativeRed),
-                fontSize = 12.sp,
-            )
-        else if (!isWarningVisible)
-            Text(
-                text = stringResource(R.string.join_name_small_comment),
-                color = colorResource(R.color.gray_400),
-                fontSize = 12.sp
-            )
+        Text(
+            text = stringResource(R.string.nickname_warning),
+            color = if (isWarningVisible) colorResource(R.color.negativeRed) else colorResource(R.color.gray_400),
+            fontSize = 12.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight(400)
+        )
+        Spacer(modifier = Modifier.height(101.dp))
 
-        // Button
         Button(
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 1.dp, // 기본 그림자
-                pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
-                disabledElevation = 0.dp // enabled가 false일때 그림자
-            ),
-            onClick = onNext,
+            enabled = isButtonEnabled,
+            onClick = { if (isButtonEnabled) onNext() },
             modifier = Modifier
                 .width(310.dp)
-                .padding(top = 139.dp)
                 .height(45.dp),
-            shape = RoundedCornerShape(24.dp), // 라운딩 처리
+            shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (isTextFieldFocused) colorResource(R.color.orange_200) else colorResource(R.color.yellow_300)
+                containerColor = if (isButtonEnabled) colorResource(R.color.orange_200) else colorResource(R.color.yellow_300),
+                disabledContainerColor = colorResource(R.color.yellow_300)
+            ),
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 1.dp,
+                pressedElevation = 0.dp,
+                disabledElevation = 0.dp
             )
         ) {
             Text(
@@ -147,20 +120,15 @@ fun JoinNameView(onNext: () -> Unit, onBack: () -> Unit) {
 }
 
 @Composable
-fun NameInputTextField(
+fun NicknameInputTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    onFocusChange: (Boolean) -> Unit,
     isWarning: Boolean
 ) {
     TextField(
         value = value,
-        onValueChange = {
-            if (it.length < 8) { // 8글자 제한
-                onValueChange(it)
-            }
-        },
+        onValueChange = { if (it.length <= 9) onValueChange(it) },
         singleLine = true,
         textStyle = LocalTextStyle.current.copy(
             textAlign = TextAlign.Center,
@@ -168,23 +136,20 @@ fun NameInputTextField(
             color = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
         ),
         placeholder = {
-            Box (
+            Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = placeholder,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight(600),
                     color = colorResource(R.color.gray_500)
                 )
             }
         },
         keyboardOptions = KeyboardOptions.Default,
-        modifier = Modifier
-            .width(310.dp)
-            .height(52.dp)
-            .onFocusChanged { onFocusChange(it.isFocused) },
+        modifier = Modifier.width(310.dp).height(51.dp),
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color.Transparent,
             focusedContainerColor = Color.Transparent,
@@ -195,9 +160,8 @@ fun NameInputTextField(
     )
 }
 
-
 @Preview(showBackground = true)
 @Composable
-fun PreviewJoinNameScreen() {
-    JoinNameScreen(navController = NavHostController(LocalContext.current))
+fun PreviewJoinScreen() {
+    JoinScreen(navController = NavHostController(LocalContext.current))
 }

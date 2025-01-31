@@ -1,12 +1,9 @@
-package com.umc.login
+package com.umc.login.Join
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -32,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -44,18 +39,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-
+import com.umc.login.R
 
 @Composable
-fun JoinScreen(navController: NavHostController) {
+fun JoinNameScreen(navController: NavHostController) {
     Column (
+        //horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize()
     ){
-        BackButton(navController)
+        NameBackButton(navController)
     }
 }
+
 @Composable
-fun BackButton(navController: NavHostController) {
+fun NameBackButton(navController: NavHostController) {
     Box (
         modifier = Modifier
             .wrapContentSize()
@@ -65,16 +62,18 @@ fun BackButton(navController: NavHostController) {
             painter = painterResource(R.drawable.ic_back),
             modifier = Modifier
                 .size(15.dp, 21.dp)
-                .clickable { navController.navigate("login") },
+                .clickable { navController.navigate("join_id") },
             contentDescription = "back_button",
 
-        )
+            )
     }
 }
 
+
+
 @Composable
-fun JoinNicknameView(onNext: () -> Unit) {
-    var nickNameState by remember { mutableStateOf("") }
+fun JoinNameView(onNext: () -> Unit, onBack: () -> Unit) {
+    var pwState by remember { mutableStateOf("") }
     var isTextFieldFocused by remember { mutableStateOf(false) }
     var isWarningVisible by remember { mutableStateOf(false) }
 
@@ -85,10 +84,10 @@ fun JoinNicknameView(onNext: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = stringResource(R.string.join_nickname),
-            textAlign =TextAlign.Center,
+            text = stringResource(R.string.join_name),
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
             modifier = Modifier
                 .width(280.dp)
                 .padding(bottom = 35.dp),
@@ -96,13 +95,13 @@ fun JoinNicknameView(onNext: () -> Unit) {
         )
 
         // Input Text Field
-        NicknameInputTextField(
-            value = nickNameState,
+        NameInputTextField(
+            value = pwState,
             onValueChange = {
-                nickNameState = it
-                isWarningVisible = it.length == 8 // Show warning when 8 characters reached
+                pwState = it
+                isWarningVisible = it.length > 8 // Show warning when 8 characters reached
             },
-            placeholder = stringResource(R.string.nickname_comment),
+            placeholder = stringResource(R.string.join_name_comment),
             onFocusChange = { isTextFieldFocused = it },
             isWarning = isWarningVisible
         )
@@ -110,13 +109,13 @@ fun JoinNicknameView(onNext: () -> Unit) {
 
         if (isWarningVisible)
             Text(
-            text = stringResource(R.string.nickname_warning),
-            color = colorResource(R.color.negativeRed),
-            fontSize = 12.sp,
+                text = stringResource(R.string.join_name_small_comment),
+                color = colorResource(R.color.negativeRed),
+                fontSize = 12.sp,
             )
         else if (!isWarningVisible)
             Text(
-                text = stringResource(R.string.nickname_warning),
+                text = stringResource(R.string.join_name_small_comment),
                 color = colorResource(R.color.gray_400),
                 fontSize = 12.sp
             )
@@ -135,7 +134,9 @@ fun JoinNicknameView(onNext: () -> Unit) {
                 .height(45.dp),
             shape = RoundedCornerShape(24.dp), // 라운딩 처리
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (isTextFieldFocused) colorResource(R.color.orange_200) else colorResource(R.color.yellow_300)
+                containerColor = if (isTextFieldFocused) colorResource(R.color.orange_200) else colorResource(
+                    R.color.yellow_300
+                )
             )
         ) {
             Text(
@@ -148,10 +149,8 @@ fun JoinNicknameView(onNext: () -> Unit) {
     }
 }
 
-
-
 @Composable
-fun NicknameInputTextField(
+fun NameInputTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
@@ -161,7 +160,7 @@ fun NicknameInputTextField(
     TextField(
         value = value,
         onValueChange = {
-            if (it.length <= 8) { // 8글자 제한
+            if (it.length < 8) { // 8글자 제한
                 onValueChange(it)
             }
         },
@@ -199,8 +198,9 @@ fun NicknameInputTextField(
     )
 }
 
+
 @Preview(showBackground = true)
 @Composable
-fun PreviewJoinScreen() {
-    JoinScreen(navController = NavHostController(LocalContext.current))
+fun PreviewJoinNameScreen() {
+    JoinNameScreen(navController = NavHostController(LocalContext.current))
 }
