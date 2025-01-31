@@ -18,11 +18,7 @@ class TestActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            Scaffold { innerpadding ->
-                Box(modifier = Modifier.padding(innerpadding)){
-                    LoginApp(viewModel = viewModel)
-                }
-            }
+            LoginApp(viewModel = viewModel)
         }
     }
 }
