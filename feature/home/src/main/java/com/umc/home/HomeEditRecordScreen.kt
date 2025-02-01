@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -171,22 +172,6 @@ fun Topbar() {
                 modifier = Modifier.size(30.dp),
                 tint = Color.Unspecified // 원본 색 유지
             )
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            Icon(
-                painter = painterResource(id = R.drawable.ic_locaad),
-                contentDescription = "Location",
-                tint = Color.Unspecified // Tint 효과 제거
-            )
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Icon(
-                painter = painterResource(id = R.drawable.ic_search),
-                contentDescription = "Search",
-                tint = Color.Unspecified // Tint 효과 제거
-            )
         }
     }
 }
@@ -287,80 +272,44 @@ fun CommonTextField(
 
         Spacer(Modifier.height(8.dp))
 
-        Card(
+        // 그림자를 배경과 분리하여 적용
+        Box(
             modifier = Modifier
-                .fillMaxWidth() // 각 카드의 너비 설정
-                .heightIn(min = 45.dp)
+                .fillMaxWidth()
                 .shadow(
-                    elevation = 6.dp, // 그림자의 높이 조정
-                    shape = RoundedCornerShape(28.dp), // 카드의 모서리 둥글기
+                    elevation = 6.dp,
+                    shape = RoundedCornerShape(28.dp),
                     spotColor = Color(0xDE806E38),
                     ambientColor = Color(0xDE806E38),
-                    clip = true // 모서리가 잘리도록 설정
+                    clip = true
                 )
-                .wrapContentHeight(), // 컨텐츠 내용에 따라 높이 조정
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White // 카드 배경 색상 설정
-            )
+                .background(Color(0xFFFFFFFF), shape = RoundedCornerShape(28.dp)) // 배경 적용
         ) {
-//            TextField(
-//                value = text,
-//                onValueChange = { onTextChange(it) },
-//                placeholder = {
-//                    Text(
-//                        text = placeholder,
-//                        color = Color(0xFFCACACA),
-//                        fontSize = 12.sp,
-//                        modifier = Modifier
-//                            .padding(horizontal = 28.dp, vertical = 12.5.dp)
-//                    )
-//                },
-//                shape = RoundedCornerShape(16.dp),
-//                colors = TextFieldDefaults.colors(
-//                    focusedContainerColor = Color.Transparent,
-//                    unfocusedContainerColor = Color.Transparent,
-//                    focusedIndicatorColor = Color.Transparent,
-//                    unfocusedIndicatorColor = Color.Transparent
-//                ),
-//                maxLines = Int.MAX_VALUE, // 여러 줄 입력 가능
-//                minLines = 1, // 최소 한 줄부터 시작
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .heightIn(min = 45.dp)
-//                    .padding(0.dp)
-//            )
-            Box( // Box로 감싸서 높이 조절
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 25.dp, vertical = 6.dp),
-                contentAlignment = Alignment.CenterStart
+                    .heightIn(min = 45.dp)
+                    .background(Color.White, shape = RoundedCornerShape(28.dp)) // 내부 필드 배경
+                    .padding(horizontal = 28.dp, vertical = 13.dp) // 내부 패딩 조정
             ) {
                 if (text.isEmpty()) {
                     Text(
                         text = placeholder,
-                        color = Color(0xFFCACACA),
                         fontSize = 12.sp,
-                        modifier = Modifier
-                            .padding(vertical = 12.5.dp) // placeholder가 높이 늘리지 않도록 조정
+                        color = Color(0xFFCACACA)
                     )
                 }
-                TextField(
+
+                BasicTextField(
                     value = text,
-                    onValueChange = { onTextChange(it) },
-                    shape = RoundedCornerShape(16.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
+                    onValueChange = onTextChange,
+                    textStyle = androidx.compose.ui.text.TextStyle(
+                        color = Color.Black,
+                        fontSize = 12.sp
                     ),
-                    maxLines = Int.MAX_VALUE, // 여러 줄 입력 가능
-                    minLines = 1, // 기본적으로 한 줄
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 45.dp) // 최소 높이 45dp 유지
-                        .padding(0.dp)
+                    singleLine = false,
+                    maxLines = Int.MAX_VALUE,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
