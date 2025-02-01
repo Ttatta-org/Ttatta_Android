@@ -43,100 +43,69 @@ import com.umc.login.R
 
 @Composable
 fun JoinNameScreen(navController: NavHostController) {
-    Column (
-        //horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-    ){
-        NameBackButton(navController)
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        JoinNameView(onNext = { navController.navigate("join_id") })
     }
 }
 
 @Composable
-fun NameBackButton(navController: NavHostController) {
-    Box (
-        modifier = Modifier
-            .wrapContentSize()
-            .padding(top = 50.dp, start = 30.dp)
-    ){
-        Image(
-            painter = painterResource(R.drawable.ic_back),
-            modifier = Modifier
-                .size(15.dp, 21.dp)
-                .clickable { navController.navigate("join_id") },
-            contentDescription = "back_button",
-
-            )
-    }
-}
-
-
-
-@Composable
-fun JoinNameView(onNext: () -> Unit, onBack: () -> Unit) {
-    var pwState by remember { mutableStateOf("") }
-    var isTextFieldFocused by remember { mutableStateOf(false) }
+fun JoinNameView(onNext: () -> Unit) {
+    var nameState by remember { mutableStateOf("") }
     var isWarningVisible by remember { mutableStateOf(false) }
+    val isButtonEnabled = nameState.isNotEmpty() && nameState.length <= 8
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 5.dp),
+        modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = stringResource(R.string.join_name),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
-            modifier = Modifier
-                .width(280.dp)
-                .padding(bottom = 35.dp),
+            fontSize = 14.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.Bold,
             color = colorResource(R.color.yellow_200)
         )
+        Spacer(modifier = Modifier.height(35.dp))
 
-        // Input Text Field
         NameInputTextField(
-            value = pwState,
+            value = nameState,
             onValueChange = {
-                pwState = it
-                isWarningVisible = it.length > 8 // Show warning when 8 characters reached
+                if (it.length <= 9) {
+                    nameState = it
+                    isWarningVisible = (it.length == 9)
+                }
             },
             placeholder = stringResource(R.string.join_name_comment),
-            onFocusChange = { isTextFieldFocused = it },
             isWarning = isWarningVisible
         )
+
         Spacer(modifier = Modifier.height(5.dp))
 
-        if (isWarningVisible)
-            Text(
-                text = stringResource(R.string.join_name_small_comment),
-                color = colorResource(R.color.negativeRed),
-                fontSize = 12.sp,
-            )
-        else if (!isWarningVisible)
-            Text(
-                text = stringResource(R.string.join_name_small_comment),
-                color = colorResource(R.color.gray_400),
-                fontSize = 12.sp
-            )
+        Text(
+            text = stringResource(R.string.join_name_small_comment),
+            color = if (isWarningVisible) colorResource(R.color.negativeRed) else colorResource(R.color.gray_400),
+            fontSize = 12.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.Normal
+        )
+        Spacer(modifier = Modifier.height(101.dp))
 
-        // Button
         Button(
-            elevation = ButtonDefaults.buttonElevation(
-                defaultElevation = 1.dp, // 기본 그림자
-                pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
-                disabledElevation = 0.dp // enabled가 false일때 그림자
-            ),
-            onClick = onNext,
+            enabled = isButtonEnabled,
+            onClick = { if (isButtonEnabled) onNext() },
             modifier = Modifier
                 .width(310.dp)
-                .padding(top = 139.dp)
                 .height(45.dp),
-            shape = RoundedCornerShape(24.dp), // 라운딩 처리
+            shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (isTextFieldFocused) colorResource(R.color.orange_200) else colorResource(
-                    R.color.yellow_300
-                )
+                containerColor = if (isButtonEnabled) colorResource(R.color.orange_200) else colorResource(R.color.yellow_300),
+                disabledContainerColor = colorResource(R.color.yellow_300)
+            ),
+            elevation = ButtonDefaults.buttonElevation(
+                defaultElevation = 1.dp,
+                pressedElevation = 0.dp,
+                disabledElevation = 0.dp
             )
         ) {
             Text(
@@ -154,16 +123,11 @@ fun NameInputTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    onFocusChange: (Boolean) -> Unit,
     isWarning: Boolean
 ) {
     TextField(
         value = value,
-        onValueChange = {
-            if (it.length < 8) { // 8글자 제한
-                onValueChange(it)
-            }
-        },
+        onValueChange = { if (it.length <= 9) onValueChange(it) },
         singleLine = true,
         textStyle = LocalTextStyle.current.copy(
             textAlign = TextAlign.Center,
@@ -171,23 +135,20 @@ fun NameInputTextField(
             color = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
         ),
         placeholder = {
-            Box (
+            Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = placeholder,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = colorResource(R.color.gray_500)
                 )
             }
         },
         keyboardOptions = KeyboardOptions.Default,
-        modifier = Modifier
-            .width(310.dp)
-            .height(52.dp)
-            .onFocusChanged { onFocusChange(it.isFocused) },
+        modifier = Modifier.width(310.dp).height(51.dp),
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color.Transparent,
             focusedContainerColor = Color.Transparent,
@@ -197,7 +158,6 @@ fun NameInputTextField(
         )
     )
 }
-
 
 @Preview(showBackground = true)
 @Composable
