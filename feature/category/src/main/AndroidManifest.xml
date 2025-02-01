@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
     <application
-        android:name=".test.RecordTestApplication"
+        android:name=".test.TestApplication"
         android:allowBackup="true"
-        android:label="test"
-        tools:replace="android:label">
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Ttatta">
         <activity
-            android:name=".test.RecordTestActivity"
+            android:name=".test.TestActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -16,4 +19,5 @@
             </intent-filter>
         </activity>
     </application>
+
 </manifest>
