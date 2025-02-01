@@ -98,7 +98,6 @@ fun RecordEditLocationScreen(
     }
 }
 
-
 @Composable
 fun Topbar() {
     var searchQuery by remember { mutableStateOf("") }
@@ -128,7 +127,7 @@ fun Topbar() {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp, vertical = 12.dp)
+                .padding(start = 32.dp, end = 22.dp, top = 12.dp, bottom = 12.dp)
                 .zIndex(1f), // 이미지 위에 아이콘 배치
             verticalAlignment = Alignment.CenterVertically
         ) {
