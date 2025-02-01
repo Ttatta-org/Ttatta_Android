@@ -122,6 +122,7 @@ fun InfoSection(
             .wrapContentWidth()
             .wrapContentHeight()
             .padding(top = 60.dp)
+            //.widthIn()
     ) {
         // 날짜
         InfoTag(

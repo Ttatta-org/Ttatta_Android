@@ -1,5 +1,6 @@
 package com.umc.record
 
+import android.widget.ImageButton
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -42,30 +43,61 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.umc.record.component.ShadowedIcon
+
+data class SelectedPosition(
+    val x: Float,
+    val y: Float,
+    //val prop: DiaryCardProp,
+)
 
 @Composable
-fun RecordEditLocationScreen() {
+fun RecordEditLocationScreen(
+    mapView: @Composable () -> Unit,
+    onLocationButtonClicked: () -> Unit
+) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Topbar를 Box의 상단에 고정
+        // 네이버 지도
+        mapView()
+
+        // 플로팅 버튼
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(end = 12.96.dp, bottom = 171.dp), // 바텀시트(150dp) + 21dp 만큼 띄우기
+            contentAlignment = Alignment.BottomEnd
+        ) {
+            IconButton(
+                onClick = onLocationButtonClicked,
+                modifier = Modifier
+                    .size(84.dp)
+            ) {
+                ShadowedIcon(
+                    id = R.drawable.btn_location,
+                    contentDescription = null,
+                    width = 84.dp,
+                    height = 84.dp,
+                )
+            }
+        }
+
+        // 바텀 시트
+        EditLocationBottomSheet(location = "고래와")
+
+        // Topbar를 Box의 상단에 배치 (최상단에 유지)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
 //                .height(97.dp) // Topbar 높이 유지
-                .background(Color.White) // 배경색 추가하여 스크롤 시 레이어 문제 방지
-                .zIndex(1f) // 스크롤되는 콘텐츠보다 위에 위치
+                .zIndex(1f)
         ) {
             Topbar()
         }
-
-        // 네이버 지도
-
-
-        // 바텀 시트
-        EditLocationBottomSheet(location = "고래와")
     }
 }
+
 
 @Composable
 fun Topbar() {
@@ -223,7 +255,9 @@ fun SearchField(
             Text(
                 text = "찾고 싶은 내용을 입력해주세요!",
                 fontSize = 13.sp,
-                color = Color(0xFF8E8E8E)
+                color = Color(0xFF8E8E8E),
+                modifier = Modifier
+                    .padding(horizontal = 7.dp)
             )
         }
 
@@ -245,7 +279,7 @@ fun SearchField(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp)
+                .padding(horizontal = 17.dp)
         )
     }
 }
@@ -253,5 +287,8 @@ fun SearchField(
 @Preview(showBackground = true)
 @Composable
 fun PreviewRecordEditLocationScreen() {
-    RecordEditLocationScreen()
+    RecordEditLocationScreen(
+        mapView = {},
+        onLocationButtonClicked = {}
+    )
 }
