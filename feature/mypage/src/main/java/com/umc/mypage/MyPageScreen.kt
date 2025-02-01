@@ -50,7 +50,8 @@ fun MyPageScreen(
             bottomBar = {
                 BottomNavigationBarWithFAB(
                     selectedTab = "mypage",
-                    onTabSelected = onTabSelected
+                    onTabSelected = { /* 탭 변경 로직 */ },
+                    onFabClick = onFabClick
                 )
             }
         ) { innerPadding ->
@@ -84,34 +85,6 @@ fun MyPageScreen(
 
             }
         }
-
-        // Custom Floating Image Button
-        Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            CustomFloatingImageButton(onClick = onFabClick)
-        }
-    }
-}
-
-
-
-@Composable
-fun CustomFloatingImageButton(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(80.dp)
-            .offset(y = (-40).dp) // 바텀 네비게이션에 걸치도록 위치 조정
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_add), // 꽃 모양 이미지
-            contentDescription = "추가 버튼",
-            modifier = Modifier.fillMaxSize()
-        )
     }
 }
 

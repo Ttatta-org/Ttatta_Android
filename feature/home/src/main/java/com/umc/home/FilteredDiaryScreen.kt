@@ -99,7 +99,8 @@ fun FilteredDiaryScreen(
         bottomBar = {
             BottomNavigationBarWithFAB(
                 selectedTab = "home",
-                onTabSelected = { /* 탭 변경 로직 */ }
+                onTabSelected = { /* 탭 변경 로직 */ },
+                onFabClick = onFabClick
             )
         }
     ) { innerPadding ->

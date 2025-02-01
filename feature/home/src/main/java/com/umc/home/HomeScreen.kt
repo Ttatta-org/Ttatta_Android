@@ -127,8 +127,9 @@ fun HomeScreen(
         },
         bottomBar = {
             BottomNavigationBarWithFAB(
-                selectedTab = "home",
-                onTabSelected = { /* 탭 변경 로직 */ }
+                selectedTab = "diary",
+                onTabSelected = { /* 탭 변경 로직 */ },
+                onFabClick = onFabClick
             )
         }
     ) { innerPadding ->
@@ -222,13 +223,13 @@ fun HomeScreen(
             }
         }
     }
-        // 커스텀 플로팅 버튼 자리
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            CustomFloatingImageButton(onClick = onFabClick)
-        }
+//        // 커스텀 플로팅 버튼 자리
+//        Box(
+//            modifier = Modifier.fillMaxSize(),
+//            contentAlignment = Alignment.BottomCenter
+//        ) {
+//            CustomFloatingImageButton(onClick = onFabClick)
+//        }
 
         // 디테일 모달창 (수정/삭제)
         // 모달이 열렸을 때만 FullSize 배경 클릭 이벤트 처리
