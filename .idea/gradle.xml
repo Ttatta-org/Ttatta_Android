@@ -15,6 +15,7 @@
             <option value="$PROJECT_DIR$/data" />
             <option value="$PROJECT_DIR$/design" />
             <option value="$PROJECT_DIR$/feature" />
+            <option value="$PROJECT_DIR$/feature/category" />
             <option value="$PROJECT_DIR$/feature/challenge" />
             <option value="$PROJECT_DIR$/feature/footprint" />
             <option value="$PROJECT_DIR$/feature/home" />

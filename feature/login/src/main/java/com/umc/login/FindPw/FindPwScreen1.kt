@@ -1,9 +1,11 @@
-package com.umc.login.Join
+package com.umc.login.FindPw
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,8 +29,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -39,36 +41,67 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.umc.login.FindId.FindIdMainView
+import com.umc.login.FindId.FindIdScreen
+import com.umc.login.Join.NicknameInputTextField
 import com.umc.login.R
 
 @Composable
-fun JoinNameScreen(navController: NavHostController) {
-    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        JoinNameView(onNext = { navController.navigate("join_id") })
+fun FindPwScreen1(navController: NavHostController) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        FindPwTopView(
+            onNext = { navController.navigate("find_pw2") },
+            onBack = { navController.navigate("login") })
     }
 }
 
 @Composable
-fun JoinNameView(onNext: () -> Unit) {
+fun FindPwTopView(onNext: () -> Unit, onBack: () -> Unit) {
     var nameState by remember { mutableStateOf("") }
     var isWarningVisible by remember { mutableStateOf(false) }
     val isButtonEnabled = nameState.isNotEmpty() && nameState.length <= 8
 
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Column (modifier = Modifier.wrapContentSize(),
+        horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(
+            horizontalArrangement = Arrangement.Absolute.Left,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 58.dp),
+        ) {
+            Spacer(modifier = Modifier.width(30.dp))
+            Image(
+                painter = painterResource(R.drawable.ic_back),
+                modifier = Modifier
+                    .size(15.dp, 21.dp)
+                    .clickable { onBack() },
+                contentScale = ContentScale.None,
+                contentDescription = "back_button"
+            )
+            Spacer(modifier = Modifier.width(122.dp)) // 가운데 정렬 방법 찾아야함 ㅠ
+            Text(
+                text = stringResource(R.string.find_pw),
+                fontSize = 15.sp,
+                fontWeight = FontWeight(600),
+                lineHeight = 20.sp,
+                textAlign = TextAlign.Center,
+                color = colorResource(R.color.orange_500)
+            )
+        }
+        Spacer(modifier = Modifier.height(30.dp))
         Text(
-            text = stringResource(R.string.join_name),
+            modifier = Modifier.wrapContentSize(),
+            text = stringResource(R.string.find_pw_comment),
             textAlign = TextAlign.Center,
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = colorResource(R.color.yellow_200)
-        )
-        Spacer(modifier = Modifier.height(35.dp))
+            fontSize = 12.sp,
+            fontWeight = FontWeight(400),
+            color = colorResource(R.color.gray_600)
 
-        NameInputTextField(
+
+        )
+        Spacer(modifier = Modifier.height(70.dp))
+
+        FindPwIdInputTextField(
             value = nameState,
             onValueChange = {
                 if (it.length <= 9) {
@@ -76,30 +109,19 @@ fun JoinNameView(onNext: () -> Unit) {
                     isWarningVisible = (it.length == 9)
                 }
             },
-            placeholder = stringResource(R.string.join_name_comment),
+            placeholder = stringResource(R.string.nickname_comment),
             isWarning = isWarningVisible
         )
-
-        Spacer(modifier = Modifier.height(5.dp))
-
-        Text(
-            text = stringResource(R.string.join_name_small_comment),
-            color = if (isWarningVisible) colorResource(R.color.negativeRed) else colorResource(R.color.gray_400),
-            fontSize = 12.sp,
-            lineHeight = 20.sp,
-            fontWeight = FontWeight.Normal
-        )
-        Spacer(modifier = Modifier.height(101.dp))
-
+        Spacer(modifier = Modifier.height(186.dp))
         Button(
             enabled = isButtonEnabled,
-            onClick = { if (isButtonEnabled) onNext() },
+            onClick = { if (isButtonEnabled) { onNext() } },
             modifier = Modifier
                 .width(310.dp)
                 .height(45.dp),
             shape = RoundedCornerShape(28.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = if (isButtonEnabled) colorResource(R.color.orange_200) else colorResource(R.color.yellow_300),
+                containerColor = colorResource(R.color.orange_200),
                 disabledContainerColor = colorResource(R.color.yellow_300)
             ),
             elevation = ButtonDefaults.buttonElevation(
@@ -111,7 +133,8 @@ fun JoinNameView(onNext: () -> Unit) {
             Text(
                 text = stringResource(R.string.next_button),
                 fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight(600),
                 color = Color.White
             )
         }
@@ -119,7 +142,7 @@ fun JoinNameView(onNext: () -> Unit) {
 }
 
 @Composable
-fun NameInputTextField(
+fun FindPwIdInputTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
@@ -142,7 +165,7 @@ fun NameInputTextField(
                 Text(
                     text = placeholder,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight(600),
                     color = colorResource(R.color.gray_500)
                 )
             }
@@ -161,6 +184,6 @@ fun NameInputTextField(
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewJoinNameScreen() {
-    JoinNameScreen(navController = NavHostController(LocalContext.current))
+fun PreviewFindIdScreen() {
+    FindPwScreen1(navController = NavHostController(LocalContext.current))
 }
