@@ -1,9 +1,12 @@
 package com.umc.mypage
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -13,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -50,37 +54,41 @@ fun MyPageScreen(
                 )
             }
         ) { innerPadding ->
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color(0xFFFEF6F2))
                     .padding(innerPadding)
-                    .padding(16.dp),
+                    .background(Color(0xFFFEF6F2))
+                    .padding(start = 25.dp, end = 25.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // 프로필 섹션
-                ProfileSection(name = uiState.displayName, profileImage = uiState.profileImage)
-                Spacer(modifier = Modifier.height(16.dp))
+                item { Spacer(modifier = Modifier.height(40.dp)) }
+                item { ProfileSection(name = uiState.displayName, profileImage = uiState.profileImage) }
+                item { Spacer(modifier = Modifier.height(20.dp)) }
 
                 // 요약 섹션
-                SummarySection(diaryCount = uiState.diaryCount, points = uiState.points)
-                Spacer(modifier = Modifier.height(16.dp))
+                item { SummarySection(diaryCount = uiState.diaryCount, points = uiState.points) }
+                item { Spacer(modifier = Modifier.height(22.dp)) }
 
                 // 앱 설정 섹션
-                AppSettingsSection(
-                    themeSubtitle = "기본 테마 사용 중",
-                    notificationsEnabled = uiState.notificationsEnabled,
-                    passwordLockEnabled = uiState.passwordLockEnabled,
-                    onThemeChangeClick = onThemeChangeClick
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                item {
+                    AppSettingsSection(
+                        themeSubtitle = "기본 테마 사용 중",
+                        notificationsEnabled = uiState.notificationsEnabled,
+                        passwordLockEnabled = uiState.passwordLockEnabled,
+                        onThemeChangeClick = onThemeChangeClick
+                    )
+                }
+                item { Spacer(modifier = Modifier.height(30.dp)) }
 
             }
         }
 
         // Custom Floating Image Button
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize(),
             contentAlignment = Alignment.BottomCenter
         ) {
             CustomFloatingImageButton(onClick = onFabClick)
@@ -114,9 +122,9 @@ fun ProfileSection(name: String, profileImage: Int) {
             painter = painterResource(id = profileImage),
             contentDescription = "프로필 이미지",
             modifier = Modifier
-                .size(115.dp)
+                .widthIn(min = 90.dp, max = 115.dp) // 디바이스 크기에 맞게 조정
                 .clip(CircleShape),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Fit // 잘리지 않게 변경
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -156,29 +164,30 @@ fun SummarySection(diaryCount: Int, points: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
+        horizontalArrangement = Arrangement.spacedBy(10.dp) // ✅ 카드 간 간격을 10.dp로 고정
     ) {
-        SummaryItem(label = "나의 일기", value = diaryCount)
-        SummaryItem(label = "포인트", value = points)
+        SummaryItem(label = "나의 일기", value = diaryCount, modifier = Modifier.weight(1f))
+        SummaryItem(label = "포인트", value = points, modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
-fun SummaryItem(label: String, value: Int) {
+fun SummaryItem(label: String, value: Int, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier
-            .width(165.dp) // 각 카드의 너비 설정
-            .height(50.dp) // 카드 높이 설정
+        modifier = modifier
+            .fillMaxWidth() // ✅ 남은 공간을 가득 채우도록 설정
+            .widthIn(max = 165.dp) // ✅ 카드가 너무 커지지 않도록 최대 width 제한
+            .height(50.dp)
             .shadow(
-                elevation = 6.dp, // 그림자의 높이 조정
-                shape = RoundedCornerShape(28.dp), // 카드의 모서리 둥글기
+                elevation = 6.dp,
+                shape = RoundedCornerShape(28.dp),
                 spotColor = Color(0xDE806E38),
                 ambientColor = Color(0xDE806E38),
-                clip = true // 모서리가 잘리도록 설정
-                ),
+                clip = true
+            ),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color.White // 카드 배경 색상 설정
+            containerColor = Color.White
         )
     ) {
         Column(
@@ -189,13 +198,13 @@ fun SummaryItem(label: String, value: Int) {
             Text(
                 text = label,
                 fontSize = 12.sp,
-                color = Color(0xFF4B4B4B), // 라벨 텍스트 색상 설정
+                color = Color(0xFF4B4B4B),
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = formatNumberWithComma(value),
+                text = PointNumberWithComma(value),
                 fontSize = 15.sp,
-                color = Color(0xFFFF7162), // 값 텍스트 색상 설정
+                color = Color(0xFFFF7162),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -203,8 +212,9 @@ fun SummaryItem(label: String, value: Int) {
     }
 }
 
+
 //SummaryItem에 필요한 숫자 콤마 만들기
-fun formatNumberWithComma(number: Int): String {
+fun PointNumberWithComma(number: Int): String {
     return NumberFormat.getNumberInstance(Locale.US).format(number)
 }
 
@@ -285,8 +295,10 @@ fun AppSettingsSection(
                     isChecked = passwordLockEnabled
                 )
 
-                // 구분선 공간 확보
-                Spacer(modifier = Modifier.height(20.dp))
+                // 점선 구분선
+                Spacer(modifier = Modifier.height(10.dp))
+                DashedDivider()
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // "기타" 제목
                 Text(
@@ -320,15 +332,6 @@ fun AppSettingsSection(
                         .padding(8.dp) // 간격 조절
                 )
             }
-
-            // 구분선 (Column 밖으로 살짝 튀어나오게 설정)
-            Divider(
-                color = Color(0xFFFCAD98),
-                thickness = 1.dp,
-                modifier = Modifier
-                    .padding(start = 25.dp, end = 25.dp)
-                    .offset(y = 190.dp) // Column 안에서 원하는 위치로 조절
-            )
         }
     }
 }
@@ -392,6 +395,32 @@ fun CustomSwitch(
                 .clip(CircleShape) // 원형
                 .background(Color(0xFFF5F5F5)) // Thumb 배경색
         )
+    }
+}
+
+@Composable
+fun DashedDivider() {
+    Canvas(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp) // Divider의 높이 조정
+    ) {
+        val dashWidth = 10f // 대시의 길이
+        val gapWidth = 6f // 대시 사이의 간격
+        val strokeWidth = 2f // 대시의 두께
+        val color = Color(0xFFFDDDC1) // 대시의 색상
+
+        var currentX = 0f
+        while (currentX < size.width) {
+            // Draw a single dash
+            drawLine(
+                color = color,
+                start = Offset(currentX, size.height / 2),
+                end = Offset(currentX + dashWidth, size.height / 2),
+                strokeWidth = strokeWidth
+            )
+            currentX += dashWidth + gapWidth // Move to the next dash position
+        }
     }
 }
 
