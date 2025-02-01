@@ -150,7 +150,9 @@ fun EmailInputTextField(
         textStyle = LocalTextStyle.current.copy(
             textAlign = TextAlign.Center,
             fontSize = 14.sp,
-            color = Color.Black
+            fontWeight = FontWeight(600),
+            lineHeight = 20.sp,
+            color = colorResource(R.color.gray_500)
         ),
         placeholder = {
             Box(

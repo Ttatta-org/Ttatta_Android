@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -103,6 +104,7 @@ fun JoinBackButton(onBack: () -> Unit) {
             modifier = Modifier
                 .size(15.dp, 21.dp)
                 .clickable { onBack() },
+            contentScale = ContentScale.None,
             contentDescription = "back_button"
         )
     }
