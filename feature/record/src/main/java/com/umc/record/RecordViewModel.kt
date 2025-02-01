@@ -1,10 +1,23 @@
 package com.umc.record
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.umc.design.CategoryColor
+import com.umc.record.core.MapHandler
+import com.umc.record.core.MapMarker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class RecordViewModel: ViewModel() {
+class RecordViewModel @Inject constructor(
+    private val mapHandler: MapHandler
+): ViewModel() {
+    private val clickedMarkerPositionState = mutableStateOf<Pair<Float, Float>?>(null)
+    val clickedMarkerPosition get() = clickedMarkerPositionState.value
+
     // 카테고리 목록 (더미 데이터)
     private val _categories = MutableStateFlow(
         listOf(
@@ -33,5 +46,31 @@ class RecordViewModel: ViewModel() {
     // ✅ 사용자가 입력한 다이어리 텍스트 업데이트
     fun updateDiaryText(newText: String) {
         _diaryText.value = newText
+    }
+
+    // 지도
+    fun getMapView(): @Composable () -> Unit {
+        return mapHandler.getMapView()
+    }
+
+    fun moveMapToCurrentPosition() {
+        viewModelScope.launch { mapHandler.moveToCurrentPosition() }
+    }
+
+    fun markPositionOnMap(
+        latitude: Double,
+        longitude: Double,
+        category: CategoryColor? = null
+    ) {
+        val marker = MapMarker(
+            latitude = latitude,
+            longitude = longitude,
+            color = category,
+            onClicked = onClicked@{ x, y ->
+                clickedMarkerPositionState.value = x to y
+                return@onClicked { clickedMarkerPositionState.value = null }
+            }
+        )
+        viewModelScope.launch { mapHandler.addMarker(marker) }
     }
 }

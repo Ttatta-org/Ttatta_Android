@@ -46,12 +46,14 @@ import androidx.compose.ui.geometry.Offset
 import com.umc.design.R as Res
 
 @Composable
-fun RecordScreen(viewModel: RecordViewModel = remember { RecordViewModel() }) {
-    val categories by viewModel.categories.collectAsState()
-    val selectedCategory by viewModel.selectedCategory.collectAsState()
-    val diaryText by viewModel.diaryText.collectAsState()
-
-    var showCustomDialog by remember { mutableStateOf(true) }
+fun RecordScreen(
+    categories: List<Pair<String, String>>,
+    selectedCategory: String,
+    diaryText: String,
+    onCategorySelect: (String) -> Unit,
+    onDiaryTextUpdate: (String) -> Unit
+) {
+    var showCustomDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -79,8 +81,12 @@ fun RecordScreen(viewModel: RecordViewModel = remember { RecordViewModel() }) {
             )
         }
 
-        // 바텀 시트
-        RecordBottomSheet(viewModel = viewModel, name = "서연")  // 추후 사용자명 받아와 교체 필요
+        // 바텀 시트 -> 추후 사용자명 받아와 교체 필요
+        RecordBottomSheet(
+            name = "서연",
+            diaryText = diaryText,
+            onDiaryTextUpdate = onDiaryTextUpdate
+        )
 
         // 다이얼로그
         if (showCustomDialog) {
@@ -88,7 +94,7 @@ fun RecordScreen(viewModel: RecordViewModel = remember { RecordViewModel() }) {
                 categories = categories,
                 onDismiss = { showCustomDialog = false },
                 onCategorySelected = { category ->
-                    viewModel.selectCategory(category)
+                    onCategorySelect(category)
                     showCustomDialog = false
                 }
             )
@@ -201,7 +207,11 @@ fun InfoTag(
 }
 
 @Composable
-fun RecordBottomSheet(viewModel: RecordViewModel, name: String) {
+fun RecordBottomSheet(
+    name: String,
+    diaryText: String,
+    onDiaryTextUpdate: (String) -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxSize() // 전체 화면 크기 차지
@@ -277,7 +287,10 @@ fun RecordBottomSheet(viewModel: RecordViewModel, name: String) {
 
                         BasicTextField(
                             value = inputText,
-                            onValueChange = { viewModel.updateDiaryText(it) }, // ViewModel에 업데이트
+                            onValueChange = {
+                                inputText = it
+                                onDiaryTextUpdate(it)
+                            }, // ViewModel에 업데이트
                             textStyle = TextStyle(
                                 fontSize = 13.sp,
                                 color = Color.Black
@@ -517,5 +530,23 @@ fun CustomCategoryDialog(
 @Preview(showBackground = true)
 @Composable
 fun PreviewRecordScreen() {
-    RecordScreen()
+    val sampleCategories = listOf(
+        "친구들" to "Red",
+        "가족" to "Blue",
+        "남자친구" to "Pink",
+        "일상" to "Yellow",
+        "다시 오고 싶은 장소" to "Green",
+        "제주여행" to "Turquoise"
+    )
+
+    var selectedCategory by remember { mutableStateOf("default") }
+    var diaryText by remember { mutableStateOf("") }
+
+    RecordScreen(
+        categories = sampleCategories,
+        selectedCategory = selectedCategory,
+        diaryText = diaryText,
+        onCategorySelect = { selectedCategory = it },
+        onDiaryTextUpdate = { diaryText = it }
+    )
 }

@@ -1,6 +1,5 @@
 package com.umc.record
 
-import android.widget.ImageButton
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,7 +41,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
+import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.CameraUpdate
+import com.naver.maps.map.MapView
 import com.umc.record.component.ShadowedIcon
 
 data class SelectedPosition(
@@ -278,7 +281,7 @@ fun SearchField(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 17.dp)
+                .padding(horizontal = 7.dp)
         )
     }
 }
