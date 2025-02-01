@@ -1,8 +1,8 @@
 package com.umc.data
 
+import com.umc.data.implementation.GeocoderImpl
+import kotlinx.coroutines.test.runTest
 import org.junit.Test
-
-import org.junit.Assert.*
 
 /**
  * Example local unit test, which will execute on the development machine (host).
@@ -11,7 +11,11 @@ import org.junit.Assert.*
  */
 class ExampleUnitTest {
     @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+    fun geocoderTest() = runTest {
+        val geocoder = GeocoderImpl()
+        val coordinate = geocoder.convertAddressToCoordinate("인천광역시 미추홀구 미추홀대로 598번길 26")
+        val address = geocoder.convertCoordinateToAddress(coordinate.first, coordinate.second)
+        println("result: $coordinate, $address")
+        assert(true)
     }
 }

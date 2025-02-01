@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="category_list_suffix">님의 발자국 카테고리</string>
+    <string name="new_category">발자국 새로 만들기</string>
+    <string name="modify">수정하기</string>
+    <string name="delete">삭제하기</string>
+</resources>
