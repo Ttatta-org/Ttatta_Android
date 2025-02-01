@@ -70,8 +70,21 @@ fun JoinParentScreen(navController: NavHostController) {
             composable("name") {
                 LaunchedEffect(Unit) { currentStep = 4 }
                 JoinNameView(
+                    onNext = {localNavController.navigate("email")}
+                )
+            }
+            composable("email") {
+                LaunchedEffect(Unit) { currentStep = 5 }
+                JoinEmailView(
+                    onNext = {localNavController.navigate("certification")},
+                    onBack = {}
+                )
+            }
+            composable("certification") {
+                LaunchedEffect(Unit) { currentStep = 5 }
+                JoinCertiView(
                     onNext = {},
-                    onBack = { localNavController.popBackStack() }
+                    onBack = {}
                 )
             }
         }
