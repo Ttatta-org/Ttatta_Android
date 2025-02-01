@@ -87,6 +87,7 @@ fun LoginTopView() {
         Text(
             text = stringResource(R.string.login_comment),
             fontSize = 12.sp,
+            fontWeight = FontWeight(400),
             color = colorResource(R.color.yellow_200)
 
         )
@@ -148,7 +149,8 @@ fun LoginMiddleView(loginViewModel: LoginViewModel = viewModel()) {
             Text(
                 text = stringResource(R.string.login_button),
                 fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight(600),
                 color = Color.White
             )
         }
@@ -213,6 +215,7 @@ fun InputTextField(
             Text(
                 text = placeholder,
                 fontSize = 14.sp,
+                fontWeight = FontWeight(600),
                 color = colorResource(R.color.gray_500)
             )
         }
@@ -256,18 +259,20 @@ fun LoginLinkText(navController: NavHostController) {
         horizontalArrangement = Arrangement.Center
     ) {
         Text(
-            modifier = Modifier.clickable { /* TODO: 아이디 찾기 로직 */ },
+            modifier = Modifier.clickable { navController.navigate("find_id") },
             text = stringResource(R.string.loginLink_id),
             fontSize = 12.sp,
+            fontWeight = FontWeight(400),
             color = colorResource(R.color.orange_500)
         )
         Spacer(modifier = Modifier.width(6.dp))
         Text(text = "|",  color = colorResource(R.color.orange_500))
         Spacer(modifier = Modifier.width(6.dp))
         Text(
-            modifier = Modifier.clickable { /* TODO: 비밀번호 찾기 로직 */ },
+            modifier = Modifier.clickable { navController.navigate("find_pw") },
             text = stringResource(R.string.loginLink_pw),
             fontSize = 12.sp,
+            fontWeight = FontWeight(400),
             color = colorResource(R.color.orange_500)
         )
         Spacer(modifier = Modifier.width(6.dp))
@@ -277,6 +282,7 @@ fun LoginLinkText(navController: NavHostController) {
             modifier = Modifier.clickable { navController.navigate("join") },
             text = stringResource(R.string.loginLink_join),
             fontSize = 12.sp,
+            fontWeight = FontWeight(400),
             color = colorResource(R.color.orange_500)
         )
     }
@@ -303,6 +309,7 @@ fun LoginOrDivider() {
         Text(
             text = "또는",
             fontSize = 12.sp,
+            fontWeight = FontWeight(400),
             color = colorResource(R.color.gray_500),
             modifier = Modifier.padding(horizontal = 4.dp)
         )
@@ -344,12 +351,12 @@ fun KakaoLoginButton() {
                 contentDescription = "Kakao Login",
                 modifier = Modifier.size(12.99.dp, 12.dp)
             )
-            Spacer(modifier = Modifier.padding(horizontal = 7.dp))
+            Spacer(modifier = Modifier.width(14.dp))
 
             Text(
                 text = stringResource(R.string.kakao_login),
                 fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight(600),
                 color = Color.Black
             )
         }
