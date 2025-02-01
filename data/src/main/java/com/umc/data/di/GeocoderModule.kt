@@ -1,7 +1,7 @@
 package com.umc.data.di
 
 import com.umc.core.Geocoder
-import com.umc.data.GeocoderImpl
+import com.umc.data.implementation.GeocoderImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

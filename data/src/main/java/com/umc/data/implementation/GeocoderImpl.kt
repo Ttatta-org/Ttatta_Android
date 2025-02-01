@@ -1,20 +1,23 @@
-package com.umc.data
+package com.umc.data.implementation
 
 import com.google.gson.GsonBuilder
 import com.umc.core.Geocoder
+import com.umc.data.BuildConfig
 import com.umc.data.api.GeocodingApi
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 class GeocoderImpl: Geocoder {
+
     private val client by lazy {
-        Retrofit.Builder().apply {
-            val gson = GsonBuilder()
-                .setLenient()
-                .create()
-            baseUrl("https://naveropenapi.apigw.ntruss.com")
-            addConverterFactory(GsonConverterFactory.create(gson))
-        }.build().create(GeocodingApi::class.java)
+        val gson = GsonBuilder()
+            .setLenient()
+            .create()
+        return@lazy Retrofit.Builder()
+            .baseUrl("https://naveropenapi.apigw.ntruss.com")
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+            .create(GeocodingApi::class.java)
     }
 
     override suspend fun convertAddressToCoordinate(address: String): Pair<Double, Double> {

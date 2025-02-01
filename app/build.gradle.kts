@@ -18,7 +18,7 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
-
+        vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -69,6 +69,7 @@ dependencies {
     implementation(project(":feature:home"))
     implementation(project(":feature:record"))
     implementation(project(":core"))
+    implementation(project(":design"))
 
     // Hilt
     implementation(libs.hilt.android)

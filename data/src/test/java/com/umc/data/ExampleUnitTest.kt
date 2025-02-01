@@ -1,9 +1,8 @@
 package com.umc.data
 
+import com.umc.data.implementation.GeocoderImpl
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-
-import org.junit.Assert.*
 
 /**
  * Example local unit test, which will execute on the development machine (host).

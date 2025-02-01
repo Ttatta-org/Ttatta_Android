@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">category</string>
+    <string name="new_footprint">발자국 새로 만들기</string>
+    <string name="modify_footprint">발자국 이름 수정하기</string>
+    <string name="footprint_placeholder">새 발자국 카테고리 명을 입력해주세요</string>
+    <string name="color_choice">색상 선택</string>
+    <string name="category_list">카테고리 목록</string>
+    <string name="done">완료</string>
+    <string name="modify">수정하기</string>
+    <string name="delete_category">카테고리 삭제하기</string>
+    <string name="delete_all">모든 기록 삭제하기</string>
+    <string name="delete">삭제하기</string>
+    <string name="delete_all_alert_message_1">모든 기록 삭제하기는 카테고리와 카테고리 내의 기록도 모두 삭제됩니다.</string>
+    <string name="delete_all_alert_message_2">정말 삭제하시겠습니까?</string>
+</resources>
