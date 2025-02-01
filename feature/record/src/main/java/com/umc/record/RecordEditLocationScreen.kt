@@ -17,9 +17,10 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -32,10 +33,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -59,7 +60,7 @@ fun RecordEditLocationScreen() {
         }
 
         // 네이버 지도
-        
+
 
         // 바텀 시트
         EditLocationBottomSheet(location = "고래와")
@@ -68,6 +69,17 @@ fun RecordEditLocationScreen() {
 
 @Composable
 fun Topbar() {
+    var searchQuery by remember { mutableStateOf("") }
+
+    val onQueryChange: (String) -> Unit = { newQuery ->
+        searchQuery = newQuery
+    }
+
+    val onSearch: () -> Unit = {
+        println("검색 실행: $searchQuery")
+        // 검색 로직 추가 가능
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -96,8 +108,19 @@ fun Topbar() {
                 tint = Color.Unspecified // 원본 색 유지
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.width(26.dp))
 
+            // 검색 바
+            SearchField(
+                query = searchQuery,
+                onQueryChange = onQueryChange,
+                onSearch = onSearch,
+                modifier = Modifier.weight(4f)
+            )
+
+            Spacer(modifier = Modifier.width(11.dp))
+
+            // 검색 아이콘
             Icon(
                 painter = painterResource(id = R.drawable.ic_search),
                 contentDescription = "Search",
@@ -173,6 +196,57 @@ fun EditLocationBottomSheet(location: String) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .background(
+                color = Color(0xFFFEF6F2),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .border(1.dp, Color(0xFFFF9681), shape = RoundedCornerShape(20.dp))
+            .padding(horizontal = 10.dp, vertical = 5.dp)
+            .fillMaxWidth()
+            .height(31.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        // Placeholder 텍스트를 기본 텍스트처럼 보이게
+        if (query.isEmpty()) {
+            Text(
+                text = "찾고 싶은 내용을 입력해주세요!",
+                fontSize = 13.sp,
+                color = Color(0xFF8E8E8E)
+            )
+        }
+
+        BasicTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = androidx.compose.ui.text.input.ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    onSearch() // "검색" 버튼 클릭 시 동작
+                }
+            ),
+            textStyle = androidx.compose.ui.text.TextStyle(
+                color = Color.Black,
+                fontSize = 13.sp
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp)
+        )
     }
 }
 
