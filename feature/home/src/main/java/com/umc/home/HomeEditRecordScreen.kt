@@ -14,7 +14,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,7 +31,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -40,10 +38,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -62,14 +59,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.rememberAsyncImagePainter
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import com.umc.design.R as Res
 
 @Composable
-fun HomeEditRecordScreen() {
-    var date by remember { mutableStateOf("2025년 01월 12일") }
-    var footprint by remember { mutableStateOf("서울여자대학교 학생누리관 소원나무 앞") }
-    var todayRecord by remember { mutableStateOf("") }
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) } // 이미지 상태
+fun HomeEditRecordScreen(
+    diary: EditDiary, // 기존 다이어리 데이터
+    onUpdateDiary: (EditDiary) -> Unit // 추후 Diary로 변경 필요, 수정 완료 시 다이어리 업데이트 콜백
+) {
+    var todayRecord by remember { mutableStateOf(diary.content) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(Uri.parse(diary.imageUrl)) }
+    var selectedCategory by remember { mutableStateOf("남자친구") } // 기본 카테고리
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -96,32 +97,54 @@ fun HomeEditRecordScreen() {
         ) {
             Spacer(Modifier.height(25.53.dp))
 
-            // Date
-            CommonText(label = "날짜", text = date, onTextChange = { date = it })
+            // Date (변경 불가)
+            CommonText(
+                label = "날짜",
+                text = diary.date.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")),
+                onTextChange = { }
+            )
             Spacer(Modifier.height(17.dp))
 
-            // Location
-            CommonText(label = "나의 발자국", text = footprint, onTextChange = { footprint = it })
+            // Location (변경 불가)
+            CommonText(
+                label = "나의 발자국",
+                text = diary.content,
+                onTextChange = { }
+            )
             Spacer(Modifier.height(17.dp))
 
-            // Photo
+            // Photo (기존 데이터 받아오기)
             ImageUploadField(
                 selectedImageUri = selectedImageUri,
                 onImageSelected = { selectedImageUri = it }
             )
             Spacer(Modifier.height(17.dp))
 
-            // Today's Record
-            CommonTextField(label = "오늘의 기록", text = todayRecord, onTextChange = { todayRecord = it }, placeholder = "오늘을 기록해주세요")
+            // Today's Record (기존 데이터 받아오기)
+            CommonTextField(
+                label = "오늘의 기록",
+                text = todayRecord,
+                onTextChange = { todayRecord = it },
+                placeholder = "오늘을 기록해주세요"
+            )
             Spacer(Modifier.height(17.dp))
 
-            // Edit Category
-            CustomCategoryField(initialCategory = "남자친구")
+            // Edit Category (기존 데이터 받아오기)
+            CustomCategoryField(
+                initialCategory = selectedCategory,
+                onCategorySelected = { selectedCategory = it }
+            )
             Spacer(Modifier.height(58.dp))
 
             // Button
             Button(
-                onClick = { /* 버튼 클릭 로직 */ },
+                onClick = {
+                    val updatedDiary = diary.copy(
+                        imageUrl = selectedImageUri?.toString() ?: diary.imageUrl,
+                        content = todayRecord
+                    )
+                    onUpdateDiary(updatedDiary) // 다이어리 수정 후 저장
+                },
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFCAD98)),
                 modifier = Modifier
@@ -623,17 +646,23 @@ fun ImageUploadField(
 //}
 
 @Composable
-fun CustomCategoryField(initialCategory: String) {
+fun CustomCategoryField(
+    initialCategory: String,
+    onCategorySelected: (String) -> Unit
+) {
     var isExpanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf(initialCategory) }
-    var selectedIcon by remember { mutableStateOf(Res.drawable.ic_foot) }
+
+
+    // 사용자가 선택한 아이콘을 기억하도록 상태 저장
+    var selectedIcon by remember { mutableIntStateOf(Res.drawable.ic_foot_red) }
 
     val categoryIcons = mapOf(
         "일상" to Res.drawable.ic_foot_red,
         "여행" to Res.drawable.ic_foot_blue,
         "운동" to Res.drawable.ic_foot_navy,
         "취미" to Res.drawable.ic_foot_pink,
-        "기타" to Res.drawable.ic_foot_black
+        "남자친구" to Res.drawable.ic_foot_orange
     )
 
     val rotationAngle by animateFloatAsState(
@@ -762,6 +791,7 @@ fun CustomCategoryField(initialCategory: String) {
                                             selectedCategory = categoryName
                                             selectedIcon = iconResId
                                             isExpanded = false
+                                            onCategorySelected(categoryName)
                                         }
                                         .padding(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
@@ -850,5 +880,13 @@ fun CustomCategoryField(initialCategory: String) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewHomeEditRecordScreen() {
-    HomeEditRecordScreen()
+    HomeEditRecordScreen(
+        diary = EditDiary(
+            id = 1,
+            date = LocalDateTime.now(),
+            imageUrl = "",
+            content = "기본 내용"
+        ),
+        onUpdateDiary = {} // 미리보기에서는 빈 함수 전달
+    )
 }

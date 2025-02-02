@@ -21,6 +21,13 @@ data class Diary(
     val content: String
 )
 
+data class EditDiary(
+    val id: Int, // 다이어리 ID 추가
+    val date: LocalDateTime,
+    val imageUrl: String?, // 이미지 URI를 String으로 저장
+    val content: String
+)
+
 open class HomeViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     open val uiState: StateFlow<HomeUiState> = _uiState
