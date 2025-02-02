@@ -736,7 +736,9 @@ fun CustomCategoryField(initialCategory: String) {
                 Image(
                     painter = painterResource(R.drawable.img_categorytopwhite),
                     contentDescription = "Category Dialog Top",
-                    modifier = Modifier.align(Alignment.End).width(220.dp)
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .width(220.dp)
                 )
 
                 // 카테고리 목록 영역 (오른쪽 정렬)
