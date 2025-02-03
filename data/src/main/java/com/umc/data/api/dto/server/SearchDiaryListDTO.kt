@@ -13,15 +13,9 @@ package com.umc.data.api.dto.server
 
 /**
  * 
- * @param isSuccess 
- * @param code 
- * @param message 
- * @param result 
+ * @param searchDiaryList 
  */
-data class ApiResponseSearchResultDTO (
+data class SearchDiaryListDTO (
 
-    val isSuccess: Boolean? = null,
-    val code: String? = null,
-    val message: String? = null,
-    val result: SearchResultDTO? = null
+    val searchDiaryList: Array<SearchDiaryDTO>? = null
 )
