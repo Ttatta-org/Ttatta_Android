@@ -14,9 +14,17 @@ package com.umc.data.api.dto.server
 
 /**
  * 
- * @param userId 
+ * @param diaryId 
+ * @param date 
+ * @param content 
+ * @param image 
+ * @param locationName 
  */
-data class LogoutRequestDTO (
+data class SearchDiaryDTO (
 
-    val userId: Long? = null
+    val diaryId: Long? = null,
+    val date: java.time.LocalDateTime? = null,
+    val content: String? = null,
+    val image: String? = null,
+    val locationName: String? = null
 )
