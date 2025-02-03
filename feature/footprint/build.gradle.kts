@@ -77,6 +77,7 @@ dependencies {
     // 의존성 정의
     implementation(project(":core"))
     implementation(project(":design"))
+    implementation(project(":data"))
 
     // 네이버 지도 SDK
     implementation(libs.naver.map)

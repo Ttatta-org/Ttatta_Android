@@ -39,7 +39,7 @@ import com.umc.footprint.component.previewCategorySelectionBarProp
 import com.umc.footprint.component.previewDiaryCardProp
 import com.umc.footprint.util.rememberOnlyNotNull
 
-data class DiaryCardPropWithPosition(
+data class PositionedDiaryCardProp(
     val x: Float,
     val y: Float,
     val prop: DiaryCardProp,
@@ -49,7 +49,7 @@ data class DiaryCardPropWithPosition(
 fun FootprintScreen(
     mapView: @Composable () -> Unit,
     categorySelectionBarProp: CategorySelectionBarProp?,
-    diaryCardProp: DiaryCardPropWithPosition?,
+    diaryCardProp: PositionedDiaryCardProp?,
     diaryModificationBarProp: DiaryModificationBarProp?,
     onCategoryButtonClicked: () -> Unit,
     onLocationButtonClicked: () -> Unit,
@@ -81,7 +81,7 @@ fun FootprintScreen(
                     y = with(density) { y.toDp() - diaryCardHeight - 16.dp },
                 )
             ) {
-                DiaryCard(prop)
+                DiaryCard(prop = prop)
             }
         }
         // 탑 바
@@ -154,9 +154,7 @@ fun FootprintScreen(
     }
 
     // 일기 수정 및 삭제 메뉴
-    diaryModificationBarProp?.let { prop ->
-        DiaryModificationBar(prop = prop)
-    }
+    diaryModificationBarProp?.let { DiaryModificationBar(prop = it) }
 }
 
 @Preview(showBackground = true)
@@ -164,7 +162,7 @@ fun FootprintScreen(
 fun PreviewFootprintScreen() {
     FootprintScreen(
         mapView = {},
-        diaryCardProp = DiaryCardPropWithPosition(
+        diaryCardProp = PositionedDiaryCardProp(
             x = 600f,
             y = 1500f,
             prop = previewDiaryCardProp,
