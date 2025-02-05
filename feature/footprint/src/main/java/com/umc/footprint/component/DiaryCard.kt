@@ -1,6 +1,5 @@
 package com.umc.footprint.component
 
-import android.util.Log
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -27,7 +26,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,10 +57,8 @@ val diaryCardWidth = 261.dp
 val diaryCardHeight = 311.dp
 
 data class DiaryCardProp(
-    val diaryCardLoadedPropList: List<DiaryCardLoadedProp>,
-    val diaryModificationModeProp: DiaryModificationModeProp?,
-    val isFullyLoaded: Boolean,
-    val onNewDiaryRequested: () -> Unit,
+    val diaryCardLoadedPropMap: Map<Int, DiaryCardLoadedProp?>,
+    val onNewDiaryRequested: (Int) -> Unit,
 )
 
 data class DiaryCardLoadedProp(
@@ -71,6 +67,7 @@ data class DiaryCardLoadedProp(
     val imageUrl: String,
     val content: String,
     val isFlipped: Boolean,
+    val diaryModificationModeProp: DiaryModificationModeProp?,
     val onCardClicked: () -> Unit,
     val onModifyButtonClicked: () -> Unit,
 )
@@ -97,32 +94,32 @@ data class DiaryModificationModeProp(
 @Composable
 fun DiaryCard(prop: DiaryCardProp) {
     val cardRotationAngles = remember { mutableStateMapOf<Long, Float>() }
-    val pagerState = rememberPagerState {
-        prop.diaryCardLoadedPropList.size + if (prop.isFullyLoaded) 0 else 1
+    val pagerState = rememberPagerState { 1 + (prop.diaryCardLoadedPropMap.keys.maxOrNull() ?: 0) }
+
+    LaunchedEffect(key1 = Unit) {
+        prop.onNewDiaryRequested(0)
     }
 
     HorizontalPager(
         state = pagerState,
-        userScrollEnabled = prop.diaryModificationModeProp == null,
+        userScrollEnabled = prop.diaryCardLoadedPropMap[pagerState.currentPage]?.let {
+            it.diaryModificationModeProp == null
+        } ?: true,
         modifier = Modifier.width(diaryCardWidth),
-        beyondViewportPageCount = 0,
-    ) { index ->
-        val diary = prop.diaryCardLoadedPropList.getOrNull(index)
+        beyondViewportPageCount = 2,
+    ) { page ->
+        val diary = prop.diaryCardLoadedPropMap[page]
         val rotateAngle = cardRotationAngles[diary?.id] ?: 0f
 
         LaunchedEffect(key1 = Unit) {
-            if (diary == null)
-                prop.onNewDiaryRequested()
+            prop.onNewDiaryRequested(page + 1)
         }
 
-        LaunchedEffect(key1 = diary?.isFlipped, key2 = prop.diaryModificationModeProp) {
+        LaunchedEffect(key1 = diary?.isFlipped) {
             diary?.let { diary ->
                 animate(
                     initialValue = rotateAngle,
-                    targetValue = if (prop.diaryModificationModeProp != null || diary.isFlipped)
-                        180f
-                    else
-                        0f,
+                    targetValue = if (diary.isFlipped) 180f else 0f,
                     animationSpec = tween(durationMillis = 200)
                 ) { value, _ ->
                     cardRotationAngles[diary.id] = value
@@ -140,8 +137,10 @@ fun DiaryCard(prop: DiaryCardProp) {
                     indication = null,
                     interactionSource = null,
                 ) {
-                    if (prop.diaryModificationModeProp == null)
-                        diary?.onCardClicked?.invoke()
+                    diary?.let { diary ->
+                        if (diary.diaryModificationModeProp == null)
+                            diary.onCardClicked()
+                    }
                 }
         ) {
             // 앞면
@@ -165,7 +164,7 @@ fun DiaryCard(prop: DiaryCardProp) {
                         DiaryCardBackProp(
                             date = diary.date,
                             content = diary.content,
-                            diaryModificationModeProp = prop.diaryModificationModeProp,
+                            diaryModificationModeProp = diary.diaryModificationModeProp,
                             onModifyButtonClicked = diary.onModifyButtonClicked
                         )
                     }
@@ -322,30 +321,32 @@ private fun DiaryCardBack(
                     .background(Color.Secondary300)
                     .padding(16.dp)
             ) {
-                val textStyle = remember {
-                    TextStyle(
-                        color = Color.Grey500,
-                        fontSize = 12.sp,
-                    )
-                }
                 if (prop.diaryModificationModeProp != null) {
                     val focusRequester = remember { FocusRequester() }
 
                     BasicTextField(
                         value = prop.diaryModificationModeProp.contentValue,
                         onValueChange = prop.diaryModificationModeProp.onContentValueChanged,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { prop.diaryModificationModeProp.onModificationDone() }),
-                        textStyle = textStyle,
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { prop.diaryModificationModeProp.onModificationDone() }
+                        ),
+                        textStyle = TextStyle(
+                            color = Color.Grey500,
+                            fontSize = 12.sp,
+                        ),
                         modifier = Modifier.focusRequester(focusRequester)
                     )
 
-                    LaunchedEffect(key1 = Unit) {
-                        focusRequester.requestFocus()
-                    }
+                    LaunchedEffect(key1 = Unit) { focusRequester.requestFocus() }
                 } else Text(
                     text = prop.content,
-                    style = textStyle,
+                    style = TextStyle(
+                        color = Color.Grey500,
+                        fontSize = 12.sp,
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
             } else Box(
@@ -361,55 +362,56 @@ private fun DiaryCardBack(
 }
 
 val previewDiaryCardProp = DiaryCardProp(
-    diaryCardLoadedPropList = List(10) { index ->
-        DiaryCardLoadedProp(
+    diaryCardLoadedPropMap = List(10) { index ->
+        index to DiaryCardLoadedProp(
             id = index.toLong(),
             date = LocalDate.now(),
             imageUrl = "",
             content = "This is diary.",
             isFlipped = false,
+            diaryModificationModeProp = null,
             onCardClicked = {},
             onModifyButtonClicked = {},
         )
-    },
-    diaryModificationModeProp = DiaryModificationModeProp(
-        contentValue = "",
-        onContentValueChanged = {},
-        onModificationDone = {},
-    ),
-    isFullyLoaded = false,
+    }.toMap(),
     onNewDiaryRequested = {},
 )
 
 @Preview
 @Composable
 fun PreviewDiaryCard() {
-    var targetDiary by remember { mutableStateOf<DiaryCardLoadedProp?>(null) }
-    var content by remember { mutableStateOf("") }
-
-    val diaryCardLoadedPropList = remember { mutableStateListOf<DiaryCardLoadedProp>() }
+    val diaryCardLoadedPropMap = remember { mutableStateMapOf<Int, DiaryCardLoadedProp>() }
     val makeNewDiaryCardLoadedProp: () -> Unit = remember {
         {
-            val id = diaryCardLoadedPropList.size.toLong()
-            diaryCardLoadedPropList.add(
-                DiaryCardLoadedProp(
-                    id = id,
-                    date = LocalDate.now(),
-                    imageUrl = "",
-                    content = "This is diary.",
-                    isFlipped = false,
-                    onCardClicked = {
-                        val index = diaryCardLoadedPropList.indexOfFirst { it.id == id }
-                        val diary = diaryCardLoadedPropList[index]
-                        diaryCardLoadedPropList[index] = diary.copy(isFlipped = !diary.isFlipped)
-                    },
-                    onModifyButtonClicked = {
-                        val index = diaryCardLoadedPropList.indexOfFirst { it.id == id }
-                        val diary = diaryCardLoadedPropList[index]
-                        targetDiary = diary
-                        content = diary.content
-                    },
-                )
+            val page = diaryCardLoadedPropMap.size
+            val id = diaryCardLoadedPropMap.size.toLong()
+            diaryCardLoadedPropMap[page] = DiaryCardLoadedProp(
+                id = id,
+                date = LocalDate.now(),
+                imageUrl = "",
+                content = "This is diary.",
+                isFlipped = false,
+                diaryModificationModeProp = null,
+                onCardClicked = {
+                    val diary = diaryCardLoadedPropMap[page]!!
+                    diaryCardLoadedPropMap[page] = diary.copy(isFlipped = !diary.isFlipped)
+                },
+                onModifyButtonClicked = {
+                    val diary = diaryCardLoadedPropMap[page]!!
+                    var contentState by mutableStateOf(diary.content)
+                    diaryCardLoadedPropMap[page] = diary.copy(
+                        diaryModificationModeProp = DiaryModificationModeProp(
+                            contentValue = contentState,
+                            onContentValueChanged = { contentState = it },
+                            onModificationDone = {
+                                diaryCardLoadedPropMap[page] = diary.copy(
+                                    content = contentState,
+                                    diaryModificationModeProp = null,
+                                )
+                            }
+                        )
+                    )
+                },
             )
         }
     }
@@ -424,22 +426,7 @@ fun PreviewDiaryCard() {
     ) {
         DiaryCard(
             prop = DiaryCardProp(
-                diaryCardLoadedPropList = diaryCardLoadedPropList,
-                diaryModificationModeProp = targetDiary?.let { target ->
-                    DiaryModificationModeProp(
-                        contentValue = content,
-                        onContentValueChanged = { content = it },
-                        onModificationDone = {
-                            val index = diaryCardLoadedPropList.indexOfFirst { it.id == target.id }
-                            val diary = diaryCardLoadedPropList[index]
-                            diaryCardLoadedPropList[index] = diary.copy(content = content)
-                            Log.d("previewDiaryCardProp", "onModificationDone: $content")
-                            targetDiary = null
-                            content = ""
-                        }
-                    )
-                },
-                isFullyLoaded = diaryCardLoadedPropList.size == 10,
+                diaryCardLoadedPropMap = diaryCardLoadedPropMap,
                 onNewDiaryRequested = { makeNewDiaryCardLoadedProp() },
             )
         )
