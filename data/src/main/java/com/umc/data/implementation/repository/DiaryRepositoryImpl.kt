@@ -57,17 +57,15 @@ class DiaryRepositoryImpl @Inject constructor(
         } ?: listOf()
     }
 
-    override suspend fun getDiaries(page: Int, clusterId: Long): List<DiaryForCard> {
+    override suspend fun getDiaries(page: Int, clusterId: Long): DiaryForCard {
         val response = serverApi.withAuth(authPreference) {
             getMapDiary(requestNum = page, clusterId = clusterId)
         }
-        return listOf(
-            DiaryForCard(
-                id = response.diaryId!!,
-                date = response.date!!.toLocalDate(),
-                content = response.content!!,
-                imageUrl = response.image!!,
-            )
+        return DiaryForCard(
+            id = response.diaryId!!,
+            date = response.date!!.toLocalDate(),
+            content = response.content!!,
+            imageUrl = response.image!!,
         )
     }
 
