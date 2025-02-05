@@ -4,4 +4,5 @@
     <string name="new_category">발자국 새로 만들기</string>
     <string name="modify">수정하기</string>
     <string name="delete">삭제하기</string>
+    <string name="loading">로딩중..</string>
 </resources>

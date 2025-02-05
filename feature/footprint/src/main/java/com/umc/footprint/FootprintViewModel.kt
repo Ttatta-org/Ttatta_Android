@@ -1,6 +1,8 @@
 package com.umc.footprint
 
+import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,8 +20,7 @@ import javax.inject.Inject
 data class ClickedMarkerInfo(
     val x: Float,
     val y: Float,
-    val latitude: Double,
-    val longitude: Double,
+    val clusterId: Long,
 )
 
 @HiltViewModel
@@ -29,16 +30,20 @@ class FootprintViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
-    private val markers: MutableMap<Long, MutableList<MapMarker>> = mutableMapOf()
+    private val markers = mutableMapOf<Long, MutableList<MapMarker>>()
 
+    private val diaryPagesState = mutableStateListOf<List<DiaryForCard>>()
+    private val isDiaryFullyLoadedState = mutableStateOf(false)
     private val clickedMarkerInfoState = mutableStateOf<ClickedMarkerInfo?>(null)
-    private val diaryListState = mutableStateOf<List<DiaryForCard>>(listOf())
-    private val categoryInfoListState = mutableStateOf<List<CategoryInfo>>(listOf())
+    private val categoryListState = mutableStateOf<List<CategoryInfo>>(listOf())
+    private val selectedCategoryIdState = mutableStateOf<Long?>(null)
     private val userNameState = mutableStateOf("")
 
     val clickedMarkerInfo get() = clickedMarkerInfoState.value
-    val diaryList get() = diaryListState.value
-    val categoryInfoList get() = categoryInfoListState.value
+    val diaryList get() = diaryPagesState.flatten()
+    val isDiaryFullyLoaded get() = isDiaryFullyLoadedState.value
+    val categoryList get() = categoryListState.value
+    val selectedCategoryId get() = selectedCategoryIdState.value
     val userName get() = userNameState.value
 
     init {
@@ -49,13 +54,16 @@ class FootprintViewModel @Inject constructor(
                     markMap(
                         latitude = footprint.latitude,
                         longitude =  footprint.longitude,
+                        clusterId = footprint.clusterId,
                         categoryId = footprint.categoryId,
                         color = footprint.color,
                     )
                 }
             }
             // 현재 위치로 맵 이동
-            launch { moveMapToCurrentPosition() }
+            launch {
+                moveMapToCurrentPosition()
+            }
             // 카테고리 정보 로드
             launch {
                 getAllCategoryInfoFromServer(
@@ -81,74 +89,43 @@ class FootprintViewModel @Inject constructor(
         viewModelScope.launch { mapHandler.moveToCurrentPosition() }
     }
 
-    fun markMap(
-        latitude: Double,
-        longitude: Double,
-        categoryId: Long,
-        color: CategoryColor?,
-    ) {
-        val marker = MapMarker(
-            latitude = latitude,
-            longitude = longitude,
-            color = color,
-            onClicked = onClicked@{ x, y ->
-                clickedMarkerInfoState.value = ClickedMarkerInfo(
-                    x = x,
-                    y = y,
-                    latitude = latitude,
-                    longitude = longitude,
-                )
-                getDiaryFromServer(
-                    onSucceed = { /* TODO */ },
-                    onFailed = { /* TODO */ },
-                )
-                return@onClicked {
-                    clickedMarkerInfoState.value = null
-                    diaryListState.value = listOf()
-                }
-            }
-        )
-        markMap(categoryId = categoryId, marker = marker)
-    }
-
     fun selectShowingCategory(
         categoryId: Long?,
     ) {
         viewModelScope.launch {
             mapHandler.removeAllMarkers()
-            if (categoryId != null) markers[categoryId]?.forEach { marker ->
-                markMap(
-                    categoryId = categoryId,
-                    marker = marker,
-                )
-            } else {
-                markers.forEach { (id, markerList) ->
-                    markerList.forEach { marker ->
-                        markMap(
-                            categoryId = id,
-                            marker = marker,
-                        )
-                    }
+            markers[categoryId]?.forEach { marker ->
+                mapHandler.addMarker(marker)
+            } ?: markers.values.forEach { markerList ->
+                markerList.forEach { marker ->
+                    mapHandler.addMarker(marker)
                 }
             }
+            selectedCategoryIdState.value = categoryId
         }
     }
 
     fun getDiaryFromServer(
+        page: Int = diaryPagesState.size,
         onSucceed: () -> Unit,
         onFailed: (e: Exception) -> Unit,
     ) {
         viewModelScope.launch {
             try {
-                diaryListState.value = listOf(
-                    diaryRepository.getDiaries(
-                        page = 0 /* TODO: 제거 */,
-                        latitude = clickedMarkerInfo!!.latitude,
-                        longitude = clickedMarkerInfo!!.longitude,
-                    )
+                val diaryList = diaryRepository.getDiaries(
+                    page = page,
+                    clusterId = clickedMarkerInfo!!.clusterId,
                 )
+                if (page < diaryPagesState.size)
+                    diaryPagesState[page] = diaryList
+                else
+                    diaryPagesState.add(diaryList)
                 onSucceed()
             } catch (e: Exception) {
+                // TODO: 빈 리스트 반환으로써 오류가 났을 경우에 분기 처리
+                isDiaryFullyLoadedState.value = true
+                if (page < diaryPagesState.size)
+                    diaryPagesState.removeAt(page)
                 onFailed(e)
             }
         }
@@ -167,6 +144,9 @@ class FootprintViewModel @Inject constructor(
                     content = content,
                 )
                 getDiaryFromServer(
+                    page = diaryPagesState.indexOfFirst { page ->
+                        page.any { diary -> diary.id == diaryId }
+                    },
                     onSucceed = { onSucceed() },
                     onFailed = { throw it },
                 )
@@ -184,10 +164,15 @@ class FootprintViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 diaryRepository.deleteDiary(diaryId = diaryId)
-                getDiaryFromServer(
-                    onSucceed = onSucceed,
-                    onFailed = { throw it }
-                )
+                for (page in diaryPagesState.indexOfFirst { page ->
+                    page.any { diary -> diary.id == diaryId }
+                } until diaryPagesState.size) {
+                    getDiaryFromServer(
+                        page = page,
+                        onSucceed = onSucceed,
+                        onFailed = { throw it }
+                    )
+                }
             } catch (e: Exception) {
                 onFailed(e)
             }
@@ -200,7 +185,7 @@ class FootprintViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                categoryInfoListState.value = diaryRepository.getAllCategoryInfo()
+                categoryListState.value = diaryRepository.getAllCategoryInfo()
                 onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
@@ -223,9 +208,34 @@ class FootprintViewModel @Inject constructor(
     }
 
     private fun markMap(
+        latitude: Double,
+        longitude: Double,
+        clusterId: Long,
         categoryId: Long,
-        marker: MapMarker,
+        color: CategoryColor?,
     ) {
+        val marker = MapMarker(
+            latitude = latitude,
+            longitude = longitude,
+            color = color,
+            onClicked = onClicked@{ x, y ->
+                clickedMarkerInfoState.value = ClickedMarkerInfo(
+                    x = x,
+                    y = y,
+                    clusterId = clusterId,
+                )
+                getDiaryFromServer(
+                    page = 0,
+                    onSucceed = { /* TODO */ },
+                    onFailed = { /* TODO */ },
+                )
+                return@onClicked {
+                    clickedMarkerInfoState.value = null
+                    diaryPagesState.clear()
+                    isDiaryFullyLoadedState.value = false
+                }
+            }
+        )
         markers[categoryId]?.add(marker) ?: run { markers[categoryId] = mutableListOf(marker) }
         viewModelScope.launch { mapHandler.addMarker(marker) }
     }
