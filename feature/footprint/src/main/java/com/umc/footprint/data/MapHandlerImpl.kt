@@ -1,6 +1,8 @@
 package com.umc.footprint.data
 
 import android.content.Context
+import android.graphics.Point
+import android.graphics.PointF
 import android.location.Location
 import android.os.Bundle
 import android.util.Log
@@ -118,9 +120,14 @@ class MapHandlerImpl @Inject constructor(
             .maxZoom(15)
             .clusterMarkerUpdater { info, marker ->
                 marker.apply {
-                    val size = calculateClusteredMarkerSize(context = context, count = info.size)
-                    width = size.first
-                    height = size.second
+                    calculateClusteredMarkerSize(
+                        context = context,
+                        count = info.size
+                    ).let { (clusterWidth, clusterHeight) ->
+                        width = clusterWidth
+                        height = clusterHeight
+                    }
+                    anchor = PointF(0.5f, 0.5f)
                     icon = clusterImage
                     setOnClickListener { true }
                 }
@@ -136,6 +143,7 @@ class MapHandlerImpl @Inject constructor(
                     ]
                     width = (markerWidth.value * density).roundToInt()
                     height = (markerHeight.value * density).roundToInt()
+                    anchor = PointF(0.5f, 0.5f)
                     setOnClickListener {
                         clickedMarkerKeyFlow.value = key
                         true
