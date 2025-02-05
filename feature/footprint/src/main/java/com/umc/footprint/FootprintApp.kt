@@ -1,18 +1,20 @@
 package com.umc.footprint
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.toMutableStateMap
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.umc.core.model.DiaryForCard
 import com.umc.footprint.component.CategoryItemProp
 import com.umc.footprint.component.CategorySelectionBarProp
-import com.umc.footprint.component.DiaryCardPageProp
+import com.umc.footprint.component.DiaryCardLoadedProp
 import com.umc.footprint.component.DiaryCardProp
 import com.umc.footprint.component.DiaryModificationBarProp
 import com.umc.footprint.component.DiaryModificationModeProp
@@ -34,25 +36,57 @@ fun FootprintApp(
     val keyboard = LocalSoftwareKeyboardController.current
 
     var isCategorySelectionBarVisible by remember { mutableStateOf(false) }
-    val isDiaryCardFlippedMap =
-        remember { viewModel.diaryList.map { it.id to false }.toMutableStateMap() }
     var diaryModificationBarInfo by remember { mutableStateOf<DiaryModificationBarInfo?>(null) }
     var diaryModificationModeInfo by remember { mutableStateOf<DiaryModificationModeInfo?>(null) }
 
+    val diaryCardLoadedPropMap = remember { mutableStateMapOf<Long, DiaryCardLoadedProp>() }
+
     LaunchedEffect(key1 = viewModel.diaryList) {
-        viewModel.diaryList.forEach {
-            if (isDiaryCardFlippedMap[it.id] == null)
-                isDiaryCardFlippedMap[it.id] = false
+        viewModel.diaryList.forEach { diary ->
+            diaryCardLoadedPropMap[diary.id]?.let { prop ->
+                diaryCardLoadedPropMap[diary.id] = prop.copy(
+                    content = diary.content,
+                )
+            } ?: run {
+                diaryCardLoadedPropMap[diary.id] = DiaryCardLoadedProp(
+                    id = diary.id,
+                    date = diary.date,
+                    imageUrl = diary.imageUrl,
+                    content = diary.content,
+                    isFlipped = false,
+                    onCardClicked = {
+                        val diaryProp = diaryCardLoadedPropMap[diary.id]!!
+                        diaryCardLoadedPropMap[diary.id] = diaryProp.copy(
+                            isFlipped = !diaryProp.isFlipped
+                        )
+                    },
+                    onModifyButtonClicked = {
+                        diaryModificationBarInfo = DiaryModificationBarInfo(
+                            targetDiary = diary
+                        )
+                    }
+                )
+            }
         }
+    }
+
+    BackHandler(
+        enabled = viewModel.selectedCategoryId != null
+    ) {
+        viewModel.selectShowingCategory(categoryId = null)
     }
 
     FootprintScreen(
         mapView = viewModel.getMapView(),
+        isCategorySelected = viewModel.selectedCategoryId != null,
         diaryCardProp = viewModel.clickedMarkerInfo?.let { clickedMarkerInfo ->
             PositionedDiaryCardProp(
                 x = clickedMarkerInfo.x,
                 y = clickedMarkerInfo.y,
                 prop = DiaryCardProp(
+                    diaryCardLoadedPropList = viewModel.diaryList.mapNotNull {
+                        diaryCardLoadedPropMap[it.id]
+                    },
                     diaryModificationModeProp = diaryModificationModeInfo?.let { info ->
                         DiaryModificationModeProp(
                             contentValue = info.contentValueState.value,
@@ -68,23 +102,11 @@ fun FootprintApp(
                             },
                         )
                     },
-                    diaryCardPagePropList = viewModel.diaryList.map { diary ->
-                        DiaryCardPageProp(
-                            id = diary.id,
-                            date = diary.date,
-                            imageUrl = diary.imageUrl,
-                            content = diary.content,
-                            isFlipped = isDiaryCardFlippedMap[diary.id] ?: false,
-                            onCardClicked = {
-                                isDiaryCardFlippedMap[diary.id]?.let { isFlipped ->
-                                    isDiaryCardFlippedMap[diary.id] = !isFlipped
-                                }
-                            },
-                            onModifyButtonClicked = {
-                                diaryModificationBarInfo = DiaryModificationBarInfo(
-                                    targetDiary = diary
-                                )
-                            },
+                    isFullyLoaded = viewModel.isDiaryFullyLoaded,
+                    onNewDiaryRequested = {
+                        viewModel.getDiaryFromServer(
+                            onSucceed = { /* TODO */ },
+                            onFailed = { /* TODO */ },
                         )
                     }
                 )
@@ -113,18 +135,23 @@ fun FootprintApp(
         },
         categorySelectionBarProp = if (isCategorySelectionBarVisible) CategorySelectionBarProp(
             userName = viewModel.userName,
-            itemProps = viewModel.categoryInfoList.map { categoryInfo ->
+            itemProps = viewModel.categoryList.map { categoryInfo ->
                 CategoryItemProp(
                     name = categoryInfo.name,
                     color = categoryInfo.color,
                     count = categoryInfo.count,
-                    onClicked = { viewModel.selectShowingCategory(categoryId = categoryInfo.id) }
+                    onClicked = {
+                        viewModel.selectShowingCategory(categoryId = categoryInfo.id)
+                        isCategorySelectionBarVisible = false
+                    }
                 )
             },
             onNewCategoryButtonClicked = { onNavigateToCategoryApp() },
             onDismissed = { isCategorySelectionBarVisible = false }
         ) else null,
-        onCategoryButtonClicked = { isCategorySelectionBarVisible = !isCategorySelectionBarVisible },
+        onCategoryButtonClicked = {
+            isCategorySelectionBarVisible = !isCategorySelectionBarVisible
+        },
         onLocationButtonClicked = { viewModel.moveMapToCurrentPosition() },
     )
 }
