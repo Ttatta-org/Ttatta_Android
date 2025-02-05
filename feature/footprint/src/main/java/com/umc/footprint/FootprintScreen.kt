@@ -5,11 +5,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -48,6 +51,7 @@ data class PositionedDiaryCardProp(
 @Composable
 fun FootprintScreen(
     mapView: @Composable () -> Unit,
+    isCategorySelected: Boolean,
     categorySelectionBarProp: CategorySelectionBarProp?,
     diaryCardProp: PositionedDiaryCardProp?,
     diaryModificationBarProp: DiaryModificationBarProp?,
@@ -107,7 +111,15 @@ fun FootprintScreen(
             Box(
                 contentAlignment = Alignment.BottomEnd,
                 modifier = Modifier
-                    .padding(32.dp)
+                    .padding(
+                        top = 32.dp,
+                        start = 32.dp,
+                        end = 32.dp,
+                        bottom = 32.dp + if (categorySelectionBarProp == null)
+                            WindowInsets.safeContent.asPaddingValues().calculateBottomPadding()
+                        else
+                            0.dp
+                    )
                     .fillMaxWidth()
                     .weight(1f)
             ) {
@@ -120,7 +132,10 @@ fun FootprintScreen(
                         modifier = Modifier.size(84.dp),
                     ) {
                         ShadowedImage(
-                            id = R.drawable.ic_floating_button_category_unselected,
+                            id = if (isCategorySelected)
+                                R.drawable.ic_floating_button_category_selected
+                            else
+                                R.drawable.ic_floating_button_category_unselected,
                             contentDescription = null,
                             width = 84.dp,
                             height = 84.dp,
@@ -162,6 +177,7 @@ fun FootprintScreen(
 fun PreviewFootprintScreen() {
     FootprintScreen(
         mapView = {},
+        isCategorySelected = false,
         diaryCardProp = PositionedDiaryCardProp(
             x = 600f,
             y = 1500f,

@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,86 +41,61 @@ data class DiaryModificationBarProp(
     val onDismissed: () -> Unit,
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiaryModificationBar(prop: DiaryModificationBarProp) {
-    Dialog(
+    ModalBottomSheet(
         onDismissRequest = prop.onDismissed,
-        properties = DialogProperties(
-            dismissOnClickOutside = false,
-            usePlatformDefaultWidth = false,
-            decorFitsSystemWindows = false,
-        )
+        shape = diaryModificationBarShape,
+        containerColor = Color.White,
+        scrimColor = Color.Transparent,
+        dragHandle = {
+            Image(
+                painter = painterResource(id = Res.drawable.ic_header_deco),
+                contentDescription = null,
+                modifier = Modifier.width(32.dp),
+            )
+        },
     ) {
-        val dialog = LocalView.current.parent as DialogWindowProvider
-        LaunchedEffect(key1 = Unit) { dialog.window.setDimAmount(0f) }
-
-        Box(
-            contentAlignment = Alignment.BottomCenter,
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
-                .fillMaxSize()
-                .clickable(
-                    indication = null,
-                    interactionSource = null,
-                    onClick = prop.onDismissed,
+                .fillMaxWidth()
+                .padding(
+                    start = 32.dp,
+                    end = 32.dp,
+                    bottom = 32.dp,
+                    top = 16.dp
                 )
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .shadow(
-                        shape = diaryModificationBarShape,
-                        elevation = 16.dp
-                    )
-                    .background(
-                        color = Color.White,
-                        shape = diaryModificationBarShape,
-                    )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(
-                        start = 32.dp,
-                        end = 32.dp,
-                        bottom = 32.dp,
-                        top = 16.dp
-                    )
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(percent = 50))
+                        .clickable { prop.onModifyOptionClicked() }
                 ) {
-                    // 제목 라인
-                    Image(
-                        painter = painterResource(id = Res.drawable.ic_header_deco),
-                        contentDescription = null,
-                        modifier = Modifier.width(32.dp),
-                    )
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    Box(
+                        modifier = Modifier
+                            .padding(vertical = 4.dp, horizontal = 8.dp)
+                            .fillMaxWidth()
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(percent = 50))
-                                .clickable { prop.onModifyOptionClicked() }
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(vertical = 4.dp, horizontal = 8.dp)
-                                    .fillMaxWidth()
-                            ) {
-                                Text(text = stringResource(id = R.string.modify))
-                            }
-                        }
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(percent = 50))
-                                .clickable { prop.onDeleteOptionClicked() }
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(vertical = 4.dp, horizontal = 8.dp)
-                                    .fillMaxWidth()
-                            ) {
-                                Text(text = stringResource(id = R.string.delete))
-                            }
-                        }
+                        Text(text = stringResource(id = R.string.modify))
+                    }
+                }
+                Row(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(percent = 50))
+                        .clickable { prop.onDeleteOptionClicked() }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .padding(vertical = 4.dp, horizontal = 8.dp)
+                            .fillMaxWidth()
+                    ) {
+                        Text(text = stringResource(id = R.string.delete))
                     }
                 }
             }

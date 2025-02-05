@@ -3,6 +3,7 @@ package com.umc.footprint.data
 import android.content.Context
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.fillMaxSize
@@ -258,7 +259,7 @@ class MapHandlerImpl @Inject constructor(
 
     override suspend fun removeAllMarkers() {
         clickedMarkerKeyFlow.value = null
-        clusterManager.clear()
+        markers.values.forEach { key -> clusterManager.remove(key) }
         markers.clear()
     }
 }
