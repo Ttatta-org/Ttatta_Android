@@ -16,19 +16,17 @@ package com.umc.data.api.dto.server
  * 
  * @param diaryId 
  * @param diaryCategoryId 
- * @param date 
- * @param content 
- * @param image 
- * @param firstDiary 
- * @param lastDiary 
+ * @param categoryColor 
+ * @param latitude 
+ * @param longitude 
+ * @param clusterId 
  */
-data class MapResultDTO (
+data class FootprintDiaryDTO (
 
     val diaryId: Long? = null,
     val diaryCategoryId: Long? = null,
-    val date: java.time.LocalDateTime? = null,
-    val content: String? = null,
-    val image: String? = null,
-    val firstDiary: Boolean? = null,
-    val lastDiary: Boolean? = null
+    val categoryColor: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val clusterId: Long? = null
 )
