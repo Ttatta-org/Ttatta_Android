@@ -100,13 +100,15 @@ class ExampleInstrumentedTest {
                 searchWord = TestValue.CONTENT.substring(0 until 5),
             )
         )
-        // println(
-        //     diaryRepository.getDiaries(
-        //         page = 0,
-        //         latitude = TEST_LATITUDE,
-        //         longitude = TEST_LONGITUDE,
-        //     )
-        // )
+
+        // 발자국 조회
+        val footprints = diaryRepository.getAllFootprints()
+        println(
+            diaryRepository.getDiaries(
+                page = 0,
+                clusterId = footprints.first().clusterId
+            )
+        )
 
         // 일기 수정
         val originalDiary = diaryRepository.getDiaries(

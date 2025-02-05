@@ -5,7 +5,8 @@ import com.umc.design.CategoryColor
 data class Footprint(
     val diaryId: Long,
     val categoryId: Long,
-    val color: CategoryColor,
+    val clusterId: Long,
+    val color: CategoryColor?,
     val latitude: Double,
     val longitude: Double,
 )

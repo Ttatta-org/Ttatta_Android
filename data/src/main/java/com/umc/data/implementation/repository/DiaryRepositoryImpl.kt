@@ -44,7 +44,7 @@ class DiaryRepositoryImpl @Inject constructor(
 
     override suspend fun getDiaries(page: Int, searchWord: String): List<Diary> {
         val response = serverApi.withAuth(authPreference) {
-            getSearchDiary(requestNum = page, searchContent = searchWord)
+            getSearchDiaryList(requestNum = page, searchContent = searchWord)
         }
         return response.searchDiaryList?.map {
             Diary(
@@ -57,12 +57,46 @@ class DiaryRepositoryImpl @Inject constructor(
         } ?: listOf()
     }
 
-    override suspend fun getDiaries(page: Int, latitude: Double, longitude: Double): List<DiaryForCard> {
-        TODO("Not yet implemented")
+    override suspend fun getDiaries(page: Int, clusterId: Long): List<DiaryForCard> {
+        val response = serverApi.withAuth(authPreference) {
+            getMapDiary(requestNum = page, clusterId = clusterId)
+        }
+        return listOf(
+            DiaryForCard(
+                id = response.diaryId!!,
+                date = response.date!!.toLocalDate(),
+                content = response.content!!,
+                imageUrl = response.image!!,
+            )
+        )
     }
 
     override suspend fun getAllFootprints(): List<Footprint> {
-        TODO("Not yet implemented")
+        val response = serverApi.withAuth(authPreference) { getFootprintDiaryList() }
+        return response.footprintList?.map {
+            Footprint(
+                diaryId = it.diaryId!!,
+                categoryId = it.diaryCategoryId!!,
+                clusterId = it.clusterId!!,
+                color = when (it.categoryColor!!) {
+                    "RED" -> CategoryColor.RED
+                    "ORANGE" -> CategoryColor.ORANGE
+                    "YELLOW" -> CategoryColor.YELLOW
+                    "GREEN" -> CategoryColor.GREEN
+                    "SKYBLUE" -> CategoryColor.TURQUOISE
+                    "BLUE" -> CategoryColor.BLUE
+                    "INDIGO" -> CategoryColor.NAVY
+                    "VIOLET" -> CategoryColor.PURPLE
+                    "BROWN" -> CategoryColor.BROWN
+                    "PINK" -> CategoryColor.PINK
+                    "WHITE" -> CategoryColor.WHITE
+                    "BLACK" -> CategoryColor.BLACK
+                    else -> null
+                },
+                latitude = it.latitude!!,
+                longitude = it.longitude!!,
+            )
+        } ?: listOf()
     }
 
     override suspend fun createDiary(
@@ -74,7 +108,7 @@ class DiaryRepositoryImpl @Inject constructor(
         longitude: Double,
         locationName: String
     ) {
-        val body = PostDTO(
+        val request = PostDTO(
             diaryCategoryId = categoryId,
             content = content,
             date = date,
@@ -83,8 +117,8 @@ class DiaryRepositoryImpl @Inject constructor(
             locationName = locationName,
         )
         serverApi.withAuth(authPreference) {
-            diarySave(
-                body = body,
+            createDiary(
+                request = request,
                 image = MultipartBody.Part.createFormData(
                     "image",
                     image.name,
@@ -100,11 +134,11 @@ class DiaryRepositoryImpl @Inject constructor(
         content: String?,
         image: File?,
     ) {
-        val body = EditDTO(content = content, diaryCategoryId = categoryId)
+        val request = EditDTO(content = content, diaryCategoryId = categoryId)
         serverApi.withAuth(authPreference) {
-            editDiary(
+            updateDiary(
                 diaryId = diaryId,
-                body = body,
+                request = request,
                 editPhoto = image?.let {
                     MultipartBody.Part.createFormData(
                         "image",
@@ -196,19 +230,19 @@ class DiaryRepositoryImpl @Inject constructor(
             }
         )
         serverApi.withAuth(authPreference) {
-            modifyCategory(categoryId = categoryId, body = body)
+            updateCategory(categoryId = categoryId, body = body)
         }
     }
 
     override suspend fun deleteCategory(categoryId: Long) {
         serverApi.withAuth(authPreference) {
-            deleteCategory(categoryId = categoryId)
+            deleteCategoryOnly(categoryId = categoryId)
         }
     }
 
     override suspend fun deleteCategoryAndAllIncludedDiaries(categoryId: Long) {
         serverApi.withAuth(authPreference) {
-            deleteAllInCategory(categoryId = categoryId)
+            deleteCategoryAndAllIncludedDiaries(categoryId = categoryId)
         }
     }
 }

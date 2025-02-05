@@ -11,14 +11,17 @@
  */
 package com.umc.data.api.dto.server
 
-
 /**
  * 
- * @param latitude 
- * @param longitude 
+ * @param isSuccess 
+ * @param code 
+ * @param message 
+ * @param result 
  */
-data class MapDTO (
+data class ApiResponseFootprintDiaryListDTO (
 
-    val latitude: Double? = null,
-    val longitude: Double? = null
+    val isSuccess: Boolean? = null,
+    val code: String? = null,
+    val message: String? = null,
+    val result: FootprintDiaryListDTO? = null
 )
