@@ -24,7 +24,7 @@ class LocationHandlerImpl @Inject constructor(
     override suspend fun getCurrentLocation(): Location {
         return doWithLocationPermission {
             locationSource.getCurrentLocation(
-                Priority.PRIORITY_PASSIVE, null
+                Priority.PRIORITY_HIGH_ACCURACY, null
             )
         }.await()
     }
