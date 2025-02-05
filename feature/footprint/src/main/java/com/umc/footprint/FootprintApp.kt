@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +41,7 @@ fun FootprintApp(
     val diaryCardLoadedPropMap = remember { mutableStateMapOf<Long, DiaryCardLoadedProp>() }
 
     LaunchedEffect(key1 = viewModel.diaryList) {
-        viewModel.diaryList.forEach { diary ->
+        if (viewModel.diaryList.isNotEmpty()) viewModel.diaryList.forEach { diary ->
             diaryCardLoadedPropMap[diary.id]?.let { prop ->
                 diaryCardLoadedPropMap[diary.id] = prop.copy(
                     content = diary.content,
@@ -67,14 +66,18 @@ fun FootprintApp(
                     }
                 )
             }
-        }
+        } else diaryCardLoadedPropMap.clear()
     }
 
     BackHandler(
-        enabled = viewModel.selectedCategoryId != null
-    ) {
-        viewModel.selectShowingCategory(categoryId = null)
-    }
+        enabled = viewModel.selectedCategoryId != null,
+        onBack = { viewModel.selectShowingCategory(categoryId = null) }
+    )
+
+    BackHandler(
+        enabled = isCategorySelectionBarVisible,
+        onBack = { isCategorySelectionBarVisible = false }
+    )
 
     FootprintScreen(
         mapView = viewModel.getMapView(),
