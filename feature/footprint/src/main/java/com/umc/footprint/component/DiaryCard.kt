@@ -40,8 +40,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -105,7 +103,9 @@ fun DiaryCard(prop: DiaryCardProp) {
 
     HorizontalPager(
         state = pagerState,
-        modifier = Modifier.width(diaryCardWidth)
+        userScrollEnabled = prop.diaryModificationModeProp == null,
+        modifier = Modifier.width(diaryCardWidth),
+        beyondViewportPageCount = 0,
     ) { index ->
         val diary = prop.diaryCardLoadedPropList.getOrNull(index)
         val rotateAngle = cardRotationAngles[diary?.id] ?: 0f
@@ -337,10 +337,12 @@ private fun DiaryCardBack(
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { prop.diaryModificationModeProp.onModificationDone() }),
                         textStyle = textStyle,
-                        modifier = Modifier
-                            .focusRequester(focusRequester)
-                            .onGloballyPositioned { focusRequester.requestFocus() }
+                        modifier = Modifier.focusRequester(focusRequester)
                     )
+
+                    LaunchedEffect(key1 = Unit) {
+                        focusRequester.requestFocus()
+                    }
                 } else Text(
                     text = prop.content,
                     style = textStyle,
