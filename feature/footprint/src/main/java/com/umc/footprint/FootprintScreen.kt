@@ -82,7 +82,7 @@ fun FootprintScreen(
             Box(
                 modifier = Modifier.offset(
                     x = with(density) { x.toDp() - diaryCardWidth / 2 },
-                    y = with(density) { y.toDp() - diaryCardHeight - 48.dp },
+                    y = with(density) { y.toDp() - diaryCardHeight - 16.dp },
                 )
             ) {
                 DiaryCard(prop = prop)
