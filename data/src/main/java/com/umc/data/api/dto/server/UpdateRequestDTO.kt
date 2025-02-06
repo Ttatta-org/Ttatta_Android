@@ -16,7 +16,6 @@ package com.umc.data.api.dto.server
  * 
  * @param nickname 
  * @param email 
- * @param phoneNumber 
  * @param profileImage 
  * @param point 
  */
@@ -24,7 +23,6 @@ data class UpdateRequestDTO (
 
     val nickname: String? = null,
     val email: String? = null,
-    val phoneNumber: String? = null,
     val profileImage: String? = null,
     val point: Long? = null
 )

@@ -11,12 +11,13 @@
  */
 package com.umc.data.api.dto.server
 
-
 /**
  * 
- * @param userId 
+ * @param request 
+ * @param editPhoto 
  */
-data class LogoutRequestDTO (
+data class EditDiaryIdBody (
 
-    val userId: Long? = null
+    val request: EditDTO,
+    val editPhoto: Array<Byte>? = null
 )

@@ -19,6 +19,8 @@ package com.umc.data.api.dto.server
  * @param date 
  * @param content 
  * @param image 
+ * @param firstDiary 
+ * @param lastDiary 
  */
 data class MapResultDTO (
 
@@ -26,5 +28,7 @@ data class MapResultDTO (
     val diaryCategoryId: Long? = null,
     val date: java.time.LocalDateTime? = null,
     val content: String? = null,
-    val image: String? = null
+    val image: String? = null,
+    val firstDiary: Boolean? = null,
+    val lastDiary: Boolean? = null
 )

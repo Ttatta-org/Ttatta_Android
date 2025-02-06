@@ -18,10 +18,10 @@ package com.umc.data.api.dto.server
  * @param message 
  * @param result 
  */
-data class ApiResponseSearchResultDTO (
+data class ApiResponseFootprintDiaryListDTO (
 
     val isSuccess: Boolean? = null,
     val code: String? = null,
     val message: String? = null,
-    val result: SearchResultDTO? = null
+    val result: FootprintDiaryListDTO? = null
 )

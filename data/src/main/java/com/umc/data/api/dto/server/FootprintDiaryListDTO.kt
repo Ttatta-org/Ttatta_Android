@@ -13,9 +13,9 @@ package com.umc.data.api.dto.server
 
 /**
  * 
- * @param diaryList 
+ * @param footprintList 
  */
-data class SearchResultDTO (
+data class FootprintDiaryListDTO (
 
-    val diaryList: Array<SearchDiary>? = null
+    val footprintList: Array<FootprintDiaryDTO>? = null
 )

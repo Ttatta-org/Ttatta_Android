@@ -9,10 +9,8 @@ import com.umc.data.api.ServerApi
 import com.umc.data.api.dto.server.CategoryDetailDTO
 import com.umc.data.api.dto.server.CreateCategoryDTO
 import com.umc.data.api.dto.server.EditDTO
-import com.umc.data.api.dto.server.MapDTO
 import com.umc.data.api.dto.server.ModifyCategoryDTO
 import com.umc.data.api.dto.server.PostDTO
-import com.umc.data.api.dto.server.SearchDTO
 import com.umc.data.api.withAuth
 import com.umc.data.preference.AuthPreference
 import com.umc.design.CategoryColor
@@ -31,7 +29,7 @@ class DiaryRepositoryImpl @Inject constructor(
 
     override suspend fun getDiaries(page: Int, date: LocalDate?): List<Diary> {
         val response = serverApi.withAuth(authPreference) {
-            getKeepDiary(requestNum = page, date = date?.atStartOfDay())
+            getKeepDiaryList(requestNum = page, date = date?.atStartOfDay())
         }
         return response.diaryList?.map {
             Diary(
@@ -45,36 +43,58 @@ class DiaryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getDiaries(page: Int, searchWord: String): List<Diary> {
-        val body = SearchDTO(searchContent = searchWord)
         val response = serverApi.withAuth(authPreference) {
-            searchDiary(requestNum = page, request = body)
+            getSearchDiaryList(requestNum = page, searchContent = searchWord)
         }
-        return response.diaryList?.map {
+        return response.searchDiaryList?.map {
             Diary(
                 id = it.diaryId!!,
                 date = it.date!!,
                 content = it.content!!,
                 imageUrl = it.image!!,
-                locationName = "API 상에서 지원하지 않음",
+                locationName = it.locationName!!,
             )
         } ?: listOf()
     }
 
-    override suspend fun getDiaries(page: Int, latitude: Double, longitude: Double): DiaryForCard {
-        val body = MapDTO(latitude = latitude, longitude = longitude)
+    override suspend fun getDiaries(page: Int, clusterId: Long): DiaryForCard {
         val response = serverApi.withAuth(authPreference) {
-            getMapDiary(requestNum = page, request = body)
+            getMapDiary(requestNum = page, clusterId = clusterId)
         }
         return DiaryForCard(
             id = response.diaryId!!,
             date = response.date!!.toLocalDate(),
             content = response.content!!,
-            imageUrl = response.image!!
+            imageUrl = response.image!!,
         )
     }
 
     override suspend fun getAllFootprints(): List<Footprint> {
-        TODO("Not yet implemented")
+        val response = serverApi.withAuth(authPreference) { getFootprintDiaryList() }
+        return response.footprintList?.map {
+            Footprint(
+                diaryId = it.diaryId!!,
+                categoryId = it.diaryCategoryId!!,
+                clusterId = it.clusterId!!,
+                color = when (it.categoryColor!!) {
+                    "RED" -> CategoryColor.RED
+                    "ORANGE" -> CategoryColor.ORANGE
+                    "YELLOW" -> CategoryColor.YELLOW
+                    "GREEN" -> CategoryColor.GREEN
+                    "SKYBLUE" -> CategoryColor.TURQUOISE
+                    "BLUE" -> CategoryColor.BLUE
+                    "INDIGO" -> CategoryColor.NAVY
+                    "VIOLET" -> CategoryColor.PURPLE
+                    "BROWN" -> CategoryColor.BROWN
+                    "PINK" -> CategoryColor.PINK
+                    "WHITE" -> CategoryColor.WHITE
+                    "BLACK" -> CategoryColor.BLACK
+                    else -> null
+                },
+                latitude = it.latitude!!,
+                longitude = it.longitude!!,
+            )
+        } ?: listOf()
     }
 
     override suspend fun createDiary(
@@ -95,7 +115,7 @@ class DiaryRepositoryImpl @Inject constructor(
             locationName = locationName,
         )
         serverApi.withAuth(authPreference) {
-            postDiary(
+            createDiary(
                 request = request,
                 image = MultipartBody.Part.createFormData(
                     "image",
@@ -106,10 +126,25 @@ class DiaryRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun modifyDiary(diaryId: Long, content: String) {
-        val body = EditDTO(content = content)
+    override suspend fun modifyDiary(
+        diaryId: Long,
+        categoryId: Long?,
+        content: String?,
+        image: File?,
+    ) {
+        val request = EditDTO(content = content, diaryCategoryId = categoryId)
         serverApi.withAuth(authPreference) {
-            editDiary(diaryId = diaryId, body = body)
+            updateDiary(
+                diaryId = diaryId,
+                request = request,
+                editPhoto = image?.let {
+                    MultipartBody.Part.createFormData(
+                        "image",
+                        image.name,
+                        image.readBytes().toRequestBody("image/${image.extension}".toMediaType())
+                    )
+                }
+            )
         }
     }
 
@@ -120,7 +155,7 @@ class DiaryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAllCategoryInfo(): List<CategoryInfo> {
-        val response = serverApi.withAuth(authPreference) { getCategoryCounts() }
+        val response = serverApi.withAuth(authPreference) { getDiaryCount() }
         return response.categoryDetails?.map {
             CategoryInfo(
                 id = it.categoryId!!,
@@ -193,19 +228,19 @@ class DiaryRepositoryImpl @Inject constructor(
             }
         )
         serverApi.withAuth(authPreference) {
-            modifyCategory(categoryId = categoryId, body = body)
+            updateCategory(categoryId = categoryId, body = body)
         }
     }
 
     override suspend fun deleteCategory(categoryId: Long) {
         serverApi.withAuth(authPreference) {
-            deleteCategory(categoryId = categoryId)
+            deleteCategoryOnly(categoryId = categoryId)
         }
     }
 
     override suspend fun deleteCategoryAndAllIncludedDiaries(categoryId: Long) {
         serverApi.withAuth(authPreference) {
-            deleteCategoryWithDiaries(categoryId = categoryId)
+            deleteCategoryAndAllIncludedDiaries(categoryId = categoryId)
         }
     }
 }

@@ -16,7 +16,7 @@ interface DiaryRepository {
 
     // "나의 발자국" 화면에서 쓰이는 일기 정보를 가져옵니다.
     suspend fun getAllFootprints(): List<Footprint>
-    suspend fun getDiaries(page: Int, latitude: Double, longitude: Double): DiaryForCard
+    suspend fun getDiaries(page: Int, clusterId: Long): DiaryForCard
 
     suspend fun createDiary(
         categoryId: Long,
@@ -28,7 +28,13 @@ interface DiaryRepository {
         locationName: String,
     )
 
-    suspend fun modifyDiary(diaryId: Long, content: String)
+    suspend fun modifyDiary(
+        diaryId: Long,
+        categoryId: Long? = null,
+        content: String? = null,
+        image: File? = null,
+    )
+
     suspend fun deleteDiary(diaryId: Long)
 
     suspend fun getAllCategoryInfo(): List<CategoryInfo>

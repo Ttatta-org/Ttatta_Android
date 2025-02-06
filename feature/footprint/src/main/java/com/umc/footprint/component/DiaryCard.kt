@@ -1,41 +1,52 @@
 package com.umc.footprint.component
 
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.rememberAsyncImagePainter
 import com.umc.design.Grey500
 import com.umc.design.Primary400
 import com.umc.design.Secondary300
@@ -46,70 +57,126 @@ val diaryCardWidth = 261.dp
 val diaryCardHeight = 311.dp
 
 data class DiaryCardProp(
+    val diaryCardLoadedPropMap: Map<Int, DiaryCardLoadedProp?>,
+    val onNewDiaryRequested: (Int) -> Unit,
+)
+
+data class DiaryCardLoadedProp(
+    val id: Long,
     val date: LocalDate,
-    val image: ImageBitmap,
+    val imageUrl: String,
     val content: String,
     val isFlipped: Boolean,
+    val diaryModificationModeProp: DiaryModificationModeProp?,
     val onCardClicked: () -> Unit,
     val onModifyButtonClicked: () -> Unit,
 )
 
+class DiaryCardFrontProp(
+    val date: LocalDate,
+    val imageUrl: String,
+    val onModifyButtonClicked: () -> Unit,
+)
+
+class DiaryCardBackProp(
+    val date: LocalDate,
+    val content: String,
+    val diaryModificationModeProp: DiaryModificationModeProp?,
+    val onModifyButtonClicked: () -> Unit
+)
+
+data class DiaryModificationModeProp(
+    val contentValue: String,
+    val onContentValueChanged: (String) -> Unit,
+    val onModificationDone: () -> Unit,
+)
+
 @Composable
 fun DiaryCard(prop: DiaryCardProp) {
-    var cardRotationAngle by remember { mutableFloatStateOf(0f) }
+    val cardRotationAngles = remember { mutableStateMapOf<Long, Float>() }
+    val pagerState = rememberPagerState { 1 + (prop.diaryCardLoadedPropMap.keys.maxOrNull() ?: 0) }
 
-    LaunchedEffect(key1 = prop.isFlipped) {
-        animate(
-            initialValue = cardRotationAngle,
-            targetValue = if (prop.isFlipped) 180f else 0f,
-            animationSpec = tween(
-                durationMillis = 400,
-                easing = FastOutSlowInEasing,
-            )
-        ) { value, _ ->
-            cardRotationAngle = value
-        }
+    LaunchedEffect(key1 = Unit) {
+        prop.onNewDiaryRequested(0)
     }
 
-    Box(
-        modifier = Modifier
-            .graphicsLayer {
-                rotationY = cardRotationAngle
-                cameraDistance = 8 * density
-            }
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) {
-                prop.onCardClicked()
-            }
-    ) {
-        // 앞면
-        if (cardRotationAngle < 90f) {
-            DiaryCardFront(
-                date = prop.date,
-                image = prop.image,
-                onModifyButtonClicked = prop.onModifyButtonClicked
-            )
+    HorizontalPager(
+        state = pagerState,
+        userScrollEnabled = prop.diaryCardLoadedPropMap[pagerState.currentPage]?.let {
+            it.diaryModificationModeProp == null
+        } ?: true,
+        modifier = Modifier.width(diaryCardWidth),
+        beyondViewportPageCount = 2,
+    ) { page ->
+        val diary = prop.diaryCardLoadedPropMap[page]
+        val rotateAngle = cardRotationAngles[diary?.id] ?: 0f
+
+        LaunchedEffect(key1 = Unit) {
+            prop.onNewDiaryRequested(page + 1)
         }
-        // 뒷면
-        else Box(
-            modifier = Modifier.graphicsLayer { rotationY = 180f }
+
+        LaunchedEffect(key1 = diary?.isFlipped) {
+            diary?.let { diary ->
+                animate(
+                    initialValue = rotateAngle,
+                    targetValue = if (diary.isFlipped) 180f else 0f,
+                    animationSpec = tween(durationMillis = 200)
+                ) { value, _ ->
+                    cardRotationAngles[diary.id] = value
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .graphicsLayer {
+                    rotationY = rotateAngle
+                    cameraDistance = 8 * density
+                }
+                .clickable(
+                    indication = null,
+                    interactionSource = null,
+                ) {
+                    diary?.let { diary ->
+                        if (diary.diaryModificationModeProp == null)
+                            diary.onCardClicked()
+                    }
+                }
         ) {
-            DiaryCardBack(
-                date = prop.date,
-                content = prop.content,
-                onModifyButtonClicked = prop.onModifyButtonClicked
-            )
+            // 앞면
+            if (rotateAngle < 90f) {
+                DiaryCardFront(
+                    prop = diary?.let { diary ->
+                        DiaryCardFrontProp(
+                            date = diary.date,
+                            imageUrl = diary.imageUrl,
+                            onModifyButtonClicked = diary.onModifyButtonClicked
+                        )
+                    }
+                )
+            }
+            // 뒷면
+            else Box(
+                modifier = Modifier.graphicsLayer { rotationY = 180f }
+            ) {
+                DiaryCardBack(
+                    prop = diary?.let { diary ->
+                        DiaryCardBackProp(
+                            date = diary.date,
+                            content = diary.content,
+                            diaryModificationModeProp = diary.diaryModificationModeProp,
+                            onModifyButtonClicked = diary.onModifyButtonClicked
+                        )
+                    }
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun DiaryCardFront(
-    date: LocalDate,
-    image: ImageBitmap,
-    onModifyButtonClicked: () -> Unit
+    prop: DiaryCardFrontProp?
 ) {
     val density = LocalDensity.current
 
@@ -150,13 +217,15 @@ private fun DiaryCardFront(
                         modifier = Modifier.width(32.dp),
                     )
                     Text(
-                        text = "${date.year}년 ${date.monthValue}월 ${date.dayOfMonth}일",
+                        text = prop?.let {
+                            "${prop.date.year}년 ${prop.date.monthValue}월 ${prop.date.dayOfMonth}일"
+                        } ?: stringResource(id = R.string.loading),
                         fontSize = with(density) { 12.dp.toSp() },
                         color = Color.Primary400,
                     )
                 }
                 IconButton(
-                    onClick = onModifyButtonClicked,
+                    onClick = { prop?.onModifyButtonClicked?.invoke() },
                     modifier = Modifier.size(16.dp)
                 ) {
                     Image(
@@ -166,23 +235,28 @@ private fun DiaryCardFront(
                 }
             }
             // 본문
-            Image(
-                bitmap = image,
+            if (prop != null) Image(
+                painter = rememberAsyncImagePainter(model = prop.imageUrl),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(220.dp)
                     .clip(RoundedCornerShape(8.dp))
-            )
+            ) else Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(220.dp)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(32.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun DiaryCardBack(
-    date: LocalDate,
-    content: String,
-    onModifyButtonClicked: () -> Unit
+    prop: DiaryCardBackProp?
 ) {
     val density = LocalDensity.current
 
@@ -190,7 +264,7 @@ private fun DiaryCardBack(
         modifier = Modifier
             .width(diaryCardWidth)
             .height(diaryCardHeight)
-    )  {
+    ) {
         ShadowedImage(
             id = R.drawable.view_diary_popup_flipped,
             contentDescription = null,
@@ -221,13 +295,15 @@ private fun DiaryCardBack(
                         modifier = Modifier.width(32.dp),
                     )
                     Text(
-                        text = "${date.year}년 ${date.monthValue}월 ${date.dayOfMonth}일",
+                        text = prop?.let {
+                            "${prop.date.year}년 ${prop.date.monthValue}월 ${prop.date.dayOfMonth}일"
+                        } ?: stringResource(id = R.string.loading),
                         fontSize = with(density) { 12.dp.toSp() },
                         color = Color.Primary400,
                     )
                 }
                 IconButton(
-                    onClick = onModifyButtonClicked,
+                    onClick = { prop?.onModifyButtonClicked?.invoke() },
                     modifier = Modifier.size(16.dp)
                 ) {
                     Image(
@@ -237,7 +313,7 @@ private fun DiaryCardBack(
                 }
             }
             // 본문
-            Box(
+            if (prop != null) Box(
                 contentAlignment = Alignment.CenterStart,
                 modifier = Modifier
                     .size(220.dp)
@@ -245,11 +321,40 @@ private fun DiaryCardBack(
                     .background(Color.Secondary300)
                     .padding(16.dp)
             ) {
-                Text(
-                    text = content,
-                    color = Color.Grey500,
-                    fontSize = 12.sp,
+                if (prop.diaryModificationModeProp != null) {
+                    val focusRequester = remember { FocusRequester() }
+
+                    BasicTextField(
+                        value = prop.diaryModificationModeProp.contentValue,
+                        onValueChange = prop.diaryModificationModeProp.onContentValueChanged,
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Done,
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { prop.diaryModificationModeProp.onModificationDone() }
+                        ),
+                        textStyle = TextStyle(
+                            color = Color.Grey500,
+                            fontSize = 12.sp,
+                        ),
+                        modifier = Modifier.focusRequester(focusRequester)
+                    )
+
+                    LaunchedEffect(key1 = Unit) { focusRequester.requestFocus() }
+                } else Text(
+                    text = prop.content,
+                    style = TextStyle(
+                        color = Color.Grey500,
+                        fontSize = 12.sp,
+                    ),
                     modifier = Modifier.fillMaxWidth()
+                )
+            } else Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(220.dp)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(32.dp)
                 )
             }
         }
@@ -257,11 +362,80 @@ private fun DiaryCardBack(
 }
 
 val previewDiaryCardProp = DiaryCardProp(
+    diaryCardLoadedPropMap = List(10) { index ->
+        index to DiaryCardLoadedProp(
+            id = index.toLong(),
+            date = LocalDate.now(),
+            imageUrl = "",
+            content = "This is diary.",
+            isFlipped = false,
+            diaryModificationModeProp = null,
+            onCardClicked = {},
+            onModifyButtonClicked = {},
+        )
+    }.toMap(),
+    onNewDiaryRequested = {},
+)
+
+@Preview
+@Composable
+fun PreviewDiaryCard() {
+    val diaryCardLoadedPropMap = remember { mutableStateMapOf<Int, DiaryCardLoadedProp>() }
+    val makeNewDiaryCardLoadedProp: () -> Unit = remember {
+        {
+            val page = diaryCardLoadedPropMap.size
+            val id = diaryCardLoadedPropMap.size.toLong()
+            diaryCardLoadedPropMap[page] = DiaryCardLoadedProp(
+                id = id,
+                date = LocalDate.now(),
+                imageUrl = "",
+                content = "This is diary.",
+                isFlipped = false,
+                diaryModificationModeProp = null,
+                onCardClicked = {
+                    val diary = diaryCardLoadedPropMap[page]!!
+                    diaryCardLoadedPropMap[page] = diary.copy(isFlipped = !diary.isFlipped)
+                },
+                onModifyButtonClicked = {
+                    val diary = diaryCardLoadedPropMap[page]!!
+                    var contentState by mutableStateOf(diary.content)
+                    diaryCardLoadedPropMap[page] = diary.copy(
+                        diaryModificationModeProp = DiaryModificationModeProp(
+                            contentValue = contentState,
+                            onContentValueChanged = { contentState = it },
+                            onModificationDone = {
+                                diaryCardLoadedPropMap[page] = diary.copy(
+                                    content = contentState,
+                                    diaryModificationModeProp = null,
+                                )
+                            }
+                        )
+                    )
+                },
+            )
+        }
+    }
+
+    LaunchedEffect(key1 = Unit) {
+        repeat(3) { makeNewDiaryCardLoadedProp() }
+    }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        DiaryCard(
+            prop = DiaryCardProp(
+                diaryCardLoadedPropMap = diaryCardLoadedPropMap,
+                onNewDiaryRequested = { makeNewDiaryCardLoadedProp() },
+            )
+        )
+    }
+}
+
+private val previewDiaryCardFrontProp = DiaryCardFrontProp(
     date = LocalDate.now(),
-    image = ImageBitmap(width = 220, height = 220),
-    content = "This is diary.",
-    isFlipped = false,
-    onCardClicked = {},
+    imageUrl = "",
     onModifyButtonClicked = {},
 )
 
@@ -269,18 +443,21 @@ val previewDiaryCardProp = DiaryCardProp(
 @Composable
 fun PreviewDiaryCardFront() {
     DiaryCardFront(
-        date = previewDiaryCardProp.date,
-        image = previewDiaryCardProp.image,
-        onModifyButtonClicked = previewDiaryCardProp.onModifyButtonClicked
+        prop = null // previewDiaryCardFrontProp
     )
 }
+
+private val previewDiaryCardBackProp = DiaryCardBackProp(
+    date = LocalDate.now(),
+    content = "This is diary.",
+    diaryModificationModeProp = null,
+    onModifyButtonClicked = {},
+)
 
 @Preview
 @Composable
 fun PreviewDiaryCardBack() {
     DiaryCardBack(
-        date = previewDiaryCardProp.date,
-        content = previewDiaryCardProp.content,
-        onModifyButtonClicked = previewDiaryCardProp.onModifyButtonClicked
+        prop = null // previewDiaryCardBackProp
     )
 }

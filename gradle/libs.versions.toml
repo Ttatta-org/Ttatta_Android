@@ -22,8 +22,10 @@ playServicesLocation = "21.3.0"
 kotlinxCoroutines = "1.10.1"
 navigationRuntimeKtx = "2.8.5"
 navigationCompose = "2.8.5"
+androidx-test = "1.4.0"
 
 [libraries]
+androidx-ui-test-android = { module = "androidx.test:core", version.ref = "androidx-test" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
