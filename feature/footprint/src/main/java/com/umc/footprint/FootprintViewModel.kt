@@ -51,6 +51,7 @@ class FootprintViewModel @Inject constructor(
                     markMap(
                         latitude = footprint.latitude,
                         longitude = footprint.longitude,
+                        diaryId = footprint.diaryId,
                         clusterId = footprint.clusterId,
                         categoryId = footprint.categoryId,
                         color = footprint.color,
@@ -111,7 +112,6 @@ class FootprintViewModel @Inject constructor(
                 diaryStateMap[page] = diary
                 onSucceed()
             } catch (e: Exception) {
-                // TODO: 빈 리스트 반환으로써 오류가 났을 경우에 분기 처리
                 onFailed(e)
             }
         }
@@ -163,7 +163,7 @@ class FootprintViewModel @Inject constructor(
         }
     }
 
-    fun getAllCategoryInfoFromServer(
+    private fun getAllCategoryInfoFromServer(
         onSucceed: () -> Unit,
         onFailed: (e: Exception) -> Unit,
     ) {
@@ -177,7 +177,7 @@ class FootprintViewModel @Inject constructor(
         }
     }
 
-    fun getUserNameFromServer(
+    private fun getUserNameFromServer(
         onSucceed: () -> Unit,
         onFailed: (e: Exception) -> Unit,
     ) {
@@ -194,6 +194,7 @@ class FootprintViewModel @Inject constructor(
     private fun markMap(
         latitude: Double,
         longitude: Double,
+        diaryId: Long,
         clusterId: Long,
         categoryId: Long,
         color: CategoryColor?,
@@ -201,6 +202,7 @@ class FootprintViewModel @Inject constructor(
         val marker = MapMarker(
             latitude = latitude,
             longitude = longitude,
+            zIndex = diaryId.toInt(),
             color = color,
             onClicked = onClicked@{ x, y ->
                 clickedMarkerInfoState.value = ClickedMarkerInfo(
