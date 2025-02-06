@@ -77,6 +77,7 @@ dependencies {
     // 의존성 정의
     implementation(project(":core"))
     implementation(project(":design"))
+    implementation(project(":data"))
 
     // 네이버 지도 SDK
     implementation(libs.naver.map)
@@ -94,4 +95,5 @@ dependencies {
     // Coil
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
     implementation("io.coil-kt.coil3:coil-svg:3.0.4")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
 }

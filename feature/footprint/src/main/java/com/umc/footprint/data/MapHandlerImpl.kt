@@ -1,6 +1,7 @@
 package com.umc.footprint.data
 
 import android.content.Context
+import android.graphics.PointF
 import android.location.Location
 import android.os.Bundle
 import android.view.View
@@ -41,21 +42,12 @@ private val markerWidth = 64.dp
 private val markerHeight = 64.dp
 private val clusteringDp = 32.dp
 
-private fun calculateClusteredMarkerSize(context: Context, count: Int): Pair<Int, Int> {
-    val density = context.resources.displayMetrics.density
-    return listOf(clusteredMarkerMaxWidth, clusteredMarkerMaxHeight).map {
-        (it.value * density * (1.0 - 1.0 / (count + 1))).roundToInt()
-    }.run {
-        this.first() to this.last()
-    }
-}
-
 class MapHandlerImpl @Inject constructor(
     private val context: Context,
     private val locationHandler: LocationHandler,
-): MapHandler {
+) : MapHandler {
 
-    private val locatorImage = OverlayImage.fromBitmap(
+    private val locatorImage: OverlayImage = OverlayImage.fromBitmap(
         loadRawImageAsBitmap(
             context = context,
             rawResourceId = R.raw.ic_locator,
@@ -64,7 +56,7 @@ class MapHandlerImpl @Inject constructor(
         )
     )
 
-    private val clusterImage = OverlayImage.fromBitmap(
+    private val clusterImage: OverlayImage = OverlayImage.fromBitmap(
         loadRawImageAsBitmap(
             context = context,
             rawResourceId = R.raw.ic_clustered_marker,
@@ -73,25 +65,33 @@ class MapHandlerImpl @Inject constructor(
         )
     )
 
-    private val markerImages = listOf(
-        R.raw.ic_footprint,
-        R.raw.ic_footprint_red,
-        R.raw.ic_footprint_orange,
-        R.raw.ic_footprint_yellow,
-        R.raw.ic_footprint_green,
-        R.raw.ic_footprint_turquoise,
-        R.raw.ic_footprint_blue,
-        R.raw.ic_footprint_navy,
-        R.raw.ic_footprint_purple,
-        R.raw.ic_footprint_brown,
-        R.raw.ic_footprint_pink,
-        R.raw.ic_footprint_white,
-        R.raw.ic_footprint_black,
-    ).map {
+    private val defaultMarkerImage: OverlayImage = OverlayImage.fromBitmap(
+        loadRawImageAsBitmap(
+            context = context,
+            rawResourceId = R.raw.ic_footprint,
+            width = markerWidth,
+            height = markerHeight,
+        )
+    )
+
+    private val markerImages: Map<CategoryColor, OverlayImage> = mapOf(
+        CategoryColor.RED to R.raw.ic_footprint_red,
+        CategoryColor.ORANGE to R.raw.ic_footprint_orange,
+        CategoryColor.YELLOW to R.raw.ic_footprint_yellow,
+        CategoryColor.GREEN to R.raw.ic_footprint_green,
+        CategoryColor.TURQUOISE to R.raw.ic_footprint_turquoise,
+        CategoryColor.BLUE to R.raw.ic_footprint_blue,
+        CategoryColor.NAVY to R.raw.ic_footprint_navy,
+        CategoryColor.PURPLE to R.raw.ic_footprint_purple,
+        CategoryColor.BROWN to R.raw.ic_footprint_brown,
+        CategoryColor.PINK to R.raw.ic_footprint_pink,
+        CategoryColor.WHITE to R.raw.ic_footprint_white,
+        CategoryColor.BLACK to R.raw.ic_footprint_black,
+    ).mapValues { (_, value) ->
         OverlayImage.fromBitmap(
             loadRawImageAsBitmap(
                 context = context,
-                rawResourceId = it,
+                rawResourceId = value,
                 width = markerWidth,
                 height = markerHeight,
             )
@@ -103,7 +103,6 @@ class MapHandlerImpl @Inject constructor(
     private val mapFlow = MutableStateFlow<NaverMap?>(null)
 
     private val markers = mutableMapOf<MapMarker, MarkerKey>()
-    private val clickedMarkerKeyFlow = MutableStateFlow<MarkerKey?>(null)
     private var onPreviousMarkerDismissed: (() -> Unit)? = null
 
     private suspend fun getMap(): NaverMap {
@@ -117,9 +116,11 @@ class MapHandlerImpl @Inject constructor(
             .maxZoom(15)
             .clusterMarkerUpdater { info, marker ->
                 marker.apply {
-                    val size = calculateClusteredMarkerSize(context = context, count = info.size)
-                    width = size.first
-                    height = size.second
+                    calculateClusteredMarkerSize(count = info.size).let { (clusterWidth, clusterHeight) ->
+                        width = clusterWidth
+                        height = clusterHeight
+                    }
+                    anchor = PointF(0.5f, 0.5f)
                     icon = clusterImage
                     setOnClickListener { true }
                 }
@@ -130,13 +131,16 @@ class MapHandlerImpl @Inject constructor(
 
                 naverMarker.apply {
                     val density = context.resources.displayMetrics.density
-                    icon = markerImages[
-                        mapMarker.color?.let { CategoryColor.entries.indexOf(it) + 1 } ?: 0
-                    ]
+                    icon = markerImages[mapMarker.color] ?: defaultMarkerImage
                     width = (markerWidth.value * density).roundToInt()
                     height = (markerHeight.value * density).roundToInt()
+                    anchor = PointF(0.5f, 0.5f)
+                    zIndex = mapMarker.zIndex
                     setOnClickListener {
-                        clickedMarkerKeyFlow.value = key
+                        onPreviousMarkerDismissed?.invoke()
+                        map?.projection?.toScreenLocation(this.position)?.apply {
+                            onPreviousMarkerDismissed = mapMarker.onClicked?.invoke(x, y)
+                        }
                         true
                     }
                 }
@@ -156,9 +160,15 @@ class MapHandlerImpl @Inject constructor(
             getMapAsync { map ->
                 map.apply {
                     // 이벤트 리스너 설정
-                    addOnCameraChangeListener { _, _ -> clickedMarkerKeyFlow.value = null }
-                    setOnMapClickListener { _, _ -> clickedMarkerKeyFlow.value = null }
-                    
+                    addOnCameraChangeListener { _, _ ->
+                        onPreviousMarkerDismissed?.invoke()
+                        onPreviousMarkerDismissed = null
+                    }
+                    setOnMapClickListener { _, _ ->
+                        onPreviousMarkerDismissed?.invoke()
+                        onPreviousMarkerDismissed = null
+                    }
+
                     // UI 설정
                     uiSettings.apply {
                         isCompassEnabled = false
@@ -170,9 +180,9 @@ class MapHandlerImpl @Inject constructor(
 
                     isIndoorEnabled = false
                     locationOverlay.icon = locatorImage
-                    
+
                     // 위치 추적 기능 설정
-                    locationSource = object: LocationSource {
+                    locationSource = object : LocationSource {
                         private var locationChangeListener: (Location) -> Unit = {}
 
                         override fun activate(listener: LocationSource.OnLocationChangedListener) {
@@ -193,23 +203,6 @@ class MapHandlerImpl @Inject constructor(
 
             onCreate(Bundle())
         }
-
-        // 마커의 클릭 이벤트를 다루기 위한 설정
-        CoroutineScope(Dispatchers.Main).launch {
-            launch {
-                clickedMarkerKeyFlow.collect { key ->
-                    onPreviousMarkerDismissed?.invoke()
-                    val onDismissed = key?.let {
-                        val naverMarker = key.naverMarker
-                        val mapMarker = key.mapMarker
-                        val position = getMap().projection.toScreenLocation(naverMarker?.position)
-                        return@let mapMarker.onClicked?.invoke(position.x, position.y)
-                    }
-                    onPreviousMarkerDismissed = onDismissed
-                    if (onDismissed == null) clickedMarkerKeyFlow.value = null
-                }
-            }
-        }
     }
 
     override fun getMapView(): @Composable () -> Unit {
@@ -223,9 +216,9 @@ class MapHandlerImpl @Inject constructor(
 
     override suspend fun moveTo(latitude: Double, longitude: Double) {
         val target = LatLng(latitude, longitude)
-        val cameraUpdate = CameraUpdate.scrollTo(target).apply {
-            animate(CameraAnimation.Easing, 500L)
-        }
+        val cameraUpdate = CameraUpdate
+            .scrollTo(target)
+            .animate(CameraAnimation.Easing, 500L)
         getMap().moveCamera(cameraUpdate)
     }
 
@@ -253,12 +246,21 @@ class MapHandlerImpl @Inject constructor(
         val key = markers[marker]!!
         clusterManager.remove(key)
         markers.remove(marker)
-        clickedMarkerKeyFlow.value?.let { if (key == it) clickedMarkerKeyFlow.value = null }
     }
 
     override suspend fun removeAllMarkers() {
-        clickedMarkerKeyFlow.value = null
-        clusterManager.clear()
+        onPreviousMarkerDismissed?.invoke()
+        onPreviousMarkerDismissed = null
+        markers.values.forEach { key -> clusterManager.remove(key) }
         markers.clear()
+    }
+
+    private fun calculateClusteredMarkerSize(count: Int): Pair<Int, Int> {
+        val density = context.resources.displayMetrics.density
+        return listOf(clusteredMarkerMaxWidth, clusteredMarkerMaxHeight).map {
+            (it.value * density * (1.0 - 1.0 / (count + 1))).roundToInt()
+        }.run {
+            this.first() to this.last()
+        }
     }
 }

@@ -1,9 +1,9 @@
-package com.umc.footprint.data
+package com.umc.footprint.di
 
 import android.content.Context
-import com.google.android.gms.location.FusedLocationProviderClient
 import com.umc.footprint.core.LocationHandler
 import com.umc.footprint.core.MapHandler
+import com.umc.footprint.data.MapHandlerImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
