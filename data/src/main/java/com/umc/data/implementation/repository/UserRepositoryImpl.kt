@@ -5,7 +5,6 @@ import com.umc.core.model.UserInfo
 import com.umc.core.model.UserStatus
 import com.umc.core.repository.UserRepository
 import com.umc.data.api.ServerApi
-import com.umc.data.api.dto.server.LogoutRequestDTO
 import com.umc.data.api.dto.server.SignInKakaoRequestDTO
 import com.umc.data.api.dto.server.SignInRequestDTO
 import com.umc.data.api.dto.server.SignUpKakaoRequestDTO
@@ -24,17 +23,11 @@ class UserRepositoryImpl @Inject constructor(
 ): UserRepository {
 
     override suspend fun isAlreadyLogin(): Boolean {
-        return try {
-            getUserInfo()
-            true
-        }
-        catch (e: Exception) {
-            false
-        }
+        return try { getUserInfo() } catch (_: Exception) { null } != null
     }
 
     override suspend fun isIdAlreadyOccupied(id: String): Boolean {
-        val response = serverApi.withCheck { checkUsername(username = id) }
+        val response = serverApi.withCheck { checkUsernameSame(username = id) }
         return response.isAvailable != VerifyUsernameOverlapResultDTO.IsAvailable.AVAILABLE
     }
 
@@ -43,7 +36,7 @@ class UserRepositoryImpl @Inject constructor(
             username = id,
             password = password,
         )
-        val response = serverApi.withCheck { login(body = body) }
+        val response = serverApi.withCheck { signIn(body = body) }
         authPreference.accessToken = response.accessToken
         authPreference.refreshToken = response.refreshToken
         authPreference.userId = response.userId
@@ -63,12 +56,12 @@ class UserRepositoryImpl @Inject constructor(
             username = id,
             password = password
         )
-        serverApi.withCheck { join(body = body) }
+        serverApi.withCheck { signUp(body = body) }
     }
 
     override suspend fun loginWithKakao(kakaoToken: String) {
         val body = SignInKakaoRequestDTO(kakaoToken = kakaoToken)
-        val response = serverApi.withCheck { loginWithKakao(body = body) }
+        val response = serverApi.withCheck { signInKakao(body = body) }
         authPreference.accessToken = response.accessToken
         authPreference.refreshToken = response.refreshToken
         authPreference.userId = response.userId
@@ -84,21 +77,34 @@ class UserRepositoryImpl @Inject constructor(
             kakaoToken = kakaoToken,
             nickname = name,
         )
-        serverApi.withCheck { joinWithKakao(body = body) }
+        serverApi.withCheck { signUpKakao(body = body) }
+    }
+
+    override suspend fun requestVerificationCodeForJoining(email: String) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun checkVerificationCodeForJoining(code: Int): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun requestEmailForFindingId(email: String) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun requestEmailForFindingPassword(email: String, id: String) {
+        TODO("Not yet implemented")
     }
 
     override suspend fun logout() {
-        val body = LogoutRequestDTO(userId = authPreference.userId!!)
-        serverApi.withCheck { logout(body = body) }
+        serverApi.withCheck { logout() }
         authPreference.accessToken = null
         authPreference.refreshToken = null
         authPreference.userId = null
     }
 
     override suspend fun getUserInfo(): UserInfo {
-        val response = serverApi.withAuth(authPreference = authPreference) {
-            getUserInfo(userId = authPreference.userId!!)
-        }
+        val response = serverApi.withAuth(authPreference = authPreference) { getUserInfo() }
         return UserInfo(
             id = response.userId!!,
             name = response.nickname!!,
@@ -109,23 +115,28 @@ class UserRepositoryImpl @Inject constructor(
             email = response.email!!,
             profileImageUrl = response.profileImg,
             point = response.point!!,
-            status = UserStatus.ACTIVE /* TODO: 백엔드 구현 완료 시 연결 */,
+            status = UserStatus.ACTIVE  // TODO: 백엔드 구현시 연결
         )
     }
 
-    override suspend fun modifyUserInfo(userInfo: UserInfo) {
+    override suspend fun modifyUserInfo(
+        name: String?,
+        email: String?,
+    ) {
         val body = UpdateRequestDTO(
-            nickname = userInfo.name,
-            email = userInfo.email,
+            nickname = name,
+            email = email,
+            profileImage = null,
+            point = null,
         )
         serverApi.withAuth(authPreference = authPreference) {
-            updateUserInfo(userId = authPreference.userId!!, body = body)
+            updateUserInfo(body = body)
         }
     }
 
     override suspend fun leaveUser() {
         serverApi.withAuth(authPreference = authPreference) {
-            deleteUser(userId = authPreference.userId!!)
+            deleteUser()
         }
     }
 }

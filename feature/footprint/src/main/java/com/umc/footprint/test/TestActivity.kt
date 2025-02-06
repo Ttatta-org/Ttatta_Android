@@ -7,71 +7,106 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.umc.core.repository.DiaryRepository
+import com.umc.core.repository.UserRepository
 import com.umc.design.CategoryColor
 import com.umc.footprint.FootprintApp
 import com.umc.footprint.FootprintViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.time.LocalDateTime
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class TestActivity : ComponentActivity() {
+    @Inject
+    lateinit var userRepository: UserRepository
+    @Inject
+    lateinit var diaryRepository: DiaryRepository
+
     private val viewModel: FootprintViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        prepareTest()
 
         enableEdgeToEdge()
         setContent {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .windowInsetsPadding(WindowInsets(0))
                     .background(Color.White)
             ) {
                 FootprintApp(
                     viewModel = viewModel,
+                    onNavigateToCategoryApp = {}
                 )
             }
         }
+    }
 
-        viewModel.markPositionOnMap(
-            latitude = 37.55324496403485,
-            longitude = 126.97274865741072,
-            category = CategoryColor.BLUE,
-        )
+    private fun prepareTest() {
+        CoroutineScope(Dispatchers.IO).launch {
+            if (!userRepository.isIdAlreadyOccupied(id = TestValues.ID)) {
+                userRepository.join(
+                    id = TestValues.ID,
+                    password = TestValues.PASSWORD,
+                    name = TestValues.NAME,
+                    nickname = TestValues.NICKNAME,
+                    email = TestValues.EMAIL
+                )
 
-        viewModel.markPositionOnMap(
-            latitude = 37.553245,
-            longitude = 126.972749,
-            category = CategoryColor.NAVY,
-        )
+                userRepository.login(
+                    id = TestValues.ID,
+                    password = TestValues.PASSWORD
+                )
 
-        viewModel.markPositionOnMap(
-            latitude = 37.6,
-            longitude = 126.97274865741072,
-            category = CategoryColor.YELLOW,
-        )
+                diaryRepository.createCategory(
+                    name = "test category 1",
+                    color = CategoryColor.NAVY,
+                )
 
-        viewModel.markPositionOnMap(
-            latitude = 37.6,
-            longitude = 127.0,
-            category = null,
-        )
+                diaryRepository.createCategory(
+                    name = "test category 2",
+                    color = CategoryColor.GREEN,
+                )
+                
+                diaryRepository.getAllCategoryInfo().forEach { category ->
+                    repeat(3) { index ->
+                        val place = TestValues.PLACE[index]
+                        diaryRepository.createDiary(
+                            categoryId = category.id,
+                            date = LocalDateTime.now().minusMonths(index.toLong()),
+                            content = "test content $index",
+                            image = File(
+                                cacheDir,
+                                "test_image_${place.name}.jpg"
+                            ).apply {
+                                FileOutputStream(this).use {
+                                    resources.openRawResource(place.imageId).copyTo(it)
+                                }
+                            },
+                            latitude = place.latitude,
+                            longitude = place.longitude,
+                            locationName = place.name
+                        )
+                    }
+                }
 
-        viewModel.markPositionOnMap(
-            latitude = 37.6,
-            longitude = 127.59,
-            category = CategoryColor.PINK,
-        )
+                userRepository.logout()
+            }
 
-        viewModel.markPositionOnMap(
-            latitude = 37.6,
-            longitude = 127.6,
-            category = CategoryColor.BLACK,
-        )
+            userRepository.login(
+                id = TestValues.ID,
+                password = TestValues.PASSWORD
+            )
+        }
     }
 }

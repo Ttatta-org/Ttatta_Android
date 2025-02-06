@@ -25,7 +25,16 @@ interface UserRepository {
         email: String,
     )
 
+    // 확인 코드 인증은 아직 미완성된 API
+    suspend fun requestVerificationCodeForJoining(email: String)
+    suspend fun checkVerificationCodeForJoining(code: Int): Boolean
+    suspend fun requestEmailForFindingId(email: String)
+    suspend fun requestEmailForFindingPassword(email: String, id: String)
+
     suspend fun getUserInfo(): UserInfo
-    suspend fun modifyUserInfo(userInfo: UserInfo)
+    suspend fun modifyUserInfo(
+        name: String? = null,
+        email: String? = null,
+    )
     suspend fun leaveUser()
 }

@@ -14,11 +14,19 @@ package com.umc.data.api.dto.server
 
 /**
  * 
+ * @param diaryId 
+ * @param diaryCategoryId 
+ * @param categoryColor 
  * @param latitude 
  * @param longitude 
+ * @param clusterId 
  */
-data class MapDTO (
+data class FootprintDiaryDTO (
 
+    val diaryId: Long? = null,
+    val diaryCategoryId: Long? = null,
+    val categoryColor: String? = null,
     val latitude: Double? = null,
-    val longitude: Double? = null
+    val longitude: Double? = null,
+    val clusterId: Long? = null
 )
