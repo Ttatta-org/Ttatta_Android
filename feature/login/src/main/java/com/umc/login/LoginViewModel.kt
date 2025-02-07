@@ -26,61 +26,52 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class LoginViewModel : ViewModel() {
     // 상태 변수
-    var idState = mutableStateOf("")
-        private set
+    private val _idState = MutableStateFlow("")
+    val idState: StateFlow<String> = _idState.asStateFlow()
 
-    var pwState = mutableStateOf("")
-        private set
+    private val _pwState = MutableStateFlow("")
+    val pwState: StateFlow<String> = _pwState.asStateFlow()
 
-    var passwordVisible = mutableStateOf(false)
-        private set
+    private val _passwordVisible = MutableStateFlow(false)
+    val passwordVisible: StateFlow<Boolean> = _passwordVisible.asStateFlow()
 
-    var errorMessage = mutableStateOf("")
-        private set
+    private val _errorMessage = MutableStateFlow("")
+    val errorMessage: StateFlow<String> = _errorMessage.asStateFlow()
 
-    // 상태 변경 로직
+    private val _isButtonActive = MutableStateFlow(false)
+    val isButtonActive: StateFlow<Boolean> = _isButtonActive.asStateFlow()
+
     fun onIdChange(newId: String) {
-        idState.value = newId
+        _idState.value = newId
+        updateButtonState()
     }
 
     fun onPwChange(newPw: String) {
-        pwState.value = newPw
+        _pwState.value = newPw
+        updateButtonState()
     }
 
     fun togglePasswordVisibility() {
-        passwordVisible.value = !passwordVisible.value
+        _passwordVisible.value = !_passwordVisible.value
     }
 
-    // 버튼 활성화 여부 계산
-    fun isButtonActive(): Boolean {
-        return idState.value.isNotBlank() && pwState.value.isNotBlank()
+    private fun updateButtonState() {
+        _isButtonActive.value = _idState.value.isNotBlank() && _pwState.value.isNotBlank()
     }
 
-    // 로그인 로직
     fun onLoginClick(): Boolean {
-        return if (idState.value == "correctId" && pwState.value == "correctPw") {
-            errorMessage.value = ""
+        return if (_idState.value == "correctId" && _pwState.value == "correctPw") {
+            _errorMessage.value = ""
             true
         } else {
-            errorMessage.value = "아이디 또는 비밀번호를 다시 확인해주세요"
+            _errorMessage.value = "아이디 또는 비밀번호를 다시 확인해주세요"
             false
         }
-    }
-    //LoginIdScreen.Kt
-    // 아이디 입력 상태
-    var joinidState = mutableStateOf("")
-        private set
-
-    // 경고 메시지 상태
-    var isWarningVisible = mutableStateOf(false)
-        private set
-
-    // 아이디 입력값 변경
-    fun onJoinIdChange(newId: String) {
-        idState.value = newId
-        isWarningVisible.value = newId.length == 15 // 길이가 15일 때 경고 메시지 표시
     }
 }
