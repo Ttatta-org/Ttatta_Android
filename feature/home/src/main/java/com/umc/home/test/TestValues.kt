@@ -9,10 +9,10 @@ object TestValues {
     const val NAME = "test_Na"
     const val NICKNAME = "Na"
     const val EMAIL = "test_Na@test.com"
-    val TODAY: LocalDateTime = LocalDateTime.parse("2025-01-29T01:39:42.814468")
-    const val CONTENT = "서울시청의 한 사진입니다."
-    const val LATITUDE = 37.566535
-    const val LONGITUDE = 126.9779692
+    val TODAY: LocalDateTime = LocalDateTime.parse("2025-02-01T15:15:30.000000")
+    const val CONTENT = "개빡치네"
+    const val LATITUDE = 37.5598451648105
+    const val LONGITUDE = 126.920705864877
     const val CATEGORY_NAME = "test category"
     val CATEGORY_COLOR = CategoryColor.NAVY
 }

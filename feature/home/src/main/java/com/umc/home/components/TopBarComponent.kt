@@ -1,6 +1,7 @@
 package com.umc.home.components
 
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
@@ -68,6 +69,7 @@ fun TopBarComponent(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.systemBars)
             .height(imageHeight),
         contentAlignment = Alignment.BottomCenter,
     ) {
@@ -194,6 +196,7 @@ fun TopBarComponent(
                     contentAlignment = Alignment.TopStart
                 ) {
                     if (isSearchTriggered && searchResults.isEmpty()) { // 🔹 검색 버튼을 눌렀을 때만 검사
+                        Log.d("HomeScreen", "🚫 검색 결과 없음")
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth(),
@@ -216,6 +219,7 @@ fun TopBarComponent(
                         }
                     } else {
                         // 🔹 검색 결과가 있거나 검색을 실행하지 않은 상태면 최근 검색어 표시
+                        Log.d("HomeScreen", "✅ 검색 결과 있음")
                         RecentSearches(
                             recentSearches = recentSearches,
                             onRecentSearchClick = { query ->

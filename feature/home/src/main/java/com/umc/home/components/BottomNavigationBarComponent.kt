@@ -30,7 +30,9 @@ fun BottomNavigationBarWithFAB(
     onFabClick: () -> Unit
 ) {
     Box(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.systemBars),
         contentAlignment = Alignment.BottomCenter
     ) {
         NavigationBar(

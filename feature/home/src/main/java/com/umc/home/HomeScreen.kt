@@ -1,5 +1,6 @@
 package com.umc.home
 
+import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -58,6 +59,8 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
 import coil3.compose.AsyncImage
+import androidx.compose.ui.graphics.toArgb
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun HomeScreen(
@@ -68,6 +71,7 @@ fun HomeScreen(
     isCalendarVisible: Boolean,
     searchResults: List<Diary>,
     searchQuery: String,
+    recentSearches: List<String>,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
     onSearchToggle: () -> Unit,
@@ -77,8 +81,19 @@ fun HomeScreen(
     onNavigateToFilteredDiaryScreen: (LocalDate) -> Unit,
     onShowDetailModal: () -> Unit,
     onDismissDetailModal: () -> Unit,
-    isDetailModalVisible: Boolean
+    isDetailModalVisible: Boolean,
+    onDeleteDiary: (Long) -> Unit,
+    allDiaryDates: List<LocalDate>
 ) {
+
+    val systemUiController = rememberSystemUiController()
+    val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
+
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
+        )
+    }
 //    val uiState by viewModel.uiState.collectAsState()
 //    val searchResults by viewModel.searchResults.collectAsState()
 //
@@ -105,6 +120,7 @@ fun HomeScreen(
 //
 //    var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
 
+    var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
 
     Scaffold(
         topBar = {
@@ -121,11 +137,14 @@ fun HomeScreen(
                 calendarContent = { modifier ->
                     CalendarView(
                         modifier = modifier,
-                        onDateSelected = onNavigateToFilteredDiaryScreen,
-                        diaryDates = diaryList.map { it.date.toLocalDate() }
+                        onDateSelected = { selectedDate ->
+                            Log.d("HomeScreen", "📌 2. CalendarView에서 날짜 선택됨: $selectedDate")
+                            onNavigateToFilteredDiaryScreen(selectedDate) // 🔹 네비게이션 실행
+                        },
+                        diaryDates = allDiaryDates
                     )
                 },
-                recentSearches = emptyList(),
+                recentSearches = recentSearches,
                 onRecentSearchClick = onRecentSearchClick
             )
         },
@@ -135,7 +154,8 @@ fun HomeScreen(
                 onTabSelected = { /* 탭 변경 로직 */ },
                 onFabClick = onFabClick
             )
-        }
+        },
+        contentWindowInsets = WindowInsets.systemBars
     ) { innerPadding ->
 
         Column(
@@ -205,15 +225,13 @@ fun HomeScreen(
 
             // 검색 결과 또는 전체 리스트 표시
             LazyColumn {
-                val itemsToShow = if (searchResults.isNotEmpty()) {
-                    searchResults // 검색 결과 표시
-                } else {
-                    diaryList.sortedByDescending { it.date } // 검색 결과가 없거나 검색 쿼리가 비어 있을 때 기본 다이어리 표시
-                }
-                items(itemsToShow) { diary ->
+                items(if (isSearchVisible) searchResults else diaryList) { diary ->
                     DiaryCard(
                         diary = diary,
-                        onDetailClick = onShowDetailModal
+                        onDetailClick = {
+                            selectedDiaryId = diary.id
+                            onShowDetailModal()
+                        }
                     )
                 }
             }
@@ -262,36 +280,21 @@ fun HomeScreen(
                                 interactionSource = remember { MutableInteractionSource() }
                             )
                     ) {
-                        DetailModal(onDismiss = onDismissDetailModal)
+                        DetailModal(
+                            onDismiss = onDismissDetailModal,
+                            onDelete = { onDeleteDiary(selectedDiaryId!!) }
+                        )
                     }
                 }
             }
         }
     }
 
-
-
-
-
 @Composable
-fun CustomFloatingImageButton(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .size(80.dp)
-            .offset(y = (-40).dp) // 바텀 네비게이션에 걸치도록 위치 조정
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_add), // 꽃 모양 이미지
-            contentDescription = "추가 버튼",
-            modifier = Modifier.fillMaxSize()
-        )
-    }
-}
-
-@Composable
-fun DetailModal(onDismiss: () -> Unit) {
+fun DetailModal(
+    onDismiss: () -> Unit,
+    onDelete: () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -346,7 +349,7 @@ fun DetailModal(onDismiss: () -> Unit) {
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4B4B4B),
-                        modifier = Modifier.clickable { /* 삭제 로직 */ }
+                        modifier = Modifier.clickable { onDelete() }
                     )
                 }
             }
@@ -478,8 +481,11 @@ fun CalendarView(
                     modifier = Modifier
                         .size(40.dp)
                         .padding(5.dp)
-                        .clickable(enabled = hasDiary) { // 해당 날짜에 일기가 있을 때만 클릭 가능
-                            onDateSelected(date)
+                        .clickable {
+                            if (hasDiary) {  // 일기가 있는 경우만 실행
+                                Log.d("CalendarView", "📌 1. 날짜 선택됨: $date")
+                                onDateSelected(date)
+                            }
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -555,7 +561,10 @@ fun RecentSearches(
 
 
 @Composable
-fun DiaryCard(diary: Diary, onDetailClick: () -> Unit) {
+fun DiaryCard(
+    diary: Diary,
+    onDetailClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -782,6 +791,7 @@ fun PreviewHomeScreen() {
         isDetailModalVisible = false,
         searchResults = emptyList(),
         searchQuery = "",
+        recentSearches = emptyList(),
         onQueryChange = {},
         onSearch = {},
         onSearchToggle = {},
@@ -790,6 +800,8 @@ fun PreviewHomeScreen() {
         onFabClick = {},
         onNavigateToFilteredDiaryScreen = { /* 선택된 날짜 처리 */ },
         onShowDetailModal = {},
-        onDismissDetailModal = {}
+        onDismissDetailModal = {},
+        onDeleteDiary = {},
+        allDiaryDates = emptyList()
     )
 }
