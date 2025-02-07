@@ -633,7 +633,7 @@ fun DiaryCard(diary: Diary, onDetailClick: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 날짜 텍스트
+                // 위치 텍스트 (지금 viewmodel 잘못돼서 위치가 안보이는데 dto에 맞게 바꿔야함)
                 Row(
                     modifier = Modifier
                         .wrapContentWidth()
@@ -652,6 +652,7 @@ fun DiaryCard(diary: Diary, onDetailClick: () -> Unit) {
                     Spacer(modifier = Modifier.width(5.dp))
 
                     Text(
+                        //date가 아니라 locationname이 들어가야함.
                         text = diary.date.formatToKorean(), // 날짜 텍스트
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = Color(0xFFFF9681), // 텍스트 색상
