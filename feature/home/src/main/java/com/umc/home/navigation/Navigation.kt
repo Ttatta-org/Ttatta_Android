@@ -1,9 +1,6 @@
 package com.umc.home.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -13,8 +10,6 @@ import com.umc.home.FilteredDiaryScreen
 import com.umc.home.HomeScreen
 import com.umc.home.HomeViewModel
 import java.time.LocalDate
-import androidx.navigation.compose.composable
-
 
 @Composable
 fun AppNavHost(
@@ -25,12 +20,25 @@ fun AppNavHost(
         // Home 화면
         composable("home") {
             HomeScreen(
-                viewModel = viewModel,
-                onFabClick = { /* 플로팅 버튼 동작 */ },
-                onCalendarToggle = { /* 캘린더 토글 */ },
+                diaryList = viewModel.diaryList,
+                isExpanded = false,
+                isSearchVisible = false,
+                isCalendarVisible = false,
+                isDetailModalVisible = false,
+                searchResults = emptyList(),
+                searchQuery = viewModel.searchQuery.value,
+                onQueryChange = { viewModel.searchQuery.value = it },
+                onSearch = { viewModel.searchDiaries(viewModel.searchQuery.value) },
+                onSearchToggle = { /* 검색 토글 처리 */ },
+                onCalendarToggle = { /* 달력 토글 처리 */ },
+                onRecentSearchClick = { /* 최근 검색어 처리 */ },
+                onFabClick = { /* FAB 클릭 처리 */ },
                 onNavigateToFilteredDiaryScreen = { selectedDate ->
-                    navController.navigate("filtered/${selectedDate}")
-                }
+                    // 선택한 날짜를 문자열로 변환하여 내비게이션 경로에 포함시킵니다.
+                    navController.navigate("filtered/${selectedDate.toString()}")
+                },
+                onShowDetailModal = { /* 모달 열기 처리 */ },
+                onDismissDetailModal = { /* 모달 닫기 처리 */ }
             )
         }
         // Filtered Diary 화면
@@ -38,17 +46,32 @@ fun AppNavHost(
             route = "filtered/{selectedDate}",
             arguments = listOf(navArgument("selectedDate") { type = NavType.StringType })
         ) { backStackEntry ->
-            val selectedDate = LocalDate.parse(backStackEntry.arguments?.getString("selectedDate"))
-            val uiState by viewModel.uiState.collectAsState() // StateFlow를 Compose에서 안전하게 사용
-
+            // 전달된 인자를 파싱하여 LocalDate로 변환합니다.
+            val selectedDateString = backStackEntry.arguments?.getString("selectedDate") ?: ""
+            val selectedDate = LocalDate.parse(selectedDateString)
             FilteredDiaryScreen(
                 viewModel = viewModel,
                 selectedDate = selectedDate,
-                diaries = uiState.diaries, // collectAsState를 통해 가져온 diaries
-                onBack = { navController.popBackStack() },
-                onFabClick = { /* 플로팅 버튼 동작 */ }
+                onFabClick = { /* 필터된 화면의 FAB 클릭 처리 */ },
+                diaryList = viewModel.diaryList,
+                isSearchVisible = false,
+                isCalendarVisible = false,
+                isDetailModalVisible = false,
+                searchResults = emptyList(),
+                isSearchTriggered = false,
+                searchQuery = viewModel.searchQuery.value,
+                onQueryChange = { viewModel.searchQuery.value = it },
+                onSearch = { viewModel.searchDiaries(viewModel.searchQuery.value) },
+                onSearchToggle = { /* 검색 토글 처리 */ },
+                onCalendarToggle = { /* 달력 토글 처리 */ },
+                onRecentSearchClick = { /* 최근 검색어 처리 */ },
+                onNavigateToFilteredDiaryScreen = { selectedDate ->
+                    // 선택한 날짜를 문자열로 변환하여 내비게이션 경로에 포함시킵니다.
+                    navController.navigate("filtered/${selectedDate.toString()}")
+                },
+                onShowDetailModal = { /* 모달 열기 처리 */ },
+                onDismissDetailModal = { /* 모달 닫기 처리 */ }
             )
         }
-
     }
 }

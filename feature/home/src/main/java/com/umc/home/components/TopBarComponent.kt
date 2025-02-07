@@ -34,12 +34,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
-import com.umc.home.Diary
 import com.umc.home.R
 import com.umc.home.RecentSearches
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.svg.SvgDecoder
+import com.umc.core.model.Diary
 
 @Composable
 fun TopBarComponent(

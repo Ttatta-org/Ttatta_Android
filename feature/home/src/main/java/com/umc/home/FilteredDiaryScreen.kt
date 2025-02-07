@@ -48,6 +48,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import com.umc.core.model.Diary
 import com.umc.home.components.BottomNavigationBarWithFAB
 import com.umc.home.components.TopBarComponent
 import com.umc.home.HomeViewModel
@@ -62,38 +64,44 @@ import java.time.YearMonth
 fun FilteredDiaryScreen(
     viewModel: HomeViewModel,
     selectedDate: LocalDate,
-    diaries: List<Diary>,
-    onBack: () -> Unit,
-    onFabClick: () -> Unit
+    diaryList: List<Diary>,
+    isSearchVisible: Boolean,
+    isCalendarVisible: Boolean,
+    isSearchTriggered: Boolean,
+    searchResults: List<Diary>,
+    searchQuery: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    onFabClick: () -> Unit,
+    onSearchToggle: () -> Unit,
+    onCalendarToggle: () -> Unit,
+    onRecentSearchClick: (String) -> Unit,
+    onNavigateToFilteredDiaryScreen: (LocalDate) -> Unit,
+    onShowDetailModal: () -> Unit,
+    onDismissDetailModal: () -> Unit,
+    isDetailModalVisible: Boolean
 ) {
-    val filteredDiaries = diaries.filter { it.date.toLocalDate() == selectedDate }
+    // 필터링: viewModel의 diaryList에서 선택한 날짜와 일치하는 일기만 가져옴
+    val filteredDiaries: List<Diary> = viewModel.diaryList
+        .filter { it.date.toLocalDate() == selectedDate }
         .sortedByDescending { it.date }
-
-    val recentSearches by viewModel.recentSearches.collectAsState() // ✅ ViewModel의 최근 검색어 사용
-    val searchQuery by viewModel.searchQuery.collectAsState() // ✅ ViewModel의 검색어 사용
-    val searchResults by viewModel.searchResults.collectAsState()
-    var isSearchVisible by remember { mutableStateOf(false) }
-    var isSearchTriggered by remember { mutableStateOf(false) }
 
 
     Scaffold(
         topBar = {
             TopBarComponent(
-                isExpanded = false,  // 필터된 화면에서는 달력 기능 없음
+                isExpanded = isCalendarVisible,
                 isSearchVisible = isSearchVisible,
                 searchQuery = searchQuery,
-                onQueryChange = { viewModel.updateSearchQuery(it) },
+                onQueryChange = onQueryChange,
                 searchResults = searchResults,
-                isSearchTriggered = isSearchTriggered,
-                onSearch = {
-                    viewModel.searchDiaries(searchQuery)
-                    isSearchTriggered = true
-                },
-                onSearchToggle = { isSearchVisible = !isSearchVisible },
-                onCalendarToggle = { /* 캘린더 없음 */ },
-                calendarContent = {}, // 달력 비활성화
-                recentSearches = recentSearches,
-                onRecentSearchClick = { viewModel.updateSearchQuery(it) }
+                isSearchTriggered = false, // 필요 시 추가 상태로 관리 가능
+                onSearch = onSearch,
+                onSearchToggle = onSearchToggle,
+                onCalendarToggle = onCalendarToggle,
+                calendarContent = { },
+                recentSearches = emptyList(),
+                onRecentSearchClick = onRecentSearchClick
             )
         },
         bottomBar = {
@@ -193,16 +201,27 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 상단 이미지
-            Image(
-                painter = painterResource(id = diary.imageUrl),
+//            // 상단 이미지
+//            Image(
+//                painter = painterResource(id = diary.imageUrl),
+//                contentDescription = "Diary Image",
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(280.dp) // 이미지 높이 설정
+//                    .width(280.dp)
+//                    .clip(RoundedCornerShape(18.dp)),
+//                contentScale = ContentScale.Crop // 이미지 크롭 설정
+//            )
+            AsyncImage(
+                model = diary.imageUrl,
                 contentDescription = "Diary Image",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(280.dp) // 이미지 높이 설정
-                    .width(280.dp)
+                    .height(280.dp)
                     .clip(RoundedCornerShape(18.dp)),
-                contentScale = ContentScale.Crop // 이미지 크롭 설정
+                contentScale = ContentScale.Crop,
+                // 필요 시 placeholder나 error 설정도 할 수 있음
+                error = painterResource(id = R.drawable.pudding)
             )
 
             Spacer(modifier = Modifier.height(12.dp))

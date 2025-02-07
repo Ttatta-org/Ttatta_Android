@@ -47,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.umc.core.model.Diary
 import com.umc.home.components.BottomNavigationBarWithFAB
 import com.umc.home.components.TopBarComponent
 import com.umc.home.HomeViewModel
@@ -56,23 +57,37 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.YearMonth
+import coil3.compose.AsyncImage
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel,
-    onFabClick: () -> Unit,
+    // HomeApp에서 전달받은 데이터와 콜백들
+    diaryList: List<Diary>,
+    isExpanded: Boolean,
+    isSearchVisible: Boolean,
+    isCalendarVisible: Boolean,
+    searchResults: List<Diary>,
+    searchQuery: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    onSearchToggle: () -> Unit,
     onCalendarToggle: () -> Unit,
-    onNavigateToFilteredDiaryScreen: (LocalDate) -> Unit // 캘린더 날짜
+    onRecentSearchClick: (String) -> Unit,
+    onFabClick: () -> Unit,
+    onNavigateToFilteredDiaryScreen: (LocalDate) -> Unit,
+    onShowDetailModal: () -> Unit,
+    onDismissDetailModal: () -> Unit,
+    isDetailModalVisible: Boolean
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    val searchResults by viewModel.searchResults.collectAsState()
-
-    // 캘린더가 보이는지 여부를 관리하는 상태
-    var isCalendarVisible by remember { mutableStateOf(false) }
-    var isSearchVisible by remember { mutableStateOf(false) }
-
-    val recentSearches by viewModel.recentSearches.collectAsState() // ✅ ViewModel의 최근 검색어 사용
-    val searchQuery by viewModel.searchQuery.collectAsState() // ✅ ViewModel의 검색어 사용
+//    val uiState by viewModel.uiState.collectAsState()
+//    val searchResults by viewModel.searchResults.collectAsState()
+//
+//    // 캘린더가 보이는지 여부를 관리하는 상태
+//    var isCalendarVisible by remember { mutableStateOf(false) }
+//    var isSearchVisible by remember { mutableStateOf(false) }
+//
+//    val recentSearches by viewModel.recentSearches.collectAsState() // ✅ ViewModel의 최근 검색어 사용
+//    val searchQuery by viewModel.searchQuery.collectAsState() // ✅ ViewModel의 검색어 사용
 
 
     // 드래그 버튼의 상태 (ic_bottom_arrow 또는 ic_top_arrow)
@@ -82,13 +97,13 @@ fun HomeScreen(
         else -> R.drawable.ic_bottom_arrow // 기본 상태
     }
 
-    // TopBar 확장 여부
-    var isExpanded by remember { mutableStateOf(false) }
-    // 디테일 모달의 표시 여부 상태 관리
-    var isDetailModalVisible by remember { mutableStateOf(false) }
-    // 🔹 검색 실행 여부를 추적하는 변수
-
-    var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
+//    // TopBar 확장 여부
+//    var isExpanded by remember { mutableStateOf(false) }
+//    // 디테일 모달의 표시 여부 상태 관리
+//    var isDetailModalVisible by remember { mutableStateOf(false) }
+//    // 🔹 검색 실행 여부를 추적하는 변수
+//
+//    var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
 
 
     Scaffold(
@@ -97,32 +112,21 @@ fun HomeScreen(
                 isExpanded = isCalendarVisible,
                 isSearchVisible = isSearchVisible,
                 searchQuery = searchQuery,
-                onQueryChange = { viewModel.updateSearchQuery(it) },
+                onQueryChange = onQueryChange,
                 searchResults = searchResults,
-                isSearchTriggered = isSearchTriggered,
-                onSearch = {
-                    viewModel.searchDiaries(searchQuery) // ✅ 검색 실행 (최근 검색어 자동 저장됨)
-                    isSearchTriggered = true // 🔹 검색 버튼을 눌렀을 때 검색 결과 검사 활성화
-                },
-                onSearchToggle = {
-                    isSearchVisible = !isSearchVisible
-                    if (isSearchVisible) isCalendarVisible = false // 검색창 활성화 시 달력 비활성화
-                },
-                onCalendarToggle = {
-                    isCalendarVisible = !isCalendarVisible
-                    if (isCalendarVisible) isSearchVisible = false // 달력 활성화 시 검색창 비활성화
-                },
+                isSearchTriggered = false, // 필요 시 추가 상태로 관리 가능
+                onSearch = onSearch,
+                onSearchToggle = onSearchToggle,
+                onCalendarToggle = onCalendarToggle,
                 calendarContent = { modifier ->
                     CalendarView(
                         modifier = modifier,
-                        onDateSelected = { selectedDate ->
-                            onNavigateToFilteredDiaryScreen(selectedDate)
-                        },
-                        diaryDates = uiState.diaries.map { it.date.toLocalDate() }
+                        onDateSelected = onNavigateToFilteredDiaryScreen,
+                        diaryDates = diaryList.map { it.date.toLocalDate() }
                     )
                 },
-                recentSearches = recentSearches,
-                onRecentSearchClick = { viewModel.updateSearchQuery(it) } // 최근 검색어 클릭 시 동작
+                recentSearches = emptyList(),
+                onRecentSearchClick = onRecentSearchClick
             )
         },
         bottomBar = {
@@ -153,15 +157,7 @@ fun HomeScreen(
                 IconButton(
                     modifier = Modifier.size(42.dp, 14.dp),
                     onClick = {
-                        // 아이콘 클릭 시 동작
-                        if (isSearchVisible || isCalendarVisible) {
-                            // 검색창 또는 캘린더가 보이는 경우 모두 초기화
-                            isSearchVisible = false
-                            isCalendarVisible = false
-                        } else {
-                            // 캘린더를 토글
-                            isCalendarVisible = !isCalendarVisible
-                        }
+                        onCalendarToggle()
                     }
                 ) {
                     Image(
@@ -174,10 +170,10 @@ fun HomeScreen(
                 }
             }
 
-            // TopBar 확장 애니메이션
-            LaunchedEffect(isCalendarVisible) {
-                isExpanded = isCalendarVisible
-            }
+//            // TopBar 확장 애니메이션
+//            LaunchedEffect(isCalendarVisible) {
+//                isExpanded = isCalendarVisible
+//            }
 //
 //            Column(
 //                modifier = Modifier
@@ -212,12 +208,12 @@ fun HomeScreen(
                 val itemsToShow = if (searchResults.isNotEmpty()) {
                     searchResults // 검색 결과 표시
                 } else {
-                    viewModel.getSortedDiaries() // 검색 결과가 없거나 검색 쿼리가 비어 있을 때 기본 다이어리 표시
+                    diaryList.sortedByDescending { it.date } // 검색 결과가 없거나 검색 쿼리가 비어 있을 때 기본 다이어리 표시
                 }
                 items(itemsToShow) { diary ->
                     DiaryCard(
                         diary = diary,
-                        onDetailClick = { isDetailModalVisible = true }
+                        onDetailClick = onShowDetailModal
                     )
                 }
             }
@@ -238,7 +234,7 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable(
-                        onClick = { isDetailModalVisible = false }, // 모달 외부 클릭 시 닫기
+                        onClick = onDismissDetailModal, // 모달 외부 클릭 시 닫기
                         indication = null, // 클릭 애니메이션 제거
                         interactionSource = remember { MutableInteractionSource() }
                     )
@@ -266,7 +262,7 @@ fun HomeScreen(
                                 interactionSource = remember { MutableInteractionSource() }
                             )
                     ) {
-                        DetailModal(onDismiss = { isDetailModalVisible = false })
+                        DetailModal(onDismiss = onDismissDetailModal)
                     }
                 }
             }
@@ -620,15 +616,26 @@ fun DiaryCard(diary: Diary, onDetailClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // 상단 이미지
-                Image(
-                    painter = painterResource(id = diary.imageUrl),
+//                Image(
+//                    painter = painterResource(id = diary.imageUrl),
+//                    contentDescription = "Diary Image",
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .height(280.dp) // 이미지 높이 설정
+//                        .width(280.dp)
+//                        .clip(RoundedCornerShape(18.dp)),
+//                    contentScale = ContentScale.Crop // 이미지 크롭 설정
+//                )
+                AsyncImage(
+                    model = diary.imageUrl,
                     contentDescription = "Diary Image",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(280.dp) // 이미지 높이 설정
-                        .width(280.dp)
+                        //.height(280.dp)
                         .clip(RoundedCornerShape(18.dp)),
-                    contentScale = ContentScale.Crop // 이미지 크롭 설정
+                    contentScale = ContentScale.Crop,
+                    // 필요 시 placeholder나 error 설정도 할 수 있음
+                    error = painterResource(id = R.drawable.if_image_error)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -652,8 +659,7 @@ fun DiaryCard(diary: Diary, onDetailClick: () -> Unit) {
                     Spacer(modifier = Modifier.width(5.dp))
 
                     Text(
-                        //date가 아니라 locationname이 들어가야함.
-                        text = diary.date.formatToKorean(), // 날짜 텍스트
+                        text = diary.locationName, // locationName 위치 가져오기
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = Color(0xFFFF9681), // 텍스트 색상
                             fontSize = 10.sp
@@ -736,28 +742,54 @@ fun DashedDivider() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewHomeScreen() {
-    val mockUiState = HomeUiState(
-        diaries = listOf(
-            Diary(LocalDateTime.of(2025, 1, 25, 14, 30), R.drawable.pudding, "귀여운 깜찍 토끼 초코푸딩!"),
-            Diary(LocalDateTime.of(2025, 1, 22, 18, 45), R.drawable.letter, "항상 건강하고 행복하게!"),
-            Diary(LocalDateTime.of(2025, 1, 22, 9, 15), R.drawable.cafe, "오늘의 다짐: 더 나은 내가 되자!"),
-            Diary(LocalDateTime.of(2025, 1, 21, 11, 0), R.drawable.cafe, "토끼 모양 케이크가 정말 귀엽다.")
+    // 더미 다이어리 데이터 (Diary 클래스는 imageUrl을 String 타입으로 사용한다고 가정)
+    val dummyDiaries = listOf(
+        Diary(
+            id = 1,
+            date = LocalDateTime.of(2025, 1, 25, 14, 30),
+            content = "귀여운 깜찍 토끼 초코푸딩!",
+            imageUrl = "https://via.placeholder.com/280", // Preview용 더미 URL
+            locationName = "서울"
+        ),
+        Diary(
+            id = 2,
+            date = LocalDateTime.of(2025, 1, 22, 18, 45),
+            content = "항상 건강하고 행복하게!",
+            imageUrl = "https://via.placeholder.com/280",
+            locationName = "부산"
+        ),
+        Diary(
+            id = 3,
+            date = LocalDateTime.of(2025, 1, 22, 9, 15),
+            content = "오늘의 다짐: 더 나은 내가 되자!",
+            imageUrl = "https://via.placeholder.com/280",
+            locationName = "대구"
+        ),
+        Diary(
+            id = 4,
+            date = LocalDateTime.of(2025, 1, 21, 11, 0),
+            content = "토끼 모양 케이크가 정말 귀엽다.",
+            imageUrl = "https://via.placeholder.com/280",
+            locationName = "인천"
         )
     )
 
-    // ViewModel 생성 및 검색 상태 관리
-    val viewModel = object : HomeViewModel() {
-        override val uiState = MutableStateFlow(mockUiState)
-    }
-
-    // 검색 상태 관리ㄱ
-    var searchQuery by remember { mutableStateOf("") }
-
     HomeScreen(
-        viewModel = viewModel,
-        onFabClick = { /* Do nothing */ },
-        onNavigateToFilteredDiaryScreen = { selectedDate -> println("Navigating to $selectedDate") },
-        onCalendarToggle = { /* Do nothing */ }
+        diaryList = dummyDiaries,
+        isExpanded = false,
+        isSearchVisible = false,
+        isCalendarVisible = false,
+        isDetailModalVisible = false,
+        searchResults = emptyList(),
+        searchQuery = "",
+        onQueryChange = {},
+        onSearch = {},
+        onSearchToggle = {},
+        onCalendarToggle = {},
+        onRecentSearchClick = {},
+        onFabClick = {},
+        onNavigateToFilteredDiaryScreen = { /* 선택된 날짜 처리 */ },
+        onShowDetailModal = {},
+        onDismissDetailModal = {}
     )
 }
-
