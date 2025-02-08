@@ -1,9 +1,15 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     // alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
+
+val recordMapProperties = Properties()
+recordMapProperties.load(FileInputStream(rootProject.file("local.properties")))
 
 android {
     namespace = "com.umc.record"
@@ -14,6 +20,12 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         // consumerProguardFiles("consumer-rules.pro")
+
+        buildConfigField(
+            "String",
+            "NAVER_SDK_CLIENT_ID",
+            "\"${recordMapProperties.getProperty("NAVER_SDK_CLIENT_ID")}\""
+        )
     }
 
     buildTypes {
@@ -32,6 +44,10 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
@@ -47,6 +63,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.hilt.android)
+    implementation(libs.play.services.location)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -62,4 +79,9 @@ dependencies {
     // Coil
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
     implementation("io.coil-kt.coil3:coil-svg:3.0.4")
+
+    // 네이버 지도 SDK
+    implementation(libs.naver.map)
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 }

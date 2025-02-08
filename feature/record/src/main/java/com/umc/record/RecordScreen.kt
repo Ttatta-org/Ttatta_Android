@@ -11,16 +11,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -42,29 +39,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.size.Size
-import android.content.Context
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.geometry.Offset
 import com.umc.design.R as Res
 
 @Composable
-fun RecordScreen() {
-    var showCustomDialog by remember { mutableStateOf(true) } // 다이얼로그 초기 상태 off
-
-    val categories = listOf(
-        "친구들" to "Red",
-        "가족" to "Blue",
-        "남자친구" to "Pink",
-        "일상" to "Yellow",
-        "다시 오고 싶은 장소" to "Green",
-        "제주여행" to "Turquoise"
-    )
+fun RecordScreen(
+    categories: List<Pair<String, String>>,
+    selectedCategory: String,
+    diaryText: String,
+    onCategorySelect: (String) -> Unit,
+    onDiaryTextUpdate: (String) -> Unit
+) {
+    var showCustomDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // 배경 이미지 추가
+        // 배경 이미지 추가 -> 추후 이미지 받아오는 걸로
         Image(
             painter = painterResource(id = R.drawable.img_recordbackground), // 배경 이미지 리소스
             contentDescription = "Background Image",
@@ -81,27 +75,28 @@ fun RecordScreen() {
             // 상단 정보 섹션
             InfoSection(
                 date = "2025.01.20",
-                location = "Cafe PORTE",
-                category = "default", // 카테고리 예시
+                location = "Cafe PORTE",  // 추후 지도에서 저장한 데이터로 교체 필요
+                category = selectedCategory,
                 onIconClick = { showCustomDialog = !showCustomDialog } // 다이얼로그 상태 변경
             )
         }
 
-        // 바텀 시트
-        RecordBottomSheet(name = "서연")
+        // 바텀 시트 -> 추후 사용자명 받아와 교체 필요
+        RecordBottomSheet(
+            name = "서연",
+            diaryText = diaryText,
+            onDiaryTextUpdate = onDiaryTextUpdate
+        )
 
         // 다이얼로그
         if (showCustomDialog) {
             CustomCategoryDialog(
                 categories = categories,
-                onDismiss = { showCustomDialog = false }
-//                onCategorySelected = { selectedCategory ->
-//                    if (selectedCategory == "new") {
-//                        // 새 발자국 생성 로직
-//                    } else {
-//                        // 선택된 기존 카테고리 처리
-//                    }
-//                }
+                onDismiss = { showCustomDialog = false },
+                onCategorySelected = { category ->
+                    onCategorySelect(category)
+                    showCustomDialog = false
+                }
             )
         }
     }
@@ -123,6 +118,7 @@ fun InfoSection(
             .wrapContentWidth()
             .wrapContentHeight()
             .padding(top = 60.dp)
+            //.widthIn()
     ) {
         // 날짜
         InfoTag(
@@ -211,7 +207,11 @@ fun InfoTag(
 }
 
 @Composable
-fun RecordBottomSheet(name: String) {
+fun RecordBottomSheet(
+    name: String,
+    diaryText: String,
+    onDiaryTextUpdate: (String) -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxSize() // 전체 화면 크기 차지
@@ -287,7 +287,10 @@ fun RecordBottomSheet(name: String) {
 
                         BasicTextField(
                             value = inputText,
-                            onValueChange = { inputText = it },
+                            onValueChange = {
+                                inputText = it
+                                onDiaryTextUpdate(it)
+                            }, // ViewModel에 업데이트
                             textStyle = TextStyle(
                                 fontSize = 13.sp,
                                 color = Color.Black
@@ -297,7 +300,7 @@ fun RecordBottomSheet(name: String) {
                         )
                     }
 
-                    // 추가 버튼
+                    // 추가 버튼 -> 클릭 이벤트 처리 해야함
                     Icon(
                         painter = painterResource(id = R.drawable.ic_add), // 리소스 파일의 추가 버튼
                         contentDescription = "Add",
@@ -310,88 +313,216 @@ fun RecordBottomSheet(name: String) {
     }
 }
 
+//@Composable
+//fun CustomCategoryDialog(
+//    onDismiss: () -> Unit,
+//    categories: List<Pair<String, String>> // 외부에서 받아오는 카테고리 데이터
+//) {
+//    Box(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .clickable { onDismiss() }, // 바깥 클릭 시 닫기
+//        contentAlignment = Alignment.TopCenter
+//    ) {
+//        // 배경 이미지
+//        Box(
+//            modifier = Modifier
+//                .wrapContentSize()
+//                .padding(start = 90.dp, top = 90.dp) // 상단 여백 설정
+//        ) {
+//            Image(
+//                painter = painterResource(id = R.drawable.img_catebackground), // 배경 이미지 리소스
+//                contentDescription = "Background Image",
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .wrapContentHeight(), // 높이는 내용에 맞춤
+//                contentScale = ContentScale.Fit // 배경 이미지를 맞춤
+//            )
+//
+//            // 카테고리 리스트
+//            Column(
+//                modifier = Modifier
+//                    .padding(horizontal = 60.dp, vertical = 12.dp) // 배경 안쪽 여백
+//            ) {
+//                categories.forEach { (name, colorKey) ->
+//                    val (backgroundColor, iconRes) = getCategoryStyle(colorKey) // 카테고리 스타일
+//
+//                    Row(
+//                        verticalAlignment = Alignment.CenterVertically,
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .widthIn(max = 100.dp) // 카테고리 항목 너비 제한
+//                            .padding(vertical = 4.dp) // 항목 간격
+//                    ) {
+//                        Icon(
+//                            painter = painterResource(id = iconRes),
+//                            contentDescription = name,
+//                            modifier = Modifier.size(24.dp),
+//                            tint = Color.Unspecified
+//                        )
+//
+//                        Spacer(modifier = Modifier.width(11.17.dp)) // 아이콘과 텍스트 간격
+//
+//                        Text(
+//                            text = name,
+//                            fontSize = 12.sp,
+//                            color = Color.Black
+//                        )
+//                    }
+//                }
+//
+//                // "발자국 새로 만들기" 항목
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(vertical = 8.dp)
+//                        .clickable { /* 새 발자국 생성 로직 추가 */ }
+//                ) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.ic_foot_new),
+//                        contentDescription = "발자국 새로 만들기",
+//                        modifier = Modifier.size(24.dp),
+//                        tint = Color.Unspecified
+//                    )
+//
+//                    Spacer(modifier = Modifier.width(16.dp))
+//
+//                    Text(
+//                        text = "발자국 새로 만들기",
+//                        fontSize = 12.sp,
+//                        color = Color(0xFFFF9681)
+//                    )
+//                }
+//            }
+//        }
+//    }
+//}
+
 @Composable
 fun CustomCategoryDialog(
+    categories: List<Pair<String, String>>, // 외부에서 받아오는 카테고리 데이터
     onDismiss: () -> Unit,
-    categories: List<Pair<String, String>> // 외부에서 받아오는 카테고리 데이터
+    onCategorySelected: (String) -> Unit // 선택된 카테고리를 부모 컴포넌트에 전달
 ) {
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .clickable { onDismiss() }, // 바깥 클릭 시 닫기
-        contentAlignment = Alignment.TopCenter
+            .fillMaxWidth()
+            .clickable { onDismiss() } // 다이얼로그 외부 클릭 시 닫기
+            .padding(start = 90.dp, top = 90.dp), // 상단 여백 설정
     ) {
-        // 배경 이미지
-        Box(
-            modifier = Modifier
-                .wrapContentSize()
-                .padding(start = 90.dp, top = 90.dp) // 상단 여백 설정
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // 다이얼로그 상단 이미지
             Image(
-                painter = painterResource(id = R.drawable.img_catebackground), // 배경 이미지 리소스
-                contentDescription = "Background Image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(), // 높이는 내용에 맞춤
-                contentScale = ContentScale.Fit // 배경 이미지를 맞춤
+                painter = painterResource(R.drawable.img_categorytop),
+                contentDescription = "Category Dialog Top",
+                modifier = Modifier.fillMaxWidth()
             )
 
-            // 카테고리 리스트
-            Column(
+            // 카테고리 목록 영역
+            Box(
                 modifier = Modifier
-                    .padding(horizontal = 60.dp, vertical = 12.dp) // 배경 안쪽 여백
+                    .background(Color(0xE6FDDDC1)) // 반투명 효과 및 둥근 모서리
+                    .padding(start = 16.dp, end = 16.dp) // 내부 여백
+                    .fillMaxWidth(0.665f) // 다이얼로그 크기 조정
             ) {
-                categories.forEach { (name, colorKey) ->
-                    val (backgroundColor, iconRes) = getCategoryStyle(colorKey) // 카테고리 스타일
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    categories.forEachIndexed() { index, (name, colorKey) ->
+                        val (_, iconRes) = getCategoryStyle(colorKey)
 
+                        Column {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onCategorySelected(colorKey) // 선택된 카테고리 업데이트
+                                        onDismiss() // 다이얼로그 닫기
+                                    }
+                                    .padding(horizontal = 12.dp, vertical = 3.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = iconRes),
+                                    contentDescription = name,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = Color.Unspecified
+                                )
+
+                                Spacer(modifier = Modifier.width(10.dp))
+
+                                Text(
+                                    text = name,
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF000000),
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+
+                            // 점선 추가
+                            Canvas(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 2.dp) // 카테고리와 점선 간격 2dp
+                                    .height(1.dp) // 점선 높이 설정
+                            ) {
+                                val dotSize = 5f // 점선 길이
+                                val spaceSize = 5f // 점선 간 간격
+                                val strokeWidth = 3f // 점선 두께
+                                val startX = 0f
+                                val endX = size.width
+
+                                var currentX = startX
+                                while (currentX < endX) {
+                                    drawLine(
+                                        color = Color(0xFFFCAD98), // 점선 색상
+                                        start = Offset(currentX, size.height / 2),
+                                        end = Offset(currentX + dotSize, size.height / 2),
+                                        strokeWidth = strokeWidth
+                                    )
+                                    currentX += dotSize + spaceSize
+                                }
+                            }
+                        }
+                    }
+
+                    // "발자국 새로 만들기" 버튼
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .widthIn(max = 100.dp) // 카테고리 항목 너비 제한
-                            .padding(vertical = 4.dp) // 항목 간격
+                            .padding(horizontal = 12.dp)
+                            .clickable { /* 새 발자국 생성 로직 추가 */ }
                     ) {
                         Icon(
-                            painter = painterResource(id = iconRes),
-                            contentDescription = name,
-                            modifier = Modifier.size(24.dp),
+                            painter = painterResource(id = R.drawable.ic_foot_new),
+                            contentDescription = "발자국 새로 만들기",
+                            modifier = Modifier
+                                .size(20.dp),
                             tint = Color.Unspecified
                         )
 
-                        Spacer(modifier = Modifier.width(11.17.dp)) // 아이콘과 텍스트 간격
+                        Spacer(modifier = Modifier.width(10.dp))
 
                         Text(
-                            text = name,
-                            fontSize = 12.sp,
-                            color = Color.Black
+                            text = "발자국 새로 만들기",
+                            fontSize = 14.sp,
+                            color = Color(0xFFFF9681),
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
-
-                // "발자국 새로 만들기" 항목
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)
-                        .clickable { /* 새 발자국 생성 로직 추가 */ }
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_foot_new),
-                        contentDescription = "발자국 새로 만들기",
-                        modifier = Modifier.size(24.dp),
-                        tint = Color.Unspecified
-                    )
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Text(
-                        text = "발자국 새로 만들기",
-                        fontSize = 12.sp,
-                        color = Color(0xFFFF9681)
-                    )
-                }
             }
+
+            // 다이얼로그 하단 이미지
+            Image(
+                painter = painterResource(R.drawable.img_categorybottom),
+                contentDescription = "Category Dialog Bottom",
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
@@ -399,5 +530,23 @@ fun CustomCategoryDialog(
 @Preview(showBackground = true)
 @Composable
 fun PreviewRecordScreen() {
-    RecordScreen()
+    val sampleCategories = listOf(
+        "친구들" to "Red",
+        "가족" to "Blue",
+        "남자친구" to "Pink",
+        "일상" to "Yellow",
+        "다시 오고 싶은 장소" to "Green",
+        "제주여행" to "Turquoise"
+    )
+
+    var selectedCategory by remember { mutableStateOf("default") }
+    var diaryText by remember { mutableStateOf("") }
+
+    RecordScreen(
+        categories = sampleCategories,
+        selectedCategory = selectedCategory,
+        diaryText = diaryText,
+        onCategorySelect = { selectedCategory = it },
+        onDiaryTextUpdate = { diaryText = it }
+    )
 }
