@@ -11,7 +11,7 @@
  */
 package com.umc.data.api.dto.server
 
-import com.umc.data.api.dto.server.PostResultDTO
+import com.umc.data.api.dto.server.ItemBuyResultDTO
 
 /**
  * 
@@ -20,10 +20,10 @@ import com.umc.data.api.dto.server.PostResultDTO
  * @param message 
  * @param result 
  */
-data class ApiResponsePostResultDTO (
+data class ApiResponseItemBuyResultDTO (
 
     val isSuccess: Boolean? = null,
     val code: String? = null,
     val message: String? = null,
-    val result: PostResultDTO? = null
+    val result: ItemBuyResultDTO? = null
 )

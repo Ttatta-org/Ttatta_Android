@@ -11,19 +11,14 @@
  */
 package com.umc.data.api.dto.server
 
-import com.umc.data.api.dto.server.PostResultDTO
 
 /**
  * 
- * @param isSuccess 
- * @param code 
- * @param message 
- * @param result 
+ * @param itemId 
+ * @param isEquipped 
  */
-data class ApiResponsePostResultDTO (
+data class ItemEquipResultDTO (
 
-    val isSuccess: Boolean? = null,
-    val code: String? = null,
-    val message: String? = null,
-    val result: PostResultDTO? = null
+    val itemId: Long? = null,
+    val isEquipped: Boolean? = null
 )

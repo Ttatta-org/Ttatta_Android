@@ -11,19 +11,18 @@
  */
 package com.umc.data.api.dto.server
 
-import com.umc.data.api.dto.server.PostResultDTO
 
 /**
  * 
- * @param isSuccess 
- * @param code 
- * @param message 
- * @param result 
+ * @param nickname 
+ * @param email 
+ * @param profileImage 
+ * @param point 
  */
-data class ApiResponsePostResultDTO (
+data class EditRequestDTO (
 
-    val isSuccess: Boolean? = null,
-    val code: String? = null,
-    val message: String? = null,
-    val result: PostResultDTO? = null
+    val nickname: String? = null,
+    val email: String? = null,
+    val profileImage: String? = null,
+    val point: Long? = null
 )

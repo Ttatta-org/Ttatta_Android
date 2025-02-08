@@ -11,8 +11,6 @@
  */
 package com.umc.data.api.dto.server
 
-import com.umc.data.api.dto.server.PostResultDTO
-
 /**
  * 
  * @param isSuccess 
@@ -20,10 +18,10 @@ import com.umc.data.api.dto.server.PostResultDTO
  * @param message 
  * @param result 
  */
-data class ApiResponsePostResultDTO (
+data class ApiResponseUserInfoEditResultDTO (
 
     val isSuccess: Boolean? = null,
     val code: String? = null,
     val message: String? = null,
-    val result: PostResultDTO? = null
+    val result: UserInfoEditResultDTO? = null
 )
