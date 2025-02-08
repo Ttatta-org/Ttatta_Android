@@ -1,4 +1,4 @@
-package com.umc.home.test
+package com.umc.ttatta.test.home
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp

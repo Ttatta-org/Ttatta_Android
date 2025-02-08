@@ -22,6 +22,14 @@
             <option value="$PROJECT_DIR$/feature/login" />
             <option value="$PROJECT_DIR$/feature/mypage" />
             <option value="$PROJECT_DIR$/feature/record" />
+            <option value="$PROJECT_DIR$/test" />
+            <option value="$PROJECT_DIR$/test/category" />
+            <option value="$PROJECT_DIR$/test/challenge" />
+            <option value="$PROJECT_DIR$/test/footprint" />
+            <option value="$PROJECT_DIR$/test/home" />
+            <option value="$PROJECT_DIR$/test/login" />
+            <option value="$PROJECT_DIR$/test/mypage" />
+            <option value="$PROJECT_DIR$/test/record" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />

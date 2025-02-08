@@ -211,14 +211,12 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
-            .background(Color.Red)
     ) {
         Column(
             modifier = Modifier
                 .padding(top = 13.dp, bottom = 20.dp, start = 30.dp, end = 30.dp)
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .background(Color.Blue)
 
         ) {
             Column(
@@ -281,7 +279,7 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 날짜 텍스트
+            // 위치 텍스트
             Row(
                 modifier = Modifier
                     .wrapContentWidth()
@@ -301,7 +299,7 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Text(
-                    text = diary.date.formatToKorean(), // 날짜 텍스트
+                    text = diary.locationName,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = Color(0xFFFF9681), // 텍스트 색상
                         fontSize = 12.sp

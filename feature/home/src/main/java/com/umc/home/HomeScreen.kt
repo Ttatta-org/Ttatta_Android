@@ -60,11 +60,15 @@ import java.time.LocalDateTime
 import java.time.YearMonth
 import coil3.compose.AsyncImage
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalDensity
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun HomeScreen(
     // HomeApp에서 전달받은 데이터와 콜백들
+    navController: NavHostController,
     diaryList: List<Diary>,
     isExpanded: Boolean,
     isSearchVisible: Boolean,
@@ -223,18 +227,36 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // 검색 결과 또는 전체 리스트 표시
-            LazyColumn {
-                items(if (isSearchVisible) searchResults else diaryList) { diary ->
-                    DiaryCard(
-                        diary = diary,
-                        onDetailClick = {
-                            selectedDiaryId = diary.id
-                            onShowDetailModal()
-                        }
+            if ((isSearchVisible && searchResults.isNotEmpty()) || (!isSearchVisible && diaryList.isNotEmpty())) {
+                // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
+                LazyColumn {
+                    items(if (isSearchVisible) searchResults else diaryList) { diary ->
+                        DiaryCard(
+                            diary = diary,
+                            onDetailClick = {
+                                selectedDiaryId = diary.id
+                                onShowDetailModal()
+                            }
+                        )
+                    }
+                }
+            } else if (!isSearchVisible || !isCalendarVisible) {
+                // ✅ 다이어리가 없을 경우 빈 화면 표시
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .border(1.dp, Color.Black),
+                    contentAlignment = Alignment.BottomCenter // ✅ 이미지가 하단에 붙도록 정렬
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.invitation), // ✅ Drawable에 있는 이미지 사용
+                        contentDescription = "초대장 이미지",
+                        modifier = Modifier
+                            .fillMaxWidth()
                     )
                 }
             }
+
         }
     }
 //        // 커스텀 플로팅 버튼 자리
@@ -282,7 +304,8 @@ fun HomeScreen(
                     ) {
                         DetailModal(
                             onDismiss = onDismissDetailModal,
-                            onDelete = { onDeleteDiary(selectedDiaryId!!) }
+                            onDelete = { onDeleteDiary(selectedDiaryId!!) },
+                            onEdit = { navController.navigate("edit_record") }
                         )
                     }
                 }
@@ -293,7 +316,8 @@ fun HomeScreen(
 @Composable
 fun DetailModal(
     onDismiss: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -339,7 +363,7 @@ fun DetailModal(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4B4B4B),
-                        modifier = Modifier.clickable { /* 수정 로직 */ }
+                        modifier = Modifier.clickable { onEdit() }
                     )
 
                     Spacer(modifier = Modifier.height(18.dp))
@@ -355,8 +379,6 @@ fun DetailModal(
             }
         }
     }
-
-
 }
 
 @Composable
@@ -565,6 +587,9 @@ fun DiaryCard(
     diary: Diary,
     onDetailClick: () -> Unit
 ) {
+    var imageHeightPx by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+    val maxHeightPx = with(density) { 280.dp.toPx() } // 280dp를 PX로 변환
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -640,6 +665,7 @@ fun DiaryCard(
                     contentDescription = "Diary Image",
                     modifier = Modifier
                         .fillMaxWidth()
+                        .heightIn(max = 280.dp)
                         //.height(280.dp)
                         .clip(RoundedCornerShape(18.dp)),
                     contentScale = ContentScale.Crop,
@@ -751,6 +777,9 @@ fun DashedDivider() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewHomeScreen() {
+
+    val navController = rememberNavController()
+
     // 더미 다이어리 데이터 (Diary 클래스는 imageUrl을 String 타입으로 사용한다고 가정)
     val dummyDiaries = listOf(
         Diary(
@@ -784,6 +813,7 @@ fun PreviewHomeScreen() {
     )
 
     HomeScreen(
+        navController = navController,
         diaryList = dummyDiaries,
         isExpanded = false,
         isSearchVisible = false,

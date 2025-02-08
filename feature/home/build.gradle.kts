@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.android.application)
-    //alias(libs.plugins.android.library)
+    // alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
@@ -74,7 +74,7 @@ dependencies {
     // 의존성 정의
     implementation(project(":core"))
     implementation(project(":design"))
-    implementation(project(":data"))
+    //implementation(project(":data"))
 
     // Hilt
     implementation(libs.hilt.android)
