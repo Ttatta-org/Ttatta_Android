@@ -14,9 +14,11 @@ interface DiaryRepository {
     suspend fun getDiaries(page: Int, date: LocalDate? = null): List<Diary>  // 날짜로 찾기
     suspend fun getDiaries(page: Int, searchWord: String): List<Diary>  // 검색어로 찾기
 
+    suspend fun getAllRecordedDates(): List<LocalDate>
+
     // "나의 발자국" 화면에서 쓰이는 일기 정보를 가져옵니다.
-    suspend fun getAllFootprints(): List<Footprint>
-    suspend fun getDiaries(page: Int, clusterId: Long): DiaryForCard
+    suspend fun getAllFootprints(categoryId: Long? = null): List<Footprint>
+    suspend fun getDiaries(page: Int, clusterId: Long, categoryId: Long? = null): DiaryForCard
 
     suspend fun createDiary(
         categoryId: Long,

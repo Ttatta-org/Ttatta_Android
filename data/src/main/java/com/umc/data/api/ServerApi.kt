@@ -1,33 +1,7 @@
 package com.umc.data.api
 
 import com.umc.data.api.dto.BaseResponse
-import com.umc.data.api.dto.server.CreateCategoryDTO
-import com.umc.data.api.dto.server.CreateCategoryResultDTO
-import com.umc.data.api.dto.server.EditDTO
-import com.umc.data.api.dto.server.EditResultDTO
-import com.umc.data.api.dto.server.FootprintDiaryListDTO
-import com.umc.data.api.dto.server.GetAllCategoryCountResultDTO
-import com.umc.data.api.dto.server.KeepDiaryListDTO
-import com.umc.data.api.dto.server.MapResultDTO
-import com.umc.data.api.dto.server.ModifyCategoryDTO
-import com.umc.data.api.dto.server.ModifyCategoryResultDTO
-import com.umc.data.api.dto.server.PostDTO
-import com.umc.data.api.dto.server.PostResultDTO
-import com.umc.data.api.dto.server.RefreshResultDTO
-import com.umc.data.api.dto.server.SearchDiaryListDTO
-import com.umc.data.api.dto.server.SendVerificationCodeRequestDTO
-import com.umc.data.api.dto.server.SendVerificationCodeResultDTO
-import com.umc.data.api.dto.server.SignInKakaoRequestDTO
-import com.umc.data.api.dto.server.SignInRequestDTO
-import com.umc.data.api.dto.server.SignUpKakaoRequestDTO
-import com.umc.data.api.dto.server.SignUpRequestDTO
-import com.umc.data.api.dto.server.UpdateRequestDTO
-import com.umc.data.api.dto.server.UserInfoResultDTO
-import com.umc.data.api.dto.server.UserSignInResultDTO
-import com.umc.data.api.dto.server.UserSignUpResultDTO
-import com.umc.data.api.dto.server.VerifyUsernameOverlapResultDTO
-import com.umc.data.api.dto.server.VerifyVerificationCodeForPasswordResultDTO
-import com.umc.data.api.dto.server.VerifyVerificationCodeForUsernameResultDTO
+import com.umc.data.api.dto.server.*
 import com.umc.data.preference.AuthPreference
 import okhttp3.MultipartBody
 import retrofit2.http.Body
@@ -79,6 +53,16 @@ interface ServerApi {
         @Body body: SendVerificationCodeRequestDTO
     ): BaseResponse<SendVerificationCodeResultDTO>
 
+    // (개발용) 테스트 유저 생성
+    @POST("/users/testuser")
+    suspend fun createTestUser(): BaseResponse<UserSignUpResultDTO>
+
+    // 아이템 생성
+    @POST("/items")
+    suspend fun makeItem(
+        @Body body: MakeItemDTO
+    ): BaseResponse<MakeItemResultDTO>
+
     // 일기 작성
     @Multipart
     @POST("/diaries/post")
@@ -100,8 +84,26 @@ interface ServerApi {
     // 회원 정보 수정
     @PATCH("/users/info")
     suspend fun updateUserInfo(
-        @Body body: UpdateRequestDTO
-    ): BaseResponse<UserInfoResultDTO>
+        @Body body: EditRequestDTO
+    ): BaseResponse<UserInfoEditResultDTO>
+
+    // 아이템 구매
+    @PATCH("/items/{itemId}")
+    suspend fun buyItem(
+        @Path("itemId") itemId: Long
+    ): BaseResponse<ItemBuyResultDTO>
+
+    // 아이템 착용
+    @PATCH("/items/equip/{itemId}")
+    suspend fun equipItem(
+        @Path("itemId") itemId: Long
+    ): BaseResponse<ItemEquipResultDTO>
+
+    // 아이템 해제
+    @PATCH("/items/disrobe/{itemId}")
+    suspend fun disrobeItem(
+        @Path("itemId") itemId: Long
+    ): BaseResponse<ItemDisrobeResultDTO>
 
     // 일기 수정
     @Multipart
@@ -148,7 +150,8 @@ interface ServerApi {
     @GET("/diaries/map/{requestNum}")
     suspend fun getMapDiary(
         @Path("requestNum") requestNum: Int,
-        @Query("clusterId") clusterId: Long
+        @Query("clusterId") clusterId: Long,
+        @Query("diaryCategoryId") diaryCategoryId: Long?
     ): BaseResponse<MapResultDTO>
 
     // 일기 보관함 조회
@@ -160,7 +163,13 @@ interface ServerApi {
 
     // 발자국 전체 조회
     @GET("/diaries/footprint")
-    suspend fun getFootprintDiaryList(): BaseResponse<FootprintDiaryListDTO>
+    suspend fun getFootprintDiaryList(
+        @Query("diaryCategoryId") diaryCategoryId: Long?
+    ): BaseResponse<FootprintDiaryListDTO>
+
+    // 전체 일기 날짜 조회
+    @GET("/diaries/date")
+    suspend fun getDiariesDate(): BaseResponse<DairyDateListResultDTO>
 
     // 카테고리별 일기 개수 조회
     @GET("/categories/diary-counts")

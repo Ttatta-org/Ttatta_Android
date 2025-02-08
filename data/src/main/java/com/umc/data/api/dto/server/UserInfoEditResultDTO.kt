@@ -22,9 +22,8 @@ package com.umc.data.api.dto.server
  * @param point 
  * @param status 
  * @param gender 
- * @param diaryCount 
  */
-data class UserInfoResultDTO (
+data class UserInfoEditResultDTO (
 
     val userId: Long? = null,
     val nickname: String? = null,
@@ -33,8 +32,7 @@ data class UserInfoResultDTO (
     val profileImg: String? = null,
     val point: Long? = null,
     val status: Status? = null,
-    val gender: Gender? = null,
-    val diaryCount: Long? = null
+    val gender: Gender? = null
 ) {
     /**
     * 

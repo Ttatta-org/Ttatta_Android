@@ -34,4 +34,5 @@ android {
 dependencies {
 
     implementation(project(":design"))
+    implementation(libs.androidx.runtime.android)
 }

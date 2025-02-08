@@ -1,20 +1,5 @@
 package com.umc.core.model
 
-enum class LoginType {
-    REGULAR,
-    KAKAO,
-}
-
-enum class UserStatus {
-    ACTIVE,
-    INACTIVE,
-}
-
-enum class Gender {
-    MALE,
-    FEMALE,
-}
-
 data class UserInfo(
     val id: Long,
     val name: String,

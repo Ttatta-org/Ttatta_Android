@@ -11,19 +11,13 @@
  */
 package com.umc.data.api.dto.server
 
-import com.umc.data.api.dto.server.PostResultDTO
+import com.umc.data.api.dto.server.DiaryDateDTO
 
 /**
  * 
- * @param isSuccess 
- * @param code 
- * @param message 
- * @param result 
+ * @param diaryDateList 
  */
-data class ApiResponsePostResultDTO (
+data class DairyDateListResultDTO (
 
-    val isSuccess: Boolean? = null,
-    val code: String? = null,
-    val message: String? = null,
-    val result: PostResultDTO? = null
+    val diaryDateList: Array<DiaryDateDTO>? = null
 )
