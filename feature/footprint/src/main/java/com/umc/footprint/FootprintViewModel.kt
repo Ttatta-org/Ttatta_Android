@@ -29,8 +29,6 @@ class FootprintViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
-    private val markers = mutableMapOf<Long, MutableList<MapMarker>>()
-
     private val diaryStateMap = mutableStateMapOf<Int, DiaryForCard>()
     private val clickedMarkerInfoState = mutableStateOf<ClickedMarkerInfo?>(null)
     private val categoryListState = mutableStateOf<List<CategoryInfo>>(listOf())
@@ -47,16 +45,7 @@ class FootprintViewModel @Inject constructor(
         viewModelScope.launch {
             // 모든 발자국 로드 및 마커 추가
             launch {
-                diaryRepository.getAllFootprints().map { footprint ->
-                    markMap(
-                        latitude = footprint.latitude,
-                        longitude = footprint.longitude,
-                        diaryId = footprint.diaryId,
-                        clusterId = footprint.clusterId,
-                        categoryId = footprint.categoryId,
-                        color = footprint.color,
-                    )
-                }
+                selectShowingCategory(categoryId = null)
             }
             // 현재 위치로 맵 이동
             launch {
@@ -92,8 +81,15 @@ class FootprintViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             mapHandler.removeAllMarkers()
-            val markerList = markers[categoryId] ?: markers.values.flatten()
-            markerList.forEach { marker -> mapHandler.addMarker(marker) }
+            diaryRepository.getAllFootprints(categoryId = categoryId).forEach {
+                markMap(
+                    latitude = it.latitude,
+                    longitude = it.longitude,
+                    diaryId = it.diaryId,
+                    clusterId = it.clusterId,
+                    color = it.color,
+                )
+            }
             selectedCategoryIdState.value = categoryId
         }
     }
@@ -108,6 +104,7 @@ class FootprintViewModel @Inject constructor(
                 val diary = diaryRepository.getDiaries(
                     page = page,
                     clusterId = clickedMarkerInfo!!.clusterId,
+                    categoryId = selectedCategoryId,
                 )
                 diaryStateMap[page] = diary
                 onSucceed()
@@ -196,7 +193,6 @@ class FootprintViewModel @Inject constructor(
         longitude: Double,
         diaryId: Long,
         clusterId: Long,
-        categoryId: Long,
         color: CategoryColor?,
     ) {
         val marker = MapMarker(
@@ -216,7 +212,6 @@ class FootprintViewModel @Inject constructor(
                 }
             }
         )
-        markers[categoryId]?.add(marker) ?: run { markers[categoryId] = mutableListOf(marker) }
         viewModelScope.launch { mapHandler.addMarker(marker) }
     }
 }
