@@ -8,6 +8,7 @@ data class UserInfo(
     val profileImageUrl: String?,
     val point: Long,
     val status: UserStatus,
+    val totalDiaryCount: Int,
     // val gender: Gender,
     // val phoneNumber: String,
 )

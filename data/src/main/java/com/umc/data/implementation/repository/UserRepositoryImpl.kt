@@ -109,7 +109,8 @@ class UserRepositoryImpl @Inject constructor(
             email = response.email!!,
             profileImageUrl = response.profileImg,
             point = response.point!!,
-            status = UserStatus.ACTIVE  // TODO: 백엔드 구현시 연결
+            status = UserStatus.ACTIVE,  // TODO: 백엔드 구현시 연결
+            totalDiaryCount = response.diaryCount!!.toInt()
         )
     }
 
