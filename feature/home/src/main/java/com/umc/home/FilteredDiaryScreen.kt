@@ -1,6 +1,7 @@
 package com.umc.home
 
 import android.text.Layout
+import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -48,6 +49,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.umc.core.model.Diary
 import com.umc.home.components.BottomNavigationBarWithFAB
 import com.umc.home.components.TopBarComponent
 import com.umc.home.HomeViewModel
@@ -62,46 +66,91 @@ import java.time.YearMonth
 fun FilteredDiaryScreen(
     viewModel: HomeViewModel,
     selectedDate: LocalDate,
-    diaries: List<Diary>,
-    onBack: () -> Unit,
-    onFabClick: () -> Unit
+    diaryList: List<Diary>,
+    isSearchVisible: Boolean,
+    isCalendarVisible: Boolean,
+    isSearchTriggered: Boolean,
+    searchResults: List<Diary>,
+    searchQuery: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    onFabClick: () -> Unit,
+    onSearchToggle: () -> Unit,
+    onCalendarToggle: () -> Unit,
+    onRecentSearchClick: (String) -> Unit,
+    onNavigateToFilteredDiaryScreen: (LocalDate) -> Unit,
+    onShowDetailModal: () -> Unit,
+    onDismissDetailModal: () -> Unit,
+    isDetailModalVisible: Boolean
 ) {
-    val filteredDiaries = diaries.filter { it.date.toLocalDate() == selectedDate }
-        .sortedByDescending { it.date }
 
-    val recentSearches by viewModel.recentSearches.collectAsState() // ✅ ViewModel의 최근 검색어 사용
-    val searchQuery by viewModel.searchQuery.collectAsState() // ✅ ViewModel의 검색어 사용
-    val searchResults by viewModel.searchResults.collectAsState()
-    var isSearchVisible by remember { mutableStateOf(false) }
-    var isSearchTriggered by remember { mutableStateOf(false) }
+    Log.d("FilteredDiaryScreen", "🔥 화면 넘어가는 Composable 실행됨 - 날짜: $selectedDate")
+    // 필터링: viewModel의 diaryList에서 선택한 날짜와 일치하는 일기만 가져옴
+
+    val systemUiController = rememberSystemUiController()
+    val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
+
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
+        )
+    }
+//
+//
+//    val filteredDiaries = diaryList.filter { it.date.toLocalDate() == selectedDate }
+//
+//    // ✅ diaryList 안의 데이터 확인
+//    filteredDiaries.forEach { diary ->
+//        Log.d("FilteredDiaryScreen", "📖 일기 내용: ${diary.content}, 날짜: ${diary.date}")
+//    }
+//
+//    // ✅ diaryList가 업데이트되는지 확인
+//    LaunchedEffect(selectedDate) {
+//        Log.d("FilteredDiaryScreen", "📌 현재 diaryList 크기: ${diaryList.size}")
+//
+//        // ✅ Compose recomposition이 발생하는지 확인
+//        snapshotFlow { diaryList }
+//            .collect { updatedList ->
+//                Log.d("FilteredDiaryScreen", "🔄 diaryList 변경됨: 크기 ${updatedList.size}")
+//            }
+//    }
+//
+//    // ✅ 화면이 변경되지 않을 경우, 임시로 recompose 강제 (테스트)
+//    SideEffect {
+//        Log.d("FilteredDiaryScreen", "⚡ SideEffect 실행 - UI 강제 업데이트")
+//    }
+
+//    // 선택한 날짜가 변경되면 해당 날짜에 맞는 일기 목록을 불러옴
+//    LaunchedEffect(selectedDate) {
+//        viewModel.loadDiaries(page = 1, date = selectedDate)
+//    }
 
 
     Scaffold(
         topBar = {
             TopBarComponent(
-                isExpanded = false,  // 필터된 화면에서는 달력 기능 없음
+                isExpanded = isCalendarVisible,
                 isSearchVisible = isSearchVisible,
                 searchQuery = searchQuery,
-                onQueryChange = { viewModel.updateSearchQuery(it) },
+                onQueryChange = onQueryChange,
                 searchResults = searchResults,
-                isSearchTriggered = isSearchTriggered,
-                onSearch = {
-                    viewModel.searchDiaries(searchQuery)
-                    isSearchTriggered = true
-                },
-                onSearchToggle = { isSearchVisible = !isSearchVisible },
-                onCalendarToggle = { /* 캘린더 없음 */ },
-                calendarContent = {}, // 달력 비활성화
-                recentSearches = recentSearches,
-                onRecentSearchClick = { viewModel.updateSearchQuery(it) }
+                isSearchTriggered = false, // 필요 시 추가 상태로 관리 가능
+                onSearch = onSearch,
+                onSearchToggle = onSearchToggle,
+                onCalendarToggle = onCalendarToggle,
+                calendarContent = { },
+                recentSearches = emptyList(),
+                onRecentSearchClick = onRecentSearchClick
             )
         },
         bottomBar = {
             BottomNavigationBarWithFAB(
                 selectedTab = "home",
-                onTabSelected = { /* 탭 변경 로직 */ }
+                onTabSelected = { /* 탭 변경 로직 */ },
+                onFabClick = onFabClick
             )
-        }
+        },
+        contentWindowInsets = WindowInsets.systemBars
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -125,16 +174,24 @@ fun FilteredDiaryScreen(
                             searchResults.forEach { diary ->
                                 DiaryCard(
                                     diary = diary,
-                                    onDetailClick = { /* isDetailModalVisible = true */ }
+                                    onDetailClick = { /* isDetailModalVisible = true */ },
                                 )
                             }
                         }
                     }
                 } else {
+                    Log.d("FilteredDiaryScreen", "✅ 현재 diaryList 크기: ${diaryList.size}")
+                    diaryList.forEach { diary ->
+                        Log.d("FilteredDiaryScreen", "📝 일기 내용: ${diary.content}, 날짜: ${diary.date}")
+                    }
 
-                    items(filteredDiaries) { diary ->
+
+                    items(diaryList) { diary ->
+                        Log.d("FilteredDiaryScreen", "📌 LazyColumn 내부 아이템: ${diary.content}")
                         FillteredDiaryByDate(diary = diary, onDetailClick = { /* 디테일 보기 */ })
                     }
+
+                    Log.d("FilteredDiaryScreen", "✅ LazyColumn에서 diaryList 렌더링 끝")
                 }
 
 
@@ -147,14 +204,21 @@ fun FilteredDiaryScreen(
 
 @Composable
 fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
+    Log.d("FilteredDiaryScreen", "✅ FillteredDiaryByDate 실행됨 - 내용: ${diary.content}")
+
 
     Box(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .background(Color.Red)
     ) {
         Column(
             modifier = Modifier
                 .padding(top = 13.dp, bottom = 20.dp, start = 30.dp, end = 30.dp)
                 .fillMaxWidth()
+                .fillMaxHeight()
+                .background(Color.Blue)
 
         ) {
             Column(
@@ -192,16 +256,27 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 상단 이미지
-            Image(
-                painter = painterResource(id = diary.imageUrl),
+//            // 상단 이미지
+//            Image(
+//                painter = painterResource(id = diary.imageUrl),
+//                contentDescription = "Diary Image",
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(280.dp) // 이미지 높이 설정
+//                    .width(280.dp)
+//                    .clip(RoundedCornerShape(18.dp)),
+//                contentScale = ContentScale.Crop // 이미지 크롭 설정
+//            )
+            AsyncImage(
+                model = diary.imageUrl,
                 contentDescription = "Diary Image",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(280.dp) // 이미지 높이 설정
-                    .width(280.dp)
+                    .height(280.dp)
                     .clip(RoundedCornerShape(18.dp)),
-                contentScale = ContentScale.Crop // 이미지 크롭 설정
+                contentScale = ContentScale.Crop,
+                // 필요 시 placeholder나 error 설정도 할 수 있음
+                error = painterResource(id = R.drawable.pudding)
             )
 
             Spacer(modifier = Modifier.height(12.dp))

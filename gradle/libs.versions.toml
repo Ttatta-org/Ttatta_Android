@@ -23,6 +23,8 @@ kotlinxCoroutines = "1.10.1"
 navigationRuntimeKtx = "2.8.5"
 navigationCompose = "2.8.5"
 androidx-test = "1.4.0"
+testng = "6.9.6"
+media3CommonKtx = "1.5.1"
 
 [libraries]
 androidx-ui-test-android = { module = "androidx.test:core", version.ref = "androidx-test" }
@@ -38,6 +40,7 @@ androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+#androidx-ui-test-android = { group = "androidx.compose.ui", name = "ui-test-android" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version = "2.54" }
@@ -56,6 +59,8 @@ kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "ko
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+testng = { group = "org.testng", name = "testng", version.ref = "testng" }
+androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
