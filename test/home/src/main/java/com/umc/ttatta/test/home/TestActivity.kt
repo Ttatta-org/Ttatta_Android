@@ -76,11 +76,12 @@ class TestActivity : ComponentActivity() {
                 }
 
                 // ✅ 테스트용 이미지 파일 준비
-                val imageFile = File(cacheDir, "test_image.jpg")
+                val imageFile = File(cacheDir, "test_rabbit.png")
                 if (!imageFile.exists()) {
                     try {
                         FileOutputStream(imageFile).use { out ->
                             resources.openRawResource(com.umc.data.R.raw.img_cafe).copyTo(out)
+                            Log.d("TestActivity", "♦️ image파일 말고 raw파일 사용")
                         }
                     } catch (e: Exception) {
                         Log.e("TestActivity", "❌ 이미지 파일 복사 실패: ${e.message}")
@@ -92,15 +93,15 @@ class TestActivity : ComponentActivity() {
                 Log.d("TestActivity", "🔍 기존 일기 개수: ${existingDiaries.size}")
 
 //                // ✅ 새로운 일기 추가
-//                diaryRepository.createDiary(
-//                    categoryId = categoryId,
-//                    date = TestValues.TODAY,
-//                    content = TestValues.CONTENT,
-//                    image = imageFile,
-//                    latitude = TestValues.LATITUDE,
-//                    longitude = TestValues.LONGITUDE,
-//                    locationName = "서울 어딘가"
-//                )
+                diaryRepository.createDiary(
+                    categoryId = categoryId,
+                    date = TestValues.TODAY,
+                    content = TestValues.CONTENT,
+                    image = imageFile,
+                    latitude = TestValues.LATITUDE,
+                    longitude = TestValues.LONGITUDE,
+                    locationName = "이케아 고양점"
+                )
 
                 // ✅ ViewModel에서 데이터 로드
                 withContext(Dispatchers.Main) {

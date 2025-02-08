@@ -167,7 +167,6 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(Color(0xFFFEF6F2))
                 .padding(innerPadding)
-                .padding(start = 25.dp, end = 25.dp)
 
         ) {
             // 드래그 가능 영역
@@ -240,12 +239,11 @@ fun HomeScreen(
                         )
                     }
                 }
-            } else if (!isSearchVisible || !isCalendarVisible) {
+            } else if (!isExpanded && !isSearchVisible) {
                 // ✅ 다이어리가 없을 경우 빈 화면 표시
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .border(1.dp, Color.Black),
+                        .fillMaxSize(),
                     contentAlignment = Alignment.BottomCenter // ✅ 이미지가 하단에 붙도록 정렬
                 ) {
                     Image(
@@ -587,13 +585,10 @@ fun DiaryCard(
     diary: Diary,
     onDetailClick: () -> Unit
 ) {
-    var imageHeightPx by remember { mutableStateOf(0) }
-    val density = LocalDensity.current
-    val maxHeightPx = with(density) { 280.dp.toPx() } // 280dp를 PX로 변환
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 8.dp, horizontal = 25.dp)
             .shadow(
                 elevation = 6.dp, // 그림자의 높이 조정
                 shape = RoundedCornerShape(28.dp), // 카드의 모서리 둥글기
@@ -751,6 +746,7 @@ fun DashedDivider() {
     Canvas(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(start = 25.dp, end = 25.dp)
             .height(1.dp) // Divider의 높이 조정
     ) {
         val dashWidth = 10f // 대시의 길이
