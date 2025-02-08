@@ -16,6 +16,13 @@ import java.io.File
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+data class EditDiary(
+    val id: Int, // 다이어리 ID 추가
+    val date: LocalDateTime,
+    val imageUrl: String?, // 이미지 URI를 String으로 저장
+    val content: String
+)
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository
