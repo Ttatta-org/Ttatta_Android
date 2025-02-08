@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,15 +55,34 @@ import androidx.navigation.NavHostController
 import kotlin.math.log
 
 @Composable
-fun LoginScreen(navController: NavHostController) {
-    // TODO: 화면 구현
+fun LoginScreen(navController: NavHostController, loginViewModel: LoginViewModel = viewModel()) {
+    val idState by loginViewModel.idState.collectAsState()
+    val pwState by loginViewModel.pwState.collectAsState()
+    val passwordVisible by loginViewModel.passwordVisible.collectAsState()
+    val isButtonActive by loginViewModel.isButtonActive.collectAsState()
+    val errorMessage by loginViewModel.errorMessage.collectAsState()
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
     ) {
         LoginTopView()
-        LoginMiddleView()
+        LoginMiddleView(
+            idState = idState,
+            pwState = pwState,
+            passwordVisible = passwordVisible,
+            onIdChange = loginViewModel::onIdChange,
+            onPwChange = loginViewModel::onPwChange,
+            onPasswordToggleClick = loginViewModel::togglePasswordVisibility,
+            onLoginClick = { success ->
+                if (success) {
+                    navController.navigate("home")
+                }
+            },
+            isButtonActive = isButtonActive,
+            errorMessage = errorMessage
+        )
         LoginLinkText(navController)
         LoginOrDivider()
         KakaoLoginButton()
@@ -97,14 +117,16 @@ fun LoginTopView() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginMiddleView(loginViewModel: LoginViewModel = viewModel()) {
-    val idState by loginViewModel.idState
-    val pwState by loginViewModel.pwState
-    var passwordVisible by loginViewModel.passwordVisible
-    var idTextFieldFocused by remember { mutableStateOf(false) }
-    var pwTextFieldFocused by remember { mutableStateOf(false) }
-    val isButtonActive = loginViewModel.isButtonActive()
-        Column(
+fun LoginMiddleView(idState: String,
+                    pwState: String,
+                    passwordVisible: Boolean,
+                    onIdChange: (String) -> Unit,
+                    onPwChange: (String) -> Unit,
+                    onPasswordToggleClick: () -> Unit,
+                    onLoginClick: (Boolean) -> Unit,
+                    isButtonActive: Boolean,
+                    errorMessage: String) {
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 75.dp),
@@ -113,30 +135,32 @@ fun LoginMiddleView(loginViewModel: LoginViewModel = viewModel()) {
         // 아이디 입력 필드
         InputTextField(
             value = idState,
-            onValueChange = { loginViewModel.onIdChange(it)},
+            onValueChange = onIdChange,
             placeholder = "아이디 입력",
             isPassword = false,
-            onFocusChange = { idTextFieldFocused = it }
         )
         Spacer(modifier = Modifier.height(6.dp))
 
         // 비밀번호 입력 필드
         InputTextField(
             value = pwState,
-            onValueChange = { loginViewModel.onPwChange(it) },
+            onValueChange = onPwChange,
             placeholder = "비밀번호 입력",
             isPassword = true,
             passwordVisible = passwordVisible,
-            onPasswordToggleClick = { passwordVisible = !passwordVisible },
-            onFocusChange = { pwTextFieldFocused = it }
+            onPasswordToggleClick = onPasswordToggleClick
         )
+        if (errorMessage.isNotEmpty()) {
+            Text(text = errorMessage, color = Color.Red, fontSize = 12.sp)
+        }
         Button(
             elevation = ButtonDefaults.buttonElevation(
                 defaultElevation = 1.dp, // 기본 그림자
                 pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
                 disabledElevation = 0.dp // enabled가 false일때 그림자
             ),
-            onClick = { /* TODO: 로그인 로직 */ },
+            onClick = { onLoginClick(true) },
+            enabled = isButtonActive,
             modifier = Modifier
                 .width(310.dp)
                 .padding(top = 30.dp)
@@ -165,9 +189,9 @@ fun InputTextField(
     placeholder: String,
     isPassword: Boolean,
     passwordVisible: Boolean = false,
-    onPasswordToggleClick: (() -> Unit)? = null,
-    onFocusChange: (Boolean) -> Unit
+    onPasswordToggleClick: (() -> Unit)? = null
 ) {
+    var isFocused by remember { mutableStateOf(false) }
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxWidth()
@@ -180,8 +204,6 @@ fun InputTextField(
                 textAlign = TextAlign.Center,
                 fontSize = 14.sp
             ),
-            placeholder = {
-            },
             visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
             trailingIcon = if (isPassword) {
                 {
@@ -198,8 +220,7 @@ fun InputTextField(
             keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
             modifier = Modifier
                 .width(310.dp)
-                .height(52.dp)
-                .onFocusChanged { onFocusChange(it.isFocused) },
+                .height(52.dp),
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,
@@ -208,47 +229,25 @@ fun InputTextField(
                 cursorColor = Color.Black
             )
         )
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = placeholder,
-                fontSize = 14.sp,
-                fontWeight = FontWeight(600),
-                color = colorResource(R.color.gray_500)
-            )
+        // 값이 비어있고 포커스가 없을 때만 플레이스홀더 표시
+        if (value.isEmpty() && !isFocused) {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 7.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = placeholder,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight(600),
+                    color = colorResource(R.color.gray_500),
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
 
-@Composable
-fun LoginButton() {
-    var isButtonActive by remember { mutableStateOf(false) }
-    Button(
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 1.dp, // 기본 그림자
-            pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
-            disabledElevation = 0.dp // enabled가 false일때 그림자
-        ),
-        onClick = { /* TODO: 로그인 로직 */ },
-        modifier = Modifier
-            .width(310.dp)
-            .padding(top = 30.dp)
-            .height(45.dp),
-        shape = RoundedCornerShape(24.dp), // 라운딩 처리
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isButtonActive) colorResource(R.color.yellow_300) else Color.Gray
-        )
-    ) {
-        Text(
-            text = stringResource(R.string.login_button),
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
-    }
-}
+
 
 @Composable
 fun LoginLinkText(navController: NavHostController) {
