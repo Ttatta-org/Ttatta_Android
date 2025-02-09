@@ -31,6 +31,10 @@ fun FootprintApp(
     var diaryModificationBarInfo by remember { mutableStateOf<DiaryModificationBarInfo?>(null) }
 
     val diaryCardLoadedPropMap = remember { mutableStateMapOf<Long, DiaryCardLoadedProp>() }
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.initialize()
+    }
     
     // 일기가 새로 로드되었을 때마다 실행
     LaunchedEffect(key1 = viewModel.diaryMap) {
