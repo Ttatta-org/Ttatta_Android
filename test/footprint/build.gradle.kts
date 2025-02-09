@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -80,12 +81,14 @@ dependencies {
     implementation(project(":design"))
     implementation(project(":data"))
     implementation(project(":feature:footprint"))
+    implementation(project(":feature:category"))
 
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.complier)
     implementation(libs.androidx.hilt.navigation)
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
 
     // 네이버 지도 SDK
     implementation(libs.naver.map)
