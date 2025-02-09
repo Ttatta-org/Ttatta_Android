@@ -41,7 +41,7 @@ class FootprintViewModel @Inject constructor(
     val selectedCategoryId get() = selectedCategoryIdState.value
     val userName get() = userNameState.value
 
-    init {
+    fun initialize() {
         viewModelScope.launch {
             // 모든 발자국 로드 및 마커 추가
             launch {
