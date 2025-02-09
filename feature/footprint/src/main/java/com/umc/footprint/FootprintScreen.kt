@@ -5,14 +5,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -111,15 +108,7 @@ fun FootprintScreen(
             Box(
                 contentAlignment = Alignment.BottomEnd,
                 modifier = Modifier
-                    .padding(
-                        top = 32.dp,
-                        start = 32.dp,
-                        end = 32.dp,
-                        bottom = 32.dp + if (categorySelectionBarProp == null)
-                            WindowInsets.safeContent.asPaddingValues().calculateBottomPadding()
-                        else
-                            0.dp
-                    )
+                    .padding(16.dp)
                     .fillMaxWidth()
                     .weight(1f)
             ) {
@@ -129,7 +118,7 @@ fun FootprintScreen(
                     // 카테고리 선택
                     IconButton(
                         onClick = onCategoryButtonClicked,
-                        modifier = Modifier.size(84.dp),
+                        modifier = Modifier.size(72.dp),
                     ) {
                         ShadowedImage(
                             id = if (isCategorySelected)
@@ -137,20 +126,20 @@ fun FootprintScreen(
                             else
                                 R.drawable.ic_floating_button_category_unselected,
                             contentDescription = null,
-                            width = 84.dp,
-                            height = 84.dp,
+                            width = 72.dp,
+                            height = 72.dp,
                         )
                     }
                     // 내 위치로 이동
                     IconButton(
                         onClick = onLocationButtonClicked,
-                        modifier = Modifier.size(84.dp),
+                        modifier = Modifier.size(72.dp),
                     ) {
                         ShadowedImage(
                             id = R.drawable.ic_floating_button_location,
                             contentDescription = null,
-                            width = 84.dp,
-                            height = 84.dp,
+                            width = 72.dp,
+                            height = 72.dp,
                         )
                     }
                 }
