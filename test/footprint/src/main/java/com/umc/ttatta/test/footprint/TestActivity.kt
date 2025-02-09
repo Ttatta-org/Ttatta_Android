@@ -17,7 +17,9 @@ import androidx.navigation.compose.rememberNavController
 import com.umc.category.CategoryApp
 import com.umc.core.repository.DiaryRepository
 import com.umc.core.repository.UserRepository
+import com.umc.design.BottomNavigationBar
 import com.umc.design.CategoryColor
+import com.umc.design.NavigationItem
 import com.umc.footprint.FootprintApp
 import com.umc.footprint.FootprintViewModel
 import dagger.hilt.android.AndroidEntryPoint
