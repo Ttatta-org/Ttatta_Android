@@ -17,26 +17,12 @@ sealed class NavigationRoute(
 
 data object SplashRoute: NavigationRoute("splash")
 data object LoginRoute: NavigationRoute("login")
+data object MainRoute: NavigationRoute("main")
 data object HomeRoute: NavigationRoute("home")
 data object FootprintRoute: NavigationRoute("footprint")
 data object ChallengeRoute: NavigationRoute("challenge")
 data object MyPageRoute: NavigationRoute("my_page")
-
-data object CategoryRoute: NavigationRoute(
-    route = "category?show_top_bar={show_top_bar}",
-    arguments = listOf(navArgument("show_top_bar") { type = NavType.BoolType })
-) {
-    override fun getRoute(option: NavigationRouteOption?): String {
-        option as CategoryRouteOption
-        return "category?show_top_bar=${option.showTopBar}"
-    }
-
-    override fun getOption(bundle: Bundle): NavigationRouteOption {
-        return CategoryRouteOption(
-            showTopBar = bundle.getBoolean("show_top_bar")
-        )
-    }
-}
+data object CategoryRoute: NavigationRoute("category")
 
 data object RecordRoute: NavigationRoute(
     route = "record?entry_mode={entry_mode}",
@@ -44,7 +30,7 @@ data object RecordRoute: NavigationRoute(
 ) {
     override fun getRoute(option: NavigationRouteOption?): String {
         option as RecordRouteOption
-        return "record?entry_mode=${option.entryMode}"
+        return "route?entry_mode=${option.entryMode}"
     }
 
     override fun getOption(bundle: Bundle): NavigationRouteOption {
@@ -53,10 +39,6 @@ data object RecordRoute: NavigationRoute(
         )
     }
 }
-
-data class CategoryRouteOption(
-    val showTopBar: Boolean,
-): NavigationRouteOption()
 
 data class RecordRouteOption(
     val entryMode: String
