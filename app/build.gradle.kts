@@ -81,7 +81,7 @@ dependencies {
     implementation(project(":feature:footprint"))
     implementation(project(":feature:mypage"))
     implementation(project(":feature:home"))
-    // implementation(project(":feature:record"))
+    implementation(project(":feature:record"))
     implementation(project(":feature:category"))
     implementation(project(":core"))
     implementation(project(":data"))
