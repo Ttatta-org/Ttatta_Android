@@ -32,12 +32,15 @@ class HomeViewModel @Inject constructor(
     private val _fullDiaryListState = MutableStateFlow<List<Diary>>(emptyList())
     val fullDiaryListState: StateFlow<List<Diary>> = _fullDiaryListState
 
+    private val _recordedDatesState = MutableStateFlow<List<LocalDate>>(emptyList()) // ✅ 전체 일기 날짜 저장
+    val recordedDatesState: StateFlow<List<LocalDate>> = _recordedDatesState
+
     // 기본 일기 목록 상태
     private val _diaryListState = MutableStateFlow<List<Diary>>(emptyList())
     val diaryListState: StateFlow<List<Diary>> = _diaryListState
 
-    private var currentPage = 1 // ✅ 현재 페이지 상태
-    private var isLoading = false // ✅ 중복 요청 방지
+    private var currentPage = 0 // ✅ 현재 페이지 상태
+    var isLoading = false // ✅ 중복 요청 방지
 
     // ✅ **검색 결과 저장**
     private val _searchResultsState = MutableStateFlow<List<Diary>>(emptyList())
@@ -54,10 +57,34 @@ class HomeViewModel @Inject constructor(
     // 초기 데이터 로딩 (페이지 1, 날짜 필터 없음)
     init {
         loadAllDiaries()
+        loadAllRecordedDates()
+        //loadDiaries(page = 0, date = null) // 초기 데이터 로딩
     }
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
+    }
+
+    /**
+     * ✅ 다음 페이지 로드 (무한 스크롤)
+     */
+    fun loadNextPage() {
+        loadDiaries(page = currentPage, date = null) // 현재 페이지 번호로 API 호출
+    }
+
+    /**
+     * ✅ 전체 일기 날짜 불러오기 (달력에서 사용)
+     */
+    fun loadAllRecordedDates() {
+        viewModelScope.launch {
+            try {
+                val allDates = diaryRepository.getAllRecordedDates()
+                _recordedDatesState.value = allDates
+                Log.d("HomeViewModel", "✅ 전체 기록된 날짜 로드 완료: ${allDates.size}개")
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "❌ 기록된 날짜 불러오기 실패: ${e.message}")
+            }
+        }
     }
 
     /**

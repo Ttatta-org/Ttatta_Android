@@ -1,6 +1,7 @@
 package com.umc.home.navigation
 
 import android.util.Log
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -8,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -37,10 +39,16 @@ fun AppNavHost(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val recentSearches by viewModel.recentSearchesState.collectAsState()
 
-    // ✅ 전체 일기 목록을 가져와 달력에서 사용할 날짜 리스트 생성
-    val fullDiaryList by viewModel.fullDiaryListState.collectAsState()
-    val allDiaryDates = remember(fullDiaryList) {
-        fullDiaryList.map { it.date.toLocalDate() }.distinct()
+    // ✅ 전체 일기 목록을 가져옴
+//    val fullDiaryList by viewModel.fullDiaryListState.collectAsState()
+//    val allDiaryDates = remember(fullDiaryList) {
+//        fullDiaryList.map { it.date.toLocalDate() }.distinct()
+//    }
+
+    // ✅ 전체 일기 날짜 가져오기 (달력에서 사용)
+    val recordedDates by viewModel.recordedDatesState.collectAsState()
+    val allDiaryDates = remember(recordedDates) {
+        recordedDates.distinct()
     }
 
     // onCalendarToggle 함수 정의: 캘린더 보임 상태를 토글하고,
@@ -102,6 +110,22 @@ fun AppNavHost(
                 Log.e("AppNavHost", "❌ 수정 실패: ${e.message}", e)
             }
         )
+    }
+
+    val lazyListState = rememberLazyListState()
+
+    // ✅ 마지막 아이템 감지하여 다음 페이지 로드
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { lazyListState.layoutInfo }
+            .collect { layoutInfo ->
+                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                val totalItems = layoutInfo.totalItemsCount
+
+                // ✅ 마지막 아이템이 보이면 다음 페이지 로드
+                if (lastVisibleItemIndex >= totalItems - 1 && !viewModel.isLoading) {
+                    viewModel.loadNextPage()
+                }
+            }
     }
 
     NavHost(navController = navController, startDestination = "home") {

@@ -76,7 +76,7 @@ class TestActivity : ComponentActivity() {
                 }
 
                 // ✅ 테스트용 이미지 파일 준비
-                val imageFile = File(cacheDir, "test_rabbit.png")
+                val imageFile = File(cacheDir, "test_restaurant.png")
                 if (!imageFile.exists()) {
                     try {
                         FileOutputStream(imageFile).use { out ->
@@ -92,7 +92,7 @@ class TestActivity : ComponentActivity() {
                 val existingDiaries = diaryRepository.getDiaries(page = 1, date = null)
                 Log.d("TestActivity", "🔍 기존 일기 개수: ${existingDiaries.size}")
 
-//                // ✅ 새로운 일기 추가
+                // ✅ 새로운 일기 추가
 //                diaryRepository.createDiary(
 //                    categoryId = categoryId,
 //                    date = TestValues.TODAY,
@@ -100,7 +100,7 @@ class TestActivity : ComponentActivity() {
 //                    image = imageFile,
 //                    latitude = TestValues.LATITUDE,
 //                    longitude = TestValues.LONGITUDE,
-//                    locationName = "이케아 고양점"
+//                    locationName = "글램포레스트대부도"
 //                )
 
                 // ✅ ViewModel에서 데이터 로드

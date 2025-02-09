@@ -108,7 +108,6 @@ fun HomeScreen(
 //    val recentSearches by viewModel.recentSearches.collectAsState() // ✅ ViewModel의 최근 검색어 사용
 //    val searchQuery by viewModel.searchQuery.collectAsState() // ✅ ViewModel의 검색어 사용
 
-
     // 드래그 버튼의 상태 (ic_bottom_arrow 또는 ic_top_arrow)
     val dragIcon = when {
         isSearchVisible -> R.drawable.ic_top_arrow // 검색 상태에서는 아래로 화살표
@@ -125,6 +124,8 @@ fun HomeScreen(
     var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
 
     var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
+
+    val lazyListState = rememberLazyListState()
 
     Scaffold(
         topBar = {
@@ -228,7 +229,7 @@ fun HomeScreen(
 
             if ((isSearchVisible && searchResults.isNotEmpty()) || (!isSearchVisible && diaryList.isNotEmpty()) || (!isSearchVisible && searchResults.isEmpty())) {
                 // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
-                LazyColumn {
+                LazyColumn(state = lazyListState) {
                     items(if (isSearchVisible) searchResults else diaryList) { diary ->
                         DiaryCard(
                             diary = diary,
