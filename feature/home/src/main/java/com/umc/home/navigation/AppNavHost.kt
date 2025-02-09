@@ -62,10 +62,18 @@ fun AppNavHost(
 //        }
     }
 
-    val onSearch: () -> Unit = {
-        viewModel.searchDiaries(searchQuery)
+    val onSearch: (String) -> Unit = { query ->
+        isSearchTriggered = true
+        viewModel.searchDiaries(
+            searchWord = query,
+            onSucceed = {
+                Log.d("AppNavHost", "✅ 검색 성공!")
+            },
+            onFailed = { e ->
+                Log.e("AppNavHost", "❌ 검색 실패: ${e.message}", e)
+            }
+        )
     }
-
     val onDeleteDiary: (Long) -> Unit = { diaryId ->
         viewModel.deleteDiary(
             diaryId = diaryId,
@@ -118,7 +126,7 @@ fun AppNavHost(
 
                 // 콜백들
                 onQueryChange = { newQuery -> viewModel.updateSearchQuery(newQuery) },
-                onSearch = onSearch,
+                onSearch = { onSearch(searchQuery) },
                 onSearchToggle = {
                     isSearchVisible = !isSearchVisible
                     if (isSearchVisible) isCalendarVisible = false
@@ -130,7 +138,7 @@ fun AppNavHost(
                         isSearchVisible = false
                     }
                 },
-                onRecentSearchClick = { query -> viewModel.searchDiaries(query) },
+                onRecentSearchClick = { query -> onSearch(query) },
                 onFabClick = { /* FAB 클릭 이벤트 처리 */ },
                 onNavigateToFilteredDiaryScreen = { selectedDate ->
                     Log.d("HomeScreen", "🚀 3. FilteredDiaryScreen으로 이동: $selectedDate")
@@ -170,7 +178,7 @@ fun AppNavHost(
                 isSearchTriggered = false,
                 searchQuery = searchQuery,
                 onQueryChange = { viewModel.updateSearchQuery(it) },
-                onSearch = { viewModel.searchDiaries(viewModel.searchQuery.value) },
+                onSearch = { onSearch(searchQuery) },
                 onSearchToggle = { /* 검색 토글 처리 */ },
                 onCalendarToggle = { /* 달력 토글 처리 */ },
                 onRecentSearchClick = { /* 최근 검색어 처리 */ },

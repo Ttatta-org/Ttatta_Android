@@ -50,7 +50,7 @@ fun TopBarComponent(
     searchResults: List<Diary>,
     isSearchTriggered: Boolean,
     onQueryChange: (String) -> Unit,
-    onSearch: () -> Unit,
+    onSearch: (String) -> Unit,
     onSearchToggle: () -> Unit,
     onCalendarToggle: () -> Unit,
     calendarContent: @Composable (Modifier) -> Unit,
@@ -134,7 +134,7 @@ fun TopBarComponent(
                             SearchBar(
                                 query = searchQuery,
                                 onQueryChange = onQueryChange,
-                                onSearch = onSearch,
+                                onSearch = { onSearch(searchQuery) },
                                 modifier = Modifier.weight(4f)
                             )
                         } else {
@@ -157,10 +157,16 @@ fun TopBarComponent(
                         // 검색 아이콘 (항상 동일한 위치에 유지)
                         IconButton(
                             onClick = {
+//                                if (isSearchVisible) {
+//                                    onSearch()
+//                                }
+//                                onSearchToggle()
                                 if (isSearchVisible) {
-                                    onSearch()
+                                    onSearch(searchQuery)
+                                    onSearchToggle() // ✅ 검색 후 검색창 닫기
+                                } else {
+                                    onSearchToggle() // ✅ 검색창을 열기
                                 }
-                                onSearchToggle()
                             },
                             modifier = Modifier.size(24.dp)
                         ) {
@@ -195,7 +201,7 @@ fun TopBarComponent(
                         .padding(horizontal = 40.dp),
                     contentAlignment = Alignment.TopStart
                 ) {
-                    if (isSearchTriggered && searchResults.isEmpty()) { // 🔹 검색 버튼을 눌렀을 때만 검사
+                    if (searchResults.isEmpty()) { // 🔹 검색 버튼을 눌렀을 때만 검사
                         Log.d("HomeScreen", "🚫 검색 결과 없음")
                         Row(
                             modifier = Modifier

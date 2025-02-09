@@ -105,7 +105,7 @@ class TestActivity : ComponentActivity() {
 
                 // ✅ ViewModel에서 데이터 로드
                 withContext(Dispatchers.Main) {
-                    viewModel.loadDiaries(page = 1, date = null)
+                    viewModel.loadDiaries(page = 0, date = null)
                     viewModel.loadAllDiaries()
                 }
             } catch (e: Exception) {

@@ -67,7 +67,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 Log.d("HomeViewModel", "📌 전체 다이어리 목록 불러오기 (날짜 필터 없음)")
-                val allDiaries = diaryRepository.getDiaries(page = 1, date = null) // ✅ 날짜 필터 없이 전체 가져오기
+                val allDiaries = diaryRepository.getDiaries(page = 0, date = null) // ✅ 날짜 필터 없이 전체 가져오기
                 _fullDiaryListState.value = allDiaries
                 Log.d("HomeViewModel", "✅ 전체 다이어리 저장 완료: ${allDiaries.size}개")
             } catch (e: Exception) {
@@ -112,11 +112,17 @@ class HomeViewModel @Inject constructor(
     /**
      * 🔍 **검색어에 따라 일기 목록 불러오기**
      */
-    fun searchDiaries(searchWord: String) {
+    fun searchDiaries(
+        searchWord: String,
+        onSucceed: () -> Unit,
+        onFailed: (e: Exception) -> Unit
+    ) {
         viewModelScope.launch {
             try {
                 _searchQuery.value = searchWord
-                val results = diaryRepository.getDiaries(page = 1, searchWord = searchWord)
+                Log.d("HomeViewModel", "🔍 검색어: $searchWord") // ✅ 검색어 확인
+                val results = diaryRepository.getDiaries(page = 0, searchWord = searchWord)
+                Log.d("HomeViewModel", "🔍 검색 API 응답: $results") // ✅ API 응답 데이터 확인
 
                 _searchResultsState.value = results  // ✅ 검색 결과 업데이트
                 _diaryListState.value = results      // ✅ UI에 반영될 리스트도 업데이트
@@ -138,9 +144,13 @@ class HomeViewModel @Inject constructor(
                 }
 
                 Log.d("HomeViewModel", "✅ 검색 결과: ${results.size}개")
+
+                onSucceed()
+
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "❌ 검색 실패: ${e.message}")
                 _searchResultsState.value = emptyList()
+                onFailed(e)
             }
         }
     }
@@ -171,7 +181,7 @@ class HomeViewModel @Inject constructor(
                     locationName = locationName
                 )
                 // 생성 후 최신 목록을 다시 로딩 (예: 페이지 1, 날짜 필터 없음)
-                loadDiaries(page = 1, date = null, onSucceed = onSucceed, onFailed = { throw it })
+                loadDiaries(page = 0, date = null, onSucceed = onSucceed, onFailed = { throw it })
             } catch (e: Exception) {
                 onFailed(e)
             }
@@ -231,7 +241,7 @@ class HomeViewModel @Inject constructor(
                 }
 
                 // ✅ 수정 성공 후 다이어리 목록 다시 불러오기
-                loadDiaries(page = 1, date = null, onSucceed = onSucceed, onFailed = { throw it })
+                loadDiaries(page = 0, date = null, onSucceed = onSucceed, onFailed = { throw it })
 
                 onSucceed()
             } catch (e: Exception) {

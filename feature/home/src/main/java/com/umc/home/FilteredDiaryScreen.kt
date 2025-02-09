@@ -73,7 +73,7 @@ fun FilteredDiaryScreen(
     searchResults: List<Diary>,
     searchQuery: String,
     onQueryChange: (String) -> Unit,
-    onSearch: () -> Unit,
+    onSearch: (String) -> Unit,
     onFabClick: () -> Unit,
     onSearchToggle: () -> Unit,
     onCalendarToggle: () -> Unit,
@@ -135,7 +135,7 @@ fun FilteredDiaryScreen(
                 onQueryChange = onQueryChange,
                 searchResults = searchResults,
                 isSearchTriggered = false, // 필요 시 추가 상태로 관리 가능
-                onSearch = onSearch,
+                onSearch = { onSearch(searchQuery) },
                 onSearchToggle = onSearchToggle,
                 onCalendarToggle = onCalendarToggle,
                 calendarContent = { },

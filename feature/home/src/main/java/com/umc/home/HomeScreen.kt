@@ -77,7 +77,7 @@ fun HomeScreen(
     searchQuery: String,
     recentSearches: List<String>,
     onQueryChange: (String) -> Unit,
-    onSearch: () -> Unit,
+    onSearch: (String) -> Unit,
     onSearchToggle: () -> Unit,
     onCalendarToggle: () -> Unit,
     onRecentSearchClick: (String) -> Unit,
@@ -122,7 +122,7 @@ fun HomeScreen(
 //    var isDetailModalVisible by remember { mutableStateOf(false) }
 //    // 🔹 검색 실행 여부를 추적하는 변수
 //
-//    var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
+    var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
 
     var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
 
@@ -134,8 +134,8 @@ fun HomeScreen(
                 searchQuery = searchQuery,
                 onQueryChange = onQueryChange,
                 searchResults = searchResults,
-                isSearchTriggered = false, // 필요 시 추가 상태로 관리 가능
-                onSearch = onSearch,
+                isSearchTriggered = isSearchTriggered,
+                onSearch = { onSearch(searchQuery) },
                 onSearchToggle = onSearchToggle,
                 onCalendarToggle = onCalendarToggle,
                 calendarContent = { modifier ->
@@ -226,7 +226,7 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            if ((isSearchVisible && searchResults.isNotEmpty()) || (!isSearchVisible && diaryList.isNotEmpty())) {
+            if ((isSearchVisible && searchResults.isNotEmpty()) || (!isSearchVisible && diaryList.isNotEmpty()) || (!isSearchVisible && searchResults.isEmpty())) {
                 // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
                 LazyColumn {
                     items(if (isSearchVisible) searchResults else diaryList) { diary ->
