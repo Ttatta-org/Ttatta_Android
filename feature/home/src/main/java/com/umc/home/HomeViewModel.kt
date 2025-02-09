@@ -191,13 +191,49 @@ class HomeViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
+                // ✅ 아무것도 변경되지 않은 경우, API 요청을 막음
+//                if (content == null && image == null && categoryId == null) {
+//                    onFailed(IllegalArgumentException("수정할 내용이 없습니다."))
+//                    return@launch
+//                }
+
+                Log.d("modifyDiary", "📤 수정 요청 시작 (diaryId: $diaryId)")
+                // ✅ 다이어리 수정 API 호출
                 diaryRepository.modifyDiary(
                     diaryId = diaryId,
                     categoryId = categoryId,
                     content = content,
                     image = image
                 )
+
+                // ✅ 수정된 다이어리를 다시 불러오기
+                //val updatedDiary = diaryRepository.getDiaryById(diaryId)
+
+                //Log.d("modifyDiary", "✅ 서버에서 수정된 다이어리 가져오기 완료: $updatedDiary")
+
+                // ✅ 기존 리스트에서 해당 다이어리 찾기
+                _diaryListState.value = _diaryListState.value.map { diary ->
+                    if (diary.id == diaryId) {
+                        diary.copy(
+                            content = content ?: diary.content, // 변경된 내용 반영
+                            imageUrl = image?.path ?: diary.imageUrl // 변경된 이미지 반영
+                        )
+                    } else diary
+                }
+
+                _fullDiaryListState.value = _fullDiaryListState.value.map { diary ->
+                    if (diary.id == diaryId) {
+                        diary.copy(
+                            content = content ?: diary.content,
+                            imageUrl = image?.path ?: diary.imageUrl
+                        )
+                    } else diary
+                }
+
+                // ✅ 수정 성공 후 다이어리 목록 다시 불러오기
                 loadDiaries(page = 1, date = null, onSucceed = onSucceed, onFailed = { throw it })
+
+                onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
             }

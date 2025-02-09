@@ -235,40 +235,6 @@ fun TopBarComponent(
     }
 }
 
-
-
-
-
-// 검색창 모양의 Composable 함수
-//@Composable
-//fun SearchBar(
-//    query: String,
-//    onQueryChange: (String) -> Unit,
-//    onSearch: () -> Unit,
-//    modifier: Modifier = Modifier
-//) {
-//    // 검색창
-//    Row(
-//        modifier = Modifier
-//            .background(
-//                color = Color(0xFFFEF6F2), // 배경 색상
-//                shape = RoundedCornerShape(15.dp) // 둥근 모서리
-//            )
-//            //.fillMaxWidth()
-//            .padding(start = 10.dp, end = 55.dp, top = 5.dp, bottom = 5.dp), // 안쪽 여백
-//        verticalAlignment = Alignment.CenterVertically
-//    ) {
-//        Text(
-//            text = "찾고 싶은 내용을 입력해주세요!", // placeholder 텍스트
-//            fontSize = 13.sp,
-//            color = Color(0xFFCACACA),
-//            modifier = Modifier.padding(start = 8.dp)
-//        )
-//    }
-//}
-
-
-
 @Composable
 fun SearchBar(
     query: String,
@@ -283,14 +249,16 @@ fun SearchBar(
                 shape = RoundedCornerShape(15.dp)
             )
             .padding(horizontal = 10.dp, vertical = 5.dp)
-            .fillMaxWidth()
+            .fillMaxWidth(),
+        contentAlignment = Alignment.CenterStart
     ) {
         // Placeholder 텍스트를 기본 텍스트처럼 보이게
         if (query.isEmpty()) {
             Text(
                 text = "찾고 싶은 내용을 입력해주세요!",
                 fontSize = 13.sp,
-                color = Color(0xFFCACACA)
+                color = Color(0xFFCACACA),
+                modifier = Modifier.padding(start = 4.dp)
             )
         }
 
@@ -312,7 +280,7 @@ fun SearchBar(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp)
+                .padding(start = 4.dp)
         )
     }
 }

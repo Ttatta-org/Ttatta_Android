@@ -17,6 +17,7 @@ import com.umc.home.FilteredDiaryScreen
 import com.umc.home.HomeEditRecordScreen
 import com.umc.home.HomeScreen
 import com.umc.home.HomeViewModel
+import java.io.File
 import java.time.LocalDate
 
 @Composable
@@ -73,6 +74,24 @@ fun AppNavHost(
             },
             onFailed = { e ->
                 println("❌ 삭제 실패: ${e.message}")
+            }
+        )
+    }
+
+    // ✅ 수정 기능 추가
+    val onModifyDiary: (Long, String, File?) -> Unit = { diaryId, content, image ->
+        viewModel.modifyDiary(
+            diaryId = diaryId,
+            categoryId = null,
+            content = content,
+            image = null,
+            onSucceed = {
+                Log.d("AppNavHost", "✅ 수정 성공!")
+                isDetailModalVisible = false // ✅ 모달 닫기
+                navController.popBackStack() // ✅ 수정 완료 후 이전 화면으로 이동
+            },
+            onFailed = { e ->
+                Log.e("AppNavHost", "❌ 수정 실패: ${e.message}", e)
             }
         )
     }
@@ -161,6 +180,21 @@ fun AppNavHost(
             )
         }
 
-        composable("edit_record") { HomeEditRecordScreen() }
+        composable(
+            route = "edit_record/{diaryId}",
+            arguments = listOf(navArgument("diaryId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val diaryId = backStackEntry.arguments?.getLong("diaryId") ?: -1
+            val diary = diaryList.find { it.id == diaryId }
+
+            if (diary != null) {
+                HomeEditRecordScreen(
+                    diary = diary,
+                    //viewModel = viewModel, // ViewModel 전달
+                    navController = navController, // NavController 전달
+                    onModifyDiary = onModifyDiary
+                )
+            }
+        }
     }
 }

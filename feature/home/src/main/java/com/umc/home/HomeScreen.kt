@@ -303,7 +303,7 @@ fun HomeScreen(
                         DetailModal(
                             onDismiss = onDismissDetailModal,
                             onDelete = { onDeleteDiary(selectedDiaryId!!) },
-                            onEdit = { navController.navigate("edit_record") }
+                            onEdit = { navController.navigate("edit_record/${selectedDiaryId!!}") }
                         )
                     }
                 }
