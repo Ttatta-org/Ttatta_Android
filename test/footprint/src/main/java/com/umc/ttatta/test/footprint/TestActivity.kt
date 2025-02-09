@@ -6,10 +6,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.umc.category.CategoryApp
 import com.umc.core.repository.DiaryRepository
 import com.umc.core.repository.UserRepository
 import com.umc.design.CategoryColor
@@ -39,14 +44,42 @@ class TestActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            Box(
+            val navigator = rememberNavController()
+
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.White)
             ) {
-                FootprintApp(
-                    viewModel = viewModel,
-                    onNavigateToCategoryApp = {}
+                NavHost(
+                    navController = navigator,
+                    startDestination = "footprint",
+                    modifier = Modifier.weight(1f)
+                ) {
+                    composable(
+                        route = "footprint"
+                    ) {
+                        FootprintApp(
+                            viewModel = viewModel,
+                            onNavigateToCategoryApp = {
+                                navigator.navigate("category")
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = "category"
+                    ) {
+                        CategoryApp(
+                            viewModel = hiltViewModel(),
+                            showTopBar = true,
+                        )
+                    }
+                }
+                BottomNavigationBar(
+                    selectedTab = NavigationItem.FOOTPRINT,
+                    onTabSelected = {},
+                    onFabClick = {}
                 )
             }
         }
