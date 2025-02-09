@@ -14,7 +14,10 @@ import com.umc.design.CategoryColor
 const val MAX_CATEGORY_NAME_LENGTH = 20
 
 @Composable
-fun CategoryApp(viewModel: CategoryViewModel) {
+fun CategoryApp(
+    viewModel: CategoryViewModel,
+    showTopBar: Boolean,
+) {
     var categoryNameInputFieldValue by remember { mutableStateOf("") }
     var selectedCategoryColor by remember { mutableStateOf<CategoryColor?>(null) }
     var selectedCategory by remember { mutableStateOf<CategoryInfo?>(null) }
@@ -27,6 +30,7 @@ fun CategoryApp(viewModel: CategoryViewModel) {
     var showCategoryDeletionDialog by remember { mutableStateOf(false) }
 
     CategoryScreen(
+        showTopBar = showTopBar,
         maxCategoryNameLength = MAX_CATEGORY_NAME_LENGTH,
         categoryNameInputFieldValue = categoryNameInputFieldValue,
         selectedCategoryColor = selectedCategoryColor,
