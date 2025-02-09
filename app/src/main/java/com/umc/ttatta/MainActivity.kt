@@ -1,66 +1,39 @@
 package com.umc.ttatta
 
-import android.os.Build
 import android.os.Bundle
-import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
-import com.umc.core.repository.UserRepository
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @Inject
-    lateinit var userRepository: UserRepository
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        enableDebugMode()
-
-        setStatusBarTransparent()
+        enableEdgeToEdge()
         setContent {
-            MainApp(
-                viewModel = viewModel,
-            )
-        }
-    }
+            val navigator = rememberNavController()
 
-    private fun setStatusBarTransparent() {
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        )
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-    }
-
-    private fun enableDebugMode() {
-        CoroutineScope(Dispatchers.IO).launch {
-            if (!userRepository.isIdAlreadyOccupied(DebugConfig.ID)) {
-                userRepository.join(
-                    id = DebugConfig.ID,
-                    password = DebugConfig.PASSWORD,
-                    name = DebugConfig.NAME,
-                    nickname = DebugConfig.NICKNAME,
-                    email = DebugConfig.EMAIL
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color.White)
+            ) {
+                MainNavigator(
+                    viewModel = viewModel,
+                    globalNavigator = navigator
                 )
             }
-
-            userRepository.login(
-                id = DebugConfig.ID,
-                password = DebugConfig.PASSWORD
-            )
-
-            viewModel.checkLogin()
         }
     }
 }
