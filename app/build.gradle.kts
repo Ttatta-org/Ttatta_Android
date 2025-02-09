@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -7,6 +10,9 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
+
+val localProperties = Properties()
+localProperties.load(FileInputStream(rootProject.file("local.properties")))
 
 android {
     namespace = "com.umc.ttatta"
@@ -20,6 +26,12 @@ android {
         versionName = "1.0"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField(
+            "String",
+            "NAVER_SDK_CLIENT_ID",
+            "\"${localProperties.getProperty("NAVER_SDK_CLIENT_ID")}\""
+        )
     }
 
     buildTypes {
@@ -40,6 +52,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -53,6 +66,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -68,7 +82,9 @@ dependencies {
     implementation(project(":feature:mypage"))
     implementation(project(":feature:home"))
     implementation(project(":feature:record"))
+    implementation(project(":feature:category"))
     implementation(project(":core"))
+    implementation(project(":data"))
     implementation(project(":design"))
 
     // Hilt
@@ -76,4 +92,8 @@ dependencies {
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.complier)
     implementation(libs.androidx.hilt.navigation)
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+
+    // 네이버 지도 SDK
+    implementation(libs.naver.map)
 }
