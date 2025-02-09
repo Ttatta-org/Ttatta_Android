@@ -1,4 +1,4 @@
-package com.umc.ttatta.test.footprint
+package com.umc.design
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
