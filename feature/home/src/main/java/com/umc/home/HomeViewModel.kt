@@ -69,7 +69,14 @@ class HomeViewModel @Inject constructor(
      * ✅ 다음 페이지 로드 (무한 스크롤)
      */
     fun loadNextPage() {
-        loadDiaries(page = currentPage, date = null) // 현재 페이지 번호로 API 호출
+        Log.d("Pagination", "🟢 loadNextPage() 호출됨 - 현재 페이지: $currentPage")
+
+        if (!isLoading) {
+            Log.d("Pagination", "🔥 loadDiaries() 실행 시도 - 페이지: $currentPage")
+            loadDiaries(page = currentPage, date = null)
+        } else {
+            Log.d("Pagination", "❌ API 요청 안됨 - isLoading이 true 상태")
+        }
     }
 
     /**
@@ -113,7 +120,13 @@ class HomeViewModel @Inject constructor(
         onSucceed: () -> Unit = {},
         onFailed: (e: Exception) -> Unit = {}
     ) {
-        if (isLoading) return // ✅ 중복 요청 방지
+        Log.d("Pagination", "🔥 loadDiaries() 호출됨 - 전달된 페이지: $page, 현재 currentPage 값: $currentPage") // ✅ 로그 추가
+
+        if (isLoading) {
+            Log.d("Pagination", "❌ 중복 요청 방지 - API 요청 차단됨 (isLoading = true)")
+            return
+        }
+
         isLoading = true
 
         viewModelScope.launch {
@@ -124,14 +137,24 @@ class HomeViewModel @Inject constructor(
 
                 if (newDiaries.isNotEmpty()) {
                     // ✅ 기존 리스트에 새 데이터 추가
-                    _diaryListState.value += newDiaries
-                    currentPage++ // ✅ 다음 페이지 설정
+//                    _diaryListState.value += newDiaries
+                    _diaryListState.value = (_diaryListState.value + newDiaries).toList()
+                    Log.d("Pagination", "📌 리스트 업데이트됨 (총 개수: ${_diaryListState.value.size})")
+
+                    Log.d("Pagination", "🚀 페이지 증가 전: $currentPage")
+                    currentPage++
+                    Log.d("Pagination", "✅ 페이지 증가 후: $currentPage")
+                } else {
+                    Log.d("Pagination", "⚠️ 새로운 데이터 없음 (마지막 페이지 도달)")
                 }
 
                 Log.d("HomeViewModel", "✅ 다이어리 데이터 로드 성공: ${newDiaries.size}개")
                 onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
+            } finally {
+                isLoading = false // ✅ 여기서 isLoading을 false로 변경
+                Log.d("Pagination", "✅ isLoading 상태 해제됨 (false)")
             }
         }
     }

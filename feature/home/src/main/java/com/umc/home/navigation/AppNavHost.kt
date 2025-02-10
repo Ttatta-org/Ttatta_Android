@@ -8,6 +8,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.navigation.NavHostController
@@ -19,6 +20,8 @@ import com.umc.home.FilteredDiaryScreen
 import com.umc.home.HomeEditRecordScreen
 import com.umc.home.HomeScreen
 import com.umc.home.HomeViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
 import java.io.File
 import java.time.LocalDate
 
@@ -113,20 +116,45 @@ fun AppNavHost(
     }
 
     val lazyListState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
-    // ✅ 마지막 아이템 감지하여 다음 페이지 로드
+    // ✅ 스크롤 이벤트 감지하여 무한 스크롤 적용
     LaunchedEffect(lazyListState) {
+        delay(300)
         snapshotFlow { lazyListState.layoutInfo }
             .collect { layoutInfo ->
                 val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
                 val totalItems = layoutInfo.totalItemsCount
 
-                // ✅ 마지막 아이템이 보이면 다음 페이지 로드
-                if (lastVisibleItemIndex >= totalItems - 1 && !viewModel.isLoading) {
+                Log.d("Pagination", "📌 마지막 보이는 아이템 인덱스: $lastVisibleItemIndex, 전체 아이템 개수: $totalItems")
+
+                // ✅ 마지막 아이템에서 1개 전이면 API 요청
+                if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 1) {
+                    Log.d("Pagination", "✅ 스크롤 80% 도달 - 다음 페이지 로드 요청")
                     viewModel.loadNextPage()
                 }
             }
     }
+
+    // ✅ 마지막 아이템 감지하여 다음 페이지 로드
+//    LaunchedEffect(lazyListState, diaryList) { // ✅ diaryList 변경도 감지
+//        snapshotFlow { lazyListState.layoutInfo }
+//            .collect { layoutInfo ->
+//                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+//                val totalItems = layoutInfo.totalItemsCount
+//                val visibleItems = layoutInfo.visibleItemsInfo.map { it.index }
+//
+//                Log.d("Pagination", "📌 현재 보이는 아이템 인덱스 리스트: $visibleItems")
+//                Log.d("Pagination", "📌 마지막 보이는 아이템 인덱스: $lastVisibleItemIndex, 전체 아이템 개수: $totalItems")
+//
+//                // ✅ 처음 실행 시 자동 실행되는 것을 방지 (totalItems > 0 필요!)
+//                if (totalItems > 0 && lastVisibleItemIndex >= totalItems - 1 && !viewModel.isLoading) {
+//                    Log.d("Pagination", "✅ 스크롤 끝 감지됨, 다음 페이지 로드 요청!")
+//                    viewModel.loadNextPage()
+//                }
+//            }
+//    }
+
 
     NavHost(navController = navController, startDestination = "home") {
         // Home 화면
@@ -138,6 +166,7 @@ fun AppNavHost(
                 searchResults = searchResults,       // List<Diary>
                 searchQuery = searchQuery,     // String
                 recentSearches = recentSearches,
+                lazyListState = lazyListState,
 
                 // 로컬 UI 상태 전달
                 isExpanded = isExpanded,

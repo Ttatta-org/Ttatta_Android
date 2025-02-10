@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
@@ -64,12 +65,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
     // HomeApp에서 전달받은 데이터와 콜백들
     navController: NavHostController,
     diaryList: List<Diary>,
+    lazyListState: LazyListState,
     isExpanded: Boolean,
     isSearchVisible: Boolean,
     isCalendarVisible: Boolean,
@@ -125,7 +128,7 @@ fun HomeScreen(
 
     var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
 
-    val lazyListState = rememberLazyListState()
+
 
     Scaffold(
         topBar = {
@@ -168,7 +171,6 @@ fun HomeScreen(
                 .fillMaxSize()
                 .background(Color(0xFFFEF6F2))
                 .padding(innerPadding)
-
         ) {
             // 드래그 가능 영역
             Box(
@@ -193,37 +195,6 @@ fun HomeScreen(
                     )
                 }
             }
-
-//            // TopBar 확장 애니메이션
-//            LaunchedEffect(isCalendarVisible) {
-//                isExpanded = isCalendarVisible
-//            }
-//
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//            ) {
-//                // 캘린더 표시
-//                AnimatedVisibility(
-//                    visible = isCalendarVisible,
-//                    enter = expandVertically(),
-//                    exit = shrinkVertically()
-//                ) {
-//                    CalendarView(
-//                        onDateSelected = { selectedDate ->
-//                            println("Selected Date: $selectedDate")
-//                        },
-//                        diaryDates = uiState.diaries.map { LocalDate.parse(it.date.toString()) } // 다이어리 날짜 전달
-//                    )
-//                }
-
-//            if (isSearchVisible) {
-//                SearchBar(
-//                    query = searchQuery,
-//                    onQueryChange = { searchQuery = it },
-//                    onSearch = { viewModel.searchDiaries(searchQuery) }
-//                )
-//            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -812,6 +783,7 @@ fun PreviewHomeScreen() {
     HomeScreen(
         navController = navController,
         diaryList = dummyDiaries,
+        lazyListState = rememberLazyListState(),
         isExpanded = false,
         isSearchVisible = false,
         isCalendarVisible = false,
