@@ -201,7 +201,7 @@ fun HomeScreen(
             if ((isSearchVisible && searchResults.isNotEmpty()) || (!isSearchVisible && diaryList.isNotEmpty()) || (!isSearchVisible && searchResults.isEmpty())) {
                 // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
                 LazyColumn(state = lazyListState) {
-                    items(if (isSearchVisible) searchResults else diaryList) { diary ->
+                    items(if (searchResults.isNotEmpty()) searchResults else diaryList) { diary ->
                         DiaryCard(
                             diary = diary,
                             onDetailClick = {

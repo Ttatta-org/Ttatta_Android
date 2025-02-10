@@ -39,7 +39,9 @@ class HomeViewModel @Inject constructor(
     private val _diaryListState = MutableStateFlow<List<Diary>>(emptyList())
     val diaryListState: StateFlow<List<Diary>> = _diaryListState
 
-    private var currentPage = 0 // ✅ 현재 페이지 상태
+    private var currentPage = 0 // ✅ 일반 다이어리 리스트의 페이지 상태
+    private var currentSearchPage = 0 // ✅ 검색 결과의 페이지 상태
+
     var isLoading = false // ✅ 중복 요청 방지
 
     // ✅ **검색 결과 저장**
@@ -162,32 +164,53 @@ class HomeViewModel @Inject constructor(
     /**
      * 🔍 **검색어에 따라 일기 목록 불러오기**
      */
+    /**
+     * 🔍 **검색어에 따라 일기 목록 불러오기 (무한 스크롤)**
+     */
     fun searchDiaries(
         searchWord: String,
+        reset: Boolean = false, // ✅ 새로운 검색어 입력 시 초기화 여부
         onSucceed: () -> Unit,
         onFailed: (e: Exception) -> Unit
     ) {
+        if (reset) {
+            currentSearchPage = 0 // ✅ 새로운 검색어가 입력되면 페이지 초기화
+            _searchResultsState.value = emptyList() // ✅ 기존 검색 결과 초기화
+        }
+
+        if (isLoading) {
+            Log.d("Pagination", "❌ 중복 요청 방지 - API 요청 차단됨 (isLoading = true)")
+            return
+        }
+        isLoading = true
+
         viewModelScope.launch {
             try {
                 _searchQuery.value = searchWord
-                Log.d("HomeViewModel", "🔍 검색어: $searchWord") // ✅ 검색어 확인
-                val results = diaryRepository.getDiaries(page = 0, searchWord = searchWord)
-                Log.d("HomeViewModel", "🔍 검색 API 응답: $results") // ✅ API 응답 데이터 확인
+                Log.d("HomeViewModel", "🔍 검색어: $searchWord (페이지: $currentSearchPage)")
 
-                _searchResultsState.value = results  // ✅ 검색 결과 업데이트
-                _diaryListState.value = results      // ✅ UI에 반영될 리스트도 업데이트
+                // ✅ 검색 API 호출 (page를 적용)
+                val results = diaryRepository.getDiaries(page = currentSearchPage, searchWord = searchWord)
+
+                if (results.isNotEmpty()) {
+                    _searchResultsState.value = (_searchResultsState.value + results).toList() // ✅ 기존 검색 결과에 추가
+                    Log.d("Pagination", "📌 검색 리스트 업데이트됨 (총 개수: ${_searchResultsState.value.size})")
+
+                    currentSearchPage++ // ✅ 다음 페이지 설정
+                    Log.d("Pagination", "✅ 검색 페이지 증가 후: $currentSearchPage")
+                } else {
+                    Log.d("Pagination", "⚠️ 새로운 검색 데이터 없음 (마지막 페이지 도달)")
+                }
 
                 // ✅ 최근 검색어 업데이트 (중복 제거 & 최신순 정렬)
-                if (searchWord.isNotBlank()) {
+                if (searchWord.isNotBlank() && reset) {
                     val updatedList = _recentSearchesState.value.toMutableList()
 
-                    // 중복된 검색어 제거 후 맨 앞에 추가
-                    updatedList.remove(searchWord)
-                    updatedList.add(0, searchWord)
+                    updatedList.remove(searchWord) // 중복 제거
+                    updatedList.add(0, searchWord) // 맨 앞에 추가
 
-                    // 최대 3개까지만 유지
                     if (updatedList.size > 3) {
-                        updatedList.removeAt(updatedList.size - 1)
+                        updatedList.removeAt(updatedList.size - 1) // 최대 3개 유지
                     }
 
                     _recentSearchesState.value = updatedList
@@ -199,11 +222,56 @@ class HomeViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "❌ 검색 실패: ${e.message}")
-                _searchResultsState.value = emptyList()
                 onFailed(e)
+            } finally {
+                isLoading = false // ✅ isLoading 해제
+                Log.d("Pagination", "✅ isLoading 상태 해제됨 (false)")
             }
         }
     }
+
+//    fun searchDiaries(
+//        searchWord: String,
+//        onSucceed: () -> Unit,
+//        onFailed: (e: Exception) -> Unit
+//    ) {
+//        viewModelScope.launch {
+//            try {
+//                _searchQuery.value = searchWord
+//                Log.d("HomeViewModel", "🔍 검색어: $searchWord") // ✅ 검색어 확인
+//                val results = diaryRepository.getDiaries(page = 0, searchWord = searchWord)
+//                Log.d("HomeViewModel", "🔍 검색 API 응답: $results") // ✅ API 응답 데이터 확인
+//
+//                _searchResultsState.value = results  // ✅ 검색 결과 업데이트
+//                _diaryListState.value = results      // ✅ UI에 반영될 리스트도 업데이트
+//
+//                // ✅ 최근 검색어 업데이트 (중복 제거 & 최신순 정렬)
+//                if (searchWord.isNotBlank()) {
+//                    val updatedList = _recentSearchesState.value.toMutableList()
+//
+//                    // 중복된 검색어 제거 후 맨 앞에 추가
+//                    updatedList.remove(searchWord)
+//                    updatedList.add(0, searchWord)
+//
+//                    // 최대 3개까지만 유지
+//                    if (updatedList.size > 3) {
+//                        updatedList.removeAt(updatedList.size - 1)
+//                    }
+//
+//                    _recentSearchesState.value = updatedList
+//                }
+//
+//                Log.d("HomeViewModel", "✅ 검색 결과: ${results.size}개")
+//
+//                onSucceed()
+//
+//            } catch (e: Exception) {
+//                Log.e("HomeViewModel", "❌ 검색 실패: ${e.message}")
+//                _searchResultsState.value = emptyList()
+//                onFailed(e)
+//            }
+//        }
+//    }
 
     /**
      * 일기 생성 API를 호출한 후, 목록을 갱신합니다.

@@ -77,6 +77,7 @@ fun AppNavHost(
         isSearchTriggered = true
         viewModel.searchDiaries(
             searchWord = query,
+            reset = true,
             onSucceed = {
                 Log.d("AppNavHost", "✅ 검색 성공!")
             },
@@ -118,9 +119,7 @@ fun AppNavHost(
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    // ✅ 스크롤 이벤트 감지하여 무한 스크롤 적용
-    LaunchedEffect(lazyListState) {
-        delay(300)
+    LaunchedEffect(lazyListState, diaryList, searchResults) { // ✅ 검색 & 일반 리스트 둘 다 감지
         snapshotFlow { lazyListState.layoutInfo }
             .collect { layoutInfo ->
                 val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
@@ -128,13 +127,37 @@ fun AppNavHost(
 
                 Log.d("Pagination", "📌 마지막 보이는 아이템 인덱스: $lastVisibleItemIndex, 전체 아이템 개수: $totalItems")
 
-                // ✅ 마지막 아이템에서 1개 전이면 API 요청
+                // ✅ 검색 중이면 `searchDiaries()` 호출, 아니라면 `loadNextPage()` 호출
                 if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 1) {
-                    Log.d("Pagination", "✅ 스크롤 80% 도달 - 다음 페이지 로드 요청")
-                    viewModel.loadNextPage()
+                    if (searchResults.isNotEmpty()) {
+                        Log.d("Pagination", "✅ (검색) 스크롤 80% 도달 - 다음 페이지 로드 요청")
+                        viewModel.searchDiaries(searchQuery, reset = false, onSucceed = {}, onFailed = {})
+                    } else {
+                        Log.d("Pagination", "✅ (다이어리) 스크롤 80% 도달 - 다음 페이지 로드 요청")
+                        viewModel.loadNextPage()
+                    }
                 }
             }
     }
+
+
+    // ✅ 스크롤 이벤트 감지하여 무한 스크롤 적용
+//    LaunchedEffect(lazyListState) {
+//        //delay(300)
+//        snapshotFlow { lazyListState.layoutInfo }
+//            .collect { layoutInfo ->
+//                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+//                val totalItems = layoutInfo.totalItemsCount
+//
+//                Log.d("Pagination", "📌 마지막 보이는 아이템 인덱스: $lastVisibleItemIndex, 전체 아이템 개수: $totalItems")
+//
+//                // ✅ 마지막 아이템에서 1개 전이면 API 요청
+//                if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 1) {
+//                    Log.d("Pagination", "✅ 스크롤 80% 도달 - 다음 페이지 로드 요청")
+//                    viewModel.loadNextPage()
+//                }
+//            }
+//    }
 
     // ✅ 마지막 아이템 감지하여 다음 페이지 로드
 //    LaunchedEffect(lazyListState, diaryList) { // ✅ diaryList 변경도 감지
