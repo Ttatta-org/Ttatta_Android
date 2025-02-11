@@ -59,79 +59,122 @@ fun MyPageScreen(
             color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
         )
     }
-
     Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            modifier = Modifier.background(Color.Transparent),
-            topBar = { TopBarComponent() },
-            bottomBar = {
-                BottomNavigationBarWithFAB(
-                    selectedTab = "mypage",
-                    onTabSelected = { /* 탭 변경 로직 */ },
-                    onFabClick = onFabClick
-                )
-            }
-        ) { innerPadding ->
-            LazyColumn(
+        Column(modifier = Modifier.fillMaxSize()) {
+
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(Color(0xFFFEF6F2))
-                    .padding(start = 25.dp, end = 25.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .weight(1f) // ✅ BottomNavigation을 밀어내지 않도록 LazyColumn에 weight 적용
             ) {
-                // 프로필 섹션
-                item { Spacer(modifier = Modifier.height(40.dp)) }
-                item {
-                    if (userInfo != null) {
-                        ProfileSection(
-                            name = userInfo.name,
-                            profileImage = userInfo.profileImageUrl
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
+                // ✅ 2. LazyColumn (스크롤 가능한 콘텐츠)
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 60.dp)
+                        .background(Color(0xFFFFF6F2))
+                        .padding(horizontal = 25.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    item { Spacer(modifier = Modifier.height(40.dp)) }
+                    item {
+                        if (userInfo != null) {
+                            ProfileSection(
+                                name = userInfo.name,
+                                profileImage = userInfo.profileImageUrl
+                            )
+                            Spacer(modifier = Modifier.height(20.dp))
 
-                        SummarySection(
-                            diaryCount = userInfo.totalDiaryCount,
-                            points = userInfo.point
-                        )
-                        Spacer(modifier = Modifier.height(22.dp))
+                            SummarySection(
+                                diaryCount = userInfo.totalDiaryCount,
+                                points = userInfo.point
+                            )
+                            Spacer(modifier = Modifier.height(22.dp))
 
-                        AppSettingsSection(
-                            themeSubtitle = "기본 테마 사용 중",
-                            notificationsEnabled = false,
-                            passwordLockEnabled = false,
-                            onThemeChangeClick = { /* 테마 변경 로직 */ },
-                            onNotificationToggle = {  },  // ✅ 알림 설정 토글
-                            onPasswordLockToggle = {  },  // ✅ 암호 잠금 설정 토글
-                            onLeaveUser = onLeaveUser,  // ✅ 회원 탈퇴
-                            onLogout = onLogout  // ✅ 로그아웃
-                        )
-                        Spacer(modifier = Modifier.height(30.dp))
-                    } else {
-                        Text(text = errorMessage ?: "유저 정보를 불러올 수 없습니다.", color = Color.Red)
+                            AppSettingsSection(
+                                themeSubtitle = "기본 테마 사용 중",
+                                notificationsEnabled = false,
+                                passwordLockEnabled = false,
+                                onThemeChangeClick = { /* 테마 변경 로직 */ },
+                                onNotificationToggle = {  },
+                                onPasswordLockToggle = {  },
+                                onLeaveUser = onLeaveUser,
+                                onLogout = onLogout
+                            )
+                            Spacer(modifier = Modifier.height(30.dp))
+                        } else {
+                            Text(text = errorMessage ?: "유저 정보를 불러올 수 없습니다.", color = Color.Red)
+                        }
                     }
                 }
-//                item { ProfileSection(name = uiState.displayName, profileImage = uiState.profileImage) }
-//                item { Spacer(modifier = Modifier.height(20.dp)) }
-//
-//                // 요약 섹션
-//                item { SummarySection(diaryCount = uiState.diaryCount, points = uiState.points) }
-//                item { Spacer(modifier = Modifier.height(22.dp)) }
-//
-//                // 앱 설정 섹션
-//                item {
-//                    AppSettingsSection(
-//                        themeSubtitle = "기본 테마 사용 중",
-//                        notificationsEnabled = uiState.notificationsEnabled,
-//                        passwordLockEnabled = uiState.passwordLockEnabled,
-//                        onThemeChangeClick = onThemeChangeClick
-//                    )
-//                }
-//                item { Spacer(modifier = Modifier.height(30.dp)) }
 
+                // ✅ 3. TopBar (스크롤 가능한 LazyColumn 위에 배치)
+                TopBarComponent()
             }
+
+            // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)
+            BottomNavigationBarWithFAB(
+                selectedTab = "mypage",
+                onTabSelected = { /* 탭 변경 로직 */ },
+                onFabClick = onFabClick
+            )
+
         }
     }
+
+//    Box(modifier = Modifier.fillMaxSize()) {
+//        Scaffold(
+//            modifier = Modifier.background(Color.Transparent),
+//            topBar = { TopBarComponent() },
+//            bottomBar = {
+//                BottomNavigationBarWithFAB(
+//                    selectedTab = "mypage",
+//                    onTabSelected = { /* 탭 변경 로직 */ },
+//                    onFabClick = onFabClick
+//                )
+//            }
+//        ) { innerPadding ->
+//            LazyColumn(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .padding(innerPadding)
+//                    .background(Color(0xFFFEF6F2))
+//                    .padding(start = 25.dp, end = 25.dp),
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//                // 프로필 섹션
+//                item { Spacer(modifier = Modifier.height(40.dp)) }
+//                item {
+//                    if (userInfo != null) {
+//                        ProfileSection(
+//                            name = userInfo.name,
+//                            profileImage = userInfo.profileImageUrl
+//                        )
+//                        Spacer(modifier = Modifier.height(20.dp))
+//
+//                        SummarySection(
+//                            diaryCount = userInfo.totalDiaryCount,
+//                            points = userInfo.point
+//                        )
+//                        Spacer(modifier = Modifier.height(22.dp))
+//
+//                        AppSettingsSection(
+//                            themeSubtitle = "기본 테마 사용 중",
+//                            notificationsEnabled = false,
+//                            passwordLockEnabled = false,
+//                            onThemeChangeClick = { /* 테마 변경 로직 */ },
+//                            onNotificationToggle = {  },  // ✅ 알림 설정 토글
+//                            onPasswordLockToggle = {  },  // ✅ 암호 잠금 설정 토글
+//                            onLeaveUser = onLeaveUser,  // ✅ 회원 탈퇴
+//                            onLogout = onLogout  // ✅ 로그아웃
+//                        )
+//                        Spacer(modifier = Modifier.height(30.dp))
+//                    } else {
+//                        Text(text = errorMessage ?: "유저 정보를 불러올 수 없습니다.", color = Color.Red)
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
 
 @Composable
@@ -468,7 +511,7 @@ fun PreviewMyPageScreen() {
     // ✅ 가짜 사용자 데이터 생성
     val mockUserInfo = UserInfo(
         id = 1L,
-        name = "서연 님",
+        name = "서연",
         loginType = LoginType.REGULAR, // ✅ 이메일 로그인
         email = "seoyeon@example.com",
         profileImageUrl = null, // ✅ 프로필 이미지 없음 (기본 이미지 표시)

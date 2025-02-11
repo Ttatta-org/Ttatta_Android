@@ -3,6 +3,7 @@ package com.umc.mypage.components
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,8 +25,8 @@ fun TopBarComponent() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.Transparent)
-            .height(65.dp),
+            .height(65.dp)
+            .background(Color.Transparent),
         contentAlignment = Alignment.BottomCenter,
     ) {
         // 물결 이미지 (배경)
@@ -54,8 +55,10 @@ fun TopBarComponent() {
             ),
             contentDescription = "배경 이미지",
             alignment = Alignment.BottomCenter,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth(), // 필요에 따라 수정
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(65.dp), // 필요에 따라 수정
         )
         Column(
             modifier = Modifier
