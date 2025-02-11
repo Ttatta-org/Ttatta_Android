@@ -2,10 +2,12 @@ package com.umc.mypage.components
 
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
@@ -22,6 +24,7 @@ fun TopBarComponent() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .background(Color.Transparent)
             .height(65.dp),
         contentAlignment = Alignment.BottomCenter,
     ) {
