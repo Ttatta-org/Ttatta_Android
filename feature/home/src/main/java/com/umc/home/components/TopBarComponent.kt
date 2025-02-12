@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,9 +32,11 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.umc.home.R
 import com.umc.home.RecentSearches
@@ -44,6 +47,7 @@ import com.umc.core.model.Diary
 
 @Composable
 fun TopBarComponent(
+    navController: NavHostController,
     isExpanded: Boolean,
     isSearchVisible: Boolean,
     searchQuery: String,
@@ -55,7 +59,8 @@ fun TopBarComponent(
     onCalendarToggle: () -> Unit,
     calendarContent: @Composable (Modifier) -> Unit,
     recentSearches: List<String>, // 최근 검색어 리스트 추가
-    onRecentSearchClick: (String) -> Unit // 최근 검색어 클릭 동작 추가
+    onRecentSearchClick: (String) -> Unit, // 최근 검색어 클릭 동작 추가
+    onHeightChange: (Dp) -> Unit
 ) {
     val baseHeight = when {
         isSearchVisible -> 230.dp
@@ -66,11 +71,16 @@ fun TopBarComponent(
 
     val context = LocalContext.current
 
+    // ✅ 높이 값이 변경될 때 외부로 전달 (dragIcon 위치 조정 가능)
+    LaunchedEffect(imageHeight) {
+        onHeightChange(imageHeight)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.systemBars)
-            .height(imageHeight),
+            .height(imageHeight)
+            .background(Color.Transparent),
         contentAlignment = Alignment.BottomCenter,
     ) {
         // 배경 이미지
@@ -164,6 +174,7 @@ fun TopBarComponent(
                                 if (isSearchVisible) {
                                     onSearch(searchQuery)
                                     onSearchToggle() // ✅ 검색 후 검색창 닫기
+                                    navController.navigate("search")
                                 } else {
                                     onSearchToggle() // ✅ 검색창을 열기
                                 }

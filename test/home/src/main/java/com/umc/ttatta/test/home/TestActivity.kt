@@ -76,7 +76,7 @@ class TestActivity : ComponentActivity() {
                 }
 
                 // ✅ 테스트용 이미지 파일 준비
-                val imageFile = File(cacheDir, "test_image.jpg")
+                val imageFile = File(cacheDir, "test_rabbit.png")
                 if (!imageFile.exists()) {
                     try {
                         FileOutputStream(imageFile).use { out ->
@@ -106,7 +106,7 @@ class TestActivity : ComponentActivity() {
                 // ✅ ViewModel에서 데이터 로드
                 withContext(Dispatchers.Main) {
                     viewModel.loadDiaries(page = 0, date = null)
-                    viewModel.loadAllDiaries()
+                    //viewModel.loadAllDiaries()
                     viewModel.loadAllRecordedDates()
                 }
             } catch (e: Exception) {
@@ -114,69 +114,4 @@ class TestActivity : ComponentActivity() {
             }
         }
     }
-
-//    private fun prepareTest() {
-//        CoroutineScope(Dispatchers.IO).launch {
-//            // 1. 사용자 가입 및 로그인
-////            if (!userRepository.isIdAlreadyOccupied(id = TestValues.ID)) {
-////                userRepository.join(
-////                    id = TestValues.ID,
-////                    password = TestValues.PASSWORD,
-////                    name = TestValues.NAME,
-////                    nickname = TestValues.NICKNAME,
-////                    email = TestValues.EMAIL
-////                )
-////            }
-//            userRepository.login(
-//                id = TestValues.ID,
-//                password = TestValues.PASSWORD
-//            )
-//
-//            // 2. diaryRepository를 이용하여 일기 관련 작업 수행
-//            // 2.1. 카테고리 조회 (없으면 생성)
-//            var categories = diaryRepository.getAllCategoryInfo()
-//            val categoryId = if (categories.isNotEmpty()) {
-//                categories.first().id
-//            } else {
-//                diaryRepository.createCategory("TestCategory", CategoryColor.BLUE)
-//                categories = diaryRepository.getAllCategoryInfo()
-//                categories.first { it.name == "TestCategory" }.id
-//            }
-//
-//            // 2.2. 테스트용 이미지 파일 준비
-//            val imageFile = File(cacheDir, "test_image.jpg")
-//            if (!imageFile.exists()) {
-//                FileOutputStream(imageFile).use { out ->
-//                    resources.openRawResource(com.umc.data.R.raw.img_cafe).copyTo(out)
-//                }
-//            }
-//
-//            // ✅ **2.3. 기존 일기 조회 수정 (로그 추가)**
-//            val existingDiaries = diaryRepository.getDiaries(
-//                page = 1,
-//                date = null
-//            )
-//
-//            Log.d("TestActivity", "🔍 기존 일기 개수: ${existingDiaries.size}")
-//
-//            diaryRepository.createDiary(
-//                categoryId = categoryId,
-//                date = TestValues.TODAY,
-//                content = TestValues.CONTENT,
-//                image = imageFile,
-//                latitude = TestValues.LATITUDE,
-//                longitude = TestValues.LONGITUDE,
-//                locationName = "서울 어딘가"
-//            )
-//
-//            // ✅ **2.4. 일기 불러오기 (로그 추가)**
-//            //val diaries = diaryRepository.getDiaries(page = 1, date = TestValues.TODAY.toLocalDate())
-//
-//            // ✅ **뷰모델에서 초기 데이터 로드**
-//            withContext(Dispatchers.Main) {
-//                viewModel.loadDiaries(page = 1, date = null)
-//                viewModel.loadAllDiaries()
-//            }
-//        }
-//    }
 }

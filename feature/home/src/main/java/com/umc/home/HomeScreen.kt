@@ -124,164 +124,205 @@ fun HomeScreen(
 //    var isDetailModalVisible by remember { mutableStateOf(false) }
 //    // 🔹 검색 실행 여부를 추적하는 변수
 //
+    var topBarHeight by remember { mutableStateOf(65.dp) }
+
     var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
 
     var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
 
 
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
 
-    Scaffold(
-        topBar = {
-            TopBarComponent(
-                isExpanded = isCalendarVisible,
-                isSearchVisible = isSearchVisible,
-                searchQuery = searchQuery,
-                onQueryChange = onQueryChange,
-                searchResults = searchResults,
-                isSearchTriggered = isSearchTriggered,
-                onSearch = { onSearch(searchQuery) },
-                onSearchToggle = onSearchToggle,
-                onCalendarToggle = onCalendarToggle,
-                calendarContent = { modifier ->
-                    CalendarView(
-                        modifier = modifier,
-                        onDateSelected = { selectedDate ->
-                            Log.d("HomeScreen", "📌 2. CalendarView에서 날짜 선택됨: $selectedDate")
-                            onNavigateToFilteredDiaryScreen(selectedDate) // 🔹 네비게이션 실행
-                        },
-                        diaryDates = allDiaryDates
-                    )
-                },
-                recentSearches = recentSearches,
-                onRecentSearchClick = onRecentSearchClick
-            )
-        },
-        bottomBar = {
+            // ✅ 1. TopBarComponent (항상 상단에 고정)
+
+
+            Box(
+                modifier = Modifier
+                    .weight(1f) // ✅ LazyColumn이 BottomNavigation을 밀어내지 않도록 가변 높이 적용
+                    //.background(Color(0xFFFEF6F2)) // ✅ 부드러운 배경색 추가
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFFFEF6F2))
+                        .padding(top = 50.dp)
+                ) {
+
+                    if (diaryList.isNotEmpty()){
+
+                        // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
+                        LazyColumn(
+                            state = lazyListState,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            item { Spacer(modifier = Modifier.height(50.dp)) }
+                            items(diaryList) { diary ->
+                                DiaryCard(
+                                    diary = diary,
+                                    onDetailClick = {
+                                        selectedDiaryId = diary.id
+                                        onShowDetailModal()
+                                    }
+                                )
+                            }
+                        }
+                    } else if (!isExpanded && !isSearchVisible) {
+                        // ✅ 다이어리가 없을 경우 빈 화면 표시
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            contentAlignment = Alignment.BottomCenter // ✅ 이미지가 하단에 붙도록 정렬
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.invitation), // ✅ Drawable에 있는 이미지 사용
+                                contentDescription = "초대장 이미지",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            )
+                        }
+                    }
+
+
+//                    if ((isSearchVisible && searchResults.isNotEmpty()) || (!isSearchVisible && diaryList.isNotEmpty()) || (!isSearchVisible && searchResults.isEmpty())) {
+//
+//                        // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
+//                        LazyColumn(
+//                            state = lazyListState,
+//                            modifier = Modifier.fillMaxSize()
+//                        ) {
+//                            item { Spacer(modifier = Modifier.height(50.dp)) }
+//                            items(if (searchResults.isNotEmpty()) searchResults else diaryList) { diary ->
+//                                DiaryCard(
+//                                    diary = diary,
+//                                    onDetailClick = {
+//                                        selectedDiaryId = diary.id
+//                                        onShowDetailModal()
+//                                    }
+//                                )
+//                            }
+//                        }
+//                    } else if (!isExpanded && !isSearchVisible) {
+//                        // ✅ 다이어리가 없을 경우 빈 화면 표시
+//                        Box(
+//                            modifier = Modifier
+//                                .fillMaxSize(),
+//                            contentAlignment = Alignment.BottomCenter // ✅ 이미지가 하단에 붙도록 정렬
+//                        ) {
+//                            Image(
+//                                painter = painterResource(id = R.drawable.invitation), // ✅ Drawable에 있는 이미지 사용
+//                                contentDescription = "초대장 이미지",
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                            )
+//                        }
+//                    }
+                }
+
+                TopBarComponent(
+                    navController = navController,
+                    isExpanded = isCalendarVisible,
+                    isSearchVisible = isSearchVisible,
+                    searchQuery = searchQuery,
+                    onQueryChange = onQueryChange,
+                    searchResults = searchResults,
+                    isSearchTriggered = isSearchTriggered,
+                    onSearch = { onSearch(searchQuery) },
+                    onSearchToggle = onSearchToggle,
+                    onCalendarToggle = onCalendarToggle,
+                    calendarContent = { modifier ->
+                        CalendarView(
+                            modifier = modifier,
+                            onDateSelected = { selectedDate ->
+                                Log.d("HomeScreen", "📌 2. CalendarView에서 날짜 선택됨: $selectedDate")
+                                onNavigateToFilteredDiaryScreen(selectedDate) // 🔹 네비게이션 실행
+                            },
+                            diaryDates = allDiaryDates
+                        )
+                    },
+                    recentSearches = recentSearches,
+                    onRecentSearchClick = onRecentSearchClick,
+                    onHeightChange = { height -> topBarHeight = height }
+
+                )
+                // ✅ 드래그 가능 영역
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset(y = topBarHeight)
+                        .height(30.dp)
+                        .background(Color.Transparent),
+                    contentAlignment = Alignment.Center
+                ) {
+                    IconButton(
+                        modifier = Modifier.size(42.dp, 14.dp),
+                        onClick = { onCalendarToggle() }
+                    ) {
+                        Image(
+                            painter = painterResource(id = dragIcon), // 드래그 아이콘 변경
+                            contentDescription = null,
+                            modifier = Modifier
+                                .width(42.dp)
+                                .height(14.dp)
+                        )
+                    }
+                }
+            }
+
+            // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)
             BottomNavigationBarWithFAB(
                 selectedTab = "diary",
                 onTabSelected = { /* 탭 변경 로직 */ },
                 onFabClick = onFabClick
             )
-        },
-        contentWindowInsets = WindowInsets.systemBars
-    ) { innerPadding ->
+        }
+    }
 
-        Column(
+    // 디테일 모달창 (수정/삭제)
+    // 모달이 열렸을 때만 FullSize 배경 클릭 이벤트 처리
+    if (isDetailModalVisible) {
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFFEF6F2))
-                .padding(innerPadding)
-        ) {
-            // 드래그 가능 영역
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(30.dp)
-                    .background(Color.Transparent),
-                contentAlignment = Alignment.Center
-            ) {
-                IconButton(
-                    modifier = Modifier.size(42.dp, 14.dp),
-                    onClick = {
-                        onCalendarToggle()
-                    }
-                ) {
-                    Image(
-                        painter = painterResource(id = dragIcon), // 드래그 아이콘 변경
-                        contentDescription = null,
-                        modifier = Modifier
-                            .width(42.dp)
-                            .height(14.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            if ((isSearchVisible && searchResults.isNotEmpty()) || (!isSearchVisible && diaryList.isNotEmpty()) || (!isSearchVisible && searchResults.isEmpty())) {
-                // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
-                LazyColumn(state = lazyListState) {
-                    items(if (searchResults.isNotEmpty()) searchResults else diaryList) { diary ->
-                        DiaryCard(
-                            diary = diary,
-                            onDetailClick = {
-                                selectedDiaryId = diary.id
-                                onShowDetailModal()
-                            }
-                        )
-                    }
-                }
-            } else if (!isExpanded && !isSearchVisible) {
-                // ✅ 다이어리가 없을 경우 빈 화면 표시
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.BottomCenter // ✅ 이미지가 하단에 붙도록 정렬
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.invitation), // ✅ Drawable에 있는 이미지 사용
-                        contentDescription = "초대장 이미지",
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                }
-            }
-
-        }
-    }
-//        // 커스텀 플로팅 버튼 자리
-//        Box(
-//            modifier = Modifier.fillMaxSize(),
-//            contentAlignment = Alignment.BottomCenter
-//        ) {
-//            CustomFloatingImageButton(onClick = onFabClick)
-//        }
+                .clickable(
+                    onClick = onDismissDetailModal, // 모달 외부 클릭 시 닫기
+                    indication = null, // 클릭 애니메이션 제거
+                    interactionSource = remember { MutableInteractionSource() }
+                )
+        )
 
         // 디테일 모달창 (수정/삭제)
-        // 모달이 열렸을 때만 FullSize 배경 클릭 이벤트 처리
-        if (isDetailModalVisible) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(
-                        onClick = onDismissDetailModal, // 모달 외부 클릭 시 닫기
-                        indication = null, // 클릭 애니메이션 제거
-                        interactionSource = remember { MutableInteractionSource() }
-                    )
-            )
-
-            // 디테일 모달창 (수정/삭제)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.BottomCenter // 하단 중앙 정렬
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter // 하단 중앙 정렬
+        ) {
+            AnimatedVisibility(
+                visible = isDetailModalVisible,
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
             ) {
-                AnimatedVisibility(
-                    visible = isDetailModalVisible,
-                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-                    exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
-                ) {
-                    // 모달 내용
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .clickable(
-                                onClick = { /* 모달 내부 클릭 시 닫히지 않음 */ },
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }
-                            )
-                    ) {
-                        DetailModal(
-                            onDismiss = onDismissDetailModal,
-                            onDelete = { onDeleteDiary(selectedDiaryId!!) },
-                            onEdit = { navController.navigate("edit_record/${selectedDiaryId!!}") }
+                // 모달 내용
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .clickable(
+                            onClick = { /* 모달 내부 클릭 시 닫히지 않음 */ },
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
                         )
-                    }
+                ) {
+                    DetailModal(
+                        onDismiss = onDismissDetailModal,
+                        onDelete = { onDeleteDiary(selectedDiaryId!!) },
+                        onEdit = { navController.navigate("edit_record/${selectedDiaryId!!}") }
+                    )
                 }
             }
         }
     }
+}
 
 @Composable
 fun DetailModal(
@@ -333,7 +374,10 @@ fun DetailModal(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4B4B4B),
-                        modifier = Modifier.clickable { onEdit() }
+                        modifier = Modifier.clickable {
+                            onEdit()
+                            onDismiss()
+                        }
                     )
 
                     Spacer(modifier = Modifier.height(18.dp))
