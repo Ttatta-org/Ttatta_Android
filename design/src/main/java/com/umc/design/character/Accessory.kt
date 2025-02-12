@@ -1,0 +1,116 @@
+package com.umc.design.character
+
+import androidx.annotation.DrawableRes
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import com.umc.design.R
+
+enum class Accessory(
+    val code: String,
+    val title: String,
+    val characterType: CharacterType,
+    val bodyPart: BodyPart,
+    @DrawableRes val res: Int,
+    val offset: Offset,
+    val size: Size,
+) {
+    TTOTTO_BAG(
+        code = "TTOTTO_BAG",
+        title = "또또의 가방",
+        characterType = CharacterType.TTOTTO,
+        bodyPart = BodyPart.TORSO,
+        res = R.drawable.img_ttotto_bag,
+        offset = Offset(29f, 56f),
+        size = Size(117f, 91f),
+    ),
+    TTOTTO_CAP(
+        code = "TTOTTO_CAP",
+        title = "또또의 캡모자",
+        characterType = CharacterType.TTOTTO,
+        bodyPart = BodyPart.HEAD,
+        res = R.drawable.img_ttotto_cap,
+        offset = Offset(56f, -8f),
+        size = Size(68f, 28f),
+    ),
+    TTOTTO_COZY_MUFFLER(
+        code = "TTOTTO_COZY_MUFFLER",
+        title = "또또의 포근한 머플러",
+        characterType = CharacterType.TTOTTO,
+        bodyPart = BodyPart.TORSO,
+        res = R.drawable.img_ttotto_cozy_muffler,
+        offset = Offset(29f, 57f),
+        size = Size(118f, 86f),
+    ),
+    TTOTTO_HAT(
+        code = "TTOTTO_HAT",
+        title = "또또의 모자",
+        characterType = CharacterType.TTOTTO,
+        bodyPart = BodyPart.HEAD,
+        res = R.drawable.img_ttotto_hat,
+        offset = Offset(32f, -4f),
+        size = Size(53f,23f),
+    ),
+    TTOTTO_SSAMGBBONG_SUNGLASSES(
+        code = "TTOTTO_SSAMGBBONG_SUNGLASSES",
+        title = "또또의 쌈뽕한 선글라스",
+        characterType = CharacterType.TTOTTO,
+        bodyPart = BodyPart.HEAD,
+        res = R.drawable.img_ttotto_ssambbong_sunglasses,
+        offset = Offset(57f, 1f),
+        size = Size(70f, 26f),
+    ),
+    TTOTTO_YUMMY_ICE_CREAM(
+        code = "TTOTTO_YUMMY_ICE_CREAM",
+        title = "또또의 옴뇸뇸 아이스크림",
+        characterType = CharacterType.TTOTTO,
+        bodyPart = BodyPart.TORSO,
+        res = R.drawable.img_ttotto_yummy_ice_cream,
+        offset = Offset(79f, 33f),
+        size = Size(92f, 95f),
+    ),
+    TTUTTU_BAG(
+        code = "TTUTTU_BAG",
+        title = "뚜뚜의 가방",
+        characterType = CharacterType.TTUTTU,
+        bodyPart = BodyPart.TORSO,
+        res = R.drawable.img_ttuttu_bag,
+        offset = Offset(37f, 68f),
+        size = Size(162f, 126f),
+    ),
+    TTUTTU_BLING_CAMERA(
+        code = "TTUTTU_CAMERA",
+        title = "뚜뚜의 반짝반짝 카메라",
+        characterType = CharacterType.TTUTTU,
+        bodyPart = BodyPart.TORSO,
+        res = R.drawable.img_ttuttu_bling_camera,
+        offset = Offset(37f, 68f),
+        size = Size(129f, 94f),
+    ),
+    TTUTTU_HAT(
+        code = "TTUTTU_HAT",
+        title = "뚜뚜의 모자",
+        characterType = CharacterType.TTUTTU,
+        bodyPart = BodyPart.HEAD,
+        res = R.drawable.img_ttuttu_hat,
+        offset = Offset(37f, -4f),
+        size = Size(64f, 28f),
+    ),
+    TTUTTU_PERL_NECKLACE(
+        code = "TTUTTU_PERL_NECKLACE",
+        title = "뚜뚜의 진주 목걸이",
+        characterType = CharacterType.TTUTTU,
+        bodyPart = BodyPart.TORSO,
+        res = R.drawable.img_ttuttu_perl_necklace,
+        offset = Offset(74f, 90f),
+        size = Size(70f, 24f),
+    ),
+    TTUTTU_THREE_COLOR_BALLOONS(
+        code = "TTUTTU_THREE_COLOR_BALLOONS",
+        title = "뚜뚜의 삼색풍선",
+        characterType = CharacterType.TTUTTU,
+        bodyPart = BodyPart.TORSO,
+        res = R.drawable.img_ttuttu_three_color_balloons,
+        offset = Offset(108f, -101f),
+        size = Size(135f, 202f),
+    )
+}
