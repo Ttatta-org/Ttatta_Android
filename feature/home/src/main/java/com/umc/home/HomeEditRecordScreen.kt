@@ -1,6 +1,8 @@
 package com.umc.home
 
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -51,26 +53,41 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavHostController
 import coil3.compose.rememberAsyncImagePainter
+import coil3.request.ImageRequest
+import coil3.svg.SvgDecoder
+import com.umc.core.model.Diary
+import com.umc.home.utils.formatToKorean
+import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.umc.design.R as Res
 
 @Composable
 fun HomeEditRecordScreen(
-    diary: EditDiary, // 기존 다이어리 데이터
-    onUpdateDiary: (EditDiary) -> Unit // 추후 Diary로 변경 필요, 수정 완료 시 다이어리 업데이트 콜백
+    diary: Diary, // ✅ 클릭된 다이어리 정보
+    //viewModel: HomeViewModel, // ViewModel 전달받기
+    navController: NavHostController, // NavController 전달받기
+    onModifyDiary: (Long, String, File?) -> Unit
 ) {
     var todayRecord by remember { mutableStateOf(diary.content) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(Uri.parse(diary.imageUrl)) }
-    var selectedCategory by remember { mutableStateOf("남자친구") } // 기본 카테고리
+    // 카테고리가 없는 관계로 임의의 기본 카테고리 값 만듦
+    //var selectedCategory by remember { mutableStateOf(diary.category) } // ✅ 기존 카테고리 표시
+    var selectedCategory by remember { mutableStateOf("일상") } // ✅ 여기서 기본값을 설정
+
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -100,7 +117,7 @@ fun HomeEditRecordScreen(
             // Date (변경 불가)
             CommonText(
                 label = "날짜",
-                text = diary.date.format(DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")),
+                text = diary.date.formatToKorean(),
                 onTextChange = { }
             )
             Spacer(Modifier.height(17.dp))
@@ -108,7 +125,7 @@ fun HomeEditRecordScreen(
             // Location (변경 불가)
             CommonText(
                 label = "나의 발자국",
-                text = diary.content,
+                text = diary.locationName,
                 onTextChange = { }
             )
             Spacer(Modifier.height(17.dp))
@@ -139,11 +156,33 @@ fun HomeEditRecordScreen(
             // Button
             Button(
                 onClick = {
-                    val updatedDiary = diary.copy(
-                        imageUrl = selectedImageUri?.toString() ?: diary.imageUrl,
-                        content = todayRecord
-                    )
-                    onUpdateDiary(updatedDiary) // 다이어리 수정 후 저장
+                    val imageFile = selectedImageUri?.let { uri -> File(uri.path!!) }
+//                    onModifyDiary(diary.id, todayRecord, imageFile)
+                    // ✅ 이미지 수정 안 할 경우 null 전달
+                    onModifyDiary(diary.id, todayRecord, null)
+                    //navController.popBackStack()
+
+//                    val updatedDiary = diary.copy(
+//                        imageUrl = selectedImageUri?.toString() ?: diary.imageUrl,
+//                        content = todayRecord
+//                    )
+//                    // ✅ ViewModel을 통해 API 호출
+//                    viewModel.modifyDiary(
+//                        diaryId = updatedDiary.id,
+//                        categoryId = null, // 카테고리 변경 기능 추가 가능
+//                        content = updatedDiary.content,
+////                        image = selectedImageUri?.let { uri ->
+////                            File(uri.path!!) // Uri를 File로 변환 (주의: 실제 앱에서는 파일 변환 로직을 별도로 처리해야 함)
+////                        },
+//                        image = null,
+//                        onSucceed = {
+//                            Log.d("HomeEditRecordScreen", "✅ 수정 성공!")
+//                            navController.popBackStack() // ✅ 수정 완료 후 이전 화면으로 이동
+//                        },
+//                        onFailed = { e ->
+//                            Log.e("HomeEditRecordScreen", "❌ 수정 실패: ${e.message}", e)
+//                        }
+//                    )
                 },
                 shape = RoundedCornerShape(28.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFCAD98)),
@@ -172,32 +211,47 @@ fun HomeEditRecordScreen(
 
 @Composable
 fun Topbar() {
+
+    val context = LocalContext.current
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(97.dp) // TopBar 높이
+            .height(65.dp) // TopBar 높이
     ) {
         // 배경 이미지
         Image(
-            painter = painterResource(id = R.drawable.img_topbar),
-            contentDescription = "Top Bar Background",
-            modifier = Modifier.fillMaxSize()
+            painter = rememberAsyncImagePainter(
+                model = ImageRequest.Builder(context)
+                    .data("android.resource://${context.packageName}/${R.raw.view_top_bar}") // ✅ SVG 파일
+                    .decoderFactory(SvgDecoder.Factory()) // ✅ SVG 지원
+                    .build(),
+                error = BitmapPainter( // ✅ 에러 시 사용할 기본 이미지
+                    BitmapFactory.decodeResource(
+                        context.resources, R.raw.view_top_bar_for_preview
+                    ).asImageBitmap()
+                )
+            ),
+            contentDescription = "배경 이미지",
+            alignment = Alignment.BottomCenter,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxWidth(), // 필요에 따라 수정
         )
 
         // TopBar 요소
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.dp, vertical = 12.dp)
-                .zIndex(1f), // 이미지 위에 아이콘 배치
+                .fillMaxWidth()
+                .padding(horizontal = 28.dp, vertical = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 로고 이미지
-            Icon(
-                painter = painterResource(id = R.drawable.img_logo),
-                contentDescription = "Logo",
-                modifier = Modifier.size(30.dp),
-                tint = Color.Unspecified // 원본 색 유지
+            // 왼쪽 로고
+            Image(
+                painter = painterResource(id = R.drawable.ic_ttatta_logo),
+                contentDescription = "로고",
+                modifier = Modifier
+                    .width(30.dp)
+                    .height(26.dp)
             )
         }
     }
@@ -877,16 +931,23 @@ fun CustomCategoryField(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewHomeEditRecordScreen() {
-    HomeEditRecordScreen(
-        diary = EditDiary(
-            id = 1,
-            date = LocalDateTime.now(),
-            imageUrl = "",
-            content = "기본 내용"
-        ),
-        onUpdateDiary = {} // 미리보기에서는 빈 함수 전달
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewHomeEditRecordScreen() {
+//    val dummyDiary = Diary(
+//        id = 1,
+//        date = LocalDateTime.now(),
+//        imageUrl = "",
+//        content = "기본 내용",
+//        locationName = "서울 어딘가" // ✅ 기본 위치 추가
+//    )
+//
+//    // ✅ Fake ViewModel 없이 간단한 객체 전달
+//    val fakeNavController = remember { NavHostController(LocalContext.current) }
+//
+//    HomeEditRecordScreen(
+//        diary = dummyDiary,
+//        viewModel = object : HomeViewModel() {}, // ✅ Preview 용 빈 ViewModel 객체
+//        navController = fakeNavController // ✅ Preview 용 빈 NavController
+//    )
+//}

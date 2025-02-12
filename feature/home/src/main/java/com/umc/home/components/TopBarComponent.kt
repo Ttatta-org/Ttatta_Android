@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,9 +32,11 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.umc.home.R
 import com.umc.home.RecentSearches
@@ -44,18 +47,20 @@ import com.umc.core.model.Diary
 
 @Composable
 fun TopBarComponent(
+    navController: NavHostController,
     isExpanded: Boolean,
     isSearchVisible: Boolean,
     searchQuery: String,
     searchResults: List<Diary>,
     isSearchTriggered: Boolean,
     onQueryChange: (String) -> Unit,
-    onSearch: () -> Unit,
+    onSearch: (String) -> Unit,
     onSearchToggle: () -> Unit,
     onCalendarToggle: () -> Unit,
     calendarContent: @Composable (Modifier) -> Unit,
     recentSearches: List<String>, // 최근 검색어 리스트 추가
-    onRecentSearchClick: (String) -> Unit // 최근 검색어 클릭 동작 추가
+    onRecentSearchClick: (String) -> Unit, // 최근 검색어 클릭 동작 추가
+    onHeightChange: (Dp) -> Unit
 ) {
     val baseHeight = when {
         isSearchVisible -> 230.dp
@@ -66,11 +71,16 @@ fun TopBarComponent(
 
     val context = LocalContext.current
 
+    // ✅ 높이 값이 변경될 때 외부로 전달 (dragIcon 위치 조정 가능)
+    LaunchedEffect(imageHeight) {
+        onHeightChange(imageHeight)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets.systemBars)
-            .height(imageHeight),
+            .height(imageHeight)
+            .background(Color.Transparent),
         contentAlignment = Alignment.BottomCenter,
     ) {
         // 배경 이미지
@@ -134,7 +144,7 @@ fun TopBarComponent(
                             SearchBar(
                                 query = searchQuery,
                                 onQueryChange = onQueryChange,
-                                onSearch = onSearch,
+                                onSearch = { onSearch(searchQuery) },
                                 modifier = Modifier.weight(4f)
                             )
                         } else {
@@ -157,10 +167,17 @@ fun TopBarComponent(
                         // 검색 아이콘 (항상 동일한 위치에 유지)
                         IconButton(
                             onClick = {
+//                                if (isSearchVisible) {
+//                                    onSearch()
+//                                }
+//                                onSearchToggle()
                                 if (isSearchVisible) {
-                                    onSearch()
+                                    onSearch(searchQuery)
+                                    onSearchToggle() // ✅ 검색 후 검색창 닫기
+                                    navController.navigate("search")
+                                } else {
+                                    onSearchToggle() // ✅ 검색창을 열기
                                 }
-                                onSearchToggle()
                             },
                             modifier = Modifier.size(24.dp)
                         ) {
@@ -195,7 +212,7 @@ fun TopBarComponent(
                         .padding(horizontal = 40.dp),
                     contentAlignment = Alignment.TopStart
                 ) {
-                    if (isSearchTriggered && searchResults.isEmpty()) { // 🔹 검색 버튼을 눌렀을 때만 검사
+                    if (searchResults.isEmpty()) { // 🔹 검색 버튼을 눌렀을 때만 검사
                         Log.d("HomeScreen", "🚫 검색 결과 없음")
                         Row(
                             modifier = Modifier
@@ -235,40 +252,6 @@ fun TopBarComponent(
     }
 }
 
-
-
-
-
-// 검색창 모양의 Composable 함수
-//@Composable
-//fun SearchBar(
-//    query: String,
-//    onQueryChange: (String) -> Unit,
-//    onSearch: () -> Unit,
-//    modifier: Modifier = Modifier
-//) {
-//    // 검색창
-//    Row(
-//        modifier = Modifier
-//            .background(
-//                color = Color(0xFFFEF6F2), // 배경 색상
-//                shape = RoundedCornerShape(15.dp) // 둥근 모서리
-//            )
-//            //.fillMaxWidth()
-//            .padding(start = 10.dp, end = 55.dp, top = 5.dp, bottom = 5.dp), // 안쪽 여백
-//        verticalAlignment = Alignment.CenterVertically
-//    ) {
-//        Text(
-//            text = "찾고 싶은 내용을 입력해주세요!", // placeholder 텍스트
-//            fontSize = 13.sp,
-//            color = Color(0xFFCACACA),
-//            modifier = Modifier.padding(start = 8.dp)
-//        )
-//    }
-//}
-
-
-
 @Composable
 fun SearchBar(
     query: String,
@@ -283,14 +266,16 @@ fun SearchBar(
                 shape = RoundedCornerShape(15.dp)
             )
             .padding(horizontal = 10.dp, vertical = 5.dp)
-            .fillMaxWidth()
+            .fillMaxWidth(),
+        contentAlignment = Alignment.CenterStart
     ) {
         // Placeholder 텍스트를 기본 텍스트처럼 보이게
         if (query.isEmpty()) {
             Text(
                 text = "찾고 싶은 내용을 입력해주세요!",
                 fontSize = 13.sp,
-                color = Color(0xFFCACACA)
+                color = Color(0xFFCACACA),
+                modifier = Modifier.padding(start = 4.dp)
             )
         }
 
@@ -312,7 +297,7 @@ fun SearchBar(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp)
+                .padding(start = 4.dp)
         )
     }
 }

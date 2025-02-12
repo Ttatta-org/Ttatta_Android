@@ -2,6 +2,7 @@ package com.umc.home
 
 import android.text.Layout
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -49,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.core.model.Diary
@@ -65,6 +67,7 @@ import java.time.YearMonth
 @Composable
 fun FilteredDiaryScreen(
     viewModel: HomeViewModel,
+    navController: NavHostController,
     selectedDate: LocalDate,
     diaryList: List<Diary>,
     isSearchVisible: Boolean,
@@ -72,16 +75,17 @@ fun FilteredDiaryScreen(
     isSearchTriggered: Boolean,
     searchResults: List<Diary>,
     searchQuery: String,
+    recentSearches: List<String>,
     onQueryChange: (String) -> Unit,
-    onSearch: () -> Unit,
+    onSearch: (String) -> Unit,
     onFabClick: () -> Unit,
     onSearchToggle: () -> Unit,
     onCalendarToggle: () -> Unit,
     onRecentSearchClick: (String) -> Unit,
-    onNavigateToFilteredDiaryScreen: (LocalDate) -> Unit,
     onShowDetailModal: () -> Unit,
     onDismissDetailModal: () -> Unit,
-    isDetailModalVisible: Boolean
+    isDetailModalVisible: Boolean,
+    onDeleteDiary: (Long) -> Unit,
 ) {
 
     Log.d("FilteredDiaryScreen", "🔥 화면 넘어가는 Composable 실행됨 - 날짜: $selectedDate")
@@ -95,6 +99,10 @@ fun FilteredDiaryScreen(
             color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
         )
     }
+
+    var topBarHeight by remember { mutableStateOf(65.dp) }
+
+    var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
 //
 //
 //    val filteredDiaries = diaryList.filter { it.date.toLocalDate() == selectedDate }
@@ -119,85 +127,151 @@ fun FilteredDiaryScreen(
 //    SideEffect {
 //        Log.d("FilteredDiaryScreen", "⚡ SideEffect 실행 - UI 강제 업데이트")
 //    }
+    val filteredDiaries by viewModel.filteredDiaryListState.collectAsState()
 
-//    // 선택한 날짜가 변경되면 해당 날짜에 맞는 일기 목록을 불러옴
-//    LaunchedEffect(selectedDate) {
-//        viewModel.loadDiaries(page = 1, date = selectedDate)
+    // 선택한 날짜가 변경되면 해당 날짜에 맞는 일기 목록을 불러옴
+    LaunchedEffect(selectedDate) {
+        Log.d("FilteredDiaryScreen", "📌 선택된 날짜 변경됨: $selectedDate")
+        viewModel.loadDiaries(page = 0, date = selectedDate, isFiltered = true)
+    }
+
+//    BackHandler {
+//        Log.d("FilteredDiaryScreen", "🔙 뒤로 가기 감지 - 필터 해제")
+//        viewModel.loadDiaries(page = 0, date = null, isFiltered = false)
+//        viewModel.updateSearchQuery("") // ✅ 검색어 초기화
+//        navController.popBackStack() // 홈 화면으로 돌아가기
 //    }
 
 
-    Scaffold(
-        topBar = {
-            TopBarComponent(
-                isExpanded = isCalendarVisible,
-                isSearchVisible = isSearchVisible,
-                searchQuery = searchQuery,
-                onQueryChange = onQueryChange,
-                searchResults = searchResults,
-                isSearchTriggered = false, // 필요 시 추가 상태로 관리 가능
-                onSearch = onSearch,
-                onSearchToggle = onSearchToggle,
-                onCalendarToggle = onCalendarToggle,
-                calendarContent = { },
-                recentSearches = emptyList(),
-                onRecentSearchClick = onRecentSearchClick
-            )
-        },
-        bottomBar = {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+
+            Box(
+                modifier = Modifier
+                    .weight(1f) // ✅ LazyColumn이 BottomNavigation을 밀어내지 않도록 가변 높이 적용
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 60.dp) // ✅ TopBar와 겹치지 않도록 패딩 추가
+                        .background(Color(0xFFFEF6F2)) // ✅ 부드러운 배경색 추가
+                ) {
+                    if (selectedDate != null) {
+                        // ✅ 달력 날짜를 선택했으면 항상 `filteredDiaries` 표시
+                        item { Spacer(modifier = Modifier.height(20.dp)) }
+                        items(filteredDiaries) { diary ->
+                            FillteredDiaryByDate(
+                                diary = diary,
+                                onDetailClick = {
+                                    selectedDiaryId = diary.id
+                                    onShowDetailModal()
+                                }
+                            )
+                        }
+                    } else if (isSearchTriggered || isSearchVisible) {
+                        // ✅ 검색이 활성화되었거나, 검색창이 열려 있으면 `searchResults` 표시
+                        if (searchResults.isNotEmpty()) {
+                            item {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 25.dp, end = 25.dp)
+                                ) {
+                                    searchResults.forEach { diary ->
+                                        DiaryCard(
+                                            diary = diary,
+                                            onDetailClick = {
+                                                selectedDiaryId = diary.id
+                                                onShowDetailModal()
+                                            },
+                                        )
+                                    }
+                                }
+                            }
+                        } else {
+                            // ✅ 검색 결과가 없을 때 (예: 검색어에 맞는 다이어리가 없을 때)
+                            item {
+                                Text(
+                                    text = "검색 결과가 없습니다.",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    color = Color.Gray,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                }
+                TopBarComponent(
+                    navController = navController,
+                    isExpanded = isCalendarVisible,
+                    isSearchVisible = isSearchVisible,
+                    searchQuery = searchQuery,
+                    onQueryChange = onQueryChange,
+                    searchResults = searchResults,
+                    isSearchTriggered = isSearchTriggered,
+                    onSearch = { onSearch(searchQuery) },
+                    onSearchToggle = onSearchToggle,
+                    onCalendarToggle = onCalendarToggle,
+                    calendarContent = { },
+                    recentSearches = recentSearches,
+                    onRecentSearchClick = onRecentSearchClick,
+                    onHeightChange = { height -> topBarHeight = height }
+                )
+            }
+
+            // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)
             BottomNavigationBarWithFAB(
                 selectedTab = "home",
                 onTabSelected = { /* 탭 변경 로직 */ },
                 onFabClick = onFabClick
             )
-        },
-        contentWindowInsets = WindowInsets.systemBars
-    ) { innerPadding ->
-        Column(
+        }
+    }
+    // 디테일 모달창 (수정/삭제)
+    // 모달이 열렸을 때만 FullSize 배경 클릭 이벤트 처리
+    if (isDetailModalVisible) {
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFFEF6F2))
+                .clickable(
+                    onClick = onDismissDetailModal, // 모달 외부 클릭 시 닫기
+                    indication = null, // 클릭 애니메이션 제거
+                    interactionSource = remember { MutableInteractionSource() }
+                )
+        )
 
+        // 디테일 모달창 (수정/삭제)
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter // 하단 중앙 정렬
         ) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
+            AnimatedVisibility(
+                visible = isDetailModalVisible,
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
             ) {
-                if (searchResults.isNotEmpty() && isSearchTriggered) {
-
-                    item { // ✅ Column을 사용해 padding 적용
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 25.dp, end = 25.dp) // ✅ 검색 결과에만 padding 추가
-                        ) {
-                            searchResults.forEach { diary ->
-                                DiaryCard(
-                                    diary = diary,
-                                    onDetailClick = { /* isDetailModalVisible = true */ },
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    Log.d("FilteredDiaryScreen", "✅ 현재 diaryList 크기: ${diaryList.size}")
-                    diaryList.forEach { diary ->
-                        Log.d("FilteredDiaryScreen", "📝 일기 내용: ${diary.content}, 날짜: ${diary.date}")
-                    }
-
-
-                    items(diaryList) { diary ->
-                        Log.d("FilteredDiaryScreen", "📌 LazyColumn 내부 아이템: ${diary.content}")
-                        FillteredDiaryByDate(diary = diary, onDetailClick = { /* 디테일 보기 */ })
-                    }
-
-                    Log.d("FilteredDiaryScreen", "✅ LazyColumn에서 diaryList 렌더링 끝")
+                // 모달 내용
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .clickable(
+                            onClick = { /* 모달 내부 클릭 시 닫히지 않음 */ },
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        )
+                ) {
+                    DetailModal(
+                        onDismiss = onDismissDetailModal,
+                        onDelete = { onDeleteDiary(selectedDiaryId!!) },
+                        onEdit = { navController.navigate("edit_record/${selectedDiaryId!!}") }
+                    )
                 }
-
-
             }
         }
-
     }
 }
 
@@ -211,14 +285,12 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
-            .background(Color.Red)
     ) {
         Column(
             modifier = Modifier
                 .padding(top = 13.dp, bottom = 20.dp, start = 30.dp, end = 30.dp)
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .background(Color.Blue)
 
         ) {
             Column(
@@ -281,7 +353,7 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 날짜 텍스트
+            // 위치 텍스트
             Row(
                 modifier = Modifier
                     .wrapContentWidth()
@@ -301,7 +373,7 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Text(
-                    text = diary.date.formatToKorean(), // 날짜 텍스트
+                    text = diary.locationName,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = Color(0xFFFF9681), // 텍스트 색상
                         fontSize = 12.sp
