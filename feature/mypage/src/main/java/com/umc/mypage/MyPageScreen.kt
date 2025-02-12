@@ -102,7 +102,11 @@ fun MyPageScreen(
                             )
                             Spacer(modifier = Modifier.height(30.dp))
                         } else {
-                            Text(text = errorMessage ?: "유저 정보를 불러올 수 없습니다.", color = Color.Red)
+                            Text(
+                                text = errorMessage ?: "유저 정보를 불러오는 중입니다..",
+                                color = Color(0xFFFF8072),
+                                fontSize = 12.sp
+                            )
                         }
                     }
                 }
@@ -120,61 +124,6 @@ fun MyPageScreen(
 
         }
     }
-
-//    Box(modifier = Modifier.fillMaxSize()) {
-//        Scaffold(
-//            modifier = Modifier.background(Color.Transparent),
-//            topBar = { TopBarComponent() },
-//            bottomBar = {
-//                BottomNavigationBarWithFAB(
-//                    selectedTab = "mypage",
-//                    onTabSelected = { /* 탭 변경 로직 */ },
-//                    onFabClick = onFabClick
-//                )
-//            }
-//        ) { innerPadding ->
-//            LazyColumn(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .padding(innerPadding)
-//                    .background(Color(0xFFFEF6F2))
-//                    .padding(start = 25.dp, end = 25.dp),
-//                horizontalAlignment = Alignment.CenterHorizontally
-//            ) {
-//                // 프로필 섹션
-//                item { Spacer(modifier = Modifier.height(40.dp)) }
-//                item {
-//                    if (userInfo != null) {
-//                        ProfileSection(
-//                            name = userInfo.name,
-//                            profileImage = userInfo.profileImageUrl
-//                        )
-//                        Spacer(modifier = Modifier.height(20.dp))
-//
-//                        SummarySection(
-//                            diaryCount = userInfo.totalDiaryCount,
-//                            points = userInfo.point
-//                        )
-//                        Spacer(modifier = Modifier.height(22.dp))
-//
-//                        AppSettingsSection(
-//                            themeSubtitle = "기본 테마 사용 중",
-//                            notificationsEnabled = false,
-//                            passwordLockEnabled = false,
-//                            onThemeChangeClick = { /* 테마 변경 로직 */ },
-//                            onNotificationToggle = {  },  // ✅ 알림 설정 토글
-//                            onPasswordLockToggle = {  },  // ✅ 암호 잠금 설정 토글
-//                            onLeaveUser = onLeaveUser,  // ✅ 회원 탈퇴
-//                            onLogout = onLogout  // ✅ 로그아웃
-//                        )
-//                        Spacer(modifier = Modifier.height(30.dp))
-//                    } else {
-//                        Text(text = errorMessage ?: "유저 정보를 불러올 수 없습니다.", color = Color.Red)
-//                    }
-//                }
-//            }
-//        }
-//    }
 }
 
 @Composable
@@ -183,14 +132,7 @@ fun ProfileSection(name: String, profileImage: String?) {
     val displayName = "$name 님"
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-//        Image(
-//            painter = painterResource(id = profileImage),
-//            contentDescription = "프로필 이미지",
-//            modifier = Modifier
-//                .widthIn(min = 90.dp, max = 115.dp) // 디바이스 크기에 맞게 조정
-//                .clip(CircleShape),
-//            contentScale = ContentScale.Fit // 잘리지 않게 변경
-//        )
+
         AsyncImage(
             model = profileImage ?: R.drawable.default_profile, // ✅ URL이 없으면 기본 이미지 사용
             contentDescription = "프로필 이미지",
@@ -206,7 +148,7 @@ fun ProfileSection(name: String, profileImage: String?) {
         Text(
             text = displayName,
             style = MaterialTheme.typography.titleMedium.copy(
-                fontSize = 20.sp, // 텍스트 크기
+                fontSize = 22.sp, // 텍스트 크기
                 fontWeight = FontWeight.SemiBold // 텍스트 굵기
             ),
             color = Color(0xFF333333)
@@ -226,7 +168,7 @@ fun ProfileSection(name: String, profileImage: String?) {
         ) {
             Text(
                 text = "내 프로필 수정",
-                fontSize = 10.sp,
+                fontSize = 13.sp,
                 color = Color(0xFFFCAD98) // 텍스트 색상
             )
         }
@@ -271,13 +213,13 @@ fun SummaryItem(label: String, value: Number, modifier: Modifier = Modifier) {
         ) {
             Text(
                 text = label,
-                fontSize = 12.sp,
+                fontSize = 15.sp,
                 color = Color(0xFF4B4B4B),
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
                 text = pointNumberWithComma(value),
-                fontSize = 15.sp,
+                fontSize = 18.sp,
                 color = Color(0xFFFF7162),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
@@ -323,16 +265,16 @@ fun AppSettingsSection(
         Box {
             Column(
                 modifier = Modifier.padding(
-                    start = 40.dp,
+                    start = 35.dp,
                     top = 27.dp,
-                    end = 40.dp,
+                    end = 35.dp,
                     bottom = 27.dp
                 )
             ) {
                 // "앱 설정" 제목
                 Text(
                     text = "앱 설정",
-                    fontSize = 15.sp,
+                    fontSize = 18.sp,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W600),
                     color = Color(0xFF333333), // 제목 색상
                     modifier = Modifier.padding(bottom = 12.dp) // 아래 여백 추가
@@ -348,14 +290,14 @@ fun AppSettingsSection(
                 ) {
                     Text(
                         text = "테마 변경",
-                        fontSize = 12.sp,
+                        fontSize = 15.sp,
                         color = Color(0xFF8E8E8E),
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Spacer(modifier = Modifier.weight(1f)) // 여백 추가
                     Text(
                         text = themeSubtitle,
-                        fontSize = 12.sp,
+                        fontSize = 15.sp,
                         color = Color(0xFFAAAAAA), // 서브 텍스트 색상
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -383,7 +325,7 @@ fun AppSettingsSection(
                 // "기타" 제목
                 Text(
                     text = "기타",
-                    fontSize = 15.sp,
+                    fontSize = 18.sp,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W600),
                     color = Color(0xFF333333),
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -392,7 +334,7 @@ fun AppSettingsSection(
                 // 기타 설정
                 Text(
                     text = "탈퇴하기",
-                    fontSize = 12.sp,
+                    fontSize = 15.sp,
                     color = Color(0xFF8E8E8E),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
@@ -403,7 +345,7 @@ fun AppSettingsSection(
 
                 Text(
                     text = "로그아웃",
-                    fontSize = 12.sp,
+                    fontSize = 15.sp,
                     color = Color(0xFF8E8E8E),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
@@ -431,7 +373,7 @@ fun SettingSwitchItem(
     ) {
         Text(
             text = title,
-            fontSize = 12.sp,
+            fontSize = 15.sp,
             color = Color(0xFF8E8E8E),
             style = MaterialTheme.typography.bodyLarge
         )
