@@ -135,12 +135,12 @@ fun FilteredDiaryScreen(
         viewModel.loadDiaries(page = 0, date = selectedDate, isFiltered = true)
     }
 
-    BackHandler {
-        Log.d("FilteredDiaryScreen", "🔙 뒤로 가기 감지 - 필터 해제")
-        viewModel.loadDiaries(page = 0, date = null, isFiltered = false)
-        viewModel.updateSearchQuery("") // ✅ 검색어 초기화
-        navController.popBackStack() // 홈 화면으로 돌아가기
-    }
+//    BackHandler {
+//        Log.d("FilteredDiaryScreen", "🔙 뒤로 가기 감지 - 필터 해제")
+//        viewModel.loadDiaries(page = 0, date = null, isFiltered = false)
+//        viewModel.updateSearchQuery("") // ✅ 검색어 초기화
+//        navController.popBackStack() // 홈 화면으로 돌아가기
+//    }
 
 
     Box(modifier = Modifier.fillMaxSize()) {

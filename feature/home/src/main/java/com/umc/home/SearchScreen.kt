@@ -12,6 +12,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -110,13 +111,14 @@ fun SearchScreen(
                         .padding(top = 50.dp)
                 ) {
                     LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
+                        item { Spacer(modifier = Modifier.height(50.dp)) }
                         items(searchResults) { diary ->
                             DiaryCard(
                                 diary = diary,
                                 onDetailClick = {
-                                    // ✅ 검색 페이지에서도 상세 모달 띄울 수 있도록 추가
-                                    navController.navigate("edit_record/${diary.id}")
-                                }
+                                    selectedDiaryId = diary.id
+                                    onShowDetailModal()
+                                },
                             )
                         }
                     }
@@ -177,7 +179,7 @@ fun SearchScreen(
                 onFabClick = onFabClick
             )
         }
-// 디테일 모달창 (수정/삭제)
+        // 디테일 모달창 (수정/삭제)
         // 모달이 열렸을 때만 FullSize 배경 클릭 이벤트 처리
         if (isDetailModalVisible) {
             Box(
