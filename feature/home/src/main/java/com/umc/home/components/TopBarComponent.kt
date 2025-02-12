@@ -39,7 +39,6 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.umc.home.R
-import com.umc.home.RecentSearches
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.svg.SvgDecoder
@@ -299,6 +298,52 @@ fun SearchBar(
                 .fillMaxWidth()
                 .padding(start = 4.dp)
         )
+    }
+}
+
+
+@Composable
+fun RecentSearches(
+    recentSearches: List<String>, // 최근 검색어 리스트
+    onRecentSearchClick: (String) -> Unit // 클릭 시 동작
+) {
+    Log.d("RecentSearches", "최근 검색어 리스트: $recentSearches")
+
+    if (recentSearches.isNotEmpty()) { // ✅ 검색어가 있을 때만 표시
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = "최근 검색어",
+                fontSize = 14.sp,
+                color = Color(0xFF4B4B4B),
+                modifier = Modifier.padding(bottom = 10.dp)
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min) // ✅ Row 높이 최소 보장
+            ) {
+                recentSearches.take(3).forEach { search -> // 최대 3개만 표시
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(1.dp, Color(0xFFFDDDC1), RoundedCornerShape(16.dp))
+                            .background(Color(0xFFFEF6F2))
+                            .clickable { onRecentSearchClick(search) }
+                            .padding(horizontal = 10.dp, vertical = 5.dp) // ✅ 내부 패딩 키움
+                    ) {
+                        Text(
+                            text = search,
+                            fontSize = 12.sp, // ✅ 폰트 크기 키움
+                            color = Color(0xFF333333) // ✅ 더 진한 색상으로 변경
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

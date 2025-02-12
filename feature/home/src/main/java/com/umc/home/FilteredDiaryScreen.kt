@@ -387,14 +387,15 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-                    .padding(vertical = 5.dp, horizontal = 12.dp)
+                    .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(17.dp))
+                    .padding(vertical = 10.dp, horizontal = 12.dp)
             ) {
                 Text(
                     text = diary.content,
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = Color(0xFF4B4B4B), // 텍스트 색상
-                        fontSize = 12.sp
+                        fontSize = 14.sp,
+                        lineHeight = 16.sp
                     )
                 )
             }

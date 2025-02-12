@@ -45,6 +45,7 @@ fun AppNavHost(
     val searchResults by viewModel.searchResultsState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val recentSearches by viewModel.recentSearchesState.collectAsState()
+    Log.d("RecentSearches", "📌 UI에서 받은 최근 검색어: $recentSearches")
 
     // ✅ 전체 일기 목록을 가져옴
 //    val fullDiaryList by viewModel.fullDiaryListState.collectAsState()

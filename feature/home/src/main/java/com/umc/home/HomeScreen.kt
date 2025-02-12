@@ -371,8 +371,8 @@ fun DetailModal(
                 ) {
                     Text(
                         text = "수정하기",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF4B4B4B),
                         modifier = Modifier.clickable {
                             onEdit()
@@ -384,7 +384,7 @@ fun DetailModal(
 
                     Text(
                         text = "삭제하기",
-                        fontSize = 15.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4B4B4B),
                         modifier = Modifier.clickable { onDelete() }
@@ -554,45 +554,7 @@ fun CalendarView(
     }
 }
 
-@Composable
-fun RecentSearches(
-    recentSearches: List<String>, // 최근 검색어 리스트
-    onRecentSearchClick: (String) -> Unit // 클릭 시 동작
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            //.padding(top = 13.dp, start = 36.dp)
-    ) {
-        Text(
-            text = "최근 검색어",
-            fontSize = 12.sp,
-            color = (Color(0xFF4B4B4B)),
-            modifier = Modifier.padding(bottom = 5.dp)
-        )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            recentSearches.take(3).forEach { search -> // 최대 3개만 표시
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .border(1.dp, Color(0xFFFDDDC1), RoundedCornerShape(16.dp))
-                        .background(Color(0xFFFEF6F2))
-                        .clickable { onRecentSearchClick(search) }
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = search,
-                        fontSize = 10.sp,
-                        color = Color(0xFF8E8E8E)
-                    )
-                }
-            }
-        }
-    }
-}
+
 
 
 
@@ -643,7 +605,7 @@ fun DiaryCard(
                         text = diary.date.formatToKorean(), // 날짜 텍스트
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = Color(0xFFFF9681), // 텍스트 색상
-                            fontSize = 12.sp
+                            fontSize = 14.sp
                         )
                     )
                 }
@@ -708,7 +670,7 @@ fun DiaryCard(
                         text = diary.locationName, // locationName 위치 가져오기
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = Color(0xFFFF9681), // 텍스트 색상
-                            fontSize = 10.sp
+                            fontSize = 12.sp
                         )
                     )
                 }
@@ -719,14 +681,15 @@ fun DiaryCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-                        .padding(vertical = 5.dp, horizontal = 12.dp)
+                        .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(17.dp))
+                        .padding(vertical = 10.dp, horizontal = 12.dp)
                 ) {
                     Text(
                         text = diary.content,
                         style = MaterialTheme.typography.bodyLarge.copy(
                             color = Color(0xFF4B4B4B), // 텍스트 색상
-                            fontSize = 12.sp
+                            fontSize = 14.sp,
+                            lineHeight = 16.sp
                         )
                     )
                 }
