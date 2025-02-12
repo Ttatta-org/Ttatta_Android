@@ -1,14 +1,25 @@
 package com.umc.design.character
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -32,25 +43,46 @@ fun CharacterView(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Preview(showBackground = true)
 @Composable
 fun PreviewCharacterView() {
-    val accessorySet = remember {
-        AccessorySet.create(
-            Accessory.TTOTTO_COZY_MUFFLER,
-            Accessory.TTUTTU_THREE_COLOR_BALLOONS,
-            Accessory.TTUTTU_HAT,
-        )
-    }
+    val context = LocalContext.current
+    var accessorySet by remember { mutableStateOf(AccessorySet.create()) }
 
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp)
     ) {
-        CharacterView(
-            accessorySet = accessorySet,
-            width = 240.dp,
-            height = 480.dp
-        )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.weight(1f)
+        ) {
+            CharacterView(
+                accessorySet = accessorySet,
+                width = 240.dp,
+            )
+        }
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(
+                space = 16.dp,
+                alignment = Alignment.CenterHorizontally
+            ),
+        ) {
+            Accessory.entries.forEach { accessory ->
+                Button(
+                    onClick = {
+                        if (accessorySet.contains(accessory))
+                            accessorySet -= accessory
+                        else
+                            accessorySet = accessorySet.plusReplacingConflict(accessory)
+                    }
+                ) {
+                    Text(text = accessory.title)
+                }
+            }
+        }
     }
 }
