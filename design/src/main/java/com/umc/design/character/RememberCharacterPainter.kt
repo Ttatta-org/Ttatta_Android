@@ -41,7 +41,7 @@ private fun getNewCharacterPainter(
             BodyPart.HEAD,
             BodyPart.TORSO,
         ).map { bodyPart ->
-            accessorySet.values.firstOrNull {
+            accessorySet.firstOrNull {
                 it.characterType == characterType && it.bodyPart == bodyPart
             }?.let { accessory ->
                 ChildRenderInfo(
