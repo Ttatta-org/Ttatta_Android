@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ttatta</string>
+    <string name="app_name">따따</string>
     <string name="record_top_line_message">님!</string>
     <string name="record_body1_message">오늘은 어떤 추억을</string>
     <string name="record_body2_message">기록해볼까요?</string>
