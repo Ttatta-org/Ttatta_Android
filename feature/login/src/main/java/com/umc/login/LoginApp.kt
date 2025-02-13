@@ -4,9 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.umc.login.Join.JoinViewModel
 
 @Composable
-fun LoginApp(viewModel: LoginViewModel) {
+fun LoginApp(loginviewModel: LoginViewModel, joinviewModel: JoinViewModel, onNavigatingToHome: () -> Unit) {
     val navController = rememberNavController()
-    MainNavigation(navController)
+    MainNavigation(navController, loginviewModel, joinviewModel, onNavigatingToHome)
 }
