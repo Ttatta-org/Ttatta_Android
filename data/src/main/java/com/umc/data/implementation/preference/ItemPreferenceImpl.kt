@@ -1,33 +1,22 @@
 package com.umc.data.implementation.preference
 
 import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.umc.core.model.EquippedItem
 import com.umc.data.preference.ItemPreference
 
 class ItemPreferenceImpl(context: Context) : ItemPreference {
     companion object {
         private const val PREF_NAME = "item"
-        private const val TTOTTO_HEAD_ITEM_ID_KEY = "ttotto_head_item_id"
-        private const val TTOTTO_BODY_ITEM_ID_KEY = "ttotto_body_item_id"
-        private const val TTUTTU_HEAD_ITEM_ID_KEY = "ttuttu_head_item_id"
-        private const val TTUTTU_BODY_ITEM_ID_KEY = "ttuttu_body_item_id"
-
+        private const val ITEM_LIST_KET = "item_list"
     }
 
     private val pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+    private val type = object : TypeToken<List<EquippedItem>>() {}.type
+    private val gson = Gson()
 
-    override var ttottoBodyItemId: String?
-        get() = pref.getString(TTOTTO_BODY_ITEM_ID_KEY, null)
-        set(value) { pref.edit().putString(TTOTTO_BODY_ITEM_ID_KEY, value).apply() }
-
-    override var ttottoHeadItemId: String?
-        get() = pref.getString(TTOTTO_HEAD_ITEM_ID_KEY, null)
-        set(value) { pref.edit().putString(TTOTTO_HEAD_ITEM_ID_KEY, value).apply() }
-
-    override var ttuttuBodyItemId: String?
-        get() = pref.getString(TTUTTU_BODY_ITEM_ID_KEY, null)
-        set(value) { pref.edit().putString(TTUTTU_BODY_ITEM_ID_KEY, value).apply() }
-
-    override var ttuttuHeadItemId: String?
-        get() = pref.getString(TTUTTU_HEAD_ITEM_ID_KEY, null)
-        set(value) { pref.edit().putString(TTUTTU_HEAD_ITEM_ID_KEY, value).apply() }
+    override var itemList: List<EquippedItem>
+        get() = gson.fromJson(pref.getString(ITEM_LIST_KET, null), type)
+        set(value) { pref.edit().putString(ITEM_LIST_KET, gson.toJson(value)).apply() }
 }
