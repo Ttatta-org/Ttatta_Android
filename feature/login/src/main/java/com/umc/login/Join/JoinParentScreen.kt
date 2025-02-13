@@ -28,11 +28,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.umc.login.AnimatedProgressBar
+import com.umc.login.component.AnimatedProgressBar
 import com.umc.login.R
 
+
 @Composable
-fun JoinParentScreen(navController: NavHostController) {
+fun JoinParentScreen(navController: NavHostController, joinViewModel: JoinViewModel) {
     val localNavController = rememberNavController()
     var currentStep by remember { mutableStateOf(1) }
 
@@ -54,7 +55,7 @@ fun JoinParentScreen(navController: NavHostController) {
         ) {
             composable("nickname") {
                 LaunchedEffect(Unit) { currentStep = 1 }
-                JoinNicknameView(onNext = { localNavController.navigate("id") })
+                JoinNicknameView(joinViewModel, onNext = { localNavController.navigate("id") })
             }
             composable("id") {
                 LaunchedEffect(Unit) { currentStep = 2 }
@@ -132,5 +133,5 @@ fun JoinTopView(currentStep: Int, totalSteps: Int) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewJoinParentScreen() {
-    JoinParentScreen(navController = NavHostController(LocalContext.current))
+    //JoinParentScreen(navController = NavHostController(LocalContext.current), joinViewModel = JoinViewModel())
 }
