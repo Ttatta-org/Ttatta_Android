@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
@@ -23,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -94,4 +96,54 @@ fun LoginInputTextField( // 로그인 화면 텍스트필드
             }
         }
     }
+}
+
+@Composable
+fun NicknameInputTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    onImeAction: () -> Unit,
+    placeholder: String,
+    isWarning: Boolean,
+    errorMessage: String?,
+    isLoading: Boolean
+) {
+
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        textStyle = LocalTextStyle.current.copy(
+            textAlign = TextAlign.Center,
+            fontSize = 14.sp,
+            color = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
+        ),
+        placeholder = {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = placeholder,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight(600),
+                    color = colorResource(R.color.gray_500)
+                )
+            }
+        },
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(onDone = { onImeAction() }),
+        modifier = Modifier
+            .width(310.dp)
+            .height(51.dp),
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = colorResource(R.color.gray_500),
+            unfocusedIndicatorColor = colorResource(R.color.gray_500),
+            cursorColor = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
+        ),
+    )
 }
