@@ -1,8 +1,8 @@
-package com.umc.data.di
+package com.umc.data.di.repository
 
-import com.umc.core.repository.TtottuRepository
+import com.umc.core.repository.DiaryRepository
 import com.umc.data.api.ServerApi
-import com.umc.data.implementation.repository.TtottuRepositoryImpl
+import com.umc.data.implementation.repository.DiaryRepositoryImpl
 import com.umc.data.preference.AuthPreference
 import dagger.Module
 import dagger.Provides
@@ -12,14 +12,14 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object TtottuRepositoryModule {
+object DiaryRepositoryModule {
     @Provides
     @Singleton
-    fun provideTtottuRepository(
+    fun provideDiaryRepository(
         serverApi: ServerApi,
         authPreference: AuthPreference,
-    ): TtottuRepository {
-        return TtottuRepositoryImpl(
+    ): DiaryRepository {
+        return DiaryRepositoryImpl(
             serverApi = serverApi,
             authPreference = authPreference,
         )

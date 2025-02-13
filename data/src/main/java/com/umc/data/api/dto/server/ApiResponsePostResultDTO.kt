@@ -11,8 +11,6 @@
  */
 package com.umc.data.api.dto.server
 
-import com.umc.data.api.dto.server.PostResultDTO
-
 /**
  * 
  * @param isSuccess 

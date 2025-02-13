@@ -8,4 +8,5 @@ data class Diary(
     val content: String,
     val imageUrl: String,
     val locationName: String,
+    val categoryId: Long,
 )

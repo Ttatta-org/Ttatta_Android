@@ -1,4 +1,4 @@
-package com.umc.data.di
+package com.umc.data.di.repository
 
 import com.umc.core.repository.ChallengeRepository
 import com.umc.data.api.ServerApi

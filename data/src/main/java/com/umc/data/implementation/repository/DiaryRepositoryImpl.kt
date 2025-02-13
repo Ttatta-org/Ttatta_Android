@@ -34,6 +34,7 @@ class DiaryRepositoryImpl @Inject constructor(
                 content = it.content!!,
                 imageUrl = it.image!!,
                 locationName = it.locationName!!,
+                categoryId = it.diaryCategoryId!!,
             )
         } ?: listOf()
     }
@@ -49,6 +50,7 @@ class DiaryRepositoryImpl @Inject constructor(
                 content = it.content!!,
                 imageUrl = it.image!!,
                 locationName = it.locationName!!,
+                categoryId = it.diaryCategoryId!!,
             )
         } ?: listOf()
     }

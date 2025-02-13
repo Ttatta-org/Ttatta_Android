@@ -1,4 +1,4 @@
-package com.umc.data.di
+package com.umc.data.di.api
 
 import com.google.gson.Gson
 import com.umc.data.BuildConfig
