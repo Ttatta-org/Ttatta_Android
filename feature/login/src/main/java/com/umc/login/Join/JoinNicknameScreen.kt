@@ -48,7 +48,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.umc.login.LoginViewModel
 import com.umc.login.R
-
+import com.umc.login.component.NicknameInputTextField
 
 
 @Composable
@@ -134,55 +134,6 @@ fun JoinNicknameView(viewModel: JoinViewModel, onNext: () -> Unit) {
     }
 }
 
-@Composable
-fun NicknameInputTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    onImeAction: () -> Unit,
-    placeholder: String,
-    isWarning: Boolean,
-    errorMessage: String?,
-    isLoading: Boolean
-) {
-
-    TextField(
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = true,
-        textStyle = LocalTextStyle.current.copy(
-            textAlign = TextAlign.Center,
-            fontSize = 14.sp,
-            color = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
-        ),
-        placeholder = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = placeholder,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight(600),
-                    color = colorResource(R.color.gray_500)
-                )
-            }
-        },
-        keyboardOptions = KeyboardOptions.Default.copy(
-            imeAction = ImeAction.Done
-        ),
-        keyboardActions = KeyboardActions(onDone = { onImeAction() }),
-        modifier = Modifier
-            .width(310.dp)
-            .height(51.dp),
-        colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color.Transparent,
-            focusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = colorResource(R.color.gray_500),
-            unfocusedIndicatorColor = colorResource(R.color.gray_500),
-            cursorColor = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
-        ),
-    )
-}
 
 @Preview(showBackground = true)
 @Composable
