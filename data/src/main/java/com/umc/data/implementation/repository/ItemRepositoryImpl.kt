@@ -44,15 +44,19 @@ class ItemRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getEquippedItems(): List<EquippedItem> {
-        val response = serverApi.withAuth(authPreference) { getEquippedItems() }
-        return response.idList?.map {
-            EquippedItem(
-                id = it.itemId!!,
-                item = Accessory.entries.first { accessory ->
-                    accessory.code == it.itemUniqueId!!
-                },
-            )
-        } ?: listOf()
+        try {
+            val response = serverApi.withAuth(authPreference) { getEquippedItems() }
+            return response.idList?.map {
+                EquippedItem(
+                    id = it.itemId!!,
+                    item = Accessory.entries.first { accessory ->
+                        accessory.code == it.itemUniqueId!!
+                    },
+                )
+            } ?: listOf()
+        } catch (e: Exception) {
+            return itemPreference.itemList
+        }
     }
 
     override suspend fun purchaseItem(id: Long) {
@@ -61,6 +65,7 @@ class ItemRepositoryImpl @Inject constructor(
 
     override suspend fun equipItem(id: Long) {
         serverApi.withAuth(authPreference) { equipItem(id) }
+        itemPreference.itemList = getEquippedItems()
     }
 
     override suspend fun disrobeItem(id: Long) {

@@ -1,9 +1,7 @@
 package com.umc.data.preference
 
-interface ItemPreference {
-    var ttuttuHeadItemId: String?
-    var ttuttuBodyItemId: String?
+import com.umc.core.model.EquippedItem
 
-    var ttottoHeadItemId: String?
-    var ttottoBodyItemId: String?
+interface ItemPreference {
+    var itemList: List<EquippedItem>
 }
