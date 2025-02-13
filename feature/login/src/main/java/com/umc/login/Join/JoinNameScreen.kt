@@ -43,7 +43,7 @@ import com.umc.login.R
 
 @Composable
 fun JoinNameScreen(navController: NavHostController) {
-    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(modifier = Modifier.wrapContentSize(), horizontalAlignment = Alignment.CenterHorizontally) {
         JoinNameView(onNext = { navController.navigate("join_id") })
     }
 }

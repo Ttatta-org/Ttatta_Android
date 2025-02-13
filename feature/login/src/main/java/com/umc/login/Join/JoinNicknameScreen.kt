@@ -13,14 +13,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,30 +33,41 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.umc.login.LoginViewModel
 import com.umc.login.R
 
 
+
 @Composable
-fun JoinScreen(navController: NavHostController) {
+fun JoinScreen(navController: NavHostController, viewModel: JoinViewModel = viewModel()) {
+
     Column(modifier = Modifier.wrapContentSize()) {
-        JoinNicknameView(onNext = { navController.navigate("join_id") })
+        JoinNicknameView(viewModel = viewModel, onNext = { navController.navigate("join_id") })
     }
 }
 
 @Composable
-fun JoinNicknameView(onNext: () -> Unit) {
-    var nickNameState by remember { mutableStateOf("") }
-    var isWarningVisible by remember { mutableStateOf(false) }
-    val isButtonEnabled = nickNameState.isNotEmpty() && nickNameState.length <= 8
+fun JoinNicknameView(viewModel: JoinViewModel, onNext: () -> Unit) {
+    val nickNameState by viewModel.nickNameState.collectAsState()
+    val isWarningVisible by viewModel.isWarningVisible.collectAsState()
+    val isButtonEnabled by viewModel.isButtonEnabled.collectAsState()
+    val nicknameError by viewModel.nicknameError.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -71,14 +85,15 @@ fun JoinNicknameView(onNext: () -> Unit) {
 
         NicknameInputTextField(
             value = nickNameState,
-            onValueChange = {
-                if (it.length <= 9) {
-                    nickNameState = it
-                    isWarningVisible = (it.length == 9)
-                }
+            onValueChange = viewModel::onNickNameChange,
+            onImeAction = {
+                keyboardController?.hide()
+                viewModel.checkNicknameAvailability()
             },
             placeholder = stringResource(R.string.nickname_comment),
-            isWarning = isWarningVisible
+            isWarning = isWarningVisible,
+            errorMessage = nicknameError,
+            isLoading = isLoading
         )
 
         Spacer(modifier = Modifier.height(5.dp))
@@ -123,12 +138,16 @@ fun JoinNicknameView(onNext: () -> Unit) {
 fun NicknameInputTextField(
     value: String,
     onValueChange: (String) -> Unit,
+    onImeAction: () -> Unit,
     placeholder: String,
-    isWarning: Boolean
+    isWarning: Boolean,
+    errorMessage: String?,
+    isLoading: Boolean
 ) {
+
     TextField(
         value = value,
-        onValueChange = { if (it.length <= 9) onValueChange(it) },
+        onValueChange = onValueChange,
         singleLine = true,
         textStyle = LocalTextStyle.current.copy(
             textAlign = TextAlign.Center,
@@ -148,15 +167,20 @@ fun NicknameInputTextField(
                 )
             }
         },
-        keyboardOptions = KeyboardOptions.Default,
-        modifier = Modifier.width(310.dp).height(51.dp),
+        keyboardOptions = KeyboardOptions.Default.copy(
+            imeAction = ImeAction.Done
+        ),
+        keyboardActions = KeyboardActions(onDone = { onImeAction() }),
+        modifier = Modifier
+            .width(310.dp)
+            .height(51.dp),
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color.Transparent,
             focusedContainerColor = Color.Transparent,
             focusedIndicatorColor = colorResource(R.color.gray_500),
             unfocusedIndicatorColor = colorResource(R.color.gray_500),
             cursorColor = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
-        )
+        ),
     )
 }
 
