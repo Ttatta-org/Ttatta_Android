@@ -1,8 +1,8 @@
-package com.umc.data.di
+package com.umc.data.di.preference
 
 import android.content.Context
-import com.umc.data.implementation.preference.AuthPreferenceImpl
-import com.umc.data.preference.AuthPreference
+import com.umc.data.implementation.preference.ItemPreferenceImpl
+import com.umc.data.preference.ItemPreference
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,12 +12,12 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AuthPreferenceModule {
+object ItemPreferenceModule {
     @Provides
     @Singleton
-    fun provideAuthPreference(
+    fun provideItemPreference(
         @ApplicationContext context: Context
-    ): AuthPreference {
-        return AuthPreferenceImpl(context)
+    ): ItemPreference {
+        return ItemPreferenceImpl(context)
     }
 }

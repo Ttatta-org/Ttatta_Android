@@ -6,11 +6,11 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.google.gson.Gson
 import com.umc.core.repository.DiaryRepository
 import com.umc.core.repository.UserRepository
-import com.umc.data.di.AuthPreferenceModule
-import com.umc.data.di.DiaryRepositoryModule
+import com.umc.data.di.preference.AuthPreferenceModule
+import com.umc.data.di.repository.DiaryRepositoryModule
 import com.umc.data.di.GsonModule
-import com.umc.data.di.ServerApiModule
-import com.umc.data.di.UserRepositoryModule
+import com.umc.data.di.api.ServerApiModule
+import com.umc.data.di.repository.UserRepositoryModule
 import com.umc.design.CategoryColor
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
