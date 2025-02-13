@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.umc.login.FindId.FindIdMainView
 import com.umc.login.FindId.FindIdScreen
-import com.umc.login.Join.NicknameInputTextField
+
 import com.umc.login.R
 
 @Composable
