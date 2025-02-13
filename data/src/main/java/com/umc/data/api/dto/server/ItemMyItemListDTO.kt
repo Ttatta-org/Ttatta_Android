@@ -13,9 +13,11 @@ package com.umc.data.api.dto.server
 
 /**
  * 
- * @param diaryDateList 
+ * @param point 
+ * @param myItemList 
  */
-data class DairyDateListResultDTO (
+data class ItemMyItemListDTO (
 
-    val diaryDateList: Array<DiaryDateDTO>? = null
+    val point: Long? = null,
+    val myItemList: Array<ItemMyItemDTO>? = null
 )

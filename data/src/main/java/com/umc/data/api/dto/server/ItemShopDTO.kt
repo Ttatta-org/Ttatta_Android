@@ -14,14 +14,16 @@ package com.umc.data.api.dto.server
 
 /**
  * 
+ * @param itemId 
  * @param itemUniqueId 
  * @param name 
  * @param cost 
  * @param characterType 
  * @param bodyPart 
  */
-data class MakeItemDTO (
+data class ItemShopDTO (
 
+    val itemId: Long? = null,
     val itemUniqueId: String? = null,
     val name: String? = null,
     val cost: Long? = null,

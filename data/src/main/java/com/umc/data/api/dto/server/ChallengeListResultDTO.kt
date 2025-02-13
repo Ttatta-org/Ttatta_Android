@@ -13,9 +13,9 @@ package com.umc.data.api.dto.server
 
 /**
  * 
- * @param diaryDateList 
+ * @param challengeList 
  */
-data class DairyDateListResultDTO (
+data class ChallengeListResultDTO (
 
-    val diaryDateList: Array<DiaryDateDTO>? = null
+    val challengeList: Array<ChallengeResultDTO>? = null
 )

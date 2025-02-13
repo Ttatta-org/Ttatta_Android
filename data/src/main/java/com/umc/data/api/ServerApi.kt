@@ -71,6 +71,12 @@ interface ServerApi {
         @Part image: MultipartBody.Part
     ): BaseResponse<PostResultDTO>
 
+    // 챌린지 생성
+    @POST("/challenges")
+    suspend fun createChallenge(
+        @Body body: CreateChallengeRequestDTO
+    ): BaseResponse<CreateChallengeResultDTO>
+
     // 카테고리 생성
     @POST("/categories")
     suspend fun createCategory(
@@ -81,45 +87,17 @@ interface ServerApi {
     @GET("/users/info")
     suspend fun getUserInfo(): BaseResponse<UserInfoResultDTO>
 
-    // 회원 정보 수정
-    @PATCH("/users/info")
-    suspend fun updateUserInfo(
-        @Body body: EditRequestDTO
-    ): BaseResponse<UserInfoEditResultDTO>
+    // 미소유 아이템 (shop) 조회
+    @GET("/items/shop")
+    suspend fun getShopItems(): BaseResponse<ItemShopListDTO>
 
-    // 아이템 구매
-    @PATCH("/items/{itemId}")
-    suspend fun buyItem(
-        @Path("itemId") itemId: Long
-    ): BaseResponse<ItemBuyResultDTO>
+    // 소유 아이템 조회
+    @GET("/items/owned")
+    suspend fun getOwnedItems(): BaseResponse<ItemMyItemListDTO>
 
-    // 아이템 착용
-    @PATCH("/items/equip/{itemId}")
-    suspend fun equipItem(
-        @Path("itemId") itemId: Long
-    ): BaseResponse<ItemEquipResultDTO>
-
-    // 아이템 해제
-    @PATCH("/items/disrobe/{itemId}")
-    suspend fun disrobeItem(
-        @Path("itemId") itemId: Long
-    ): BaseResponse<ItemDisrobeResultDTO>
-
-    // 일기 수정
-    @Multipart
-    @PATCH("/diaries/edit/{diaryId}")
-    suspend fun updateDiary(
-        @Path("diaryId") diaryId: Long,
-        @Part("request") request: EditDTO,
-        @Part editPhoto: MultipartBody.Part?
-    ): BaseResponse<EditResultDTO>
-
-    // 카테고리 수정
-    @PATCH("/categories/{categoryId}")
-    suspend fun updateCategory(
-        @Path("categoryId") categoryId: Long,
-        @Body body: ModifyCategoryDTO
-    ): BaseResponse<ModifyCategoryResultDTO>
+    // 착용한 아이템 조회
+    @GET("/items/equipped")
+    suspend fun getEquippedItems(): BaseResponse<IdListDTO>
 
     // 인증번호 확인 (비밀번호 찾기)
     @GET("/users/verify/pw")
@@ -171,9 +149,63 @@ interface ServerApi {
     @GET("/diaries/date")
     suspend fun getDiariesDate(): BaseResponse<DairyDateListResultDTO>
 
+    // 금일 챌린지 조회
+    @GET("/challenges")
+    suspend fun getChallenges(): BaseResponse<ChallengeListResultDTO>
+
+    // 가장 최근에 실패한 챌린지 5개 조회
+    @GET("/challenges/fail")
+    suspend fun getFailChallenges(): BaseResponse<FailChallengeListResultDTO>
+
     // 카테고리별 일기 개수 조회
     @GET("/categories/diary-counts")
     suspend fun getDiaryCount(): BaseResponse<GetAllCategoryCountResultDTO>
+
+    // 회원 정보 수정
+    @PATCH("/users/info")
+    suspend fun updateUserInfo(
+        @Body body: EditRequestDTO
+    ): BaseResponse<UserInfoEditResultDTO>
+
+    // 아이템 구매
+    @PATCH("/items/{itemId}")
+    suspend fun buyItem(
+        @Path("itemId") itemId: Long
+    ): BaseResponse<ItemBuyResultDTO>
+
+    // 아이템 착용
+    @PATCH("/items/equip/{itemId}")
+    suspend fun equipItem(
+        @Path("itemId") itemId: Long
+    ): BaseResponse<ItemEquipResultDTO>
+
+    // 아이템 해제
+    @PATCH("/items/disrobe/{itemId}")
+    suspend fun disrobeItem(
+        @Path("itemId") itemId: Long
+    ): BaseResponse<ItemDisrobeResultDTO>
+
+    // 일기 수정
+    @Multipart
+    @PATCH("/diaries/edit/{diaryId}")
+    suspend fun updateDiary(
+        @Path("diaryId") diaryId: Long,
+        @Part("request") request: EditDTO,
+        @Part editPhoto: MultipartBody.Part?
+    ): BaseResponse<EditResultDTO>
+
+    // 챌린지 성공
+    @PATCH("/challenges/{challengeId}")
+    suspend fun successChallenge(
+        @Path("challengeId") challengeId: Long
+    ): BaseResponse<SuccessChallengeResultDTO>
+
+    // 카테고리 수정
+    @PATCH("/categories/{categoryId}")
+    suspend fun updateCategory(
+        @Path("categoryId") categoryId: Long,
+        @Body body: ModifyCategoryDTO
+    ): BaseResponse<ModifyCategoryResultDTO>
 
     // 회원 탈퇴
     @DELETE("/users")

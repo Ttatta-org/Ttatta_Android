@@ -11,11 +11,16 @@
  */
 package com.umc.data.api.dto.server
 
+
 /**
  * 
- * @param diaryDateList 
+ * @param challengeId 
+ * @param isCompleted 
+ * @param updatedAt 
  */
-data class DairyDateListResultDTO (
+data class SuccessChallengeResultDTO (
 
-    val diaryDateList: Array<DiaryDateDTO>? = null
+    val challengeId: Long? = null,
+    val isCompleted: Boolean? = null,
+    val updatedAt: java.time.LocalDateTime? = null
 )
