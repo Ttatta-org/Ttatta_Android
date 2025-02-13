@@ -2,7 +2,6 @@ package com.umc.ttatta
 
 import android.app.Application
 import com.naver.maps.map.NaverMapSdk
-import com.umc.footprint.BuildConfig
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp

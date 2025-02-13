@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.umc.core.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -13,10 +15,10 @@ class MainViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ): ViewModel() {
 
-    private val isLoggedInState = mutableStateOf<Boolean?>(null)
+    private val isLoggedInMutable = MutableStateFlow<Boolean?>(null)
     private val userNameState = mutableStateOf("")
 
-    val isLoggedIn get() = isLoggedInState.value
+    val isLoggedIn: StateFlow<Boolean?> get() = isLoggedInMutable
     val userName get() = userNameState.value
 
     init {
@@ -24,7 +26,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun checkLogin() {
-        isLoggedInState.value = null
+        isLoggedInMutable.value = null
 
         viewModelScope.launch {
             val isLoggedIn = try {
@@ -37,6 +39,8 @@ class MainViewModel @Inject constructor(
                 onSucceed = { /* TODO */ },
                 onFailed = { /* TODO */ }
             )
+
+            isLoggedInMutable.value = isLoggedIn
         }
     }
 
