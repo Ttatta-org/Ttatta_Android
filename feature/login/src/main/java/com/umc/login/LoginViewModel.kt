@@ -26,11 +26,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.umc.core.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginViewModel : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : ViewModel() {
     // 상태 변수
     private val _idState = MutableStateFlow("")
     val idState: StateFlow<String> = _idState.asStateFlow()
@@ -65,13 +73,20 @@ class LoginViewModel : ViewModel() {
         _isButtonActive.value = _idState.value.isNotBlank() && _pwState.value.isNotBlank()
     }
 
-    fun onLoginClick(): Boolean {
-        return if (_idState.value == "correctId" && _pwState.value == "correctPw") {
-            _errorMessage.value = ""
-            true
-        } else {
-            _errorMessage.value = "아이디 또는 비밀번호를 다시 확인해주세요"
-            false
+    fun onLoginClick(
+        onSucceed: () -> Unit,
+        onFailed: () -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                userRepository.login(
+                    id = idState.value,
+                    password = pwState.value
+                )
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed()
+            }
         }
     }
 }
