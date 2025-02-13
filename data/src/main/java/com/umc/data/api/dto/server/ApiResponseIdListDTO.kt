@@ -13,9 +13,15 @@ package com.umc.data.api.dto.server
 
 /**
  * 
- * @param diaryDateList 
+ * @param isSuccess 
+ * @param code 
+ * @param message 
+ * @param result 
  */
-data class DairyDateListResultDTO (
+data class ApiResponseIdListDTO (
 
-    val diaryDateList: Array<DiaryDateDTO>? = null
+    val isSuccess: Boolean? = null,
+    val code: String? = null,
+    val message: String? = null,
+    val result: IdListDTO? = null
 )

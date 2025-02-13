@@ -15,17 +15,17 @@ package com.umc.data.api.dto.server
 /**
  * 
  * @param itemId 
+ * @param itemUniqueId 
  * @param name 
  * @param cost 
- * @param itemImage 
  * @param characterType 
  */
 data class MakeItemResultDTO (
 
     val itemId: Long? = null,
+    val itemUniqueId: String? = null,
     val name: String? = null,
     val cost: Long? = null,
-    val itemImage: String? = null,
     val characterType: CharacterType? = null
 ) {
     /**

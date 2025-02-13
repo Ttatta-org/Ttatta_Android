@@ -15,6 +15,7 @@ package com.umc.data.api.dto.server
 /**
  * 
  * @param diaryId 
+ * @param diaryCategoryId 
  * @param date 
  * @param content 
  * @param image 
@@ -23,6 +24,7 @@ package com.umc.data.api.dto.server
 data class SearchDiaryDTO (
 
     val diaryId: Long? = null,
+    val diaryCategoryId: Long? = null,
     val date: java.time.LocalDateTime? = null,
     val content: String? = null,
     val image: String? = null,

@@ -14,19 +14,17 @@ package com.umc.data.api.dto.server
 
 /**
  * 
- * @param diaryId 
- * @param diaryCategoryId 
- * @param date 
+ * @param challengeId 
+ * @param title 
  * @param content 
- * @param image 
- * @param locationName 
+ * @param isCompleted 
+ * @param createdAt 
  */
-data class KeepDiaryDTO (
+data class CreateChallengeResultDTO (
 
-    val diaryId: Long? = null,
-    val diaryCategoryId: Long? = null,
-    val date: java.time.LocalDateTime? = null,
+    val challengeId: Long? = null,
+    val title: String? = null,
     val content: String? = null,
-    val image: String? = null,
-    val locationName: String? = null
+    val isCompleted: Boolean? = null,
+    val createdAt: java.time.LocalDateTime? = null
 )
