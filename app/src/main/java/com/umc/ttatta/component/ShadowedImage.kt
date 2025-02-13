@@ -1,4 +1,4 @@
-package com.umc.ttatta
+package com.umc.ttatta.component
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -34,7 +35,10 @@ fun ShadowedImage(
                 .width(width)
                 .height(height)
                 .offset(x = offsetX, y = offsetY)
-                .blur(shadowBlur),
+                .blur(
+                    radius = shadowBlur,
+                    edgeTreatment = BlurredEdgeTreatment.Unbounded
+                ),
             tint = shadowColor,
         )
         Image(
