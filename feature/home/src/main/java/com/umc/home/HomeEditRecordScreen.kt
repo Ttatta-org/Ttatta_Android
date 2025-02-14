@@ -73,7 +73,9 @@ import coil3.svg.SvgDecoder
 import com.umc.core.model.Diary
 import com.umc.home.components.TopBarComponent_recordEditPage
 import com.umc.home.utils.formatToKorean
+import com.umc.home.utils.getFileFromUri
 import java.io.File
+import android.content.Context
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.umc.design.R as Res
@@ -87,9 +89,10 @@ fun HomeEditRecordScreen(
 ) {
     var todayRecord by remember { mutableStateOf(diary.content) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(Uri.parse(diary.imageUrl)) }
-    // 카테고리가 없는 관계로 임의의 기본 카테고리 값 만듦
     //var selectedCategory by remember { mutableStateOf(diary.category) } // ✅ 기존 카테고리 표시
     var selectedCategory by remember { mutableStateOf("일상") } // ✅ 여기서 기본값을 설정
+
+    val context = LocalContext.current
 
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -149,8 +152,9 @@ fun HomeEditRecordScreen(
                     // Button
                     Button(
                         onClick = {
-                            val imageFile = selectedImageUri?.let { uri -> File(uri.path!!) }
-//                    onModifyDiary(diary.id, todayRecord, imageFile)
+                            val imageFile = selectedImageUri?.let { uri -> getFileFromUri(context, uri) }
+                            //val imageFile = selectedImageUri?.let { uri -> File(uri.path!!) })
+
                             // ✅ 이미지 수정 안 할 경우 null 전달
                             onModifyDiary(diary.id, todayRecord, imageFile)
                             //navController.popBackStack()
@@ -500,134 +504,6 @@ fun ImageUploadField(
     }
 }
 
-//@Composable
-//fun CategoryField(initialCategory: String) {
-//    var isExpanded by remember { mutableStateOf(false) }
-//    var selectedCategory by remember { mutableStateOf(initialCategory) } // 선택한 카테고리 상태 추가
-//    var selectedIcon by remember { mutableStateOf(Res.drawable.ic_foot) } // 선택한 아이콘 상태 추가
-//
-//    // 카테고리별 아이콘 매핑
-//    val categoryIcons = mapOf(
-//        "일상" to Res.drawable.ic_foot_red,
-//        "여행" to Res.drawable.ic_foot_blue,
-//        "운동" to Res.drawable.ic_foot_navy,
-//        "취미" to Res.drawable.ic_foot_pink,
-//        "기타" to Res.drawable.ic_foot_black
-//    )
-//
-//    // 애니메이션 효과 추가 (부드러운 회전)
-//    val rotationAngle by animateFloatAsState(
-//        targetValue = if (isExpanded) 180f else 0f,
-//        animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing),
-//        label = "Toggle Rotation"
-//    )
-//
-//    Column(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(horizontal = 25.dp)
-//    ) {
-//        Row(
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            // 헤더 이미지
-//            Image(
-//                painter = painterResource(id = Res.drawable.ic_header_deco),
-//                contentDescription = "Header Decoration",
-//                modifier = Modifier.size(width = 39.18.dp, height = 16.dp)
-//            )
-//
-//            // 텍스트
-//            Text(
-//                text = "카테고리 수정",
-//                fontSize = 16.sp,
-//                color = Color(0xFFFF9681),
-//                fontWeight = FontWeight.SemiBold,
-//                modifier = Modifier.padding(start = 6.82.dp)
-//            )
-//        }
-//
-//        Spacer(Modifier.height(8.dp))
-//
-//        // 선택된 카테고리 카드
-//        Card(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(45.dp)
-//                .shadow(
-//                    elevation = 6.dp,
-//                    shape = RoundedCornerShape(28.dp),
-//                    spotColor = Color(0xDE806E38),
-//                    ambientColor = Color(0xDE806E38),
-//                    clip = true
-//                )
-//                .clickable { isExpanded = !isExpanded },
-//            shape = RoundedCornerShape(28.dp),
-//            colors = CardDefaults.cardColors(
-//                containerColor = if (isExpanded) Color(0xFFFEEAD9) else Color(0xFFFFFFFF)
-//            )
-//        ) {
-//            Row(
-//                verticalAlignment = Alignment.CenterVertically,
-//                modifier = Modifier.padding(horizontal = 22.dp, vertical = 12.dp)
-//            ) {
-//                // 선택한 카테고리의 아이콘 표시
-//                Icon(
-//                    painter = painterResource(id = selectedIcon),
-//                    contentDescription = "Selected Category Icon",
-//                    modifier = Modifier.size(21.dp),
-//                    tint = Color.Unspecified
-//                )
-//
-//                Spacer(Modifier.width(11.17.dp))
-//
-//                Text(
-//                    text = selectedCategory,
-//                    fontSize = 12.sp,
-//                    color = Color(0xFF4B4B4B),
-//                    fontWeight = FontWeight.Normal
-//                )
-//
-//                Spacer(Modifier.weight(1f))
-//
-//                // Toggle 아이콘
-//                Icon(
-//                    painter = painterResource(
-//                        id = if (isExpanded) R.drawable.ic_toggle_open else R.drawable.ic_toggle_closed
-//                    ),
-//                    contentDescription = "Toggle",
-//                    modifier = Modifier
-//                        .size(18.dp)
-//                        .rotate(rotationAngle),
-//                    tint = Color.Unspecified
-//                )
-//            }
-//        }
-//
-//        // 카테고리 목록 (애니메이션 적용)
-//        AnimatedVisibility(
-//            visible = isExpanded,
-//            enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
-//            exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
-//        ) {
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .background(Color(0xFFFEEAD9))
-//                    .padding(horizontal = 25.dp, vertical = 8.dp)
-//            ) {
-//                categoryIcons.forEach { (categoryName, iconResId) ->
-//                    CategoryItem(name = categoryName, iconResId = iconResId, onClick = {
-//                        selectedCategory = categoryName
-//                        selectedIcon = iconResId // 선택한 카테고리에 맞는 아이콘 변경
-//                        isExpanded = false
-//                    })
-//                }
-//            }
-//        }
-//    }
-//}
-
 @Composable
 fun CustomCategoryField(
     initialCategory: String,
@@ -860,24 +736,3 @@ fun CustomCategoryField(
         }
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewHomeEditRecordScreen() {
-//    val dummyDiary = Diary(
-//        id = 1,
-//        date = LocalDateTime.now(),
-//        imageUrl = "",
-//        content = "기본 내용",
-//        locationName = "서울 어딘가" // ✅ 기본 위치 추가
-//    )
-//
-//    // ✅ Fake ViewModel 없이 간단한 객체 전달
-//    val fakeNavController = remember { NavHostController(LocalContext.current) }
-//
-//    HomeEditRecordScreen(
-//        diary = dummyDiary,
-//        viewModel = object : HomeViewModel() {}, // ✅ Preview 용 빈 ViewModel 객체
-//        navController = fakeNavController // ✅ Preview 용 빈 NavController
-//    )
-//}
