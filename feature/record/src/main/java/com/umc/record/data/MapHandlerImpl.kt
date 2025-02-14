@@ -1,6 +1,7 @@
 package com.umc.record.data
 
 import android.content.Context
+import android.graphics.PointF
 import android.location.Location
 import android.os.Bundle
 import android.view.View
@@ -17,42 +18,92 @@ import com.naver.maps.map.LocationSource
 import com.naver.maps.map.LocationTrackingMode
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
+import com.naver.maps.map.clustering.Clusterer
 import com.naver.maps.map.overlay.OverlayImage
+import com.umc.design.CategoryColor
 import com.umc.record.R
 import com.umc.record.core.LocationHandler
 import com.umc.record.core.MapHandler
 import com.umc.record.core.MapMarker
 import com.umc.record.util.loadRawImageAsBitmap
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 private val locatorWidth = 48.dp
 private val locatorHeight = 48.dp
+private val clusteredMarkerMaxWidth = 128.dp
+private val clusteredMarkerMaxHeight = 128.dp
 private val markerWidth = 64.dp
+private val markerHeight = 64.dp
+private val clusteringDp = 32.dp
 
 class MapHandlerImpl @Inject constructor(
     private val context: Context,
     private val locationHandler: LocationHandler,
-): MapHandler {
+) : MapHandler {
 
-    private val locatorImage = OverlayImage.fromBitmap(
+    private val locatorImage: OverlayImage = OverlayImage.fromBitmap(
         loadRawImageAsBitmap(
             context = context,
-            rawResourceId = R.raw.ic_locator,  // 현재 사용자 위치
+            rawResourceId = R.raw.ic_locator,
             width = locatorWidth,
             height = locatorHeight,
         )
     )
 
+    private val clusterImage: OverlayImage = OverlayImage.fromBitmap(
+        loadRawImageAsBitmap(
+            context = context,
+            rawResourceId = R.raw.ic_clustered_marker,
+            width = clusteredMarkerMaxWidth,
+            height = clusteredMarkerMaxHeight,
+        )
+    )
+
+    private val defaultMarkerImage: OverlayImage = OverlayImage.fromBitmap(
+        loadRawImageAsBitmap(
+            context = context,
+            rawResourceId = R.raw.ic_footprint,
+            width = markerWidth,
+            height = markerHeight,
+        )
+    )
+
+    private val markerImages: Map<CategoryColor, OverlayImage> = mapOf(
+        CategoryColor.RED to R.raw.ic_footprint_red,
+        CategoryColor.ORANGE to R.raw.ic_footprint_orange,
+        CategoryColor.YELLOW to R.raw.ic_footprint_yellow,
+        CategoryColor.GREEN to R.raw.ic_footprint_green,
+        CategoryColor.TURQUOISE to R.raw.ic_footprint_turquoise,
+        CategoryColor.BLUE to R.raw.ic_footprint_blue,
+        CategoryColor.NAVY to R.raw.ic_footprint_navy,
+        CategoryColor.PURPLE to R.raw.ic_footprint_purple,
+        CategoryColor.BROWN to R.raw.ic_footprint_brown,
+        CategoryColor.PINK to R.raw.ic_footprint_pink,
+        CategoryColor.WHITE to R.raw.ic_footprint_white,
+        CategoryColor.BLACK to R.raw.ic_footprint_black,
+    ).mapValues { (_, value) ->
+        OverlayImage.fromBitmap(
+            loadRawImageAsBitmap(
+                context = context,
+                rawResourceId = value,
+                width = markerWidth,
+                height = markerHeight,
+            )
+        )
+    }
+
     private val mapView: MapView
+    private val clusterManager: Clusterer<MarkerKey>
     private val mapFlow = MutableStateFlow<NaverMap?>(null)
 
     private val markers = mutableMapOf<MapMarker, MarkerKey>()
-    private val clickedMarkerKeyFlow = MutableStateFlow<MarkerKey?>(null)
     private var onPreviousMarkerDismissed: (() -> Unit)? = null
 
     private suspend fun getMap(): NaverMap {
@@ -60,6 +111,45 @@ class MapHandlerImpl @Inject constructor(
     }
 
     init {
+        // 클러스터 매니저 설정
+        clusterManager = Clusterer.Builder<MarkerKey>()
+            .screenDistance(clusteringDp.value.toDouble())
+            .maxZoom(15)
+            .clusterMarkerUpdater { info, marker ->
+                marker.apply {
+                    calculateClusteredMarkerSize(count = info.size).let { (clusterWidth, clusterHeight) ->
+                        width = clusterWidth
+                        height = clusterHeight
+                    }
+                    anchor = PointF(0.5f, 0.5f)
+                    icon = clusterImage
+                    setOnClickListener { true }
+                }
+            }
+            .leafMarkerUpdater { info, naverMarker ->
+                val key = info.key as MarkerKey
+                val mapMarker = key.mapMarker
+
+                naverMarker.apply {
+                    val density = context.resources.displayMetrics.density
+                    icon = markerImages[mapMarker.color] ?: defaultMarkerImage
+                    width = (markerWidth.value * density).roundToInt()
+                    height = (markerHeight.value * density).roundToInt()
+                    anchor = PointF(0.5f, 0.5f)
+                    zIndex = mapMarker.zIndex
+                    setOnClickListener {
+                        onPreviousMarkerDismissed?.invoke()
+                        map?.projection?.toScreenLocation(this.position)?.apply {
+                            onPreviousMarkerDismissed = mapMarker.onClicked?.invoke(x, y)
+                        }
+                        true
+                    }
+                }
+
+                key.naverMarker = naverMarker
+            }
+            .build()
+
         // 네이버 SDK를 사용한 지도 초기 설정
         mapView = MapView(context).apply {
             id = View.generateViewId()
@@ -71,8 +161,14 @@ class MapHandlerImpl @Inject constructor(
             getMapAsync { map ->
                 map.apply {
                     // 이벤트 리스너 설정
-                    addOnCameraChangeListener { _, _ -> clickedMarkerKeyFlow.value = null }
-                    setOnMapClickListener { _, _ -> clickedMarkerKeyFlow.value = null }
+                    addOnCameraChangeListener { _, _ ->
+                        onPreviousMarkerDismissed?.invoke()
+                        onPreviousMarkerDismissed = null
+                    }
+                    setOnMapClickListener { _, _ ->
+                        onPreviousMarkerDismissed?.invoke()
+                        onPreviousMarkerDismissed = null
+                    }
 
                     // UI 설정
                     uiSettings.apply {
@@ -87,7 +183,7 @@ class MapHandlerImpl @Inject constructor(
                     locationOverlay.icon = locatorImage
 
                     // 위치 추적 기능 설정
-                    locationSource = object: LocationSource {
+                    locationSource = object : LocationSource {
                         private var locationChangeListener: (Location) -> Unit = {}
 
                         override fun activate(listener: LocationSource.OnLocationChangedListener) {
@@ -103,26 +199,10 @@ class MapHandlerImpl @Inject constructor(
                 }
 
                 mapFlow.value = map
+                clusterManager.map = map
             }
 
             onCreate(Bundle())
-        }
-
-        // 마커의 클릭 이벤트를 다루기 위한 설정(오류나서 필요하면 수정해야함)
-        CoroutineScope(Dispatchers.Main).launch {
-            launch {
-                clickedMarkerKeyFlow.collect { key ->
-                    onPreviousMarkerDismissed?.invoke()
-                    val onDismissed = key?.let {
-                        val naverMarker = key.naverMarker
-                        val mapMarker = key.mapMarker
-                        val position = getMap().projection.toScreenLocation(naverMarker?.position)
-                        return@let mapMarker.onClicked?.invoke(position.x, position.y)
-                    }
-                    onPreviousMarkerDismissed = onDismissed
-                    if (onDismissed == null) clickedMarkerKeyFlow.value = null
-                }
-            }
         }
     }
 
@@ -137,9 +217,9 @@ class MapHandlerImpl @Inject constructor(
 
     override suspend fun moveTo(latitude: Double, longitude: Double) {
         val target = LatLng(latitude, longitude)
-        val cameraUpdate = CameraUpdate.scrollTo(target).apply {
-            animate(CameraAnimation.Easing, 500L)
-        }
+        val cameraUpdate = CameraUpdate
+            .scrollTo(target)
+            .animate(CameraAnimation.Easing, 500L)
         getMap().moveCamera(cameraUpdate)
     }
 
@@ -155,6 +235,7 @@ class MapHandlerImpl @Inject constructor(
 
     override suspend fun addMarker(marker: MapMarker) {
         val key = MarkerKey(marker)
+        clusterManager.add(key, null)
         markers[marker] = key
     }
 
@@ -164,12 +245,23 @@ class MapHandlerImpl @Inject constructor(
 
     override suspend fun removeMarker(marker: MapMarker) {
         val key = markers[marker]!!
+        clusterManager.remove(key)
         markers.remove(marker)
-        clickedMarkerKeyFlow.value?.let { if (key == it) clickedMarkerKeyFlow.value = null }
     }
 
     override suspend fun removeAllMarkers() {
-        clickedMarkerKeyFlow.value = null
+        onPreviousMarkerDismissed?.invoke()
+        onPreviousMarkerDismissed = null
+        markers.values.forEach { key -> clusterManager.remove(key) }
         markers.clear()
+    }
+
+    private fun calculateClusteredMarkerSize(count: Int): Pair<Int, Int> {
+        val density = context.resources.displayMetrics.density
+        return listOf(clusteredMarkerMaxWidth, clusteredMarkerMaxHeight).map {
+            (it.value * density * (1.0 - 1.0 / (count + 1))).roundToInt()
+        }.run {
+            this.first() to this.last()
+        }
     }
 }
