@@ -7,31 +7,30 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.DialogWindowProvider
 import com.umc.footprint.R
 import com.umc.design.R as Res
 
@@ -46,65 +45,81 @@ data class DiaryModificationBarProp(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiaryModificationBar(prop: DiaryModificationBarProp) {
+    val bottom = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+
     ModalBottomSheet(
         onDismissRequest = prop.onDismissed,
-        shape = diaryModificationBarShape,
-        containerColor = Color.White,
+        shape = RectangleShape,
+        sheetMaxWidth = 1024.dp,
+        containerColor = Color.Transparent,
         scrimColor = Color.Transparent,
-        dragHandle = {
-            Box(
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Image(
-                    painter = painterResource(id = Res.drawable.ic_header_deco),
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(32.dp)
-                )
-            }
-        },
+        dragHandle = {},
+        contentWindowInsets = { WindowInsets(bottom = 0.dp) }
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    start = 32.dp,
-                    end = 32.dp,
-                    bottom = 32.dp,
-                    top = 16.dp
-                )
-        ) {
+        Column {
+            // 그림자를 위한 여백
+            Spacer(modifier = Modifier.height(16.dp))
+            // 본문
             Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .shadow(
+                        elevation = 16.dp,
+                        shape = diaryModificationBarShape,
+                    )
+                    .background(
+                        color = Color.White,
+                        shape = diaryModificationBarShape,
+                    )
             ) {
-                Row(
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier
-                        .clip(RoundedCornerShape(percent = 50))
-                        .clickable { prop.onModifyOptionClicked() }
+                        .fillMaxWidth()
+                        .padding(start = 32.dp, end = 32.dp, bottom = 32.dp)
                 ) {
                     Box(
-                        modifier = Modifier
-                            .padding(vertical = 4.dp, horizontal = 8.dp)
-                            .fillMaxWidth()
+                        modifier = Modifier.padding(8.dp)
                     ) {
-                        Text(text = stringResource(id = R.string.modify))
+                        Image(
+                            painter = painterResource(id = Res.drawable.ic_header_deco),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(percent = 50))
+                                .clickable { prop.onModifyOptionClicked() }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp, horizontal = 8.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                Text(text = stringResource(id = R.string.modify))
+                            }
+                        }
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(percent = 50))
+                                .clickable { prop.onDeleteOptionClicked() }
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp, horizontal = 8.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                Text(text = stringResource(id = R.string.delete))
+                            }
+                        }
                     }
                 }
-                Row(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(percent = 50))
-                        .clickable { prop.onDeleteOptionClicked() }
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(vertical = 4.dp, horizontal = 8.dp)
-                            .fillMaxWidth()
-                    ) {
-                        Text(text = stringResource(id = R.string.delete))
-                    }
-                }
+                Spacer(modifier = Modifier.height(bottom))
             }
         }
     }
@@ -116,7 +131,7 @@ val previewDiaryModificationBarProp = DiaryModificationBarProp(
     onDismissed = {},
 )
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, widthDp = 500, heightDp = 800)
 @Composable
 fun PreviewDiaryModificationBar() {
     DiaryModificationBar(
