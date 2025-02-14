@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,10 +21,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.round
 import com.umc.footprint.component.CategorySelectionBar
 import com.umc.footprint.component.CategorySelectionBarProp
 import com.umc.footprint.component.DiaryCard
@@ -37,7 +39,7 @@ import com.umc.footprint.component.diaryCardHeight
 import com.umc.footprint.component.diaryCardWidth
 import com.umc.footprint.component.previewCategorySelectionBarProp
 import com.umc.footprint.component.previewDiaryCardProp
-import com.umc.footprint.util.rememberOnlyNotNull
+import com.umc.footprint.core.markerHeight
 
 data class PositionedDiaryCardProp(
     val x: Float,
@@ -58,10 +60,11 @@ fun FootprintScreen(
     val density = LocalDensity.current
     var screenHeight by remember { mutableStateOf(0.dp) }
 
-    val residualCategorySelectionBarProp = rememberOnlyNotNull(categorySelectionBarProp)
+    var residualCategorySelectionBarProp by remember { mutableStateOf<CategorySelectionBarProp?>(null) }
     var categorySelectionBarHeightRatio by remember { mutableFloatStateOf(0f) }
 
     LaunchedEffect(key1 = categorySelectionBarProp) {
+        categorySelectionBarProp?.let { residualCategorySelectionBarProp = it }
         animate(
             initialValue = categorySelectionBarHeightRatio,
             targetValue = if (categorySelectionBarProp != null) 1f else 0f,
@@ -77,10 +80,12 @@ fun FootprintScreen(
         // 일기 팝업
         diaryCardProp?.let { (x, y, prop) ->
             Box(
-                modifier = Modifier.offset(
-                    x = with(density) { x.toDp() - diaryCardWidth / 2 },
-                    y = with(density) { y.toDp() - diaryCardHeight - 16.dp },
-                )
+                modifier = Modifier.offset {
+                    Offset(
+                        x = x - diaryCardWidth.toPx() / 2,
+                        y = y - diaryCardHeight.toPx() - markerHeight.toPx() / 2,
+                    ).round()
+                }
             ) {
                 DiaryCard(prop = prop)
             }
@@ -93,7 +98,7 @@ fun FootprintScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .onGloballyPositioned { with(density) { screenHeight = it.size.height.toDp() } }
+                .onGloballyPositioned { screenHeight = with(density) { it.size.height.toDp() } }
                 .let {
                     if (categorySelectionBarProp != null) it.clickable(
                         indication = null,
@@ -148,7 +153,7 @@ fun FootprintScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(screenHeight * 0.6f * categorySelectionBarHeightRatio)
+                    .heightIn(max = screenHeight * 0.6f * categorySelectionBarHeightRatio)
             ) {
                 residualCategorySelectionBarProp?.let { prop ->
                     CategorySelectionBar(prop = prop)
