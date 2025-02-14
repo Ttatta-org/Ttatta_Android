@@ -1,7 +1,9 @@
 package com.umc.home.navigation
 
+import android.os.Build
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +29,7 @@ import kotlinx.coroutines.flow.filter
 import java.io.File
 import java.time.LocalDate
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -105,7 +108,7 @@ fun AppNavHost(
             diaryId = diaryId,
             categoryId = null,
             content = content,
-            image = null,
+            image = image,
             onSucceed = {
                 Log.d("AppNavHost", "✅ 수정 성공!")
                 navController.popBackStack() // ✅ 수정 완료 후 이전 화면으로 이동
