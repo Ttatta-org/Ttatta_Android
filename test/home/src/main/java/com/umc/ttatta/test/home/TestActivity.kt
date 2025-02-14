@@ -76,7 +76,7 @@ class TestActivity : ComponentActivity() {
                 }
 
                 // ✅ 테스트용 이미지 파일 준비
-                val imageFile = File(cacheDir, "test_rabbit.png")
+                val imageFile = File(cacheDir, "test_letter.jpg")
                 if (!imageFile.exists()) {
                     try {
                         FileOutputStream(imageFile).use { out ->
@@ -93,15 +93,15 @@ class TestActivity : ComponentActivity() {
                 Log.d("TestActivity", "🔍 기존 일기 개수: ${existingDiaries.size}")
 
                 // ✅ 새로운 일기 추가
-//                diaryRepository.createDiary(
-//                    categoryId = categoryId,
-//                    date = TestValues.TODAY,
-//                    content = TestValues.CONTENT,
-//                    image = imageFile,
-//                    latitude = TestValues.LATITUDE,
-//                    longitude = TestValues.LONGITUDE,
-//                    locationName = "테스트용 위치"
-//                )
+                diaryRepository.createDiary(
+                    categoryId = categoryId,
+                    date = TestValues.TODAY,
+                    content = TestValues.CONTENT,
+                    image = imageFile,
+                    latitude = TestValues.LATITUDE,
+                    longitude = TestValues.LONGITUDE,
+                    locationName = "어딘가 어딘가 어딘가"
+                )
 
                 // ✅ ViewModel에서 데이터 로드
                 withContext(Dispatchers.Main) {
