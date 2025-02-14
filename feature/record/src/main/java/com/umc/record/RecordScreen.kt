@@ -1,6 +1,5 @@
 package com.umc.record
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,11 +43,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.geometry.Offset
-import coil3.compose.rememberAsyncImagePainter
 import com.umc.design.R as Res
 
 @Composable
@@ -56,47 +52,22 @@ fun RecordScreen(
     categories: List<Pair<String, String>>,
     selectedCategory: String,
     diaryText: String,
-    selectedImage: String?,
-    userName: String,
-    location: String,
-    latitude: Double,  // 현재 위치 정보
-    longitude: Double,
     onCategorySelect: (String) -> Unit,
     onDiaryTextUpdate: (String) -> Unit,
-    onSaveDiary: () -> Unit,
-    onEditLocation: (String) -> Unit
+    onEditLocation: () -> Unit
 ) {
-    var showCustomDialog by remember { mutableStateOf(false) }
-    var location by remember { mutableStateOf("Cafe PORTE") }
+    var showCustomDialog by remember { mutableStateOf(true) }
 
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // 배경 이미지 추가
-//        Image(
-//            painter = painterResource(id = R.drawable.img_recordbackground), // 배경 이미지 리소스
-//            contentDescription = "Background Image",
-//            contentScale = ContentScale.Crop, // 이미지를 화면에 꽉 차게 조정
-//            modifier = Modifier.fillMaxSize()
-//        )
-        Log.d("RecordScreen", "selectedImage: ${ selectedImage.toString() }")
-
-        // 선택한 배경 이미지가 있으면 표시, 없으면 기본 배경 사용
-        if (selectedImage != null) {
-            Image(
-                painter = rememberAsyncImagePainter(selectedImage),  // 선택한 이미지 표시
-                contentDescription = "Selected Image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            Image(
-                painter = painterResource(id = R.drawable.img_recordbackground),
-                contentDescription = "Background Image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+        // 배경 이미지 추가 -> 추후 이미지 받아오는 걸로
+        Image(
+            painter = painterResource(id = R.drawable.img_recordbackground), // 배경 이미지 리소스
+            contentDescription = "Background Image",
+            contentScale = ContentScale.Crop, // 이미지를 화면에 꽉 차게 조정
+            modifier = Modifier.fillMaxSize()
+        )
 
         Column(
             verticalArrangement = Arrangement.Top, // 맨 위로 배치
@@ -107,11 +78,11 @@ fun RecordScreen(
             // 상단 정보 섹션
             InfoSection(
                 date = "2025.02.01",
-                location = location,  // 추후 지도에서 저장한 데이터로 교체 필요
+                location = "Cafe PORTE",  // 추후 지도에서 저장한 데이터로 교체 필요
                 category = selectedCategory,
                 onLocationClick = { // 위치 클릭 시 이벤트 발생
                     println("📌 RecordScreen: onEditLocation() called!") // ✅ 로그 추가
-                    onEditLocation(location)
+                    onEditLocation()
                 },
                 onIconClick = { showCustomDialog = !showCustomDialog } // 다이얼로그 상태 변경
             )
@@ -119,13 +90,9 @@ fun RecordScreen(
 
         // 바텀 시트 -> 추후 사용자명 받아와 교체 필요
         RecordBottomSheet(
-            name = userName,
+            name = "서연",
             diaryText = diaryText,
-            selectedCategory = selectedCategory,
-            selectedImage = selectedImage,
-            location = location,
-            onDiaryTextUpdate = onDiaryTextUpdate,
-            onSaveDiary = onSaveDiary
+            onDiaryTextUpdate = onDiaryTextUpdate
         )
 
         // 다이얼로그
@@ -271,11 +238,7 @@ fun InfoTag(
 fun RecordBottomSheet(
     name: String,
     diaryText: String,
-    selectedCategory: String,
-    selectedImage: String?,
-    location: String,
-    onDiaryTextUpdate: (String) -> Unit,
-    onSaveDiary: () -> Unit
+    onDiaryTextUpdate: (String) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -366,21 +329,12 @@ fun RecordBottomSheet(
                     }
 
                     // 추가 버튼 -> 클릭 이벤트 처리 해야함
-                    Button(
-                        onClick = { onSaveDiary() }, // 저장 함수 실행
-                        shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFCAD98)),
-                        modifier = Modifier
-                            .height(50.dp)
-                            .fillMaxWidth(0.8f)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_add), // 리소스 파일의 추가 버튼
-                            contentDescription = "Add",
-                            tint = Color.Unspecified, // Tint 효과 제거
-                            modifier = Modifier.size(width = 42.94.dp, height = 40.dp) // 아이콘 크기 설정
-                        )
-                    }
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_add), // 리소스 파일의 추가 버튼
+                        contentDescription = "Add",
+                        tint = Color.Unspecified, // Tint 효과 제거
+                        modifier = Modifier.size(width = 42.94.dp, height = 40.dp) // 아이콘 크기 설정
+                    )
                 }
             }
         }
@@ -617,15 +571,11 @@ fun PreviewRecordScreen() {
 
     var selectedCategory by remember { mutableStateOf("default") }
     var diaryText by remember { mutableStateOf("") }
-    var selectedImage by remember { mutableStateOf<String?>(null) }
-    val userName = "테스트 사용자"
 
     RecordScreen(
         categories = sampleCategories,
         selectedCategory = selectedCategory,
         diaryText = diaryText,
-        selectedImage = selectedImage,
-        userName = userName,
         onCategorySelect = { selectedCategory = it },
         onDiaryTextUpdate = { diaryText = it },
         onEditLocation = {}
