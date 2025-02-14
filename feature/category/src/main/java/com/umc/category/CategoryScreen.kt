@@ -53,6 +53,7 @@ import com.umc.category.component.CategoryManagementBar
 import com.umc.category.component.CategoryManagementBarProp
 import com.umc.category.component.CategoryModificationBar
 import com.umc.category.component.CategoryModificationBarProp
+import com.umc.category.component.TopBar
 import com.umc.design.CategoryColor
 import com.umc.design.Grey300
 import com.umc.design.Primary200
@@ -70,6 +71,7 @@ data class CategoryListItemProp(
 
 @Composable
 fun CategoryScreen(
+    showTopBar: Boolean,
     maxCategoryNameLength: Int,
     categoryNameInputFieldValue: String,
     selectedCategoryColor: CategoryColor?,
@@ -82,187 +84,195 @@ fun CategoryScreen(
     onDoneButtonClicked: () -> Unit,
 ) {
     val density = LocalDensity.current
-    val statusBarHeight = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    var topBarHeight by remember { mutableStateOf(0.dp) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.Secondary100)
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Spacer(modifier = Modifier.height(statusBarHeight))
         Column(
-            verticalArrangement = Arrangement.spacedBy(space = 32.dp),
-            modifier = Modifier.padding(32.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Color.Secondary100)
         ) {
-            // 새로 만들기
+            Spacer(modifier = Modifier.height(topBarHeight))
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(space = 48.dp)
+                verticalArrangement = Arrangement.spacedBy(space = 32.dp),
+                modifier = Modifier.padding(32.dp)
             ) {
+                // 새로 만들기
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(space = 48.dp)
                 ) {
-                    // 이름 입력 창
                     Column(
                         verticalArrangement = Arrangement.spacedBy(space = 16.dp)
                     ) {
-                        Text(
-                            text = stringResource(id = R.string.new_footprint),
-                            fontWeight = FontWeight.Bold,
-                            color = Color.Primary300,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                        BasicTextField(
-                            value = categoryNameInputFieldValue,
-                            onValueChange = onCategoryNameInputFieldValueChanged,
-                            textStyle = TextStyle(
-                                fontSize = 12.sp
-                            )
-                        ) { innerTextField ->
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .border(
-                                        width = 1.dp,
-                                        color = Color.Primary500,
-                                        shape = RoundedCornerShape(percent = 50)
-                                    )
-                                    .background(
-                                        color = Color.White,
-                                        shape = RoundedCornerShape(percent = 50)
-                                    )
-                                    .padding(vertical = 16.dp, horizontal = 24.dp)
-                            ) {
-                                Row(
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Box(
-                                        contentAlignment = Alignment.CenterStart,
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .height(with(density) { 16.sp.toDp() })
-                                    ) {
-                                        if (categoryNameInputFieldValue.isBlank()) Text(
-                                            text = stringResource(id = R.string.footprint_placeholder),
-                                            fontSize = 12.sp,
-                                            color = Color.Grey300,
-                                        )
-                                        innerTextField()
-                                    }
-                                    Text(
-                                        text = buildAnnotatedString {
-                                            append(categoryNameInputFieldValue.length.toString())
-                                            withStyle(
-                                                style = SpanStyle(color = Color.Grey300)
-                                            ) {
-                                                append("/${maxCategoryNameLength}")
-                                            }
-                                        },
-                                        fontSize = 12.sp,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    // 색상 선택 창
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        // 이름 입력 창
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(space = 16.dp)
                         ) {
-                            Image(
-                                painter = painterResource(id = Res.drawable.ic_header_deco),
-                                contentDescription = null,
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.size(32.dp)
-                            )
                             Text(
-                                text = stringResource(id = R.string.color_choice),
+                                text = stringResource(id = R.string.new_footprint),
                                 fontWeight = FontWeight.Bold,
-                                color = Color.Primary300
+                                color = Color.Primary300,
+                                modifier = Modifier.padding(horizontal = 16.dp)
                             )
-                        }
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(space = 12.dp),
-                            modifier = Modifier
-                                .horizontalScroll(state = rememberScrollState())
-                        ) {
-                            CategoryColor.entries.forEach { color ->
+                            BasicTextField(
+                                value = categoryNameInputFieldValue,
+                                onValueChange = onCategoryNameInputFieldValueChanged,
+                                textStyle = TextStyle(
+                                    fontSize = 12.sp
+                                )
+                            ) { innerTextField ->
                                 Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.clickable { onCategoryColorClicked(color) }
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .border(
+                                            width = 1.dp,
+                                            color = Color.Primary500,
+                                            shape = RoundedCornerShape(percent = 50)
+                                        )
+                                        .background(
+                                            color = Color.White,
+                                            shape = RoundedCornerShape(percent = 50)
+                                        )
+                                        .padding(vertical = 16.dp, horizontal = 24.dp)
                                 ) {
-                                    Image(
-                                        painter = painterResource(id = color.flowerIconId),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Fit,
-                                        modifier = Modifier.size(28.dp)
-                                    )
-                                    if (color == selectedCategoryColor) Image(
-                                        painter = painterResource(id = R.drawable.ic_check),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Fit,
-                                        modifier = Modifier.size(12.dp)
-                                    )
+                                    Row(
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Box(
+                                            contentAlignment = Alignment.CenterStart,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(with(density) { 16.sp.toDp() })
+                                        ) {
+                                            if (categoryNameInputFieldValue.isBlank()) Text(
+                                                text = stringResource(id = R.string.footprint_placeholder),
+                                                fontSize = 12.sp,
+                                                color = Color.Grey300,
+                                            )
+                                            innerTextField()
+                                        }
+                                        Text(
+                                            text = buildAnnotatedString {
+                                                append(categoryNameInputFieldValue.length.toString())
+                                                withStyle(
+                                                    style = SpanStyle(color = Color.Grey300)
+                                                ) {
+                                                    append("/${maxCategoryNameLength}")
+                                                }
+                                            },
+                                            fontSize = 12.sp,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        // 색상 선택 창
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Image(
+                                    painter = painterResource(id = Res.drawable.ic_header_deco),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Text(
+                                    text = stringResource(id = R.string.color_choice),
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.Primary300
+                                )
+                            }
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(space = 12.dp),
+                                modifier = Modifier
+                                    .horizontalScroll(state = rememberScrollState())
+                            ) {
+                                CategoryColor.entries.forEach { color ->
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.clickable { onCategoryColorClicked(color) }
+                                    ) {
+                                        Image(
+                                            painter = painterResource(id = color.flowerIconId),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Fit,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                        if (color == selectedCategoryColor) Image(
+                                            painter = painterResource(id = R.drawable.ic_check),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Fit,
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
+                    // 완료 버튼
+                    ElevatedButton(
+                        shape = RoundedCornerShape(percent = 50),
+                        onClick = onDoneButtonClicked,
+                        colors = ButtonDefaults.elevatedButtonColors(
+                            containerColor = Color.Primary200,
+                        ),
+                        modifier = Modifier.fillMaxWidth(0.5f),
+                        elevation = ButtonDefaults.elevatedButtonElevation(
+                            defaultElevation = 4.dp
+                        )
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.done),
+                            color = Color.White
+                        )
+                    }
                 }
-                // 완료 버튼
-                ElevatedButton(
-                    shape = RoundedCornerShape(percent = 50),
-                    onClick = onDoneButtonClicked,
-                    colors = ButtonDefaults.elevatedButtonColors(
-                        containerColor = Color.Primary200,
-                    ),
-                    modifier = Modifier.fillMaxWidth(0.5f),
-                    elevation = ButtonDefaults.elevatedButtonElevation(
-                        defaultElevation = 4.dp
-                    )
+                // 카테고리 목록
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                 ) {
-                    Text(
-                        text = stringResource(id = R.string.done),
-                        color = Color.White
-                    )
-                }
-            }
-            // 카테고리 목록
-            Column(
-                verticalArrangement = Arrangement.spacedBy(space = 8.dp)
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(id = Res.drawable.ic_header_deco),
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(32.dp)
-                    )
-                    Text(
-                        text = stringResource(id = R.string.category_list),
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Primary300
-                    )
-                }
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    if (categoryList.isNotEmpty()) {
-                        items(count = categoryList.size * 2 - 1) { index ->
-                            if (index and 1 == 0) CategoryListItem(categoryList[index / 2])
-                            else HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(id = Res.drawable.ic_header_deco),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text(
+                            text = stringResource(id = R.string.category_list),
+                            fontWeight = FontWeight.Bold,
+                            color = Color.Primary300
+                        )
+                    }
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        if (categoryList.isNotEmpty()) {
+                            items(count = categoryList.size * 2 - 1) { index ->
+                                if (index and 1 == 0) CategoryListItem(categoryList[index / 2])
+                                else HorizontalDivider(modifier = Modifier.fillMaxWidth())
+                            }
                         }
                     }
                 }
             }
         }
+
+        if (showTopBar) TopBar(
+            onHeightChanged = { topBarHeight = it },
+        )
     }
 
     categoryManagementBarProp?.let { CategoryManagementBar(prop = it) }
@@ -312,6 +322,7 @@ fun PreviewCategoryScreen() {
     var fieldValue by remember { mutableStateOf("") }
 
     CategoryScreen(
+        showTopBar = true,
         maxCategoryNameLength = 20,
         categoryNameInputFieldValue = fieldValue,
         selectedCategoryColor = CategoryColor.RED,

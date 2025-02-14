@@ -224,7 +224,7 @@ fun CustomFloatingImageButton(onClick: () -> Unit) {
                 .width(79.dp)
                 .height(73.59.dp)
                 .offset(y = (4).dp)
-                .blur(5.dp), // ✅ 블러 효과 적용
+                .blur(4.dp), // ✅ 블러 효과 적용
             colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(Color.Black.copy(alpha = 0.25f)) // ✅ `tint` 오류 해결
         )
 

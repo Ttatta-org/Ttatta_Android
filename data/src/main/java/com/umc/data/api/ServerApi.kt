@@ -1,33 +1,7 @@
 package com.umc.data.api
 
 import com.umc.data.api.dto.BaseResponse
-import com.umc.data.api.dto.server.CreateCategoryDTO
-import com.umc.data.api.dto.server.CreateCategoryResultDTO
-import com.umc.data.api.dto.server.EditDTO
-import com.umc.data.api.dto.server.EditResultDTO
-import com.umc.data.api.dto.server.FootprintDiaryListDTO
-import com.umc.data.api.dto.server.GetAllCategoryCountResultDTO
-import com.umc.data.api.dto.server.KeepDiaryListDTO
-import com.umc.data.api.dto.server.MapResultDTO
-import com.umc.data.api.dto.server.ModifyCategoryDTO
-import com.umc.data.api.dto.server.ModifyCategoryResultDTO
-import com.umc.data.api.dto.server.PostDTO
-import com.umc.data.api.dto.server.PostResultDTO
-import com.umc.data.api.dto.server.RefreshResultDTO
-import com.umc.data.api.dto.server.SearchDiaryListDTO
-import com.umc.data.api.dto.server.SendVerificationCodeRequestDTO
-import com.umc.data.api.dto.server.SendVerificationCodeResultDTO
-import com.umc.data.api.dto.server.SignInKakaoRequestDTO
-import com.umc.data.api.dto.server.SignInRequestDTO
-import com.umc.data.api.dto.server.SignUpKakaoRequestDTO
-import com.umc.data.api.dto.server.SignUpRequestDTO
-import com.umc.data.api.dto.server.UpdateRequestDTO
-import com.umc.data.api.dto.server.UserInfoResultDTO
-import com.umc.data.api.dto.server.UserSignInResultDTO
-import com.umc.data.api.dto.server.UserSignUpResultDTO
-import com.umc.data.api.dto.server.VerifyUsernameOverlapResultDTO
-import com.umc.data.api.dto.server.VerifyVerificationCodeForPasswordResultDTO
-import com.umc.data.api.dto.server.VerifyVerificationCodeForUsernameResultDTO
+import com.umc.data.api.dto.server.*
 import com.umc.data.preference.AuthPreference
 import okhttp3.MultipartBody
 import retrofit2.http.Body
@@ -79,6 +53,16 @@ interface ServerApi {
         @Body body: SendVerificationCodeRequestDTO
     ): BaseResponse<SendVerificationCodeResultDTO>
 
+    // (개발용) 테스트 유저 생성
+    @POST("/users/testuser")
+    suspend fun createTestUser(): BaseResponse<UserSignUpResultDTO>
+
+    // 아이템 생성
+    @POST("/items")
+    suspend fun makeItem(
+        @Body body: MakeItemDTO
+    ): BaseResponse<MakeItemResultDTO>
+
     // 일기 작성
     @Multipart
     @POST("/diaries/post")
@@ -86,6 +70,12 @@ interface ServerApi {
         @Part("request") request: PostDTO,
         @Part image: MultipartBody.Part
     ): BaseResponse<PostResultDTO>
+
+    // 챌린지 생성
+    @POST("/challenges")
+    suspend fun createChallenge(
+        @Body body: CreateChallengeRequestDTO
+    ): BaseResponse<CreateChallengeResultDTO>
 
     // 카테고리 생성
     @POST("/categories")
@@ -97,27 +87,17 @@ interface ServerApi {
     @GET("/users/info")
     suspend fun getUserInfo(): BaseResponse<UserInfoResultDTO>
 
-    // 회원 정보 수정
-    @PATCH("/users/info")
-    suspend fun updateUserInfo(
-        @Body body: UpdateRequestDTO
-    ): BaseResponse<UserInfoResultDTO>
+    // 미소유 아이템 (shop) 조회
+    @GET("/items/shop")
+    suspend fun getShopItems(): BaseResponse<ItemShopListDTO>
 
-    // 일기 수정
-    @Multipart
-    @PATCH("/diaries/edit/{diaryId}")
-    suspend fun updateDiary(
-        @Path("diaryId") diaryId: Long,
-        @Part("request") request: EditDTO,
-        @Part editPhoto: MultipartBody.Part?
-    ): BaseResponse<EditResultDTO>
+    // 소유 아이템 조회
+    @GET("/items/owned")
+    suspend fun getOwnedItems(): BaseResponse<ItemMyItemListDTO>
 
-    // 카테고리 수정
-    @PATCH("/categories/{categoryId}")
-    suspend fun updateCategory(
-        @Path("categoryId") categoryId: Long,
-        @Body body: ModifyCategoryDTO
-    ): BaseResponse<ModifyCategoryResultDTO>
+    // 착용한 아이템 조회
+    @GET("/items/equipped")
+    suspend fun getEquippedItems(): BaseResponse<IdListDTO>
 
     // 인증번호 확인 (비밀번호 찾기)
     @GET("/users/verify/pw")
@@ -148,7 +128,8 @@ interface ServerApi {
     @GET("/diaries/map/{requestNum}")
     suspend fun getMapDiary(
         @Path("requestNum") requestNum: Int,
-        @Query("clusterId") clusterId: Long
+        @Query("clusterId") clusterId: Long,
+        @Query("diaryCategoryId") diaryCategoryId: Long?
     ): BaseResponse<MapResultDTO>
 
     // 일기 보관함 조회
@@ -160,11 +141,71 @@ interface ServerApi {
 
     // 발자국 전체 조회
     @GET("/diaries/footprint")
-    suspend fun getFootprintDiaryList(): BaseResponse<FootprintDiaryListDTO>
+    suspend fun getFootprintDiaryList(
+        @Query("diaryCategoryId") diaryCategoryId: Long?
+    ): BaseResponse<FootprintDiaryListDTO>
+
+    // 전체 일기 날짜 조회
+    @GET("/diaries/date")
+    suspend fun getDiariesDate(): BaseResponse<DairyDateListResultDTO>
+
+    // 금일 챌린지 조회
+    @GET("/challenges")
+    suspend fun getChallenges(): BaseResponse<ChallengeListResultDTO>
+
+    // 가장 최근에 실패한 챌린지 5개 조회
+    @GET("/challenges/fail")
+    suspend fun getFailChallenges(): BaseResponse<FailChallengeListResultDTO>
 
     // 카테고리별 일기 개수 조회
     @GET("/categories/diary-counts")
     suspend fun getDiaryCount(): BaseResponse<GetAllCategoryCountResultDTO>
+
+    // 회원 정보 수정
+    @PATCH("/users/info")
+    suspend fun updateUserInfo(
+        @Body body: EditRequestDTO
+    ): BaseResponse<UserInfoEditResultDTO>
+
+    // 아이템 구매
+    @PATCH("/items/{itemId}")
+    suspend fun buyItem(
+        @Path("itemId") itemId: Long
+    ): BaseResponse<ItemBuyResultDTO>
+
+    // 아이템 착용
+    @PATCH("/items/equip/{itemId}")
+    suspend fun equipItem(
+        @Path("itemId") itemId: Long
+    ): BaseResponse<ItemEquipResultDTO>
+
+    // 아이템 해제
+    @PATCH("/items/disrobe/{itemId}")
+    suspend fun disrobeItem(
+        @Path("itemId") itemId: Long
+    ): BaseResponse<ItemDisrobeResultDTO>
+
+    // 일기 수정
+    @Multipart
+    @PATCH("/diaries/edit/{diaryId}")
+    suspend fun updateDiary(
+        @Path("diaryId") diaryId: Long,
+        @Part("request") request: EditDTO,
+        @Part editPhoto: MultipartBody.Part?
+    ): BaseResponse<EditResultDTO>
+
+    // 챌린지 성공
+    @PATCH("/challenges/{challengeId}")
+    suspend fun successChallenge(
+        @Path("challengeId") challengeId: Long
+    ): BaseResponse<SuccessChallengeResultDTO>
+
+    // 카테고리 수정
+    @PATCH("/categories/{categoryId}")
+    suspend fun updateCategory(
+        @Path("categoryId") categoryId: Long,
+        @Body body: ModifyCategoryDTO
+    ): BaseResponse<ModifyCategoryResultDTO>
 
     // 회원 탈퇴
     @DELETE("/users")

@@ -6,11 +6,7 @@ import com.umc.core.model.DiaryForCard
 import com.umc.core.model.Footprint
 import com.umc.core.repository.DiaryRepository
 import com.umc.data.api.ServerApi
-import com.umc.data.api.dto.server.CategoryDetailDTO
-import com.umc.data.api.dto.server.CreateCategoryDTO
-import com.umc.data.api.dto.server.EditDTO
-import com.umc.data.api.dto.server.ModifyCategoryDTO
-import com.umc.data.api.dto.server.PostDTO
+import com.umc.data.api.dto.server.*
 import com.umc.data.api.withAuth
 import com.umc.data.preference.AuthPreference
 import com.umc.design.CategoryColor
@@ -38,6 +34,7 @@ class DiaryRepositoryImpl @Inject constructor(
                 content = it.content!!,
                 imageUrl = it.image!!,
                 locationName = it.locationName!!,
+                categoryId = it.diaryCategoryId!!,
             )
         } ?: listOf()
     }
@@ -53,13 +50,14 @@ class DiaryRepositoryImpl @Inject constructor(
                 content = it.content!!,
                 imageUrl = it.image!!,
                 locationName = it.locationName!!,
+                categoryId = it.diaryCategoryId!!,
             )
         } ?: listOf()
     }
 
-    override suspend fun getDiaries(page: Int, clusterId: Long): DiaryForCard {
+    override suspend fun getDiaries(page: Int, clusterId: Long, categoryId: Long?): DiaryForCard {
         val response = serverApi.withAuth(authPreference) {
-            getMapDiary(requestNum = page, clusterId = clusterId)
+            getMapDiary(requestNum = page, clusterId = clusterId, diaryCategoryId = categoryId)
         }
         return DiaryForCard(
             id = response.diaryId!!,
@@ -69,8 +67,15 @@ class DiaryRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getAllFootprints(): List<Footprint> {
-        val response = serverApi.withAuth(authPreference) { getFootprintDiaryList() }
+    override suspend fun getAllRecordedDates(): List<LocalDate> {
+        val response = serverApi.withAuth(authPreference) { getDiariesDate() }
+        return response.diaryDateList?.mapNotNull { it.date } ?: listOf()
+    }
+
+    override suspend fun getAllFootprints(categoryId: Long?): List<Footprint> {
+        val response = serverApi.withAuth(authPreference) {
+            getFootprintDiaryList(diaryCategoryId = categoryId)
+        }
         return response.footprintList?.map {
             Footprint(
                 diaryId = it.diaryId!!,

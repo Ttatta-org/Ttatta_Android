@@ -25,6 +25,7 @@ navigationCompose = "2.8.5"
 androidx-test = "1.4.0"
 testng = "6.9.6"
 media3CommonKtx = "1.5.1"
+runtimeAndroid = "1.7.7"
 
 [libraries]
 androidx-ui-test-android = { module = "androidx.test:core", version.ref = "androidx-test" }
@@ -61,6 +62,7 @@ androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navig
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 testng = { group = "org.testng", name = "testng", version.ref = "testng" }
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
+androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime-android", version.ref = "runtimeAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

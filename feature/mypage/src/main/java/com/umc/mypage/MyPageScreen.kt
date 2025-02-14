@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,7 +29,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
+import com.umc.core.model.LoginType
+import com.umc.core.model.UserInfo
+import com.umc.core.model.UserStatus
 import com.umc.mypage.components.BottomNavigationBarWithFAB
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.mypage.components.TopBarComponent
 import com.umc.mypage.R
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,76 +43,171 @@ import java.util.Locale
 
 @Composable
 fun MyPageScreen(
-    viewModel: MyPageViewModel,
-    onTabSelected: (String) -> Unit,
+    userInfo: UserInfo?,
+    isLoading: Boolean,
+    errorMessage: String?,
+    onLogout: () -> Unit,
+    onLeaveUser: () -> Unit,
     onFabClick: () -> Unit,
-    onThemeChangeClick: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    val systemUiController = rememberSystemUiController()
+    val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
+
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
+        )
+    }
     Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            topBar = { TopBarComponent() },
-            bottomBar = {
-                BottomNavigationBarWithFAB(
-                    selectedTab = "mypage",
-                    onTabSelected = { /* 탭 변경 로직 */ },
-                    onFabClick = onFabClick
-                )
-            }
-        ) { innerPadding ->
-            LazyColumn(
+        Column(modifier = Modifier.fillMaxSize()) {
+
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .background(Color(0xFFFEF6F2))
-                    .padding(start = 25.dp, end = 25.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .weight(1f) // ✅ BottomNavigation을 밀어내지 않도록 LazyColumn에 weight 적용
             ) {
-                // 프로필 섹션
-                item { Spacer(modifier = Modifier.height(40.dp)) }
-                item { ProfileSection(name = uiState.displayName, profileImage = uiState.profileImage) }
-                item { Spacer(modifier = Modifier.height(20.dp)) }
+                // ✅ 2. LazyColumn (스크롤 가능한 콘텐츠)
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 60.dp)
+                        .background(Color(0xFFFFF6F2))
+                        .padding(horizontal = 25.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    item { Spacer(modifier = Modifier.height(40.dp)) }
+                    item {
+                        if (userInfo != null) {
+                            ProfileSection(
+                                name = userInfo.name,
+                                profileImage = userInfo.profileImageUrl
+                            )
+                            Spacer(modifier = Modifier.height(20.dp))
 
-                // 요약 섹션
-                item { SummarySection(diaryCount = uiState.diaryCount, points = uiState.points) }
-                item { Spacer(modifier = Modifier.height(22.dp)) }
+                            SummarySection(
+                                diaryCount = userInfo.totalDiaryCount,
+                                points = userInfo.point
+                            )
+                            Spacer(modifier = Modifier.height(22.dp))
 
-                // 앱 설정 섹션
-                item {
-                    AppSettingsSection(
-                        themeSubtitle = "기본 테마 사용 중",
-                        notificationsEnabled = uiState.notificationsEnabled,
-                        passwordLockEnabled = uiState.passwordLockEnabled,
-                        onThemeChangeClick = onThemeChangeClick
-                    )
+                            AppSettingsSection(
+                                themeSubtitle = "기본 테마 사용 중",
+                                notificationsEnabled = false,
+                                passwordLockEnabled = false,
+                                onThemeChangeClick = { /* 테마 변경 로직 */ },
+                                onNotificationToggle = {  },
+                                onPasswordLockToggle = {  },
+                                onLeaveUser = onLeaveUser,
+                                onLogout = onLogout
+                            )
+                            Spacer(modifier = Modifier.height(30.dp))
+                        } else {
+                            Text(text = errorMessage ?: "유저 정보를 불러올 수 없습니다.", color = Color.Red)
+                        }
+                    }
                 }
-                item { Spacer(modifier = Modifier.height(30.dp)) }
 
+                // ✅ 3. TopBar (스크롤 가능한 LazyColumn 위에 배치)
+                TopBarComponent()
             }
+
+            // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)
+            BottomNavigationBarWithFAB(
+                selectedTab = "mypage",
+                onTabSelected = { /* 탭 변경 로직 */ },
+                onFabClick = onFabClick
+            )
+
         }
     }
+
+//    Box(modifier = Modifier.fillMaxSize()) {
+//        Scaffold(
+//            modifier = Modifier.background(Color.Transparent),
+//            topBar = { TopBarComponent() },
+//            bottomBar = {
+//                BottomNavigationBarWithFAB(
+//                    selectedTab = "mypage",
+//                    onTabSelected = { /* 탭 변경 로직 */ },
+//                    onFabClick = onFabClick
+//                )
+//            }
+//        ) { innerPadding ->
+//            LazyColumn(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .padding(innerPadding)
+//                    .background(Color(0xFFFEF6F2))
+//                    .padding(start = 25.dp, end = 25.dp),
+//                horizontalAlignment = Alignment.CenterHorizontally
+//            ) {
+//                // 프로필 섹션
+//                item { Spacer(modifier = Modifier.height(40.dp)) }
+//                item {
+//                    if (userInfo != null) {
+//                        ProfileSection(
+//                            name = userInfo.name,
+//                            profileImage = userInfo.profileImageUrl
+//                        )
+//                        Spacer(modifier = Modifier.height(20.dp))
+//
+//                        SummarySection(
+//                            diaryCount = userInfo.totalDiaryCount,
+//                            points = userInfo.point
+//                        )
+//                        Spacer(modifier = Modifier.height(22.dp))
+//
+//                        AppSettingsSection(
+//                            themeSubtitle = "기본 테마 사용 중",
+//                            notificationsEnabled = false,
+//                            passwordLockEnabled = false,
+//                            onThemeChangeClick = { /* 테마 변경 로직 */ },
+//                            onNotificationToggle = {  },  // ✅ 알림 설정 토글
+//                            onPasswordLockToggle = {  },  // ✅ 암호 잠금 설정 토글
+//                            onLeaveUser = onLeaveUser,  // ✅ 회원 탈퇴
+//                            onLogout = onLogout  // ✅ 로그아웃
+//                        )
+//                        Spacer(modifier = Modifier.height(30.dp))
+//                    } else {
+//                        Text(text = errorMessage ?: "유저 정보를 불러올 수 없습니다.", color = Color.Red)
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
 
 @Composable
-fun ProfileSection(name: String, profileImage: Int) {
+fun ProfileSection(name: String, profileImage: String?) {
+
+    val displayName = "$name 님"
+
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Image(
-            painter = painterResource(id = profileImage),
+//        Image(
+//            painter = painterResource(id = profileImage),
+//            contentDescription = "프로필 이미지",
+//            modifier = Modifier
+//                .widthIn(min = 90.dp, max = 115.dp) // 디바이스 크기에 맞게 조정
+//                .clip(CircleShape),
+//            contentScale = ContentScale.Fit // 잘리지 않게 변경
+//        )
+        AsyncImage(
+            model = profileImage ?: R.drawable.default_profile, // ✅ URL이 없으면 기본 이미지 사용
             contentDescription = "프로필 이미지",
             modifier = Modifier
-                .widthIn(min = 90.dp, max = 115.dp) // 디바이스 크기에 맞게 조정
+                .size(115.dp)
                 .clip(CircleShape),
-            contentScale = ContentScale.Fit // 잘리지 않게 변경
+            contentScale = ContentScale.Crop,
+            //contentScale = ContentScale.Fit
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         Text(
-            text = name,
+            text = displayName,
             style = MaterialTheme.typography.titleMedium.copy(
                 fontSize = 20.sp, // 텍스트 크기
-                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold // 텍스트 굵기
+                fontWeight = FontWeight.SemiBold // 텍스트 굵기
             ),
             color = Color(0xFF333333)
         )
@@ -133,7 +234,7 @@ fun ProfileSection(name: String, profileImage: Int) {
 }
 
 @Composable
-fun SummarySection(diaryCount: Int, points: Int) {
+fun SummarySection(diaryCount: Int, points: Long) {
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -145,7 +246,7 @@ fun SummarySection(diaryCount: Int, points: Int) {
 }
 
 @Composable
-fun SummaryItem(label: String, value: Int, modifier: Modifier = Modifier) {
+fun SummaryItem(label: String, value: Number, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier
             .fillMaxWidth() // ✅ 남은 공간을 가득 채우도록 설정
@@ -175,7 +276,7 @@ fun SummaryItem(label: String, value: Int, modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
-                text = PointNumberWithComma(value),
+                text = pointNumberWithComma(value),
                 fontSize = 15.sp,
                 color = Color(0xFFFF7162),
                 style = MaterialTheme.typography.titleMedium,
@@ -187,7 +288,7 @@ fun SummaryItem(label: String, value: Int, modifier: Modifier = Modifier) {
 
 
 //SummaryItem에 필요한 숫자 콤마 만들기
-fun PointNumberWithComma(number: Int): String {
+fun pointNumberWithComma(number: Number): String {
     return NumberFormat.getNumberInstance(Locale.US).format(number)
 }
 
@@ -196,7 +297,11 @@ fun AppSettingsSection(
     themeSubtitle: String,
     notificationsEnabled: Boolean,
     passwordLockEnabled: Boolean,
-    onThemeChangeClick: () -> Unit
+    onThemeChangeClick: () -> Unit,
+    onNotificationToggle: (Boolean) -> Unit, // ✅ 알림 설정 변경 이벤트 추가
+    onPasswordLockToggle: (Boolean) -> Unit, // ✅ 암호 잠금 설정 변경 이벤트 추가
+    onLeaveUser: () -> Unit, // ✅ 탈퇴하기 이벤트 추가
+    onLogout: () -> Unit // ✅ 로그아웃 이벤트 추가
 ) {
     Card(
         modifier = Modifier
@@ -259,13 +364,15 @@ fun AppSettingsSection(
                 // 알림 설정
                 SettingSwitchItem(
                     title = "알림 설정",
-                    isChecked = notificationsEnabled
+                    isChecked = notificationsEnabled,
+                    onCheckedChange = onNotificationToggle
                 )
 
                 // 암호 잠금
                 SettingSwitchItem(
                     title = "암호 잠금",
-                    isChecked = passwordLockEnabled
+                    isChecked = passwordLockEnabled,
+                    onCheckedChange = onPasswordLockToggle
                 )
 
                 // 점선 구분선
@@ -290,7 +397,7 @@ fun AppSettingsSection(
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(enabled = false) { /* 탈퇴하기 로직 */ } // 클릭 비활성화
+                        .clickable { onLeaveUser() } // ✅ 클릭 이벤트
                         .padding(8.dp) // 간격 조절
                 )
 
@@ -301,7 +408,7 @@ fun AppSettingsSection(
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(enabled = false) { /* 로그아웃 로직 */ } // 클릭 비활성화
+                        .clickable { onLogout() } // ✅ 클릭 이벤트 추가
                         .padding(8.dp) // 간격 조절
                 )
             }
@@ -313,7 +420,8 @@ fun AppSettingsSection(
 @Composable
 fun SettingSwitchItem(
     title: String,
-    isChecked: Boolean
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -332,7 +440,7 @@ fun SettingSwitchItem(
         // 커스텀 Switch 사용
         CustomSwitch(
             checked = isChecked,
-            onCheckedChange = {},
+            onCheckedChange = onCheckedChange,
             modifier = Modifier.padding(end = 5.dp)
         )
     }
@@ -381,7 +489,7 @@ fun DashedDivider() {
         val dashWidth = 10f // 대시의 길이
         val gapWidth = 6f // 대시 사이의 간격
         val strokeWidth = 2f // 대시의 두께
-        val color = Color(0xFFFDDDC1) // 대시의 색상
+        val color = Color(0xFFFCAD98)
 
         var currentX = 0f
         while (currentX < size.width) {
@@ -400,21 +508,25 @@ fun DashedDivider() {
 @Preview(showBackground = true, name = "MyPageScreen Preview")
 @Composable
 fun PreviewMyPageScreen() {
-    val mockUiState = MyPageUiState(
+    // ✅ 가짜 사용자 데이터 생성
+    val mockUserInfo = UserInfo(
+        id = 1L,
         name = "서연",
-        profileImage = R.drawable.default_profile, // 기본 제공 이미지로 대체
-        diaryCount = 129,
-        points = 1300,
-        notificationsEnabled = true,
-        passwordLockEnabled = false
+        loginType = LoginType.REGULAR, // ✅ 이메일 로그인
+        email = "seoyeon@example.com",
+        profileImageUrl = null, // ✅ 프로필 이미지 없음 (기본 이미지 표시)
+        point = 1300L,
+        status = UserStatus.ACTIVE, // ✅ 활성 상태
+        totalDiaryCount = 129
     )
 
+    // ✅ Preview에서 사용할 기본 상태
     MyPageScreen(
-        viewModel = object : MyPageViewModel() {
-            override val uiState = MutableStateFlow(mockUiState)
-        },
-        onTabSelected = { /* Preview에서는 동작 없음 */ },
-        onFabClick = { /* Preview에서는 동작 없음 */ },
-        onThemeChangeClick = { /* Preview에서는 동작 없음 */ }
+        userInfo = mockUserInfo,
+        isLoading = false,
+        errorMessage = null,
+        onLogout = { /* 로그아웃 테스트 */ },
+        onLeaveUser = { /* 탈퇴 테스트 */ },
+        onFabClick = {}
     )
 }

@@ -5,13 +5,7 @@ import com.umc.core.model.UserInfo
 import com.umc.core.model.UserStatus
 import com.umc.core.repository.UserRepository
 import com.umc.data.api.ServerApi
-import com.umc.data.api.dto.server.SignInKakaoRequestDTO
-import com.umc.data.api.dto.server.SignInRequestDTO
-import com.umc.data.api.dto.server.SignUpKakaoRequestDTO
-import com.umc.data.api.dto.server.SignUpRequestDTO
-import com.umc.data.api.dto.server.UpdateRequestDTO
-import com.umc.data.api.dto.server.UserInfoResultDTO
-import com.umc.data.api.dto.server.VerifyUsernameOverlapResultDTO
+import com.umc.data.api.dto.server.*
 import com.umc.data.api.withAuth
 import com.umc.data.api.withCheck
 import com.umc.data.preference.AuthPreference
@@ -115,7 +109,8 @@ class UserRepositoryImpl @Inject constructor(
             email = response.email!!,
             profileImageUrl = response.profileImg,
             point = response.point!!,
-            status = UserStatus.ACTIVE  // TODO: 백엔드 구현시 연결
+            status = UserStatus.ACTIVE,  // TODO: 백엔드 구현시 연결
+            totalDiaryCount = response.diaryCount!!.toInt()
         )
     }
 
@@ -123,7 +118,7 @@ class UserRepositoryImpl @Inject constructor(
         name: String?,
         email: String?,
     ) {
-        val body = UpdateRequestDTO(
+        val body = EditRequestDTO(
             nickname = name,
             email = email,
             profileImage = null,
