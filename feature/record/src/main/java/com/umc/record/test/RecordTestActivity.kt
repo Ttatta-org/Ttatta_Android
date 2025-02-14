@@ -15,12 +15,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.umc.record.RecordApp
 import com.umc.record.RecordEditLocationScreen
 import com.umc.record.RecordScreen
 import com.umc.record.RecordViewModel
@@ -31,34 +31,21 @@ import androidx.navigation.compose.composable
 @AndroidEntryPoint
 class RecordTestActivity : ComponentActivity() {
     private val viewModel: RecordViewModel by viewModels()
+    private lateinit var navController: NavHostController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
         setContent {
-//            val navController = rememberNavController() //  NavController 생성
-//            RecordNavHost(navController, viewModel)
-
+            navController = rememberNavController()
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .windowInsetsPadding(WindowInsets(0))
                     .background(Color.White)
             ) {
-                val categories = viewModel.categories.collectAsState().value
-                val selectedCategory = viewModel.selectedCategory.collectAsState().value
-                val diaryText = viewModel.diaryText.collectAsState().value
-
-                RecordApp(
-                    categories = categories,
-                    selectedCategory = selectedCategory,
-                    diaryText = diaryText,
-                    onCategorySelect = { viewModel.selectCategory(it) },
-                    onDiaryTextUpdate = { viewModel.updateDiaryText(it) },
-                    mapView = viewModel.getMapView(),
-                    onEditLocation = { checkLocationPermission() } // ✅ 위치 권한 체크 후 실행
-                )
+                RecordNavHost(navController, viewModel)
             }
         }
     }
@@ -89,30 +76,37 @@ class RecordTestActivity : ComponentActivity() {
 }
 
 
-//@Composable
-//fun RecordNavHost(
-//    navController: NavController,
-//    viewModel: RecordViewModel
-//) {
-//    NavHost(
-//        navController = navController,
-//        startDestination = "record_screen"
-//    ) {
-//        composable("record_screen") {
-//            RecordScreen(
-//                categories = viewModel.categories.collectAsState().value,
-//                selectedCategory = viewModel.selectedCategory.collectAsState().value,
-//                diaryText = viewModel.diaryText.collectAsState().value,
-//                onCategorySelect = { viewModel.selectCategory(it) },
-//                onDiaryTextUpdate = { viewModel.updateDiaryText(it) },
-//                onEditLocation = { navController.navigate("record_edit_screen") } // 위치 클릭 시 이동
-//            )
-//        }
-//        composable("record_edit_screen") {
-//            RecordEditLocationScreen(
-//                mapView = viewModel.getMapView(),
-//                onLocationButtonClicked = { viewModel.moveMapToCurrentPosition() }
-//            )
-//        }
-//    }
-//}
+@Composable
+fun RecordNavHost(
+    navController: NavHostController,
+    viewModel: RecordViewModel
+) {
+    NavHost(
+        navController = navController,
+        startDestination = "record_screen"
+    ) {
+        composable("record_screen") {
+            val categories by viewModel.categories.collectAsState()
+            val selectedCategory by viewModel.selectedCategory.collectAsState()
+            val diaryText by viewModel.diaryText.collectAsState()
+
+            RecordScreen(
+                categories = categories,
+                selectedCategory = selectedCategory,
+                diaryText = diaryText,
+                onCategorySelect = { viewModel.selectCategory(it) },
+                onDiaryTextUpdate = { viewModel.updateDiaryText(it) },
+                onEditLocation = { navController.navigate("record_edit_screen") } // ✅ 네비게이션 이동
+            )
+        }
+        composable("record_edit_screen") {
+            RecordEditLocationScreen(
+                mapView = viewModel.getMapView(),
+                onLocationButtonClicked = {
+                    println("🔴 Returning to RecordScreen")
+                    navController.popBackStack() // ✅ 뒤로 가기 (RecordScreen으로)
+                }
+            )
+        }
+    }
+}
