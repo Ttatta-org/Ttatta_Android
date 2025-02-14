@@ -23,6 +23,7 @@ data class DiaryModificationBarInfo(
 @Composable
 fun FootprintApp(
     viewModel: FootprintViewModel,
+    isMapBlurApplied: Boolean,
     onNavigateToCategoryApp: () -> Unit
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
@@ -80,7 +81,7 @@ fun FootprintApp(
     )
 
     FootprintScreen(
-        mapView = viewModel.getMapView(),
+        mapView = { viewModel.MapView(isBlurApplied = isMapBlurApplied) },
         isCategorySelected = viewModel.selectedCategoryId != null,
         diaryCardProp = viewModel.clickedMarkerInfo?.let { clickedMarkerInfo ->
             PositionedDiaryCardProp(

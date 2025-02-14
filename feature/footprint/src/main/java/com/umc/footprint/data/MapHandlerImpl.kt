@@ -6,10 +6,20 @@ import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.viewinterop.AndroidView
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraAnimation
@@ -25,22 +35,18 @@ import com.umc.footprint.R
 import com.umc.footprint.core.LocationHandler
 import com.umc.footprint.core.MapHandler
 import com.umc.footprint.core.MapMarker
+import com.umc.footprint.core.clusteredMarkerMaxHeight
+import com.umc.footprint.core.clusteredMarkerMaxWidth
+import com.umc.footprint.core.clusteringDp
+import com.umc.footprint.core.locatorHeight
+import com.umc.footprint.core.locatorWidth
+import com.umc.footprint.core.markerHeight
+import com.umc.footprint.core.markerWidth
 import com.umc.footprint.util.loadRawImageAsBitmap
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.math.roundToInt
-
-private val locatorWidth = 48.dp
-private val locatorHeight = 48.dp
-private val clusteredMarkerMaxWidth = 128.dp
-private val clusteredMarkerMaxHeight = 128.dp
-private val markerWidth = 64.dp
-private val markerHeight = 64.dp
-private val clusteringDp = 32.dp
 
 class MapHandlerImpl @Inject constructor(
     private val context: Context,
@@ -205,12 +211,35 @@ class MapHandlerImpl @Inject constructor(
         }
     }
 
-    override fun getMapView(): @Composable () -> Unit {
-        return {
+    @Composable
+    override fun MapView(isBlurApplied: Boolean) {
+        var capturedMap by remember { mutableStateOf<ImageBitmap?>(null) }
+
+        LaunchedEffect(key1 = isBlurApplied) {
+            if (isBlurApplied) {
+                getMap().takeSnapshot { capturedMap = it.asImageBitmap() }
+            } else {
+                capturedMap = null
+            }
+        }
+
+        Box(
+          modifier = Modifier.fillMaxSize()
+        ) {
             AndroidView(
                 factory = { mapView },
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .alpha(if (capturedMap != null) 0f else 1f)
             )
+            capturedMap?.let { bitmap ->
+                Image(
+                    bitmap = bitmap,
+                    contentScale = ContentScale.Fit,
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize()
+                )
+            }
         }
     }
 

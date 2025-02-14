@@ -68,8 +68,8 @@ class FootprintViewModel @Inject constructor(
         }
     }
 
-    fun getMapView(): @Composable () -> Unit {
-        return mapHandler.getMapView()
+    @Composable fun MapView(isBlurApplied: Boolean) {
+        mapHandler.MapView(isBlurApplied)
     }
 
     fun moveMapToCurrentPosition() {
