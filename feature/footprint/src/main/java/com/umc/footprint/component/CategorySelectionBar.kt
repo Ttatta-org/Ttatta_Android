@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -56,7 +55,6 @@ fun CategorySelectionBar(
 ) {
     Box(
         modifier = Modifier
-            .fillMaxSize()
             .shadow(
                 shape = categorySelectionBarShape,
                 elevation = 16.dp
@@ -68,9 +66,7 @@ fun CategorySelectionBar(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.dp, vertical = 16.dp)
+            modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp)
         ) {
             // 제목 라인
             Image(
@@ -101,7 +97,6 @@ fun CategorySelectionBar(
             // 카테고리 목록
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.fillMaxSize()
             ) {
                 items(count = prop.itemProps.size * 2 + 1) { index ->
                     if (index == 0) {
@@ -147,9 +142,11 @@ fun CategorySelectionBar(
 
 @Composable
 fun CategoryItem(prop: CategoryItemProp) {
-    Box(modifier = Modifier
+    Box(
+        modifier = Modifier
         .clip(RoundedCornerShape(percent = 50))
-        .clickable { prop.onClicked() }) {
+        .clickable(onClick = prop.onClicked)
+    ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,

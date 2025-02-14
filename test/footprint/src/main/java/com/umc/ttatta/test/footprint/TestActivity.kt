@@ -63,6 +63,7 @@ class TestActivity : ComponentActivity() {
                     ) {
                         FootprintApp(
                             viewModel = viewModel,
+                            isMapBlurApplied = false,
                             onNavigateToCategoryApp = {
                                 navigator.navigate("category")
                             }
