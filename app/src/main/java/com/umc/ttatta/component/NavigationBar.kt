@@ -57,7 +57,7 @@ val centerButtonSize = DpSize(95.dp, 90.dp)
 
 @Composable
 fun NavigationBar(
-    currentNavigationItem: NavigationItem,
+    currentNavigationItem: NavigationItem?,
     onNavigate: (NavigationItem) -> Unit,
 ) {
     val padding = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()
@@ -87,7 +87,7 @@ fun NavigationBar(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { if (item != currentNavigationItem) onNavigate(item) }
+                        .clickable { onNavigate(item) }
                 ) {
                     val color = if (currentNavigationItem == item) Color.Primary500 else Color.Grey300
 
