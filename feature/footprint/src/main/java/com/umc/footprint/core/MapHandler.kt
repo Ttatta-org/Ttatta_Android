@@ -21,7 +21,10 @@ data class MapMarker(
 )
 
 interface MapHandler {
-    @Composable fun MapView(isBlurApplied: Boolean)
+    @Composable fun MapView(
+        isBlurApplied: Boolean,
+        isLocationMarkingEnabled: Boolean,
+    )
 
     suspend fun moveTo(latitude: Double, longitude: Double)
     suspend fun moveToCurrentPosition()

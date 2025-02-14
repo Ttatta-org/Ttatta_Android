@@ -21,7 +21,6 @@ object LocationHandlerModule {
     ): LocationHandler {
         val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
         return LocationHandlerImpl(
-            context = context,
             locationSource = fusedLocationProviderClient,
         )
     }

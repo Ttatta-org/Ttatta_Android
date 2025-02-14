@@ -49,7 +49,10 @@ class FootprintViewModel @Inject constructor(
             }
             // 현재 위치로 맵 이동
             launch {
-                moveMapToCurrentPosition()
+                moveMapToCurrentPosition(
+                    onSucceed = { /* TODO */ },
+                    onFailed = { /* TODO */ },
+                )
             }
             // 카테고리 정보 로드
             launch {
@@ -68,12 +71,29 @@ class FootprintViewModel @Inject constructor(
         }
     }
 
-    @Composable fun MapView(isBlurApplied: Boolean) {
-        mapHandler.MapView(isBlurApplied)
+    @Composable
+    fun MapView(
+        isBlurApplied: Boolean,
+        isLocationMarkingEnabled: Boolean,
+    ) {
+        mapHandler.MapView(
+            isBlurApplied = isBlurApplied,
+            isLocationMarkingEnabled = isLocationMarkingEnabled
+        )
     }
 
-    fun moveMapToCurrentPosition() {
-        viewModelScope.launch { mapHandler.moveToCurrentPosition() }
+    fun moveMapToCurrentPosition(
+        onSucceed: () -> Unit,
+        onFailed: (e: Exception) -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                mapHandler.moveToCurrentPosition()
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
     }
 
     fun selectShowingCategory(
