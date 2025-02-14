@@ -40,7 +40,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.geometry.Offset
 import com.umc.design.R as Res
@@ -51,9 +53,10 @@ fun RecordScreen(
     selectedCategory: String,
     diaryText: String,
     onCategorySelect: (String) -> Unit,
-    onDiaryTextUpdate: (String) -> Unit
+    onDiaryTextUpdate: (String) -> Unit,
+    onEditLocation: () -> Unit
 ) {
-    var showCustomDialog by remember { mutableStateOf(false) }
+    var showCustomDialog by remember { mutableStateOf(true) }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -74,9 +77,13 @@ fun RecordScreen(
         ) {
             // 상단 정보 섹션
             InfoSection(
-                date = "2025.01.20",
+                date = "2025.02.01",
                 location = "Cafe PORTE",  // 추후 지도에서 저장한 데이터로 교체 필요
                 category = selectedCategory,
+                onLocationClick = { // 위치 클릭 시 이벤트 발생
+                    println("📌 RecordScreen: onEditLocation() called!") // ✅ 로그 추가
+                    onEditLocation()
+                },
                 onIconClick = { showCustomDialog = !showCustomDialog } // 다이얼로그 상태 변경
             )
         }
@@ -107,6 +114,7 @@ fun InfoSection(
     date: String,
     location: String,
     category: String,
+    onLocationClick: () -> Unit,
     onIconClick: () -> Unit // 발자국 아이콘 클릭 콜백
 ) {
     val (backgroundColor, iconRes) = getCategoryStyle(category) // 배경색과 아이콘 반환
@@ -132,6 +140,10 @@ fun InfoSection(
             text = location,
             backgroundColor = Color(0xE6FEF6F2),
             textColor = Color(0xFFFF9681),
+            onClick = {
+                println("✅ InfoSection: onLocationClick() called!") // ✅ 추가된 로그
+                onLocationClick()
+            },
             leadingIcon = {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_location),
@@ -185,25 +197,41 @@ fun InfoTag(
     text: String,
     backgroundColor: Color,
     textColor: Color,
-    leadingIcon: (@Composable (() -> Unit))? = null
+    leadingIcon: (@Composable (() -> Unit))? = null,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null // 클릭 이벤트 추가
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    Box(
         modifier = Modifier
+            .clickable {
+                println("🔥 InfoTag clicked!")
+                if (onClick == null) {
+                    println("🚨 onClick is NULL in InfoTag!") // ✅ 추가된 로그
+                } else {
+                    println("✅ onClick is NOT NULL, calling function!") // ✅ 추가된 로그
+                    onClick.invoke()
+                }
+                onClick?.invoke()
+            }
             .background(backgroundColor, shape = RoundedCornerShape(15.dp))
             .padding(horizontal = 15.5.dp, vertical = 4.5.dp)
     ) {
-        leadingIcon?.invoke()
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall.copy(
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold
-            ),
-            color = textColor
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            leadingIcon?.invoke()
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold
+                ),
+                color = textColor
+            )
+        }
     }
+
 }
 
 @Composable
@@ -409,24 +437,26 @@ fun CustomCategoryDialog(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onDismiss() } // 다이얼로그 외부 클릭 시 닫기
-            .padding(start = 90.dp, top = 90.dp), // 상단 여백 설정
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .wrapContentSize()
+                .padding(start = 135.dp, top = 90.dp) // 상단 여백 설정
         ) {
             // 다이얼로그 상단 이미지
             Image(
                 painter = painterResource(R.drawable.img_categorytop),
                 contentDescription = "Category Dialog Top",
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.wrapContentSize()
             )
 
             // 카테고리 목록 영역
             Box(
                 modifier = Modifier
-                    .background(Color(0xE6FDDDC1)) // 반투명 효과 및 둥근 모서리
+                    .background(Color(0xE6FEF6F2)) // 반투명 효과 및 둥근 모서리
                     .padding(start = 16.dp, end = 16.dp) // 내부 여백
-                    .fillMaxWidth(0.665f) // 다이얼로그 크기 조정
+                    .fillMaxWidth(0.8f) // 다이얼로그 크기 조정
             ) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -521,7 +551,7 @@ fun CustomCategoryDialog(
             Image(
                 painter = painterResource(R.drawable.img_categorybottom),
                 contentDescription = "Category Dialog Bottom",
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.wrapContentSize()
             )
         }
     }
@@ -547,6 +577,7 @@ fun PreviewRecordScreen() {
         selectedCategory = selectedCategory,
         diaryText = diaryText,
         onCategorySelect = { selectedCategory = it },
-        onDiaryTextUpdate = { diaryText = it }
+        onDiaryTextUpdate = { diaryText = it },
+        onEditLocation = {}
     )
 }

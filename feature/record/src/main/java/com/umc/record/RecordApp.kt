@@ -1,27 +1,44 @@
 package com.umc.record
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun RecordApp(
-    categories: List<Pair<String, String>>,
-    selectedCategory: String,
-    diaryText: String,
-    onCategorySelect: (String) -> Unit,
-    onDiaryTextUpdate: (String) -> Unit,
-    mapView: @Composable () -> Unit,
-    onLocationButtonClicked: () -> Unit
+    viewModel: RecordViewModel,
+    onNavigateToCategoryApp: () -> Unit
 ) {
-    RecordScreen(
-        categories = categories,
-        selectedCategory = selectedCategory,
-        diaryText = diaryText,
-        onCategorySelect = onCategorySelect,
-        onDiaryTextUpdate = onDiaryTextUpdate
-    )
+    var isEditingLocation by rememberSaveable { mutableStateOf(false) }
 
-    RecordEditLocationScreen(
-        mapView = mapView,
-        onLocationButtonClicked = onLocationButtonClicked
-    )
+    val categories by viewModel.categories.collectAsStateWithLifecycle()
+    val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
+    val diaryText by viewModel.diaryText.collectAsStateWithLifecycle()
+
+    println("🟢 isEditingLocation: $isEditingLocation") // 상태 로그 추가
+
+    if (isEditingLocation) {
+        RecordEditLocationScreen(
+            mapView = viewModel.getMapView(),
+            onLocationButtonClicked = {
+                println("🔴 Returning to RecordScreen") // 상태 변경 확인
+                isEditingLocation = false
+            }
+        )
+    } else {
+        RecordScreen(
+            categories = categories,
+            selectedCategory = selectedCategory,
+            diaryText = diaryText,
+            onCategorySelect = { category -> viewModel.selectCategory(category) },
+            onDiaryTextUpdate = { text -> viewModel.updateDiaryText(text) },
+            onEditLocation = {
+                println("🟠 Navigating to RecordEditLocationScreen") // 로그 추가
+                isEditingLocation = true
+            }
+        )
+    }
 }
