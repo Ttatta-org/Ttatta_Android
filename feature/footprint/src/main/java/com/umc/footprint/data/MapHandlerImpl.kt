@@ -3,7 +3,6 @@ package com.umc.footprint.data
 import android.content.Context
 import android.graphics.PointF
 import android.location.Location
-import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
@@ -192,27 +191,35 @@ class MapHandlerImpl @Inject constructor(
                         private var locationChangeListener: (Location) -> Unit = {}
 
                         override fun activate(listener: LocationSource.OnLocationChangedListener) {
-                            locationChangeListener = { listener.onLocationChanged(it) }
-                            locationHandler.addLocationChangeListener(locationChangeListener)
+                            try {
+                                { location: Location ->
+                                    listener.onLocationChanged(location)
+                                }.let { lambda ->
+                                    locationHandler.addLocationChangeListener(lambda)
+                                    locationChangeListener = lambda
+                                }
+                            } catch (e: Exception) { /* TODO */ }
                         }
 
                         override fun deactivate() {
-                            locationHandler.removeLocationChangeListener(locationChangeListener)
+                            try {
+                                locationHandler.removeLocationChangeListener(locationChangeListener)
+                            } catch (e: Exception) { /* TODO */ }
                         }
                     }
-                    locationTrackingMode = LocationTrackingMode.NoFollow
                 }
 
                 mapFlow.value = map
                 clusterManager.map = map
             }
-
-            onCreate(Bundle())
         }
     }
 
     @Composable
-    override fun MapView(isBlurApplied: Boolean) {
+    override fun MapView(
+        isBlurApplied: Boolean,
+        isLocationMarkingEnabled: Boolean,
+    ) {
         var capturedMap by remember { mutableStateOf<ImageBitmap?>(null) }
 
         LaunchedEffect(key1 = isBlurApplied) {
@@ -223,11 +230,23 @@ class MapHandlerImpl @Inject constructor(
             }
         }
 
+        LaunchedEffect(key1 = isLocationMarkingEnabled) {
+            if (isLocationMarkingEnabled) {
+                getMap().locationTrackingMode = LocationTrackingMode.Follow
+            } else {
+                getMap().locationTrackingMode = LocationTrackingMode.None
+            }
+        }
+
         Box(
-          modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             AndroidView(
-                factory = { mapView },
+                factory = {
+                    mapView.apply {
+                        parent?.let { (it as ViewGroup).removeView(mapView) }
+                    }
+                },
                 modifier = Modifier
                     .fillMaxSize()
                     .alpha(if (capturedMap != null) 0f else 1f)
