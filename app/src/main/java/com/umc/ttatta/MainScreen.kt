@@ -40,7 +40,7 @@ import com.umc.ttatta.component.ShadowedImage
 import com.umc.ttatta.component.centerButtonSize
 
 data class NavigationBarProp(
-    val currentNavigationItem: NavigationItem,
+    val currentNavigationItem: NavigationItem?,
     val onNavigate: (NavigationItem) -> Unit,
     val onCenterButtonClicked: () -> Unit,
 )
@@ -72,14 +72,7 @@ fun MainScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color.Green)
-            .let {
-                if (centerButtonProp != null) it.clickable(
-                    indication = null,
-                    interactionSource = null,
-                    onClick = centerButtonProp.onDismissed
-                ) else it
-            }
+            .background(color = Color.White)
     ) {
         Column(
             modifier = Modifier
@@ -138,31 +131,43 @@ fun MainScreen(
             }
         }
         // 중앙 버튼 클릭 시 표시되는 다이얼로그 버튼
-        AnimatedVisibility(
-            visible = centerButtonProp != null,
-            enter = fadeIn(animationSpec = tween(durationMillis = 200)),
-            exit = fadeOut(animationSpec = tween(durationMillis = 200)),
-            modifier = Modifier.offset {
-                Offset(
-                    x = 0f,
-                    y = centerButtonCenter.y
-                            - centerButtonSize.height.toPx() / 2
-                            - recordOptionPickerHeight
-                ).round()
-            }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .let {
+                    if (centerButtonProp != null) it.clickable(
+                        indication = null,
+                        interactionSource = null,
+                        onClick = centerButtonProp.onDismissed
+                    ) else it
+                }
         ) {
-            residualCenterButtonProp?.let { prop ->
-                Box(
-                    contentAlignment = Alignment.TopCenter,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .onGloballyPositioned {
-                            recordOptionPickerHeight = it.size.height
-                        }
-                ) {
-                    RecordOptionPicker(
-                        prop = prop.recordOptionPickerProp
-                    )
+            AnimatedVisibility(
+                visible = centerButtonProp != null,
+                enter = fadeIn(animationSpec = tween(durationMillis = 200)),
+                exit = fadeOut(animationSpec = tween(durationMillis = 200)),
+                modifier = Modifier.offset {
+                    Offset(
+                        x = 0f,
+                        y = centerButtonCenter.y
+                                - centerButtonSize.height.toPx() / 2
+                                - recordOptionPickerHeight
+                    ).round()
+                }
+            ) {
+                residualCenterButtonProp?.let { prop ->
+                    Box(
+                        contentAlignment = Alignment.TopCenter,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onGloballyPositioned {
+                                recordOptionPickerHeight = it.size.height
+                            }
+                    ) {
+                        RecordOptionPicker(
+                            prop = prop.recordOptionPickerProp
+                        )
+                    }
                 }
             }
         }
