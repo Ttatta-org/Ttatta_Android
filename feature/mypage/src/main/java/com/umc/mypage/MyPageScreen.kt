@@ -116,11 +116,11 @@ fun MyPageScreen(
             }
 
             // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)
-            BottomNavigationBarWithFAB(
-                selectedTab = "mypage",
-                onTabSelected = { /* 탭 변경 로직 */ },
-                onFabClick = onFabClick
-            )
+//            BottomNavigationBarWithFAB(
+//                selectedTab = "mypage",
+//                onTabSelected = { /* 탭 변경 로직 */ },
+//                onFabClick = onFabClick
+//            )
 
         }
     }
