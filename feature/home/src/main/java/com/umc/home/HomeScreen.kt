@@ -1,6 +1,11 @@
 package com.umc.home
 
+import android.app.Activity
+import android.graphics.RenderEffect
+import android.graphics.Shader
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -34,11 +39,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -61,12 +74,18 @@ import java.time.LocalDateTime
 import java.time.YearMonth
 import coil3.compose.AsyncImage
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.zIndex
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun HomeScreen(
     // HomeApp에서 전달받은 데이터와 콜백들
@@ -130,25 +149,66 @@ fun HomeScreen(
 
     var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
 
+//    val view = LocalView.current
+//    val density = LocalDensity.current
+//    val context = LocalContext.current
+//    val activity = context as? Activity // ✅ 현재 Activity 가져오기
+//    val window = activity?.window
+//
+//    // ✅ 네비게이션 바(소프트키) 높이 가져오기
+//    val systemBarsHeight = with(density) {
+//        val insets = ViewCompat.getRootWindowInsets(view)
+//            ?.getInsets(WindowInsetsCompat.Type.systemBars())
+//        insets?.bottom?.toDp() ?: 0.dp
+//    }
+//    if (isSearchVisible || isCalendarVisible) {
+//        window?.navigationBarColor = 0x80FBDDC8.toInt()
+//    }
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
 
             // ✅ 1. TopBarComponent (항상 상단에 고정)
-
-
             Box(
                 modifier = Modifier
                     .weight(1f) // ✅ LazyColumn이 BottomNavigation을 밀어내지 않도록 가변 높이 적용
                     //.background(Color(0xFFFEF6F2)) // ✅ 부드러운 배경색 추가
             ) {
+                // ✅ 캘린더 또는 검색창이 열렸을 때만 배경을 블러 처리
+                if (isSearchVisible || isCalendarVisible) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                alpha = 1f // ✅ 투명도 1f로 설정하여 블러 효과 극대화
+                                renderEffect = RenderEffect
+                                    .createBlurEffect(50f, 50f, Shader.TileMode.DECAL) // ✅ 블러 강도 50f로 증가
+                                    .asComposeRenderEffect() // ✅ 변환 필요
+                            }
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color(0xFFFBDDC8).copy(alpha = 0.1f),
+                                        Color(0xFFFBDDC8).copy(alpha = 0.3f),
+                                        Color(0xFFFBDDC8).copy(alpha = 0.5f),
+                                        Color(0xFFFBDDC8).copy(alpha = 0.7f),
+                                        Color(0xFFFEDDC8).copy(alpha = 0.85f)  // 더 부드럽게 조정
+                                    ),
+                                    startY = 0f,
+                                    endY = Float.POSITIVE_INFINITY
+                                )
+                            )
+                            .blur(30.dp) // ✅ 블러 효과 적용)
+                            .zIndex(1f)
+                    )
+                }
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color(0xFFFEF6F2))
                         .padding(top = 50.dp)
                 ) {
-
                     if (diaryList.isNotEmpty()){
 
                         // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
@@ -182,41 +242,6 @@ fun HomeScreen(
                             )
                         }
                     }
-
-
-//                    if ((isSearchVisible && searchResults.isNotEmpty()) || (!isSearchVisible && diaryList.isNotEmpty()) || (!isSearchVisible && searchResults.isEmpty())) {
-//
-//                        // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
-//                        LazyColumn(
-//                            state = lazyListState,
-//                            modifier = Modifier.fillMaxSize()
-//                        ) {
-//                            item { Spacer(modifier = Modifier.height(50.dp)) }
-//                            items(if (searchResults.isNotEmpty()) searchResults else diaryList) { diary ->
-//                                DiaryCard(
-//                                    diary = diary,
-//                                    onDetailClick = {
-//                                        selectedDiaryId = diary.id
-//                                        onShowDetailModal()
-//                                    }
-//                                )
-//                            }
-//                        }
-//                    } else if (!isExpanded && !isSearchVisible) {
-//                        // ✅ 다이어리가 없을 경우 빈 화면 표시
-//                        Box(
-//                            modifier = Modifier
-//                                .fillMaxSize(),
-//                            contentAlignment = Alignment.BottomCenter // ✅ 이미지가 하단에 붙도록 정렬
-//                        ) {
-//                            Image(
-//                                painter = painterResource(id = R.drawable.invitation), // ✅ Drawable에 있는 이미지 사용
-//                                contentDescription = "초대장 이미지",
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                            )
-//                        }
-//                    }
                 }
 
                 TopBarComponent(
@@ -269,12 +294,12 @@ fun HomeScreen(
                 }
             }
 
-            // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)
-            BottomNavigationBarWithFAB(
-                selectedTab = "diary",
-                onTabSelected = { /* 탭 변경 로직 */ },
-                onFabClick = onFabClick
-            )
+//            // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)
+//            BottomNavigationBarWithFAB(
+//                selectedTab = "diary",
+//                onTabSelected = { /* 탭 변경 로직 */ },
+//                onFabClick = onFabClick
+//            )
         }
     }
 
@@ -334,15 +359,7 @@ fun DetailModal(
         modifier = Modifier
             .fillMaxWidth()
             .height(147.dp) // 모달 높이
-            .offset(y = (-6).dp) // 그림자가 위로 올라도록
-            .shadow(
-                elevation = 6.dp, // 그림자의 높이 조정
-                shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp), // 카드의 모서리 둥글기
-                spotColor = Color(color = 0xFFCACACA),
-                ambientColor = Color(0xFFCACACA),
-                //clip = true // 모서리가 잘리도록 설정
-            )
-            .background(Color.White, RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp))
+            .background(Color.White, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
             .padding(16.dp)
     ) {
         Column(
@@ -749,6 +766,7 @@ fun DashedDivider() {
 
 
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Preview(showBackground = true)
 @Composable
 fun PreviewHomeScreen() {

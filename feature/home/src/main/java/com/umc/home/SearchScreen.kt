@@ -1,6 +1,10 @@
 package com.umc.home
 
+import android.graphics.RenderEffect
+import android.graphics.Shader
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -41,16 +45,22 @@ import androidx.compose.ui.Alignment
 import androidx.navigation.NavHostController
 import com.umc.core.model.Diary
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.home.components.BottomNavigationBarWithFAB
 import com.umc.home.components.TopBarComponent
 import java.time.LocalDate
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun SearchScreen(
     navController: NavHostController,
@@ -111,6 +121,34 @@ fun SearchScreen(
                     .weight(1f) // ✅ LazyColumn이 BottomNavigation을 밀어내지 않도록 가변 높이 적용
                 //.background(Color(0xFFFEF6F2)) // ✅ 부드러운 배경색 추가
             ) {
+                // ✅ 캘린더 또는 검색창이 열렸을 때만 배경을 블러 처리
+                if (isSearchVisible || isCalendarVisible) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                alpha = 1f // ✅ 투명도 1f로 설정하여 블러 효과 극대화
+                                renderEffect = RenderEffect
+                                    .createBlurEffect(50f, 50f, Shader.TileMode.DECAL) // ✅ 블러 강도 50f로 증가
+                                    .asComposeRenderEffect() // ✅ 변환 필요
+                            }
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color(0xFFFBDDC8).copy(alpha = 0.1f),
+                                        Color(0xFFFBDDC8).copy(alpha = 0.3f),
+                                        Color(0xFFFBDDC8).copy(alpha = 0.5f),
+                                        Color(0xFFFBDDC8).copy(alpha = 0.7f),
+                                        Color(0xFFFEDDC8).copy(alpha = 0.85f)  // 더 부드럽게 조정
+                                    ),
+                                    startY = 0f,
+                                    endY = Float.POSITIVE_INFINITY
+                                )
+                            )
+                            .blur(30.dp) // ✅ 블러 효과 적용)
+                            .zIndex(1f)
+                    )
+                }
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -180,11 +218,11 @@ fun SearchScreen(
                 }
             }
             // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)
-            BottomNavigationBarWithFAB(
-                selectedTab = "diary",
-                onTabSelected = { /* 탭 변경 로직 */ },
-                onFabClick = onFabClick
-            )
+//            BottomNavigationBarWithFAB(
+//                selectedTab = "diary",
+//                onTabSelected = { /* 탭 변경 로직 */ },
+//                onFabClick = onFabClick
+//            )
         }
         // 디테일 모달창 (수정/삭제)
         // 모달이 열렸을 때만 FullSize 배경 클릭 이벤트 처리

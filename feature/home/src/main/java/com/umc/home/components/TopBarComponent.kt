@@ -79,7 +79,8 @@ fun TopBarComponent(
         modifier = Modifier
             .fillMaxWidth()
             .height(imageHeight)
-            .background(Color.Transparent),
+            .background(Color.Transparent)
+            .zIndex(2f),
         contentAlignment = Alignment.BottomCenter,
     ) {
         // 배경 이미지
