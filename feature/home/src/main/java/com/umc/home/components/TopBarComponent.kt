@@ -221,7 +221,7 @@ fun TopBarComponent(
                         ) {
                             Image(
                                 painter = painterResource(id = R.drawable.ic_error), // 에러 아이콘
-                                contentDescription = "찾으시는 검색어의 결과가 없어요 !",
+                                contentDescription = "에러 아이콘",
                                 modifier = Modifier.size(15.dp)
                             )
 
@@ -229,7 +229,7 @@ fun TopBarComponent(
 
                             Text(
                                 text = "찾으시는 검색어의 결과가 없어요!",
-                                fontSize = 12.sp,
+                                fontSize = 14.sp,
                                 color = Color(0xFF4B4B4B) // 텍스트 색상
                             )
                         }

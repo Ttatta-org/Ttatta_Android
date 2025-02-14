@@ -120,26 +120,6 @@ fun AppNavHost(
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-//    LaunchedEffect(lazyListState, diaryList, searchResults) { // ✅ 검색 & 일반 리스트 둘 다 감지
-//        snapshotFlow { lazyListState.layoutInfo }
-//            .collect { layoutInfo ->
-//                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-//                val totalItems = layoutInfo.totalItemsCount
-//
-//                Log.d("Pagination", "📌 마지막 보이는 아이템 인덱스: $lastVisibleItemIndex, 전체 아이템 개수: $totalItems")
-//
-//                // ✅ 검색 중이면 `searchDiaries()` 호출, 아니라면 `loadNextPage()` 호출
-//                if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 1) {
-//                    if (searchResults.isNotEmpty()) {
-//                        Log.d("Pagination", "✅ (검색) 스크롤 80% 도달 - 다음 페이지 로드 요청")
-//                        viewModel.searchDiaries(searchQuery, reset = false, onSucceed = {}, onFailed = {})
-//                    } else {
-//                        Log.d("Pagination", "✅ (다이어리) 스크롤 80% 도달 - 다음 페이지 로드 요청")
-//                        viewModel.loadNextPage()
-//                    }
-//                }
-//            }
-//    }
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.layoutInfo }
             .collect { layoutInfo ->

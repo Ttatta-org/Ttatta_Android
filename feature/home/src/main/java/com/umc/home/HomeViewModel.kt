@@ -363,7 +363,7 @@ class HomeViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                Log.d("modifyDiary", "📤 수정 요청 시작 (diaryId: $diaryId)")
+                Log.d("modifyDiary", "📤 수정 요청 시작 (diaryId: $diaryId, image: ${image?.path})")
 
                 // ✅ 다이어리 수정 API 호출
                 diaryRepository.modifyDiary(
