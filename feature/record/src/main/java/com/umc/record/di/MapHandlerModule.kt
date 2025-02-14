@@ -1,8 +1,9 @@
-package com.umc.record.data
+package com.umc.record.di
 
 import android.content.Context
 import com.umc.record.core.LocationHandler
 import com.umc.record.core.MapHandler
+import com.umc.record.data.MapHandlerImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

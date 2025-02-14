@@ -6,9 +6,8 @@ import com.umc.design.CategoryColor
 data class MapMarker(
     val latitude: Double,
     val longitude: Double,
+    val zIndex: Int,
     val color: CategoryColor? = null,
-    val title: String? = null,
-    val description: String? = null,
     val onClicked: ((Float, Float) -> (() -> Unit)?)? = null,
 )
 

@@ -1,5 +1,7 @@
 package com.umc.record
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -36,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.MapView
@@ -59,45 +63,57 @@ fun RecordEditLocationScreen(
     mapView: @Composable () -> Unit,
     onLocationButtonClicked: () -> Unit
 ) {
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        // 네이버 지도
-        mapView()
+    val context = LocalContext.current
 
-        // 플로팅 버튼
+    // ✅ 위치 권한 확인 후 지도 활성화
+    if (ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    ) {
+        println("✅ Location permission granted! Rendering map...") // ✅ 지도 렌더링 여부 확인
+
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(end = 12.96.dp, bottom = 171.dp), // 바텀시트(150dp) + 21dp 만큼 띄우기
-            contentAlignment = Alignment.BottomEnd
+            modifier = Modifier.fillMaxSize()
         ) {
-            IconButton(
-                onClick = onLocationButtonClicked,
+            // 네이버 지도
+            mapView()
+
+            // 플로팅 버튼
+            Box(
                 modifier = Modifier
-                    .size(84.dp)
+                    .fillMaxSize()
+                    .padding(end = 12.96.dp, bottom = 171.dp), // 바텀시트(150dp) + 21dp 만큼 띄우기
+                contentAlignment = Alignment.BottomEnd
             ) {
-                ShadowedIcon(
-                    id = R.drawable.btn_location,
-                    contentDescription = null,
-                    width = 84.dp,
-                    height = 84.dp,
-                )
+                IconButton(
+                    onClick = onLocationButtonClicked,
+                    modifier = Modifier
+                        .size(84.dp)
+                ) {
+                    ShadowedIcon(
+                        id = R.drawable.btn_location,
+                        contentDescription = null,
+                        width = 84.dp,
+                        height = 84.dp,
+                    )
+                }
+            }
+
+            // 바텀 시트
+            EditLocationBottomSheet(location = "고래와")
+
+            // Topbar를 Box의 상단에 배치 (최상단에 유지)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+//                .height(97.dp) // Topbar 높이 유지
+                    .zIndex(1f)
+            ) {
+                Topbar()
             }
         }
-
-        // 바텀 시트
-        EditLocationBottomSheet(location = "고래와")
-
-        // Topbar를 Box의 상단에 배치 (최상단에 유지)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-//                .height(97.dp) // Topbar 높이 유지
-                .zIndex(1f)
-        ) {
-            Topbar()
-        }
+    } else {
+        println("🚨 Location permission is NOT granted! Skipping map rendering.") // ✅ 오류 확인 로그
     }
 }
 
