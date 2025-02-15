@@ -5,13 +5,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -29,7 +23,6 @@ import com.umc.category.CategoryApp
 import com.umc.challenge.ChallengeApp
 import com.umc.footprint.FootprintApp
 import com.umc.home.HomeApp
-import com.umc.login.LoginApp
 import com.umc.mypage.MyPageApp
 import com.umc.ttatta.component.NavigationItem
 import com.umc.ttatta.component.RecordOptionPickerProp
@@ -117,11 +110,9 @@ fun MainApp(
                 setNavGraph {
                     LaunchedEffect(Unit) { showNavBar = false }
 
-                    LoginApp(
-                        loginviewModel = hiltViewModel(),
-                        joinviewModel = hiltViewModel(),
-                        onNavigatingToHome = { viewModel.checkLogin() }
-                    )
+                    // LoginApp(
+                    //     viewModel = hiltViewModel()
+                    // )
                 }
             }
 
@@ -130,18 +121,9 @@ fun MainApp(
                     LaunchedEffect(Unit) { showNavBar = true }
                     FinishHandler()
 
-                    Column {
-                        Spacer(
-                            modifier = Modifier.height(
-                                WindowInsets.systemBars
-                                    .asPaddingValues()
-                                    .calculateTopPadding()
-                            )
-                        )
-                        HomeApp(
-                            viewModel = hiltViewModel(),
-                        )
-                    }
+                    HomeApp(
+                        viewModel = hiltViewModel(),
+                    )
                 }
             }
 
@@ -180,18 +162,9 @@ fun MainApp(
                     LaunchedEffect(Unit) { showNavBar = true }
                     FinishHandler()
 
-                    Column {
-                        Spacer(
-                            modifier = Modifier.height(
-                                WindowInsets.systemBars
-                                    .asPaddingValues()
-                                    .calculateTopPadding()
-                            )
-                        )
-                        MyPageApp(
-                            viewModel = hiltViewModel()
-                        )
-                    }
+                    MyPageApp(
+                        viewModel = hiltViewModel()
+                    )
                 }
             }
 
