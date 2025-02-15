@@ -52,10 +52,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.umc.login.component.LoginInputTextField
 import kotlin.math.log
 
 @Composable
-fun LoginScreen(navController: NavHostController, loginViewModel: LoginViewModel = viewModel()) {
+fun LoginScreen(
+    navController: NavHostController,
+    loginViewModel: LoginViewModel = viewModel(),
+    onNavigatingToHome: () -> Unit
+) {
     val idState by loginViewModel.idState.collectAsState()
     val pwState by loginViewModel.pwState.collectAsState()
     val passwordVisible by loginViewModel.passwordVisible.collectAsState()
@@ -75,10 +80,11 @@ fun LoginScreen(navController: NavHostController, loginViewModel: LoginViewModel
             onIdChange = loginViewModel::onIdChange,
             onPwChange = loginViewModel::onPwChange,
             onPasswordToggleClick = loginViewModel::togglePasswordVisibility,
-            onLoginClick = { success ->
-                if (success) {
-                    navController.navigate("home")
-                }
+            onLoginClick = {
+                 loginViewModel.onLoginClick(
+                     onSucceed = onNavigatingToHome,
+                     onFailed = {}
+                 )
             },
             isButtonActive = isButtonActive,
             errorMessage = errorMessage
@@ -115,7 +121,6 @@ fun LoginTopView() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginMiddleView(idState: String,
                     pwState: String,
@@ -123,7 +128,7 @@ fun LoginMiddleView(idState: String,
                     onIdChange: (String) -> Unit,
                     onPwChange: (String) -> Unit,
                     onPasswordToggleClick: () -> Unit,
-                    onLoginClick: (Boolean) -> Unit,
+                    onLoginClick: () -> Unit,
                     isButtonActive: Boolean,
                     errorMessage: String) {
     Column(
@@ -133,7 +138,7 @@ fun LoginMiddleView(idState: String,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // 아이디 입력 필드
-        InputTextField(
+        LoginInputTextField(
             value = idState,
             onValueChange = onIdChange,
             placeholder = "아이디 입력",
@@ -142,7 +147,7 @@ fun LoginMiddleView(idState: String,
         Spacer(modifier = Modifier.height(6.dp))
 
         // 비밀번호 입력 필드
-        InputTextField(
+        LoginInputTextField(
             value = pwState,
             onValueChange = onPwChange,
             placeholder = "비밀번호 입력",
@@ -159,8 +164,7 @@ fun LoginMiddleView(idState: String,
                 pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
                 disabledElevation = 0.dp // enabled가 false일때 그림자
             ),
-            onClick = { onLoginClick(true) },
-            enabled = isButtonActive,
+            onClick = onLoginClick,
             modifier = Modifier
                 .width(310.dp)
                 .padding(top = 30.dp)
@@ -181,71 +185,6 @@ fun LoginMiddleView(idState: String,
     }
 }
 
-
-@Composable
-fun InputTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    isPassword: Boolean,
-    passwordVisible: Boolean = false,
-    onPasswordToggleClick: (() -> Unit)? = null
-) {
-    var isFocused by remember { mutableStateOf(false) }
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            singleLine = true,
-            textStyle = LocalTextStyle.current.copy(
-                textAlign = TextAlign.Center,
-                fontSize = 14.sp
-            ),
-            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
-            trailingIcon = if (isPassword) {
-                {
-                    IconButton(onClick = { onPasswordToggleClick?.invoke() }) {
-                        Image(
-                            painter = painterResource(
-                                id = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility
-                            ),
-                            contentDescription = "Toggle Password Visibility"
-                        )
-                    }
-                }
-            } else null,
-            keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
-            modifier = Modifier
-                .width(310.dp)
-                .height(52.dp),
-            colors = TextFieldDefaults.colors(
-                unfocusedContainerColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = colorResource(R.color.gray_500),
-                unfocusedIndicatorColor = colorResource(R.color.gray_500),
-                cursorColor = Color.Black
-            )
-        )
-        // 값이 비어있고 포커스가 없을 때만 플레이스홀더 표시
-        if (value.isEmpty() && !isFocused) {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 7.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = placeholder,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight(600),
-                    color = colorResource(R.color.gray_500),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
 
 
 
@@ -365,5 +304,5 @@ fun KakaoLoginButton() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewLoginScreen() {
-    LoginScreen(navController = NavHostController(LocalContext.current))
+    LoginScreen(navController = NavHostController(LocalContext.current), onNavigatingToHome = {})
 }

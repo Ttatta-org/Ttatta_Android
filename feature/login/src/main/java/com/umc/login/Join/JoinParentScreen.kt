@@ -28,11 +28,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.umc.login.AnimatedProgressBar
+import com.umc.login.component.AnimatedProgressBar
 import com.umc.login.R
 
+
 @Composable
-fun JoinParentScreen(navController: NavHostController) {
+fun JoinParentScreen(navController: NavHostController, joinViewModel: JoinViewModel) {
     val localNavController = rememberNavController()
     var currentStep by remember { mutableStateOf(1) }
 
@@ -46,7 +47,7 @@ fun JoinParentScreen(navController: NavHostController) {
                 navController.popBackStack()
             }
         })
-        JoinTopView(currentStep = currentStep, totalSteps = 5)
+        JoinTopView(currentStep = currentStep, totalSteps = 6)
         NavHost(
             navController = localNavController,
             startDestination = "nickname",
@@ -54,39 +55,28 @@ fun JoinParentScreen(navController: NavHostController) {
         ) {
             composable("nickname") {
                 LaunchedEffect(Unit) { currentStep = 1 }
-                JoinNicknameView(onNext = { localNavController.navigate("id") })
+                JoinNicknameView(joinViewModel, onNext = { localNavController.navigate("id") })
             }
             composable("id") {
                 LaunchedEffect(Unit) { currentStep = 2 }
-                JoinIdView(
-                    onNext = { localNavController.navigate("password") },
-                    onBack = { localNavController.popBackStack() }
-                )
+                JoinIdView(joinViewModel, onNext = { localNavController.navigate("password") })
             }
             composable("password") {
                 LaunchedEffect(Unit) { currentStep = 3 }
-                JoinPwView(
-                    onNext = { localNavController.navigate("name") })
+                JoinPwView(joinViewModel, onNext = { localNavController.navigate("name") })
             }
             composable("name") {
                 LaunchedEffect(Unit) { currentStep = 4 }
-                JoinNameView(
-                    onNext = {localNavController.navigate("email")}
-                )
+                JoinNameView(joinViewModel, onNext = {localNavController.navigate("email")})
             }
             composable("email") {
                 LaunchedEffect(Unit) { currentStep = 5 }
                 JoinEmailView(
-                    onNext = {localNavController.navigate("certification")},
-                    onBack = {}
-                )
+                    joinViewModel, onNext = {localNavController.navigate("certification")})
             }
             composable("certification") {
-                LaunchedEffect(Unit) { currentStep = 5 }
-                JoinCertiView(
-                    onNext = {},
-                    onBack = {}
-                )
+                LaunchedEffect(Unit) { currentStep = 6 }
+                JoinCertiView(viewModel = joinViewModel, onNext = {})
             }
         }
     }
@@ -132,5 +122,5 @@ fun JoinTopView(currentStep: Int, totalSteps: Int) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewJoinParentScreen() {
-    JoinParentScreen(navController = NavHostController(LocalContext.current))
+    //JoinParentScreen(navController = NavHostController(LocalContext.current), joinViewModel = JoinViewModel())
 }

@@ -33,9 +33,6 @@ import androidx.navigation.NavHostController
 import com.umc.login.FindId.FindCertiInputTextField
 import com.umc.login.FindId.FindDomainInputTextField
 import com.umc.login.FindId.FindEmailInputTextField
-import com.umc.login.Join.EmailInputTextField
-import com.umc.login.Join.JoinBackButton
-import com.umc.login.Join.NameInputTextField
 import com.umc.login.R
 
 @Composable

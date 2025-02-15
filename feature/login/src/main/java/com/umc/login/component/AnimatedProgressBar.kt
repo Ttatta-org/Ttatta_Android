@@ -1,4 +1,4 @@
-package com.umc.login
+package com.umc.login.component
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import com.umc.login.R
 
 @Composable
 fun AnimatedProgressBar(
@@ -29,7 +30,7 @@ fun AnimatedProgressBar(
     // 부드럽게 변하도록 animateFloatAsState
     val animatedProgress by animateFloatAsState(
         targetValue = targetProgress,
-        animationSpec = tween(durationMillis = 650) // 0.75초
+        animationSpec = tween(durationMillis = 650) // 0.65초
     )
 
     Box(

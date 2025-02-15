@@ -9,19 +9,22 @@ import com.umc.login.FindId.FindIdScreen
 import com.umc.login.FindPw.FindPwScreen1
 import com.umc.login.FindPw.FindPwScreen2
 import com.umc.login.Join.JoinParentScreen
+import com.umc.login.Join.JoinViewModel
 
 @Composable
-fun MainNavigation(navController: NavHostController) {
-    val loginViewModel: LoginViewModel = viewModel()
+fun MainNavigation(navController: NavHostController,
+                   loginViewModel: LoginViewModel,
+                   joinViewModel: JoinViewModel,
+                   onNavigatingToHome: () -> Unit) {
     NavHost(
         navController = navController,
         startDestination = "login"
     ) {
         composable("login") {
-            LoginScreen(navController)
+            LoginScreen(navController, loginViewModel, onNavigatingToHome)
         }
         composable("join") {
-            JoinParentScreen(navController)
+            JoinParentScreen(navController, joinViewModel)
         }
         composable("find_id") {
             FindIdScreen(navController)

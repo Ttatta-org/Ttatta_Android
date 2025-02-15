@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,24 +43,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.umc.login.R
+import com.umc.login.component.PwInputTextField
 
 
 @Composable
-fun JoinPwScreen(navController: NavHostController) {
+fun JoinPwScreen(navController: NavHostController,viewModel: JoinViewModel = viewModel()) {
     Column(modifier = Modifier.fillMaxSize()) {
-        JoinPwView(onNext = { navController.navigate("join_confirm") })
+        JoinPwView(viewModel =viewModel,onNext = { navController.navigate("join_confirm") })
     }
 }
 
 @Composable
-fun JoinPwView(onNext: () -> Unit) {
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+fun JoinPwView(viewModel: JoinViewModel, onNext: () -> Unit) {
+    val passwordState by viewModel.passwordState.collectAsState()
+    val confirmPasswordState by viewModel.confirmPasswordState.collectAsState()
+    val isPasswordValid by viewModel.isPasswordValid.collectAsState()
+    val isPasswordMatched by viewModel.isPasswordMatched.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
-    var isPasswordValid by remember { mutableStateOf(false) }
-    var isPasswordMatched by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -77,16 +80,12 @@ fun JoinPwView(onNext: () -> Unit) {
         Spacer(modifier = Modifier.height(37.dp))
 
         PwInputTextField(
-            value = password,
-            onValueChange = {
-                password = it
-                isPasswordValid = it.length >= 8
-            },
+            value = passwordState,
+            onValueChange = viewModel::onPasswordChange,
             placeholder = stringResource(R.string.join_pw_comment),
             isPassword = true,
             passwordVisible = passwordVisible,
-            onPasswordToggleClick = { passwordVisible = !passwordVisible },
-            onFocusChange = {}
+            onPasswordToggleClick = { passwordVisible = !passwordVisible }
         )
         Spacer(modifier = Modifier.height(5.dp))
 
@@ -102,16 +101,12 @@ fun JoinPwView(onNext: () -> Unit) {
             Spacer(modifier = Modifier.height(12.dp))
 
             PwInputTextField(
-                value = confirmPassword,
-                onValueChange = {
-                    confirmPassword = it
-                    isPasswordMatched = (password == it)
-                },
+                value = confirmPasswordState,
+                onValueChange = viewModel::onConfirmPasswordChange,
                 placeholder = stringResource(R.string.join_pw_check),
                 isPassword = true,
                 passwordVisible = passwordVisible,
-                onPasswordToggleClick = { passwordVisible = !passwordVisible },
-                onFocusChange = {}
+                onPasswordToggleClick = { passwordVisible = !passwordVisible }
             )
 
             Spacer(modifier = Modifier.height(5.dp))
@@ -161,73 +156,6 @@ fun JoinPwView(onNext: () -> Unit) {
     }
 }
 
-@Composable
-fun PwInputTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    isPassword: Boolean,
-    passwordVisible: Boolean = false,
-    onPasswordToggleClick: (() -> Unit)? = null,
-    onFocusChange: (Boolean) -> Unit
-) {
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        TextField(
-            value = value,
-            onValueChange = {
-                onValueChange(it)
-            },
-            singleLine = true,
-            textStyle = LocalTextStyle.current.copy(
-                textAlign = TextAlign.Center,
-                fontSize = 14.sp,
-                color = Color.Black
-            ),
-            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
-            trailingIcon = if (isPassword) {
-                {
-                    IconButton(onClick = { onPasswordToggleClick?.invoke() }) {
-                        Image(
-                            painter = painterResource(
-                                id = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility
-                            ),
-                            contentDescription = "Toggle Password Visibility"
-                        )
-                    }
-                }
-            } else null,
-            keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
-            modifier = Modifier
-                .width(310.dp)
-                .height(51.dp),
-            colors = TextFieldDefaults.colors(
-                unfocusedContainerColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = colorResource(R.color.gray_500),
-                unfocusedIndicatorColor = colorResource(R.color.gray_500),
-                cursorColor = Color.Black
-            )
-        )
-        if (value.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 7.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = placeholder,
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight(600),
-                    color = colorResource(R.color.gray_500),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
