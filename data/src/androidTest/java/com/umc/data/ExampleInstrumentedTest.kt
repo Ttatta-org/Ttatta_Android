@@ -120,7 +120,7 @@ class ExampleInstrumentedTest {
             content = "modified",
             image = File(
                 context.cacheDir,
-                "test_image.jpg"
+                "test_image.jpeg"
             ).apply {
                 FileOutputStream(this).use {
                     context.resources.openRawResource(R.raw.img_cafe).copyTo(it)

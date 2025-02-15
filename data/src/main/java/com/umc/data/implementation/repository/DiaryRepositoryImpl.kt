@@ -144,7 +144,7 @@ class DiaryRepositoryImpl @Inject constructor(
                 request = request,
                 editPhoto = image?.let {
                     MultipartBody.Part.createFormData(
-                        "image",
+                        "editPhoto",
                         image.name,
                         image.readBytes().toRequestBody("image/${image.extension}".toMediaType())
                     )
