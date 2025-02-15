@@ -1,6 +1,7 @@
 package com.umc.login.component
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,8 +22,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -146,4 +149,151 @@ fun NicknameInputTextField(
             cursorColor = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
         ),
     )
+}
+
+@Composable
+fun IdInputTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    onImeAction: () -> Unit,
+    placeholder: String,
+    isWarning: Boolean,
+    errorMessage: String?,
+    isLoading: Boolean
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        TextField(
+            value = value,
+            onValueChange = {
+                if (it.length <= 16) {
+                    onValueChange(it)
+                }
+            },
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(
+                textAlign = TextAlign.Center,
+                fontSize = 14.sp,
+                color = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
+            ),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    keyboardController?.hide()
+                    onImeAction()
+                }
+            ),
+            trailingIcon = {
+                Text(
+                    text = stringResource(R.string.duplicate_check),
+                    color = if (isWarning) colorResource(R.color.negativeRed) else colorResource(R.color.gray_500),
+                    fontSize = 12.sp,
+                    modifier = Modifier
+                        .clickable {
+                            onImeAction()
+                            // TODO: 중복 확인 로직 추가
+                        }
+                        .padding(end = 6.dp)
+                )
+            },
+            modifier = Modifier
+                .width(310.dp)
+                .height(51.dp),
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = colorResource(R.color.gray_500),
+                unfocusedIndicatorColor = colorResource(R.color.gray_500),
+                cursorColor = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
+            )
+        )
+
+        if (value.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center ,
+            ) {
+                Text(
+                    text = placeholder,
+                    lineHeight = 20.sp,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight(600),
+                    color = colorResource(R.color.gray_500)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun PwInputTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    isPassword: Boolean,
+    passwordVisible: Boolean = false,
+    onPasswordToggleClick: (() -> Unit)? = null
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        TextField(
+            value = value,
+            onValueChange = {
+                onValueChange(it)
+            },
+            singleLine = true,
+            textStyle = LocalTextStyle.current.copy(
+                textAlign = TextAlign.Center,
+                fontSize = 14.sp,
+                color = Color.Black
+            ),
+            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+            trailingIcon = if (isPassword) {
+                {
+                    IconButton(onClick = { onPasswordToggleClick?.invoke() }) {
+                        Image(
+                            painter = painterResource(
+                                id = if (passwordVisible) R.drawable.ic_visibility_off else R.drawable.ic_visibility
+                            ),
+                            contentDescription = "Toggle Password Visibility"
+                        )
+                    }
+                }
+            } else null,
+            keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
+            modifier = Modifier
+                .width(310.dp)
+                .height(51.dp),
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = colorResource(R.color.gray_500),
+                unfocusedIndicatorColor = colorResource(R.color.gray_500),
+                cursorColor = Color.Black
+            )
+        )
+        if (value.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 7.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = placeholder,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight(600),
+                    color = colorResource(R.color.gray_500),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
 }
