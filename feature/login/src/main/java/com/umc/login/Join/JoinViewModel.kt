@@ -34,6 +34,15 @@ class JoinViewModel @Inject constructor(
     private val _nameState = MutableStateFlow("")
     val nameState: StateFlow<String> = _nameState.asStateFlow()
 
+    private val _emailLocalPartState = MutableStateFlow("")
+    val emailLocalPartState: StateFlow<String> = _emailLocalPartState.asStateFlow()
+
+    private val _emailDomainState = MutableStateFlow("")
+    val emailDomainState: StateFlow<String> = _emailDomainState.asStateFlow()
+
+    private val _isCustomDomain = MutableStateFlow(false)
+    val isCustomDomain: StateFlow<Boolean> = _isCustomDomain.asStateFlow()
+
     private val _isWarningVisible = MutableStateFlow(false)
     val isWarningVisible: StateFlow<Boolean> = _isWarningVisible.asStateFlow()
 
@@ -45,6 +54,9 @@ class JoinViewModel @Inject constructor(
 
     private val _nameError = MutableStateFlow<String?>(null)
     val nameError: StateFlow<String?> = _nameError.asStateFlow()
+
+    private val _emailError = MutableStateFlow<String?>(null)
+    val emailError: StateFlow<String?> = _emailError.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -70,6 +82,13 @@ class JoinViewModel @Inject constructor(
     val isNameButtonEnabled: StateFlow<Boolean> = _nameState
         .map { it.isNotEmpty() && it.length <= 8 && _nameError.value == null }
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
+
+    val isEmailValid: StateFlow<Boolean> = combine(
+        _emailLocalPartState, _emailDomainState
+    ) { local, domain ->
+        val email = "$local@$domain"
+        email.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"))
+    }.stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     fun onNickNameChange(newNickName: String) {
         if (newNickName.length <= 9) {
@@ -105,6 +124,21 @@ class JoinViewModel @Inject constructor(
         if (filteredName.length <= 8) {
             _nameState.value = filteredName
             _nameError.value = if (newName != filteredName) "한글과 영문만 입력 가능합니다." else null
+        }
+    }
+
+    fun onEmailLocalPartChange(newLocal: String) {
+        _emailLocalPartState.value = newLocal
+    }
+
+    fun onEmailDomainChange(newDomain: String) {
+        _emailDomainState.value = newDomain
+        _isCustomDomain.value = newDomain == "직접입력"
+    }
+
+    fun onCustomDomainChange(customDomain: String) {
+        if (_isCustomDomain.value) {
+            _emailDomainState.value = customDomain
         }
     }
 
