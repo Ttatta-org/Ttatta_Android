@@ -76,6 +76,10 @@ import com.umc.home.utils.formatToKorean
 import com.umc.home.utils.getFileFromUri
 import java.io.File
 import android.content.Context
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.umc.design.R as Res
@@ -140,6 +144,7 @@ fun HomeEditRecordScreen(
                         onTextChange = { todayRecord = it },
                         placeholder = "오늘을 기록해주세요"
                     )
+
                     Spacer(Modifier.height(17.dp))
 
                     // Edit Category (기존 데이터 받아오기)
@@ -158,28 +163,6 @@ fun HomeEditRecordScreen(
                             // ✅ 이미지 수정 안 할 경우 null 전달
                             onModifyDiary(diary.id, todayRecord, imageFile)
                             //navController.popBackStack()
-
-//                    val updatedDiary = diary.copy(
-//                        imageUrl = selectedImageUri?.toString() ?: diary.imageUrl,
-//                        content = todayRecord
-//                    )
-//                    // ✅ ViewModel을 통해 API 호출
-//                    viewModel.modifyDiary(
-//                        diaryId = updatedDiary.id,
-//                        categoryId = null, // 카테고리 변경 기능 추가 가능
-//                        content = updatedDiary.content,
-////                        image = selectedImageUri?.let { uri ->
-////                            File(uri.path!!) // Uri를 File로 변환 (주의: 실제 앱에서는 파일 변환 로직을 별도로 처리해야 함)
-////                        },
-//                        image = null,
-//                        onSucceed = {
-//                            Log.d("HomeEditRecordScreen", "✅ 수정 성공!")
-//                            navController.popBackStack() // ✅ 수정 완료 후 이전 화면으로 이동
-//                        },
-//                        onFailed = { e ->
-//                            Log.e("HomeEditRecordScreen", "❌ 수정 실패: ${e.message}", e)
-//                        }
-//                    )
                         },
                         shape = RoundedCornerShape(28.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFCAD98)),
