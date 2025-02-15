@@ -88,7 +88,6 @@ fun JoinNicknameView(viewModel: JoinViewModel, onNext: () -> Unit) {
             onValueChange = viewModel::onNickNameChange,
             onImeAction = {
                 keyboardController?.hide()
-                viewModel.checkNicknameAvailability()
             },
             placeholder = stringResource(R.string.nickname_comment),
             isWarning = isWarningVisible,

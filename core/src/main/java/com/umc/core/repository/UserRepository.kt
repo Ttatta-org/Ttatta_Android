@@ -5,7 +5,6 @@ import com.umc.core.model.UserInfo
 interface UserRepository {
     suspend fun isAlreadyLogin(): Boolean
     suspend fun isIdAlreadyOccupied(id: String): Boolean
-    suspend fun isNicknameAlreadyOccupied(nickname: String): Boolean // ✅ 닉네임 중복 확인 추가
 
     suspend fun login(id: String, password: String)
     suspend fun loginWithKakao(kakaoToken: String)

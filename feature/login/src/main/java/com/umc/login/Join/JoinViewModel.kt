@@ -176,25 +176,6 @@ class JoinViewModel @Inject constructor(
         }
     }
 
-    fun checkNicknameAvailability() {
-        viewModelScope.launch {
-            if (_nickNameState.value.isBlank()) {
-                _nicknameError.value = "닉네임을 입력해주세요."
-                return@launch
-            }
-
-            _isLoading.value = true
-            try {
-                // ✅ 현재는 로컬에서 검사 (백엔드 미구현 상태이므로)
-                val isOccupied = userRepository.isNicknameAlreadyOccupied(_nickNameState.value)
-                _nicknameError.value = if (isOccupied) "이미 사용 중인 닉네임입니다." else null
-            } catch (e: Exception) {
-                _nicknameError.value = "오류가 발생했습니다. 나중에 다시 시도해주세요."
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
 
     fun checkIdAvailability() {
         viewModelScope.launch {
