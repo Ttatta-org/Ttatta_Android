@@ -3,6 +3,8 @@ package com.umc.ttatta
 import android.app.Activity
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -69,6 +71,7 @@ fun MainApp(
         ) else null,
         centerButtonProp = if (isCenterButtonActivated) {
             val routeToRecordApp = { mode: String ->
+                isCenterButtonActivated = false
                 navigator.navigate(
                     route = NavigationRoute.Record.getRoute(
                         option = RecordRouteOption(entryMode = mode)
@@ -89,6 +92,10 @@ fun MainApp(
         NavHost(
             navController = navigator,
             startDestination = NavigationRoute.Splash.route,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { ExitTransition.None },
             modifier = Modifier.fillMaxSize()
         ) {
             with(NavigationRoute.Splash) {
@@ -162,10 +169,12 @@ fun MainApp(
             }
 
             with(NavigationRoute.Category) {
-                setNavGraph {
+                setNavGraph { backStackEntry ->
+                    val option = getOption(backStackEntry.arguments!!) as CategoryRouteOption
+
                     CategoryApp(
                         viewModel = hiltViewModel(),
-                        showTopBar = true,
+                        showTopBar = option.showTopBar,
                     )
                 }
             }
