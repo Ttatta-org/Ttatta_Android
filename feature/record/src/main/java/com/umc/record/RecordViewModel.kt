@@ -65,9 +65,11 @@ class RecordViewModel @Inject constructor(
         return {
             println("🗺️ Rendering mapView...") // ✅ 지도 렌더링 확인 로그 추가
             try {
-                mapHandler.getMapView() // ✅ mapView 실행
+                val mapView = mapHandler.getMapView() // ✅ mapView 실행
+                println("✅ MapView retrieved successfully!")
+                mapView
             } catch (e: Exception) {
-                Log.d("ViewModel", "🚨 Error rendering mapView: ${e.localizedMessage}") // ✅ 예외 발생 로그 확인
+                Log.e("RecordViewModel", "🚨 Error rendering mapView: ${e.localizedMessage}") // ✅ 예외 발생 로그
             }
         }
     }

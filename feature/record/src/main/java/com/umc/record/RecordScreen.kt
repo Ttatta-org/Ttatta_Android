@@ -54,9 +54,10 @@ fun RecordScreen(
     diaryText: String,
     onCategorySelect: (String) -> Unit,
     onDiaryTextUpdate: (String) -> Unit,
-    onEditLocation: () -> Unit
+    onEditLocation: (String) -> Unit
 ) {
-    var showCustomDialog by remember { mutableStateOf(true) }
+    var showCustomDialog by remember { mutableStateOf(false) }
+    var location by remember { mutableStateOf("Cafe PORTE") }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -78,11 +79,11 @@ fun RecordScreen(
             // 상단 정보 섹션
             InfoSection(
                 date = "2025.02.01",
-                location = "Cafe PORTE",  // 추후 지도에서 저장한 데이터로 교체 필요
+                location = location,  // 추후 지도에서 저장한 데이터로 교체 필요
                 category = selectedCategory,
                 onLocationClick = { // 위치 클릭 시 이벤트 발생
                     println("📌 RecordScreen: onEditLocation() called!") // ✅ 로그 추가
-                    onEditLocation()
+                    onEditLocation(location)
                 },
                 onIconClick = { showCustomDialog = !showCustomDialog } // 다이얼로그 상태 변경
             )
