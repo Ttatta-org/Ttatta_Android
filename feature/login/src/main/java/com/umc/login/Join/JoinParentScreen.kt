@@ -59,15 +59,11 @@ fun JoinParentScreen(navController: NavHostController, joinViewModel: JoinViewMo
             }
             composable("id") {
                 LaunchedEffect(Unit) { currentStep = 2 }
-                JoinIdView(
-                    onNext = { localNavController.navigate("password") },
-                    onBack = { localNavController.popBackStack() }
-                )
+                JoinIdView(joinViewModel, onNext = { localNavController.navigate("password") })
             }
             composable("password") {
                 LaunchedEffect(Unit) { currentStep = 3 }
-                JoinPwView(
-                    onNext = { localNavController.navigate("name") })
+                JoinPwView(joinViewModel, onNext = { localNavController.navigate("name") })
             }
             composable("name") {
                 LaunchedEffect(Unit) { currentStep = 4 }
