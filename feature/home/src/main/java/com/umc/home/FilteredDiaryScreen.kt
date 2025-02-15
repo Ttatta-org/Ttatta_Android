@@ -129,12 +129,31 @@ fun FilteredDiaryScreen(
 //    }
     val filteredDiaries by viewModel.filteredDiaryListState.collectAsState()
 
-    // 선택한 날짜가 변경되면 해당 날짜에 맞는 일기 목록을 불러옴
-    LaunchedEffect(selectedDate) {
-        Log.d("FilteredDiaryScreen", "📌 선택된 날짜 변경됨: $selectedDate")
-        viewModel.loadDiaries(page = 0, date = selectedDate, isFiltered = true)
-        //viewModel.loadNextPage(isFiltered = true, selectedDate = selectedDate)
+    val lazyListState = rememberLazyListState()
+
+    LaunchedEffect(lazyListState, selectedDate) {
+        Log.d("Pagination", "📌 선택된 날짜 변경됨: $selectedDate")
+        viewModel.loadDiaries(page = 0, date = selectedDate, isFiltered = true, reset = true)
+
+        snapshotFlow { lazyListState.layoutInfo }
+            .collect { layoutInfo ->
+                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                val totalItems = layoutInfo.totalItemsCount
+
+                if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 2) { // 마지막 2개 남았을 때 로딩
+                    Log.d("Pagination", "📌 무한스크롤 감지 - loadNextPage() 실행")
+                    viewModel.loadNextPage(isFiltered = true, selectedDate = selectedDate)
+                }
+            }
     }
+
+
+    // 선택한 날짜가 변경되면 해당 날짜에 맞는 일기 목록을 불러옴
+//    LaunchedEffect(selectedDate) {
+//        Log.d("FilteredDiaryScreen", "📌 선택된 날짜 변경됨: $selectedDate")
+//        viewModel.loadDiaries(page = 0, date = selectedDate, isFiltered = true)
+//        //viewModel.loadNextPage(isFiltered = true, selectedDate = selectedDate)
+//    }
 
 //    BackHandler {
 //        Log.d("FilteredDiaryScreen", "🔙 뒤로 가기 감지 - 필터 해제")
@@ -152,6 +171,7 @@ fun FilteredDiaryScreen(
                     .weight(1f) // ✅ LazyColumn이 BottomNavigation을 밀어내지 않도록 가변 높이 적용
             ) {
                 LazyColumn(
+                    state = lazyListState,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(top = 60.dp) // ✅ TopBar와 겹치지 않도록 패딩 추가

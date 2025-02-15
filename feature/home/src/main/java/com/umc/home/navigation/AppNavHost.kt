@@ -125,41 +125,36 @@ fun AppNavHost(
     val lazyListState = rememberLazyListState()
     val layoutInfo by remember { derivedStateOf( { lazyListState.layoutInfo } ) }
     val coroutineScope = rememberCoroutineScope()
+
     // ✅ 필터링 여부를 저장하는 상태 변수
     var isFiltered by remember { mutableStateOf(false) }
-
-    // ✅ 사용자가 선택한 날짜 상태
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
 
-    LaunchedEffect(layoutInfo, isFiltered) {
-        // snapshotFlow { lazyListState.layoutInfo }
-        // lazyListState.layoutInfo.let { layoutInfo ->
+    LaunchedEffect(lazyListState, isSearchVisible) {
+        snapshotFlow { lazyListState.layoutInfo }
+            .collect { layoutInfo ->
                 val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
                 val totalItems = layoutInfo.totalItemsCount
 
-                if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 1) {
-
+                if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 1) { // 마지막 아이템 감지
                     val currentRoute = navController.currentDestination?.route
                     Log.d("Pagination", "➡️ 현재 네비게이션 경로: $currentRoute")
 
-                    when{
-                        currentRoute == "home" -> {
-                            Log.d("Pagination", "♦️ viewModel.loadNextPage() 시도")
+                    when (currentRoute) {
+                        "home" -> {
+                            Log.d("Pagination", "♦️ 홈 무한스크롤 - viewModel.loadNextPage() 호출")
                             viewModel.loadNextPage(isFiltered = false, selectedDate = null)
                         }
-                        currentRoute?.startsWith("filtered/") == true -> {
-                            val extractedDate = navController.currentBackStackEntry?.arguments?.getString("selectedDate") ?: ""
-                            Log.d("Pagination", "♦️ 특정 날짜의 viewModel.loadNextPage() 시도 (extractedDate: $extractedDate)")
-
-                            viewModel.loadNextPage(isFiltered = true, selectedDate = LocalDate.parse(extractedDate))
-                        }
-                        currentRoute == "search" -> {
-                            viewModel.searchDiaries(searchWord = searchQuery, reset = false) // ✅ ViewModel이 알아서 `searchPage++` 관리
+                        "search" -> {
+                            Log.d("Pagination", "♦️ 검색 결과 무한스크롤 - viewModel.searchDiaries() 호출")
+                            viewModel.searchDiaries(searchWord = searchQuery, reset = false)
                         }
                     }
                 }
-            // }
+            }
     }
+
+
 
 
 
@@ -209,7 +204,6 @@ fun AppNavHost(
                         launchSingleTop = true
                         restoreState = true // ✅ 기존 상태 유지
                     }
-                    isFiltered = true
                 },
                 onShowDetailModal = { isDetailModalVisible = true },
                 onDismissDetailModal = { isDetailModalVisible = false },
