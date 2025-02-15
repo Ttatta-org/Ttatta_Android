@@ -133,6 +133,7 @@ fun FilteredDiaryScreen(
     LaunchedEffect(selectedDate) {
         Log.d("FilteredDiaryScreen", "📌 선택된 날짜 변경됨: $selectedDate")
         viewModel.loadDiaries(page = 0, date = selectedDate, isFiltered = true)
+        //viewModel.loadNextPage(isFiltered = true, selectedDate = selectedDate)
     }
 
 //    BackHandler {

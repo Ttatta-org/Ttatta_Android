@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +46,7 @@ fun AppNavHost(
     var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
 
     val diaryList by viewModel.diaryListState.collectAsState()
+    val filteredDiaryList by viewModel.filteredDiaryListState.collectAsState()
     val searchResults by viewModel.searchResultsState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val recentSearches by viewModel.recentSearchesState.collectAsState()
@@ -121,25 +123,42 @@ fun AppNavHost(
     }
 
     val lazyListState = rememberLazyListState()
+    val layoutInfo by remember { derivedStateOf( { lazyListState.layoutInfo } ) }
     val coroutineScope = rememberCoroutineScope()
+    // ✅ 필터링 여부를 저장하는 상태 변수
+    var isFiltered by remember { mutableStateOf(false) }
 
-    LaunchedEffect(lazyListState) {
-        snapshotFlow { lazyListState.layoutInfo }
-            .collect { layoutInfo ->
+    // ✅ 사용자가 선택한 날짜 상태
+    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+
+    LaunchedEffect(layoutInfo, isFiltered) {
+        // snapshotFlow { lazyListState.layoutInfo }
+        // lazyListState.layoutInfo.let { layoutInfo ->
                 val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
                 val totalItems = layoutInfo.totalItemsCount
 
                 if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 1) {
-                    when (navController.currentDestination?.route) {
-                        "home" -> {
-                            viewModel.loadNextPage()
+
+                    val currentRoute = navController.currentDestination?.route
+                    Log.d("Pagination", "➡️ 현재 네비게이션 경로: $currentRoute")
+
+                    when{
+                        currentRoute == "home" -> {
+                            Log.d("Pagination", "♦️ viewModel.loadNextPage() 시도")
+                            viewModel.loadNextPage(isFiltered = false, selectedDate = null)
                         }
-                        "search" -> {
+                        currentRoute?.startsWith("filtered/") == true -> {
+                            val extractedDate = navController.currentBackStackEntry?.arguments?.getString("selectedDate") ?: ""
+                            Log.d("Pagination", "♦️ 특정 날짜의 viewModel.loadNextPage() 시도 (extractedDate: $extractedDate)")
+
+                            viewModel.loadNextPage(isFiltered = true, selectedDate = LocalDate.parse(extractedDate))
+                        }
+                        currentRoute == "search" -> {
                             viewModel.searchDiaries(searchWord = searchQuery, reset = false) // ✅ ViewModel이 알아서 `searchPage++` 관리
                         }
                     }
                 }
-            }
+            // }
     }
 
 
@@ -190,6 +209,7 @@ fun AppNavHost(
                         launchSingleTop = true
                         restoreState = true // ✅ 기존 상태 유지
                     }
+                    isFiltered = true
                 },
                 onShowDetailModal = { isDetailModalVisible = true },
                 onDismissDetailModal = { isDetailModalVisible = false },

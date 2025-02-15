@@ -42,7 +42,7 @@ class HomeViewModel @Inject constructor(
     private val _diaryListState = MutableStateFlow<List<Diary>>(emptyList())
     val diaryListState: StateFlow<List<Diary>> = _diaryListState
 
-    private var currentPage = 0 // ✅ 일반 다이어리 리스트의 페이지 상태
+    var currentPage = 0 // ✅ 일반 다이어리 리스트의 페이지 상태
     private var searchPage = 0
     //private var currentSearchPage = 0 // ✅ 검색 결과의 페이지 상태
 
@@ -74,16 +74,17 @@ class HomeViewModel @Inject constructor(
     /**
      * ✅ 다음 페이지 로드 (무한 스크롤)
      */
-    fun loadNextPage() {
-        Log.d("Pagination", "🟢 loadNextPage() 호출됨 - 현재 페이지: $currentPage")
+//    fun loadNextPage() {
+//        Log.d("Pagination", "🟢 loadNextPage() 호출됨 - 현재 페이지: $currentPage")
+//
+//        if (!isLoading) {
+//            Log.d("Pagination", "🔥 loadDiaries() 실행 시도 - 페이지: $currentPage")
+//            loadDiaries(page = currentPage, date = null)
+//        } else {
+//            Log.d("Pagination", "❌ API 요청 안됨 - isLoading이 true 상태")
+//        }
+//    }
 
-        if (!isLoading) {
-            Log.d("Pagination", "🔥 loadDiaries() 실행 시도 - 페이지: $currentPage")
-            loadDiaries(page = currentPage, date = null)
-        } else {
-            Log.d("Pagination", "❌ API 요청 안됨 - isLoading이 true 상태")
-        }
-    }
 
     /**
      * ✅ 전체 일기 날짜 불러오기 (달력에서 사용)
@@ -121,12 +122,13 @@ class HomeViewModel @Inject constructor(
      * 날짜 필터가 있을 경우 해당 날짜에 해당하는 일기를 불러옵니다.
      */
 
-    fun loadDiaries(page: Int, date: LocalDate?, isFiltered: Boolean = false, reset: Boolean = false, onSucceed: () -> Unit = {}, onFailed: (Exception) -> Unit = {}) {
+    fun loadDiaries(page: Int, date: LocalDate?, isFiltered: Boolean, reset: Boolean = false, onSucceed: () -> Unit = {}, onFailed: (Exception) -> Unit = {}) {
         if (isLoading) return
         isLoading = true
 
         // ✅ 날짜가 변경되었거나 `reset = true`일 때 리스트 초기화
         if (reset || isFiltered) {
+            currentPage = 0
             _filteredDiaryListState.value = emptyList() // ✅ 특정 날짜의 기존 데이터 삭제
         }
         if (reset && !isFiltered) {
@@ -137,10 +139,15 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val newDiaries = diaryRepository.getDiaries(page = page, date = date)
+                Log.d("HomeViewModel", "✅ 다이어리 데이터 로드 성공: ${newDiaries.size}개")
 
                 if (isFiltered) {
                     // ✅ 특정 날짜 다이어리 리스트 업데이트 (기존 데이터를 삭제한 후 새로운 데이터 추가)
-                    _filteredDiaryListState.value = newDiaries
+                    Log.d("Pagination", "isFiltered가 true이긴함")
+                    //_filteredDiaryListState.value = newDiaries
+                    _filteredDiaryListState.value = (_filteredDiaryListState.value + newDiaries).distinctBy { it.id }
+                    if (newDiaries.isNotEmpty()) currentPage++
+                    Log.d("Pagination", "증가했나...?${currentPage}")
                 } else {
                     // ✅ 전체 다이어리 리스트 업데이트
                     _diaryListState.value = (_diaryListState.value + newDiaries).distinctBy { it.id }
@@ -155,6 +162,23 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+    fun loadNextPage(isFiltered: Boolean, selectedDate: LocalDate?) {
+        Log.d("Pagination", "🟢 loadNextPage() 호출됨 - 현재 선택 날짜: $selectedDate")
+        Log.d("Pagination", "🟢 loadNextPage() 호출됨 - 현재 페이지: $currentPage")
+
+
+        Log.d("Pagination", "🔥 loadDiaries() 실행 시도 - 페이지: $currentPage")
+
+        if (isFiltered) {
+            // ✅ 필터된 날짜의 다이어리 무한 스크롤
+            Log.d("Pagination", "📌 특정 날짜의 다이어리 로드 시도")
+            loadDiaries(page = currentPage, date = selectedDate, isFiltered = true)
+        } else {
+            Log.d("Pagination", "📌 전체 다이어리 로드 시도")
+            // ✅ 전체 다이어리 무한 스크롤
+            loadDiaries(page = currentPage, isFiltered = false, date = null)
+        }
+    }
 
     // ✅ SearchScreen의 검색 기능 (검색 시 reset = true)
     fun searchDiaries(searchWord: String, reset: Boolean = true, onSucceed: () -> Unit = {}, onFailed: (Exception) -> Unit = {}) {
@@ -164,14 +188,19 @@ class HomeViewModel @Inject constructor(
         if (reset) {
             searchPage = 0  // ✅ 검색 시작 시 항상 0으로 초기화
             _searchResultsState.value = emptyList()  // ✅ 기존 검색 결과 초기화
-            addRecentSearch(searchWord)
+            //addRecentSearch(searchWord)
         }
 
         viewModelScope.launch {
             try {
                 val results = diaryRepository.getDiaries(page = searchPage, searchWord = searchWord)
                 _searchResultsState.value = (_searchResultsState.value + results).distinctBy { it.id }
-                if (results.isNotEmpty()) searchPage++  // ✅ 다음 페이지 증가
+                if (results.isNotEmpty()) {
+                    searchPage++
+                    if (searchWord.isNotBlank()) {
+                        addRecentSearch(searchWord)
+                    }
+                }  // ✅ 다음 페이지 증가
 
                 onSucceed()
             } catch (e: Exception) {
@@ -343,7 +372,7 @@ class HomeViewModel @Inject constructor(
                     locationName = locationName
                 )
                 // 생성 후 최신 목록을 다시 로딩 (예: 페이지 1, 날짜 필터 없음)
-                loadDiaries(page = 0, date = null, onSucceed = onSucceed, onFailed = { throw it })
+                loadDiaries(page = 0, isFiltered = false, date = null, onSucceed = onSucceed, onFailed = { throw it })
             } catch (e: Exception) {
                 onFailed(e)
             }
