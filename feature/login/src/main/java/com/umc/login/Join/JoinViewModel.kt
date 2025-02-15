@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.umc.core.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +44,12 @@ class JoinViewModel @Inject constructor(
     private val _isCustomDomain = MutableStateFlow(false)
     val isCustomDomain: StateFlow<Boolean> = _isCustomDomain.asStateFlow()
 
+    private val _certiCodeState = MutableStateFlow("")
+    val certiCodeState: StateFlow<String> = _certiCodeState.asStateFlow()
+
+    private val _timerState = MutableStateFlow(600) // 10분 (600초)
+    val timerState: StateFlow<Int> = _timerState.asStateFlow()
+
     private val _isWarningVisible = MutableStateFlow(false)
     val isWarningVisible: StateFlow<Boolean> = _isWarningVisible.asStateFlow()
 
@@ -57,6 +64,9 @@ class JoinViewModel @Inject constructor(
 
     private val _emailError = MutableStateFlow<String?>(null)
     val emailError: StateFlow<String?> = _emailError.asStateFlow()
+
+    private val _certiError = MutableStateFlow<String?>(null)
+    val certiError: StateFlow<String?> = _certiError.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -89,6 +99,14 @@ class JoinViewModel @Inject constructor(
         val email = "$local@$domain"
         email.matches(Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"))
     }.stateIn(viewModelScope, SharingStarted.Lazily, false)
+
+    val isCertiCodeValid: StateFlow<Boolean> = _certiCodeState
+        .map { it.length == 6 }
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
+
+    init {
+        startTimer()
+    }
 
     fun onNickNameChange(newNickName: String) {
         if (newNickName.length <= 9) {
@@ -142,6 +160,22 @@ class JoinViewModel @Inject constructor(
         }
     }
 
+    fun onCertiCodeChange(newCode: String) {
+        if (newCode.length <= 6) {
+            _certiCodeState.value = newCode
+            _certiError.value = null // 입력 시 기존 에러 제거
+        }
+    }
+
+    private fun startTimer() {
+        viewModelScope.launch {
+            while (_timerState.value > 0) {
+                delay(1000L) // 1초 대기
+                _timerState.value -= 1
+            }
+        }
+    }
+
     fun checkNicknameAvailability() {
         viewModelScope.launch {
             if (_nickNameState.value.isBlank()) {
@@ -177,6 +211,18 @@ class JoinViewModel @Inject constructor(
                 _idError.value = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    fun verifyCertiCode(onSuccess: () -> Unit, onFailure: () -> Unit) {
+        viewModelScope.launch {
+            val isValid = userRepository.checkVerificationCodeForJoining(_certiCodeState.value.toIntOrNull() ?: -1)
+            if (isValid) {
+                onSuccess()
+            } else {
+                _certiError.value = "인증번호가 올바르지 않습니다."
+                onFailure()
             }
         }
     }
