@@ -20,27 +20,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.umc.login.R
 @Composable
-fun JoinEmailScreen(navController: NavHostController) {
+fun JoinEmailScreen(navController: NavHostController,viewModel: JoinViewModel = viewModel()) {
     Column(modifier = Modifier.wrapContentSize()) {
-        JoinEmailView(
-            onNext = { navController.navigate("join_pw") },
-            onBack = { navController.navigate("join_id") }
-        )
+        JoinEmailView(viewModel = viewModel, onNext = { navController.navigate("join_pw") })
     }
 }
 
 @Composable
-fun JoinEmailView(onNext: () -> Unit, onBack: () -> Unit) {
-    var localPart by remember { mutableStateOf("") }
-    var selectedDomain by remember { mutableStateOf("직접입력") }
-    var customDomain by remember { mutableStateOf("") }
-    var isCustomDomain by remember { mutableStateOf(false) }
+fun JoinEmailView(viewModel: JoinViewModel, onNext: () -> Unit) {
+    val emailLocalPart by viewModel.emailLocalPartState.collectAsState()
+    val emailDomain by viewModel.emailDomainState.collectAsState()
+    val isCustomDomain by viewModel.isCustomDomain.collectAsState()
+    val isEmailValid by viewModel.isEmailValid.collectAsState()
     var expanded by remember { mutableStateOf(false) }
+
     val domains = listOf("naver.com", "gmail.com", "yahoo.com", "직접입력")
-    val isEmailValid = localPart.isNotEmpty() && (if (isCustomDomain) customDomain.isNotEmpty() else selectedDomain.isNotEmpty())
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -61,8 +59,8 @@ fun JoinEmailView(onNext: () -> Unit, onBack: () -> Unit) {
             modifier = Modifier.width(310.dp)
         ) {
             EmailInputTextField(
-                value = localPart,
-                onValueChange = { localPart = it },
+                value = emailLocalPart,
+                onValueChange =viewModel::onEmailLocalPartChange,
                 placeholder = "이메일 입력"
             )
             Text(
@@ -78,8 +76,8 @@ fun JoinEmailView(onNext: () -> Unit, onBack: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     EmailInputTextField(
-                        value = if (isCustomDomain) customDomain else selectedDomain,
-                        onValueChange = { if (isCustomDomain) customDomain = it },
+                        value = emailDomain,
+                        onValueChange = { if (isCustomDomain) viewModel.onCustomDomainChange(it) },
                         placeholder = "직접입력",
                         readOnly = !isCustomDomain
                     )
@@ -93,8 +91,7 @@ fun JoinEmailView(onNext: () -> Unit, onBack: () -> Unit) {
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     domains.forEach { domain ->
                         DropdownMenuItem(text = { Text(domain) }, onClick = {
-                            selectedDomain = domain
-                            isCustomDomain = domain == "직접입력"
+                            viewModel.onEmailDomainChange(domain)
                             expanded = false
                         })
                     }

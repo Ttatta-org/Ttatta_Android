@@ -72,9 +72,7 @@ fun JoinParentScreen(navController: NavHostController, joinViewModel: JoinViewMo
             composable("email") {
                 LaunchedEffect(Unit) { currentStep = 5 }
                 JoinEmailView(
-                    onNext = {localNavController.navigate("certification")},
-                    onBack = {}
-                )
+                    joinViewModel, onNext = {localNavController.navigate("certification")})
             }
             composable("certification") {
                 LaunchedEffect(Unit) { currentStep = 5 }
