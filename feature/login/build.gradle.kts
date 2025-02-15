@@ -58,6 +58,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    implementation("com.google.accompanist:accompanist-navigation-animation:0.32.0")
     implementation ("androidx.navigation:navigation-compose:2.5.3")
 
     // 의존성 정의

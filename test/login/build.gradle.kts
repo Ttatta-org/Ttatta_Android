@@ -65,6 +65,7 @@ dependencies {
     implementation(project(":design"))
     implementation(project(":data"))
     implementation(project(":feature:login"))
+    implementation("com.google.accompanist:accompanist-navigation-animation:0.32.0")
 
     // Hilt
     implementation(libs.hilt.android)
