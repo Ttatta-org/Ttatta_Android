@@ -164,6 +164,7 @@ class HomeViewModel @Inject constructor(
         if (reset) {
             searchPage = 0  // ✅ 검색 시작 시 항상 0으로 초기화
             _searchResultsState.value = emptyList()  // ✅ 기존 검색 결과 초기화
+            addRecentSearch(searchWord)
         }
 
         viewModelScope.launch {
@@ -179,6 +180,11 @@ class HomeViewModel @Inject constructor(
                 isLoading = false
             }
         }
+    }
+    fun addRecentSearch(query: String) {
+        val updatedSearches = (listOf(query) + _recentSearchesState.value).distinct().take(3) // 최대 3개 유지
+        _recentSearchesState.value = updatedSearches
+        Log.d("RecentSearchesViewModel", "🔹 검색어 추가됨: $updatedSearches")
     }
 
 //    fun loadDiaries(
@@ -357,7 +363,7 @@ class HomeViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                Log.d("modifyDiary", "📤 수정 요청 시작 (diaryId: $diaryId)")
+                Log.d("modifyDiary", "📤 수정 요청 시작 (diaryId: $diaryId, image: ${image?.path})")
 
                 // ✅ 다이어리 수정 API 호출
                 diaryRepository.modifyDiary(

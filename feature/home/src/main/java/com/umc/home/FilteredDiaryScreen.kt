@@ -222,11 +222,11 @@ fun FilteredDiaryScreen(
             }
 
             // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)
-            BottomNavigationBarWithFAB(
-                selectedTab = "home",
-                onTabSelected = { /* 탭 변경 로직 */ },
-                onFabClick = onFabClick
-            )
+//            BottomNavigationBarWithFAB(
+//                selectedTab = "home",
+//                onTabSelected = { /* 탭 변경 로직 */ },
+//                onFabClick = onFabClick
+//            )
         }
     }
     // 디테일 모달창 (수정/삭제)
@@ -328,17 +328,6 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-//            // 상단 이미지
-//            Image(
-//                painter = painterResource(id = diary.imageUrl),
-//                contentDescription = "Diary Image",
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(280.dp) // 이미지 높이 설정
-//                    .width(280.dp)
-//                    .clip(RoundedCornerShape(18.dp)),
-//                contentScale = ContentScale.Crop // 이미지 크롭 설정
-//            )
             AsyncImage(
                 model = diary.imageUrl,
                 contentDescription = "Diary Image",
@@ -387,14 +376,15 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-                    .padding(vertical = 5.dp, horizontal = 12.dp)
+                    .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(17.dp))
+                    .padding(vertical = 10.dp, horizontal = 12.dp)
             ) {
                 Text(
                     text = diary.content,
                     style = MaterialTheme.typography.bodyLarge.copy(
                         color = Color(0xFF4B4B4B), // 텍스트 색상
-                        fontSize = 12.sp
+                        fontSize = 14.sp,
+                        lineHeight = 16.sp
                     )
                 )
             }

@@ -1,7 +1,9 @@
 package com.umc.home.navigation
 
+import android.os.Build
 import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,6 +29,7 @@ import kotlinx.coroutines.flow.filter
 import java.io.File
 import java.time.LocalDate
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
@@ -45,6 +48,7 @@ fun AppNavHost(
     val searchResults by viewModel.searchResultsState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val recentSearches by viewModel.recentSearchesState.collectAsState()
+    Log.d("RecentSearches", "📌 UI에서 받은 최근 검색어: $recentSearches")
 
     // ✅ 전체 일기 목록을 가져옴
 //    val fullDiaryList by viewModel.fullDiaryListState.collectAsState()
@@ -104,7 +108,7 @@ fun AppNavHost(
             diaryId = diaryId,
             categoryId = null,
             content = content,
-            image = null,
+            image = image,
             onSucceed = {
                 Log.d("AppNavHost", "✅ 수정 성공!")
                 navController.popBackStack() // ✅ 수정 완료 후 이전 화면으로 이동
@@ -119,26 +123,6 @@ fun AppNavHost(
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-//    LaunchedEffect(lazyListState, diaryList, searchResults) { // ✅ 검색 & 일반 리스트 둘 다 감지
-//        snapshotFlow { lazyListState.layoutInfo }
-//            .collect { layoutInfo ->
-//                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-//                val totalItems = layoutInfo.totalItemsCount
-//
-//                Log.d("Pagination", "📌 마지막 보이는 아이템 인덱스: $lastVisibleItemIndex, 전체 아이템 개수: $totalItems")
-//
-//                // ✅ 검색 중이면 `searchDiaries()` 호출, 아니라면 `loadNextPage()` 호출
-//                if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 1) {
-//                    if (searchResults.isNotEmpty()) {
-//                        Log.d("Pagination", "✅ (검색) 스크롤 80% 도달 - 다음 페이지 로드 요청")
-//                        viewModel.searchDiaries(searchQuery, reset = false, onSucceed = {}, onFailed = {})
-//                    } else {
-//                        Log.d("Pagination", "✅ (다이어리) 스크롤 80% 도달 - 다음 페이지 로드 요청")
-//                        viewModel.loadNextPage()
-//                    }
-//                }
-//            }
-//    }
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.layoutInfo }
             .collect { layoutInfo ->
