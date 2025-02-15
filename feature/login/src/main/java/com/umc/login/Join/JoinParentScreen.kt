@@ -47,7 +47,7 @@ fun JoinParentScreen(navController: NavHostController, joinViewModel: JoinViewMo
                 navController.popBackStack()
             }
         })
-        JoinTopView(currentStep = currentStep, totalSteps = 5)
+        JoinTopView(currentStep = currentStep, totalSteps = 6)
         NavHost(
             navController = localNavController,
             startDestination = "nickname",
@@ -75,11 +75,8 @@ fun JoinParentScreen(navController: NavHostController, joinViewModel: JoinViewMo
                     joinViewModel, onNext = {localNavController.navigate("certification")})
             }
             composable("certification") {
-                LaunchedEffect(Unit) { currentStep = 5 }
-                JoinCertiView(
-                    onNext = {},
-                    onBack = {}
-                )
+                LaunchedEffect(Unit) { currentStep = 6 }
+                JoinCertiView(viewModel = joinViewModel, onNext = {})
             }
         }
     }

@@ -18,32 +18,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.umc.login.R
+import com.umc.login.component.CertiInputTextField
 import kotlinx.coroutines.delay
 
 @Composable
-fun JoinCertiScreen(navController: NavHostController) {
+fun JoinCertiScreen(navController: NavHostController,viewModel: JoinViewModel = viewModel()) {
     Column(modifier = Modifier.wrapContentSize()) {
-        JoinCertiView(
-            onNext = { navController.navigate("join_pw") },
-            onBack = { navController.navigate("join") }
-        )
+        JoinCertiView(viewModel =viewModel,onNext = { navController.navigate("join_pw") })
     }
 }
 
 @Composable
-fun JoinCertiView(onNext: () -> Unit, onBack: () -> Unit) {
-    var certiCode by remember { mutableStateOf("") }
-    var timer by remember { mutableStateOf(600  ) }
-    val isCodeValid = certiCode.length == 6
+fun JoinCertiView(viewModel: JoinViewModel, onNext: () -> Unit) {
+    val certiCode by viewModel.certiCodeState.collectAsState()
+    val timer by viewModel.timerState.collectAsState()
+    val isCodeValid by viewModel.isCertiCodeValid.collectAsState()
+    val certiError by viewModel.certiError.collectAsState()
 
-    LaunchedEffect(timer) {
-        while (timer > 0) {
-            delay(1000L)
-            timer--
-        }
-    }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -61,9 +55,10 @@ fun JoinCertiView(onNext: () -> Unit, onBack: () -> Unit) {
 
         CertiInputTextField(
             value = certiCode,
-            onValueChange = { if (it.length <= 6) certiCode = it },
+            onValueChange = viewModel::onCertiCodeChange,
             placeholder = stringResource(R.string.join_certification_comment),
-            timer = timer
+            timer = timer,
+            errorMessage = certiError
         )
 
         Spacer(modifier = Modifier.height(103.dp))
@@ -80,7 +75,10 @@ fun JoinCertiView(onNext: () -> Unit, onBack: () -> Unit) {
 
         Button(
             enabled = isCodeValid,
-            onClick = { if (isCodeValid) onNext() },
+            onClick = {  viewModel.verifyCertiCode(
+                onSuccess = { onNext() },
+                onFailure = { }
+            ) },
             modifier = Modifier
                 .width(310.dp)
                 .height(45.dp),
@@ -106,66 +104,6 @@ fun JoinCertiView(onNext: () -> Unit, onBack: () -> Unit) {
     }
 }
 
-@Composable
-fun CertiInputTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    timer: Int
-) {
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
-    ) {
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            textStyle = LocalTextStyle.current.copy(
-                textAlign = TextAlign.Center,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight(600),
-                color = Color.Black
-            ),
-            placeholder = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = placeholder,
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                        fontWeight = FontWeight(600),
-                        color = colorResource(R.color.gray_500),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            },
-            trailingIcon = {
-                Text(
-                    text = "${timer / 60}:${String.format("%02d", timer % 60)}",
-                    color = if (timer > 0) colorResource(R.color.gray_500) else colorResource(R.color.negativeRed),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(end = 6.dp)
-                )
-            },
-            modifier = Modifier
-                .width(310.dp)
-                .height(51.dp),
-            colors = TextFieldDefaults.colors(
-                unfocusedContainerColor = Color.Transparent,
-                focusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = colorResource(R.color.gray_500),
-                unfocusedIndicatorColor = colorResource(R.color.gray_500),
-                cursorColor = Color.Black
-            )
-        )
-    }
-}
 
 @Preview(showBackground = true)
 @Composable
