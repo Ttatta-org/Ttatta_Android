@@ -4,6 +4,7 @@ import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.os.Build
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -91,6 +92,10 @@ fun SearchScreen(
         systemUiController.setStatusBarColor(
             color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
         )
+    }
+
+    BackHandler {
+        navController.popBackStack(route = "home", inclusive = false)
     }
 
     //val lazyListState = rememberLazyListState()
