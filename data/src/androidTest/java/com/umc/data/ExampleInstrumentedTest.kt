@@ -117,7 +117,15 @@ class ExampleInstrumentedTest {
         ).first()
         diaryRepository.modifyDiary(
             diaryId = originalDiary.id,
-            content = "modified"
+            content = "modified",
+            image = File(
+                context.cacheDir,
+                "test_image.jpg"
+            ).apply {
+                FileOutputStream(this).use {
+                    context.resources.openRawResource(R.raw.img_cafe).copyTo(it)
+                }
+            },
         )
         val modifiedDiary = diaryRepository.getDiaries(
             page = 0,
