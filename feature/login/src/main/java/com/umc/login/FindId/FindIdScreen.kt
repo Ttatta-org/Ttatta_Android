@@ -29,9 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.umc.login.Join.EmailInputTextField
-import com.umc.login.Join.JoinBackButton
-import com.umc.login.Join.NameInputTextField
 import com.umc.login.R
 
 @Composable
