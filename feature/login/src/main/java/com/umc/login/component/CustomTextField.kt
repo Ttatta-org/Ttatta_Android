@@ -2,7 +2,9 @@ package com.umc.login.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -295,5 +297,154 @@ fun PwInputTextField(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun NameInputTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    errorMessage: String?
+) {
+    TextField(
+        value = value,
+        onValueChange = { if (it.length <= 9) onValueChange(it) },
+        singleLine = true,
+        textStyle = LocalTextStyle.current.copy(
+            textAlign = TextAlign.Center,
+            fontSize = 14.sp,
+            color = if (errorMessage != null) colorResource(R.color.negativeRed) else Color.Black
+        ),
+        placeholder = {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = placeholder,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = colorResource(R.color.gray_500)
+                )
+            }
+        },
+        keyboardOptions = KeyboardOptions.Default,
+        modifier = Modifier.width(310.dp).height(51.dp),
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = colorResource(R.color.gray_500),
+            unfocusedIndicatorColor = colorResource(R.color.gray_500),
+            cursorColor = if (errorMessage != null) colorResource(R.color.negativeRed) else Color.Black
+        )
+    )
+}
+
+@Composable
+fun EmailInputTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    readOnly: Boolean = false,
+    onClick: (() -> Unit)? = null
+) {
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        readOnly = readOnly,
+        textStyle = LocalTextStyle.current.copy(
+            textAlign = TextAlign.Center,
+            fontSize = 14.sp,
+            fontWeight = FontWeight(600),
+            lineHeight = 20.sp,
+            color = colorResource(R.color.gray_500)
+        ),
+        placeholder = {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = placeholder,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight(600),
+                    color = colorResource(R.color.gray_500)
+                )
+            }
+        },
+        keyboardOptions = KeyboardOptions.Default,
+        modifier = Modifier.width(140.dp).height(51.dp).then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
+        colors = TextFieldDefaults.colors(
+            unfocusedContainerColor = Color.Transparent,
+            focusedContainerColor = Color.Transparent,
+            focusedIndicatorColor = colorResource(R.color.gray_500),
+            unfocusedIndicatorColor = colorResource(R.color.gray_500),
+            cursorColor = Color.Black
+        )
+    )
+}
+
+@Composable
+fun CertiInputTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    timer: Int,
+    errorMessage: String?
+) {
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
+    ) {
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            textStyle = LocalTextStyle.current.copy(
+                textAlign = TextAlign.Center,
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight(600),
+                color = Color.Black
+            ),
+            placeholder = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = placeholder,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight(600),
+                        color = colorResource(R.color.gray_500),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            },
+            trailingIcon = {
+                Text(
+                    text = "${timer / 60}:${String.format("%02d", timer % 60)}",
+                    color = if (timer > 0) colorResource(R.color.gray_500) else colorResource(R.color.negativeRed),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(end = 6.dp)
+                )
+            },
+            modifier = Modifier
+                .width(310.dp)
+                .height(51.dp),
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = colorResource(R.color.gray_500),
+                unfocusedIndicatorColor = colorResource(R.color.gray_500),
+                cursorColor = Color.Black
+            )
+        )
     }
 }
