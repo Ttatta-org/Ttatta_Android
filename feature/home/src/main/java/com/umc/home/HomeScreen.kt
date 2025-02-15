@@ -766,66 +766,66 @@ fun DashedDivider() {
 
 
 
-@RequiresApi(Build.VERSION_CODES.S)
-@Preview(showBackground = true)
-@Composable
-fun PreviewHomeScreen() {
-
-    val navController = rememberNavController()
-
-    // 더미 다이어리 데이터 (Diary 클래스는 imageUrl을 String 타입으로 사용한다고 가정)
-    val dummyDiaries = listOf(
-        Diary(
-            id = 1,
-            date = LocalDateTime.of(2025, 1, 25, 14, 30),
-            content = "귀여운 깜찍 토끼 초코푸딩!",
-            imageUrl = "https://via.placeholder.com/280", // Preview용 더미 URL
-            locationName = "서울"
-        ),
-        Diary(
-            id = 2,
-            date = LocalDateTime.of(2025, 1, 22, 18, 45),
-            content = "항상 건강하고 행복하게!",
-            imageUrl = "https://via.placeholder.com/280",
-            locationName = "부산"
-        ),
-        Diary(
-            id = 3,
-            date = LocalDateTime.of(2025, 1, 22, 9, 15),
-            content = "오늘의 다짐: 더 나은 내가 되자!",
-            imageUrl = "https://via.placeholder.com/280",
-            locationName = "대구"
-        ),
-        Diary(
-            id = 4,
-            date = LocalDateTime.of(2025, 1, 21, 11, 0),
-            content = "토끼 모양 케이크가 정말 귀엽다.",
-            imageUrl = "https://via.placeholder.com/280",
-            locationName = "인천"
-        )
-    )
-
-    HomeScreen(
-        navController = navController,
-        diaryList = dummyDiaries,
-        lazyListState = rememberLazyListState(),
-        isExpanded = false,
-        isSearchVisible = false,
-        isCalendarVisible = false,
-        isDetailModalVisible = false,
-        searchResults = emptyList(),
-        searchQuery = "",
-        recentSearches = emptyList(),
-        onQueryChange = {},
-        onSearch = {},
-        onSearchToggle = {},
-        onCalendarToggle = {},
-        onRecentSearchClick = {},
-        onFabClick = {},
-        onNavigateToFilteredDiaryScreen = { /* 선택된 날짜 처리 */ },
-        onShowDetailModal = {},
-        onDismissDetailModal = {},
-        onDeleteDiary = {},
-        allDiaryDates = emptyList()
-    )
-}
+//@RequiresApi(Build.VERSION_CODES.S)
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewHomeScreen() {
+//
+//    val navController = rememberNavController()
+//
+//    // 더미 다이어리 데이터 (Diary 클래스는 imageUrl을 String 타입으로 사용한다고 가정)
+//    val dummyDiaries = listOf(
+//        Diary(
+//            id = 1,
+//            date = LocalDateTime.of(2025, 1, 25, 14, 30),
+//            content = "귀여운 깜찍 토끼 초코푸딩!",
+//            imageUrl = "https://via.placeholder.com/280", // Preview용 더미 URL
+//            locationName = "서울"
+//        ),
+//        Diary(
+//            id = 2,
+//            date = LocalDateTime.of(2025, 1, 22, 18, 45),
+//            content = "항상 건강하고 행복하게!",
+//            imageUrl = "https://via.placeholder.com/280",
+//            locationName = "부산"
+//        ),
+//        Diary(
+//            id = 3,
+//            date = LocalDateTime.of(2025, 1, 22, 9, 15),
+//            content = "오늘의 다짐: 더 나은 내가 되자!",
+//            imageUrl = "https://via.placeholder.com/280",
+//            locationName = "대구"
+//        ),
+//        Diary(
+//            id = 4,
+//            date = LocalDateTime.of(2025, 1, 21, 11, 0),
+//            content = "토끼 모양 케이크가 정말 귀엽다.",
+//            imageUrl = "https://via.placeholder.com/280",
+//            locationName = "인천"
+//        )
+//    )
+//
+//    HomeScreen(
+//        navController = navController,
+//        diaryList = dummyDiaries,
+//        lazyListState = rememberLazyListState(),
+//        isExpanded = false,
+//        isSearchVisible = false,
+//        isCalendarVisible = false,
+//        isDetailModalVisible = false,
+//        searchResults = emptyList(),
+//        searchQuery = "",
+//        recentSearches = emptyList(),
+//        onQueryChange = {},
+//        onSearch = {},
+//        onSearchToggle = {},
+//        onCalendarToggle = {},
+//        onRecentSearchClick = {},
+//        onFabClick = {},
+//        onNavigateToFilteredDiaryScreen = { /* 선택된 날짜 처리 */ },
+//        onShowDetailModal = {},
+//        onDismissDetailModal = {},
+//        onDeleteDiary = {},
+//        allDiaryDates = emptyList()
+//    )
+//}
