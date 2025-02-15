@@ -188,10 +188,13 @@ fun AppNavHost(
                     if (isSearchVisible) isCalendarVisible = false
                 },
                 onCalendarToggle = {
-                    isCalendarVisible = !isCalendarVisible
-                    isExpanded = isCalendarVisible
-                    if (isCalendarVisible) {
+                    if (isCalendarVisible || isSearchVisible) {
+                        // ✅ 둘 중 하나라도 열려 있으면 모두 닫기
+                        isCalendarVisible = false
                         isSearchVisible = false
+                    } else {
+                        // ✅ 둘 다 닫혀 있으면 캘린더 열기
+                        isCalendarVisible = true
                     }
                 },
                 onRecentSearchClick = { query -> onSearch(query) },
@@ -236,10 +239,13 @@ fun AppNavHost(
                     if (isSearchVisible) isCalendarVisible = false
                 },
                 onCalendarToggle = {
-                    isCalendarVisible = !isCalendarVisible
-                    isExpanded = isCalendarVisible
-                    if (isCalendarVisible) {
+                    if (isCalendarVisible || isSearchVisible) {
+                        // ✅ 둘 중 하나라도 열려 있으면 모두 닫기
+                        isCalendarVisible = false
                         isSearchVisible = false
+                    } else {
+                        // ✅ 둘 다 닫혀 있으면 캘린더 열기
+                        isCalendarVisible = true
                     }
                 },
                 onRecentSearchClick = { query -> onSearch(query) },
