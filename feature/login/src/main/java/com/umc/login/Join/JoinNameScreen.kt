@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.umc.login.R
+import com.umc.login.component.NameInputTextField
 
 @Composable
 fun JoinNameScreen(navController: NavHostController, viewModel: JoinViewModel = viewModel()) {
@@ -123,46 +124,6 @@ fun JoinNameView(viewModel: JoinViewModel, onNext: () -> Unit) {
     }
 }
 
-@Composable
-fun NameInputTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    errorMessage: String?
-) {
-    TextField(
-        value = value,
-        onValueChange = { if (it.length <= 9) onValueChange(it) },
-        singleLine = true,
-        textStyle = LocalTextStyle.current.copy(
-            textAlign = TextAlign.Center,
-            fontSize = 14.sp,
-            color = if (errorMessage != null) colorResource(R.color.negativeRed) else Color.Black
-        ),
-        placeholder = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = placeholder,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = colorResource(R.color.gray_500)
-                )
-            }
-        },
-        keyboardOptions = KeyboardOptions.Default,
-        modifier = Modifier.width(310.dp).height(51.dp),
-        colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color.Transparent,
-            focusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = colorResource(R.color.gray_500),
-            unfocusedIndicatorColor = colorResource(R.color.gray_500),
-            cursorColor = if (errorMessage != null) colorResource(R.color.negativeRed) else Color.Black
-        )
-    )
-}
 
 @Preview(showBackground = true)
 @Composable

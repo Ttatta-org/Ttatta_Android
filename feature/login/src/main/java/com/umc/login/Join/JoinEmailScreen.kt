@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.umc.login.R
+import com.umc.login.component.EmailInputTextField
+
 @Composable
 fun JoinEmailScreen(navController: NavHostController,viewModel: JoinViewModel = viewModel()) {
     Column(modifier = Modifier.wrapContentSize()) {
@@ -131,51 +133,6 @@ fun JoinEmailView(viewModel: JoinViewModel, onNext: () -> Unit) {
 
 
 
-@Composable
-fun EmailInputTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    readOnly: Boolean = false,
-    onClick: (() -> Unit)? = null
-) {
-    TextField(
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = true,
-        readOnly = readOnly,
-        textStyle = LocalTextStyle.current.copy(
-            textAlign = TextAlign.Center,
-            fontSize = 14.sp,
-            fontWeight = FontWeight(600),
-            lineHeight = 20.sp,
-            color = colorResource(R.color.gray_500)
-        ),
-        placeholder = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = placeholder,
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight(600),
-                    color = colorResource(R.color.gray_500)
-                )
-            }
-        },
-        keyboardOptions = KeyboardOptions.Default,
-        modifier = Modifier.width(140.dp).height(51.dp).then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
-        colors = TextFieldDefaults.colors(
-            unfocusedContainerColor = Color.Transparent,
-            focusedContainerColor = Color.Transparent,
-            focusedIndicatorColor = colorResource(R.color.gray_500),
-            unfocusedIndicatorColor = colorResource(R.color.gray_500),
-            cursorColor = Color.Black
-        )
-    )
-}
 
 @Preview(showBackground = true)
 @Composable
