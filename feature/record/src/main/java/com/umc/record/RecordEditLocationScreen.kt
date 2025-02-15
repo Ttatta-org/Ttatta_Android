@@ -2,6 +2,7 @@ package com.umc.record
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,6 +21,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -61,7 +64,8 @@ data class SelectedPosition(
 @Composable
 fun RecordEditLocationScreen(
     mapView: @Composable () -> Unit,
-    onLocationButtonClicked: () -> Unit
+    onLocationButtonClicked: () -> Unit,
+    location: String
 ) {
     val context = LocalContext.current
 
@@ -70,19 +74,18 @@ fun RecordEditLocationScreen(
             context, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
     ) {
-        println("✅ Location permission granted! Rendering map...") // ✅ 지도 렌더링 여부 확인
-
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
             // 네이버 지도
+            Log.d("RecordEditLocationScreen", "🌍 mapView() 실행됨!") // ✅ 실행 로그 추가
             mapView()
 
             // 플로팅 버튼
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(end = 12.96.dp, bottom = 171.dp), // 바텀시트(150dp) + 21dp 만큼 띄우기
+                    .padding(end = 12.96.dp, bottom = 180.dp), // 바텀시트(150dp) + 21dp 만큼 띄우기
                 contentAlignment = Alignment.BottomEnd
             ) {
                 IconButton(
@@ -100,7 +103,7 @@ fun RecordEditLocationScreen(
             }
 
             // 바텀 시트
-            EditLocationBottomSheet(location = "고래와")
+            EditLocationBottomSheet(location = location)
 
             // Topbar를 Box의 상단에 배치 (최상단에 유지)
             Box(
@@ -146,7 +149,7 @@ fun Topbar() {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 32.dp, end = 22.dp, top = 12.dp, bottom = 12.dp)
+                .padding(start = 32.dp, end = 22.dp, top = 32.dp, bottom = 12.dp)
                 .zIndex(1f), // 이미지 위에 아이콘 배치
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -189,7 +192,7 @@ fun EditLocationBottomSheet(location: String) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .wrapContentHeight() // 컨텐츠 내용에 따라 높이 조정
                 .align(Alignment.BottomCenter) // 화면 하단 중앙에 고정
                 .background(
                     color = Color(0xFFFEF6F2), // 배경색
@@ -201,7 +204,8 @@ fun EditLocationBottomSheet(location: String) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
                 // 헤더 이미지
                 Image(
@@ -222,7 +226,9 @@ fun EditLocationBottomSheet(location: String) {
                 )
 
                 Button(
-                    onClick = { /* 버튼 클릭 로직 */ },
+                    onClick = {
+                        Log.d("RecordEditLocationScreen", "📍 Returning to RecordScreen")
+                    },
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFCAD98)),
                     modifier = Modifier
@@ -307,6 +313,7 @@ fun SearchField(
 fun PreviewRecordEditLocationScreen() {
     RecordEditLocationScreen(
         mapView = {},
-        onLocationButtonClicked = {}
+        onLocationButtonClicked = {},
+        location = "Cafe Porte"
     )
 }
