@@ -63,7 +63,7 @@ fun JoinScreen(navController: NavHostController, viewModel: JoinViewModel = view
 fun JoinNicknameView(viewModel: JoinViewModel, onNext: () -> Unit) {
     val nickNameState by viewModel.nickNameState.collectAsState()
     val isWarningVisible by viewModel.isWarningVisible.collectAsState()
-    val isButtonEnabled by viewModel.isButtonEnabled.collectAsState()
+    val isButtonEnabled by viewModel.isNicknameButtonEnabled.collectAsState()
     val nicknameError by viewModel.nicknameError.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
