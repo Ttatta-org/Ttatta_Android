@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,21 +39,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.umc.login.R
 
 @Composable
-fun JoinNameScreen(navController: NavHostController) {
+fun JoinNameScreen(navController: NavHostController, viewModel: JoinViewModel = viewModel()) {
     Column(modifier = Modifier.wrapContentSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-        JoinNameView(onNext = { navController.navigate("join_id") })
+        JoinNameView(viewModel = viewModel, onNext = { navController.navigate("join_id") })
     }
 }
 
 @Composable
-fun JoinNameView(onNext: () -> Unit) {
-    var nameState by remember { mutableStateOf("") }
-    var isWarningVisible by remember { mutableStateOf(false) }
-    val isButtonEnabled = nameState.isNotEmpty() && nameState.length <= 8
+fun JoinNameView(viewModel: JoinViewModel, onNext: () -> Unit) {
+    val nameState by viewModel.nameState.collectAsState()
+    val nameError by viewModel.nameError.collectAsState()
+    val isButtonEnabled by viewModel.isNameButtonEnabled.collectAsState()
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -70,25 +72,28 @@ fun JoinNameView(onNext: () -> Unit) {
 
         NameInputTextField(
             value = nameState,
-            onValueChange = {
-                if (it.length <= 9) {
-                    nameState = it
-                    isWarningVisible = (it.length == 9)
-                }
-            },
+            onValueChange = viewModel::onNameChange,
             placeholder = stringResource(R.string.join_name_comment),
-            isWarning = isWarningVisible
+            errorMessage = nameError
         )
 
         Spacer(modifier = Modifier.height(5.dp))
 
-        Text(
-            text = stringResource(R.string.join_name_small_comment),
-            color = if (isWarningVisible) colorResource(R.color.negativeRed) else colorResource(R.color.gray_400),
-            fontSize = 12.sp,
-            lineHeight = 20.sp,
-            fontWeight = FontWeight.Normal
-        )
+        if (nameError != null) {
+            Text(
+                text = nameError!!,
+                color = colorResource(R.color.negativeRed),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal
+            )
+        } else {
+            Text(
+                text = stringResource(R.string.join_name_small_comment),
+                color = colorResource(R.color.gray_400),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Normal
+            )
+        }
         Spacer(modifier = Modifier.height(101.dp))
 
         Button(
@@ -123,7 +128,7 @@ fun NameInputTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    isWarning: Boolean
+    errorMessage: String?
 ) {
     TextField(
         value = value,
@@ -132,7 +137,7 @@ fun NameInputTextField(
         textStyle = LocalTextStyle.current.copy(
             textAlign = TextAlign.Center,
             fontSize = 14.sp,
-            color = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
+            color = if (errorMessage != null) colorResource(R.color.negativeRed) else Color.Black
         ),
         placeholder = {
             Box(
@@ -154,7 +159,7 @@ fun NameInputTextField(
             focusedContainerColor = Color.Transparent,
             focusedIndicatorColor = colorResource(R.color.gray_500),
             unfocusedIndicatorColor = colorResource(R.color.gray_500),
-            cursorColor = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
+            cursorColor = if (errorMessage != null) colorResource(R.color.negativeRed) else Color.Black
         )
     )
 }

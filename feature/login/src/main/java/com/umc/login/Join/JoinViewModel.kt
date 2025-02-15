@@ -28,6 +28,12 @@ class JoinViewModel @Inject constructor(
     private val _passwordState = MutableStateFlow("")
     val passwordState: StateFlow<String> = _passwordState.asStateFlow()
 
+    private val _confirmPasswordState = MutableStateFlow("")
+    val confirmPasswordState: StateFlow<String> = _confirmPasswordState.asStateFlow()
+
+    private val _nameState = MutableStateFlow("")
+    val nameState: StateFlow<String> = _nameState.asStateFlow()
+
     private val _isWarningVisible = MutableStateFlow(false)
     val isWarningVisible: StateFlow<Boolean> = _isWarningVisible.asStateFlow()
 
@@ -37,11 +43,11 @@ class JoinViewModel @Inject constructor(
     private val _idError = MutableStateFlow<String?>(null)
     val idError: StateFlow<String?> = _idError.asStateFlow()
 
+    private val _nameError = MutableStateFlow<String?>(null)
+    val nameError: StateFlow<String?> = _nameError.asStateFlow()
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    private val _confirmPasswordState = MutableStateFlow("")
-    val confirmPasswordState: StateFlow<String> = _confirmPasswordState.asStateFlow()
 
     private val _isPasswordValid = MutableStateFlow(false)
     val isPasswordValid: StateFlow<Boolean> = _isPasswordValid.asStateFlow()
@@ -60,6 +66,10 @@ class JoinViewModel @Inject constructor(
     ) { id, error, loading ->
         id.isNotEmpty() && id.length <= 15 && error == null && !loading
     }.stateIn(viewModelScope, SharingStarted.Lazily, false)
+
+    val isNameButtonEnabled: StateFlow<Boolean> = _nameState
+        .map { it.isNotEmpty() && it.length <= 8 && _nameError.value == null }
+        .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     fun onNickNameChange(newNickName: String) {
         if (newNickName.length <= 9) {
@@ -86,6 +96,16 @@ class JoinViewModel @Inject constructor(
     fun onConfirmPasswordChange(newConfirmPassword: String) {
         _confirmPasswordState.value = newConfirmPassword
         _isPasswordMatched.value = (newConfirmPassword == _passwordState.value)
+    }
+
+    fun onNameChange(newName: String) {
+        // 허용하는 문자: 한글 완성형(가-힣) + 영문(a-z, A-Z)
+        val filteredName = newName.filter { it.isLetter() && (it in '가'..'힣' || it in 'a'..'z' || it in 'A'..'Z') }
+
+        if (filteredName.length <= 8) {
+            _nameState.value = filteredName
+            _nameError.value = if (newName != filteredName) "한글과 영문만 입력 가능합니다." else null
+        }
     }
 
     fun checkNicknameAvailability() {
