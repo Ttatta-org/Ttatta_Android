@@ -25,6 +25,13 @@ class UserRepositoryImpl @Inject constructor(
         return response.isAvailable != VerifyUsernameOverlapResultDTO.IsAvailable.AVAILABLE
     }
 
+    override suspend fun isNicknameAlreadyOccupied(nickname: String): Boolean {
+        // 🔹벡엔드에서 아직 구현되지 않았으므로, 로컬 리스트를 사용하여 임시 처리
+        val dummyNicknames = listOf("admin", "jaehoon2", "guest", "user123") // 로컬 임시 닉네임 데이터
+
+        return dummyNicknames.contains(nickname) // 🔹 닉네임이 이미 존재하면 true 반환
+    }
+
     override suspend fun login(id: String, password: String) {
         val body = SignInRequestDTO(
             username = id,
