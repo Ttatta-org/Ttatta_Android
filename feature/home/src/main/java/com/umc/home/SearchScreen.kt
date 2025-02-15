@@ -93,7 +93,7 @@ fun SearchScreen(
         )
     }
 
-    val lazyListState = rememberLazyListState()
+    //val lazyListState = rememberLazyListState()
 
     // 드래그 버튼의 상태 (ic_bottom_arrow 또는 ic_top_arrow)
     val dragIcon = when {

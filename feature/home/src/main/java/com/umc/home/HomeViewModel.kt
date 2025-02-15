@@ -52,7 +52,7 @@ class HomeViewModel @Inject constructor(
     private val _searchResultsState = MutableStateFlow<List<Diary>>(emptyList())
     val searchResultsState: StateFlow<List<Diary>> = _searchResultsState
 
-    // ✅ **최근 검색어 저장 (최대 5개)**
+    // ✅ **최근 검색어 저장 (최대 3개)**
     private val _recentSearchesState = MutableStateFlow<List<String>>(emptyList())
     val recentSearchesState: StateFlow<List<String>> = _recentSearchesState
 
@@ -126,14 +126,10 @@ class HomeViewModel @Inject constructor(
         if (isLoading) return
         isLoading = true
 
-        // ✅ 날짜가 변경되었거나 `reset = true`일 때 리스트 초기화
-        if (reset || isFiltered) {
+        if (reset) {
             currentPage = 0
-            _filteredDiaryListState.value = emptyList() // ✅ 특정 날짜의 기존 데이터 삭제
-        }
-        if (reset && !isFiltered) {
-            currentPage = 0 // ✅ 전체 다이어리 페이지 초기화
-            _diaryListState.value = emptyList() // ✅ 기존 전체 다이어리 삭제
+            if (isFiltered) _filteredDiaryListState.value = emptyList()
+            else _diaryListState.value = emptyList()
         }
 
         viewModelScope.launch {
@@ -142,12 +138,15 @@ class HomeViewModel @Inject constructor(
                 Log.d("HomeViewModel", "✅ 다이어리 데이터 로드 성공: ${newDiaries.size}개")
 
                 if (isFiltered) {
-                    // ✅ 특정 날짜 다이어리 리스트 업데이트 (기존 데이터를 삭제한 후 새로운 데이터 추가)
-                    Log.d("Pagination", "isFiltered가 true이긴함")
-                    //_filteredDiaryListState.value = newDiaries
-                    _filteredDiaryListState.value = (_filteredDiaryListState.value + newDiaries).distinctBy { it.id }
+                    if (reset) {
+                        // 새로운 날짜 선택 시 기존 데이터 삭제
+                        _filteredDiaryListState.value = newDiaries
+                    } else {
+                        // 무한스크롤 시 기존 데이터 유지하면서 추가
+                        _filteredDiaryListState.value = (_filteredDiaryListState.value + newDiaries).distinctBy { it.id }
+                    }
+
                     if (newDiaries.isNotEmpty()) currentPage++
-                    Log.d("Pagination", "증가했나...?${currentPage}")
                 } else {
                     // ✅ 전체 다이어리 리스트 업데이트
                     _diaryListState.value = (_diaryListState.value + newDiaries).distinctBy { it.id }
