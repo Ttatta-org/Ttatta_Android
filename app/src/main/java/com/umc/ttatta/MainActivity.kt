@@ -32,14 +32,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun ComponentActivity.setStatusBarTransparent() {
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        )
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-    }
-
     private fun enableDebugMode() {
         CoroutineScope(Dispatchers.IO).launch {
             if (!userRepository.isIdAlreadyOccupied(DebugConfig.ID)) {
@@ -60,4 +52,12 @@ class MainActivity : ComponentActivity() {
             viewModel.checkLogin()
         }
     }
+}
+
+private fun ComponentActivity.setStatusBarTransparent() {
+    window.setFlags(
+        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+    )
+    WindowCompat.setDecorFitsSystemWindows(window, false)
 }
