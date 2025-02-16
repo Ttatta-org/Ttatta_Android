@@ -85,7 +85,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 
-@RequiresApi(Build.VERSION_CODES.S)
+
 @Composable
 fun HomeScreen(
     // HomeApp에서 전달받은 데이터와 콜백들
@@ -180,12 +180,6 @@ fun HomeScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .graphicsLayer {
-                                alpha = 1f // ✅ 투명도 1f로 설정하여 블러 효과 극대화
-                                renderEffect = RenderEffect
-                                    .createBlurEffect(50f, 50f, Shader.TileMode.DECAL) // ✅ 블러 강도 50f로 증가
-                                    .asComposeRenderEffect() // ✅ 변환 필요
-                            }
                             .background(
                                 Brush.verticalGradient(
                                     colors = listOf(
@@ -193,13 +187,13 @@ fun HomeScreen(
                                         Color(0xFFFBDDC8).copy(alpha = 0.3f),
                                         Color(0xFFFBDDC8).copy(alpha = 0.5f),
                                         Color(0xFFFBDDC8).copy(alpha = 0.7f),
-                                        Color(0xFFFEDDC8).copy(alpha = 0.85f)  // 더 부드럽게 조정
+                                        Color(0xFFFEDDC8).copy(alpha = 0.85f)  // ✅ 부드러운 그라디언트 유지
                                     ),
                                     startY = 0f,
                                     endY = Float.POSITIVE_INFINITY
                                 )
                             )
-                            .blur(30.dp) // ✅ 블러 효과 적용)
+                            .blur(50.dp) // ✅ 블러 강도를 높여 기존과 비슷한 효과를 줌
                             .zIndex(1f)
                     )
                 }
