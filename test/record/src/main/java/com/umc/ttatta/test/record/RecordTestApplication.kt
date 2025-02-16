@@ -1,4 +1,4 @@
-package com.umc.record.test
+package com.umc.ttatta.test.record
 
 import android.app.Application
 import com.naver.maps.map.NaverMapSdk

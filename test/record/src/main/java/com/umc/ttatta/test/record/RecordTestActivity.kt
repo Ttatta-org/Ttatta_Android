@@ -1,4 +1,4 @@
-package com.umc.record.test
+package com.umc.ttatta.test.record
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -16,19 +16,31 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
+import com.umc.core.repository.UserRepository
+import com.umc.record.RecordApp
+import com.umc.record.RecordMode
 import com.umc.record.RecordViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import com.umc.record.RecordApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
 class RecordTestActivity : ComponentActivity() {
+    @Inject
+    lateinit var userRepository: UserRepository
+
     private val viewModel: RecordViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
+        // `intent`를 통해 모드 설정 (기본값은 GALLERY)
+        val mode = intent?.getSerializableExtra("RECORD_MODE") as? RecordMode ?: RecordMode.GALLARY
+
         setContent {
             Box(
                 modifier = Modifier
@@ -36,9 +48,19 @@ class RecordTestActivity : ComponentActivity() {
                     .windowInsetsPadding(WindowInsets(0))
                     .background(Color.White)
             ) {
-                RecordApp(viewModel, onNavigateToCategoryApp = { /* TODO: Add navigation logic */ })
+                RecordApp(
+                    viewModel = viewModel,
+                    mode = mode,  // 모드 전달
+                    onNavigateToCategoryApp = { /* TODO: Add navigation logic */ }
+                )
             }
         }
+
+        // ✅ 테스트 데이터 준비
+        prepareTest()
+
+        // ✅ 위치 권한 확인 및 요청
+        checkLocationPermission()
     }
 
     // 📌 위치 권한 요청 및 이동 처리 함수
@@ -47,7 +69,10 @@ class RecordTestActivity : ComponentActivity() {
             == PackageManager.PERMISSION_GRANTED
         ) {
             println("✅ Location permission granted!")
-            viewModel.moveMapToCurrentPosition()
+            viewModel.moveMapToCurrentPosition(
+                onSucceed = { /* TODO */ },
+                onFailed = { /* TODO */ },
+            )
         } else {
             println("🚨 Location permission NOT granted! Requesting permission...")
             requestLocationPermission.launch(Manifest.permission.ACCESS_FINE_LOCATION)
@@ -59,9 +84,38 @@ class RecordTestActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
                 println("✅ Location permission granted!")
-                viewModel.moveMapToCurrentPosition()
+                viewModel.moveMapToCurrentPosition(
+                    onSucceed = { /* TODO */ },
+                    onFailed = { /* TODO */ },
+                )
             } else {
                 println("🚨 Location permission denied!")
             }
         }
+
+    private fun prepareTest() {
+        CoroutineScope(Dispatchers.IO).launch {
+            if (!userRepository.isIdAlreadyOccupied(id = TestValues.ID)) {
+                userRepository.join(
+                    id = TestValues.ID,
+                    password = TestValues.PASSWORD,
+                    name = TestValues.NAME,
+                    nickname = TestValues.NICKNAME,
+                    email = TestValues.EMAIL
+                )
+
+                userRepository.login(
+                    id = TestValues.ID,
+                    password = TestValues.PASSWORD
+                )
+
+                userRepository.logout()
+            }
+
+            userRepository.login(
+                id = TestValues.ID,
+                password = TestValues.PASSWORD
+            )
+        }
+    }
 }

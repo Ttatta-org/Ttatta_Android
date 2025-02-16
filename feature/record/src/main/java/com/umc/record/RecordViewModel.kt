@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.umc.design.CategoryColor
+import com.umc.core.repository.UserRepository
 import com.umc.record.core.MapHandler
 import com.umc.record.core.MapMarker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,13 +22,30 @@ data class ClickedMarkerInfo(
 
 @HiltViewModel
 class RecordViewModel @Inject constructor(
-    private val mapHandler: MapHandler
+    private val mapHandler: MapHandler,
+    private val userRepository: UserRepository,
 ): ViewModel() {
 
     private val markers = mutableMapOf<Long, MutableList<MapMarker>>()
 
     private val clickedMarkerPositionState = mutableStateOf<Pair<Float, Float>?>(null)
     private val clickedMarkerInfoState = mutableStateOf<ClickedMarkerInfo?>(null)
+    private val userNameState = mutableStateOf("")
+
+    // 사용자 이름을 StateFlow로 변경하여 Compose에서 사용할 수 있도록 수정
+    private val _userName = MutableStateFlow("사용자")  // 기본값 설정
+    val userName: StateFlow<String> = _userName
+
+    fun loadUserName() {
+        viewModelScope.launch {
+            try {
+                _userName.value = userRepository.getUserInfo().name
+                Log.d("RecordViewModel", "✅ 사용자 이름 불러오기 성공: ${_userName.value}")
+            } catch (e: Exception) {
+                Log.e("RecordViewModel", "🚨 사용자 이름 불러오기 실패", e)
+            }
+        }
+    }
 
     // 카테고리 목록 (더미 데이터)
     private val _categories = MutableStateFlow(
@@ -60,22 +77,88 @@ class RecordViewModel @Inject constructor(
         _diaryText.value = newText
     }
 
-    // 지도
-    fun getMapView(): @Composable () -> Unit {
-        return {
-            println("🗺️ Rendering mapView...") // ✅ 지도 렌더링 확인 로그 추가
-            try {
-                val mapView = mapHandler.getMapView() // ✅ mapView 실행
-                println("✅ MapView retrieved successfully!")
-                mapView
-            } catch (e: Exception) {
-                Log.e("RecordViewModel", "🚨 Error rendering mapView: ${e.localizedMessage}") // ✅ 예외 발생 로그
+    private val _selectedImage = MutableStateFlow<String?>(null)  // ✅ 선택한 이미지 경로 저장
+    val selectedImage: StateFlow<String?> = _selectedImage
+
+    fun loadImage(mode: RecordMode) {
+        viewModelScope.launch {
+            _selectedImage.value = when (mode) {
+                RecordMode.CAMERA -> capturePhoto()  // ✅ 카메라 촬영 함수 호출
+                RecordMode.GALLARY -> pickImageFromGallery()  // ✅ 갤러리에서 선택 함수 호출
             }
         }
     }
 
-    fun moveMapToCurrentPosition() {
-        viewModelScope.launch { mapHandler.moveToCurrentPosition() }
+    // ✅ 카메라에서 사진 촬영 (예시)
+    private fun capturePhoto(): String? {
+        // 실제로는 Intent를 사용하여 사진을 찍고 저장해야 함.
+        return "file://path_to_camera_photo.jpg"
+    }
+
+    // ✅ 갤러리에서 사진 선택 (예시)
+    private fun pickImageFromGallery(): String? {
+        // 실제로는 Intent를 사용하여 사진을 가져와야 함.
+        return "file://path_to_gallery_photo.jpg"
+    }
+
+    fun initialize() {
+        viewModelScope.launch {
+
+            // 현재 위치로 맵 이동
+            launch {
+                moveMapToCurrentPosition(
+                    onSucceed = { /* TODO */ },
+                    onFailed = { /* TODO */ },
+                )
+            }
+            // 사용자 이름 로드
+            launch {
+                getUserNameFromServer(
+                    onSucceed = { /* TODO */ },
+                    onFailed = { /* TODO */ },
+                )
+            }
+        }
+    }
+
+    // 지도
+    @Composable
+    fun MapView(
+        isBlurApplied: Boolean,
+        isLocationMarkingEnabled: Boolean,
+    ) {
+        mapHandler.MapView(
+            isBlurApplied = false,
+            isLocationMarkingEnabled = isLocationMarkingEnabled
+        )
+    }
+
+    fun moveMapToCurrentPosition(
+        onSucceed: () -> Unit,
+        onFailed: (e: Exception) -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                mapHandler.moveToCurrentPosition()
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
+
+    private fun getUserNameFromServer(
+        onSucceed: () -> Unit,
+        onFailed: (e: Exception) -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                userNameState.value = userRepository.getUserInfo().name
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
     }
 
     private fun markMap(
@@ -84,13 +167,13 @@ class RecordViewModel @Inject constructor(
         diaryId: Long,
         clusterId: Long,
         categoryId: Long,
-        color: CategoryColor?,
+//        color: CategoryColor?,
     ) {
         val marker = MapMarker(
             latitude = latitude,
             longitude = longitude,
             zIndex = diaryId.toInt(),
-            color = color,
+//            color = color,
             onClicked = onClicked@{ x, y ->
                 clickedMarkerInfoState.value = ClickedMarkerInfo(
                     x = x,
