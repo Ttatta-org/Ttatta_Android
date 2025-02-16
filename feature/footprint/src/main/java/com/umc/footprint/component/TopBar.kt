@@ -87,12 +87,12 @@ fun TopBar(
         Image(
             painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(context)
-                    .data("android.resource://${context.packageName}/${R.raw.view_top_bar}")
+                    .data("android.resource://${context.packageName}/${R.raw.img_top_bar_footprint}")
                     .decoderFactory(SvgDecoder.Factory()).build(),
                 // 프리뷰를 위한 이미지
                 error = BitmapPainter(
                     image = BitmapFactory.decodeResource(
-                        context.resources, R.raw.view_top_bar_for_preview
+                        context.resources, R.raw.img_top_bar_footprint_for_preview
                     ).asImageBitmap(),
                 )
             ),
