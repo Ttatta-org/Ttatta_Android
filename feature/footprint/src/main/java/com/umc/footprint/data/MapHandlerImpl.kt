@@ -28,6 +28,7 @@ import com.naver.maps.map.LocationTrackingMode
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.clustering.Clusterer
+import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
 import com.umc.design.CategoryColor
 import com.umc.footprint.R
@@ -42,8 +43,11 @@ import com.umc.footprint.core.locatorWidth
 import com.umc.footprint.core.markerHeight
 import com.umc.footprint.core.markerWidth
 import com.umc.footprint.util.loadRawImageAsBitmap
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.math.roundToInt
 
@@ -105,8 +109,9 @@ class MapHandlerImpl @Inject constructor(
 
     private val mapView: MapView
     private val clusterManager: Clusterer<MarkerKey>
-    private val mapFlow = MutableStateFlow<NaverMap?>(null)
 
+    private val mapFlow = MutableStateFlow<NaverMap?>(null)
+    private val isNonClusteringZoomLevelReached = MutableStateFlow(false)
     private val markers = mutableMapOf<MapMarker, MarkerKey>()
     private var onPreviousMarkerDismissed: (() -> Unit)? = null
 
@@ -117,37 +122,22 @@ class MapHandlerImpl @Inject constructor(
     init {
         // 클러스터 매니저 설정
         clusterManager = Clusterer.Builder<MarkerKey>()
-            .screenDistance(clusteringDp.value.toDouble())
             .maxZoom(15)
+            .screenDistance(clusteringDp.value.toDouble())
             .clusterMarkerUpdater { info, marker ->
-                marker.apply {
-                    calculateClusteredMarkerSize(count = info.size).let { (clusterWidth, clusterHeight) ->
-                        width = clusterWidth
-                        height = clusterHeight
-                    }
-                    anchor = PointF(0.5f, 0.5f)
-                    icon = clusterImage
-                    setOnClickListener { true }
-                }
+                marker.toClusterMarker(clusterSize = info.size)
             }
             .leafMarkerUpdater { info, naverMarker ->
                 val key = info.key as MarkerKey
-                val mapMarker = key.mapMarker
 
-                naverMarker.apply {
-                    val density = context.resources.displayMetrics.density
-                    icon = markerImages[mapMarker.color] ?: defaultMarkerImage
-                    width = (markerWidth.value * density).roundToInt()
-                    height = (markerHeight.value * density).roundToInt()
-                    anchor = PointF(0.5f, 0.5f)
-                    zIndex = mapMarker.zIndex
-                    setOnClickListener {
-                        onPreviousMarkerDismissed?.invoke()
-                        map?.projection?.toScreenLocation(this.position)?.apply {
-                            onPreviousMarkerDismissed = mapMarker.onClicked?.invoke(x, y)
-                        }
-                        true
-                    }
+                if (isNonClusteringZoomLevelReached.value) {
+                    naverMarker.toFootMarker(
+                        color = key.mapMarker.color,
+                        zIndex = key.mapMarker.zIndex,
+                        onClicked = key.mapMarker.onClicked
+                    )
+                } else {
+                    naverMarker.toClusterMarker(clusterSize = 1)
                 }
 
                 key.naverMarker = naverMarker
@@ -168,6 +158,8 @@ class MapHandlerImpl @Inject constructor(
                     addOnCameraChangeListener { _, _ ->
                         onPreviousMarkerDismissed?.invoke()
                         onPreviousMarkerDismissed = null
+
+                        isNonClusteringZoomLevelReached.value = map.cameraPosition.zoom > 15
                     }
                     setOnMapClickListener { _, _ ->
                         onPreviousMarkerDismissed?.invoke()
@@ -211,6 +203,25 @@ class MapHandlerImpl @Inject constructor(
 
                 mapFlow.value = map
                 clusterManager.map = map
+            }
+        }
+        
+        // 최대 비클러스터링 확대 레벨 감지
+        CoroutineScope(Dispatchers.Main).launch {
+            isNonClusteringZoomLevelReached.collect { isReached ->
+                markers.values.toList().forEach { key ->
+                    key.naverMarker?.let {
+                        if (isReached) {
+                            it.toFootMarker(
+                                color = key.mapMarker.color,
+                                zIndex = key.mapMarker.zIndex,
+                                onClicked = key.mapMarker.onClicked
+                            )
+                        } else {
+                            it.toClusterMarker(clusterSize = 1)
+                        }
+                    }
+                }
             }
         }
     }
@@ -309,6 +320,37 @@ class MapHandlerImpl @Inject constructor(
             (it.value * density * (1.0 - 1.0 / (count + 1))).roundToInt()
         }.run {
             this.first() to this.last()
+        }
+    }
+
+    private fun Marker.toClusterMarker(clusterSize: Int) {
+        calculateClusteredMarkerSize(count = clusterSize).let { (clusterWidth, clusterHeight) ->
+            width = clusterWidth
+            height = clusterHeight
+        }
+        anchor = PointF(0.5f, 0.5f)
+        icon = clusterImage
+        setOnClickListener { true }
+    }
+
+    private fun Marker.toFootMarker(
+        color: CategoryColor?,
+        zIndex: Int,
+        onClicked: ((Float, Float) -> (() -> Unit)?)? = null
+    ) {
+        val density = context.resources.displayMetrics.density
+
+        anchor = PointF(0.5f, 0.5f)
+        icon = markerImages[color] ?: defaultMarkerImage
+        width = (markerWidth.value * density).roundToInt()
+        height = (markerHeight.value * density).roundToInt()
+        this.zIndex = zIndex
+        setOnClickListener {
+            onPreviousMarkerDismissed?.invoke()
+            map?.projection?.toScreenLocation(this.position)?.apply {
+                onPreviousMarkerDismissed = onClicked?.invoke(x, y)
+            }
+            true
         }
     }
 }
