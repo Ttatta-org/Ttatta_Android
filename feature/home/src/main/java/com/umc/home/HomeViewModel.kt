@@ -28,6 +28,22 @@ class HomeViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository
 ) : ViewModel() {
 
+    private var isFirstLoad = true  // ✅ 처음 로드 여부 확인
+
+    init {
+        if (isFirstLoad) {
+            loadDiaries(page = 0,isFiltered = false, date = null)
+            loadAllRecordedDates()
+            isFirstLoad = false  // ✅ 이후에는 다시 호출하지 않도록 설정
+        }
+    }
+
+    // 새로고침 필요할 때 호출하기
+    fun refreshDiaries() {
+        loadAllDiaries()
+        loadAllRecordedDates()
+    }
+
     // ✅ 전체 일기 목록을 저장하는 StateFlow 추가
     private val _fullDiaryListState = MutableStateFlow<List<Diary>>(emptyList())
     val fullDiaryListState: StateFlow<List<Diary>> = _fullDiaryListState

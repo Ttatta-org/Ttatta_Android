@@ -104,11 +104,11 @@ class TestActivity : ComponentActivity() {
 //                )
 
                 // ✅ ViewModel에서 데이터 로드
-                withContext(Dispatchers.Main) {
-                    viewModel.loadDiaries(page = 0,isFiltered = false, date = null)
-                    //viewModel.loadAllDiaries()
-                    viewModel.loadAllRecordedDates()
-                }
+//                withContext(Dispatchers.Main) {
+//                    viewModel.loadDiaries(page = 0,isFiltered = false, date = null)
+//                    //viewModel.loadAllDiaries()
+//                    viewModel.loadAllRecordedDates()
+//                }
             } catch (e: Exception) {
                 Log.e("TestActivity", "❌ prepareTest() 실패: ${e.message}")
             }

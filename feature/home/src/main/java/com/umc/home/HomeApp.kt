@@ -29,73 +29,13 @@ fun HomeApp(viewModel: HomeViewModel) {
 
     // ✅ 앱이 실행될 때 자동으로 전체 다이어리 로드
     LaunchedEffect(Unit) {
-        viewModel.loadAllDiaries()
+        viewModel.loadDiaries(page = 0,isFiltered = false, date = null)
+        //viewModel.loadAllDiaries()
+        viewModel.loadAllRecordedDates()
     }
 
     val navController = rememberNavController()
 
     AppNavHost(navController = navController, viewModel = viewModel)
 
-//    HomeScreen(
-//        // ViewModel의 데이터 전달
-//        navController = navController,
-//        diaryList = diaryList,               // List<Diary>
-//        searchResults = searchResults,       // List<Diary>
-//        searchQuery = searchQuery,     // String
-//        recentSearches = recentSearches,
-//
-//        // 로컬 UI 상태 전달
-//        isExpanded = isExpanded,
-//        isCalendarVisible = isCalendarVisible,
-//        isSearchVisible = isSearchVisible,
-//        isDetailModalVisible = isDetailModalVisible,
-//
-//        // ✅ 달력에서 모든 일기 날짜 유지
-//        allDiaryDates = allDiaryDates,
-//
-//        // 콜백들
-//        onQueryChange = { newQuery -> viewModel.updateSearchQuery(newQuery) },
-//        onSearch = onSearch,
-//        onSearchToggle = {
-//            isSearchVisible = !isSearchVisible
-//            if (isSearchVisible) isCalendarVisible = false
-//        },
-//        onCalendarToggle = {
-//            isCalendarVisible = !isCalendarVisible
-//            isExpanded = isCalendarVisible
-//            if (isCalendarVisible) {
-//                isSearchVisible = false
-//            }
-//        },
-//        onRecentSearchClick = { query -> viewModel.searchDiaries(query) },
-//        onFabClick = { /* FAB 클릭 이벤트 처리 */ },
-//        onNavigateToFilteredDiaryScreen = { selectedDate ->
-//            Log.d("HomeScreen", "🚀 3. FilteredDiaryScreen으로 이동: $selectedDate")
-//            // 🔥 애니메이션 없이 이동 (기존 기록 유지)
-//            navController.navigate("filtered/$selectedDate") {
-//                popUpTo(navController.graph.startDestinationId) { inclusive = false }
-//                launchSingleTop = true
-//                restoreState = true // ✅ 기존 상태 유지
-//            }
-//        },
-//        onShowDetailModal = { isDetailModalVisible = true },
-//        onDismissDetailModal = { isDetailModalVisible = false },
-//        onDeleteDiary = onDeleteDiary
-//    )
 }
-
-//class HomeApp : ComponentActivity() {
-//    private val homeViewModel: HomeViewModel by viewModels()
-//
-//    override fun onCreate(savedInstanceState: Bundle?) {
-//        super.onCreate(savedInstanceState)
-//        setContent {
-//            HomeScreen(
-//                viewModel = homeViewModel,
-//                onFabClick = { /* FAB 클릭 이벤트 */ },
-//                onNavigateToFilteredDiaryScreen = { selectedDate -> println("Navigating to $selectedDate") },
-//                onCalendarToggle = { /* 캘린더 열기/닫기 이벤트 */ }
-//            )
-//        }
-//    }
-//}
