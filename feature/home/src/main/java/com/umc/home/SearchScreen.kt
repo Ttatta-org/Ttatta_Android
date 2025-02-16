@@ -4,6 +4,7 @@ import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.os.Build
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -93,7 +94,11 @@ fun SearchScreen(
         )
     }
 
-    val lazyListState = rememberLazyListState()
+    BackHandler {
+        navController.popBackStack(route = "home", inclusive = false)
+    }
+
+    //val lazyListState = rememberLazyListState()
 
     // 드래그 버튼의 상태 (ic_bottom_arrow 또는 ic_top_arrow)
     val dragIcon = when {

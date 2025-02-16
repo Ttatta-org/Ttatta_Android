@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +46,7 @@ fun AppNavHost(
     var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
 
     val diaryList by viewModel.diaryListState.collectAsState()
+    val filteredDiaryList by viewModel.filteredDiaryListState.collectAsState()
     val searchResults by viewModel.searchResultsState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val recentSearches by viewModel.recentSearchesState.collectAsState()
@@ -121,26 +123,38 @@ fun AppNavHost(
     }
 
     val lazyListState = rememberLazyListState()
+    val layoutInfo by remember { derivedStateOf( { lazyListState.layoutInfo } ) }
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(lazyListState) {
+    // ✅ 필터링 여부를 저장하는 상태 변수
+    var isFiltered by remember { mutableStateOf(false) }
+    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+
+    LaunchedEffect(lazyListState, isSearchVisible) {
         snapshotFlow { lazyListState.layoutInfo }
             .collect { layoutInfo ->
                 val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
                 val totalItems = layoutInfo.totalItemsCount
 
-                if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 1) {
-                    when (navController.currentDestination?.route) {
+                if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 1) { // 마지막 아이템 감지
+                    val currentRoute = navController.currentDestination?.route
+                    Log.d("Pagination", "➡️ 현재 네비게이션 경로: $currentRoute")
+
+                    when (currentRoute) {
                         "home" -> {
-                            viewModel.loadNextPage()
+                            Log.d("Pagination", "♦️ 홈 무한스크롤 - viewModel.loadNextPage() 호출")
+                            viewModel.loadNextPage(isFiltered = false, selectedDate = null)
                         }
                         "search" -> {
-                            viewModel.searchDiaries(searchWord = searchQuery, reset = false) // ✅ ViewModel이 알아서 `searchPage++` 관리
+                            Log.d("Pagination", "♦️ 검색 결과 무한스크롤 - viewModel.searchDiaries() 호출")
+                            viewModel.searchDiaries(searchWord = searchQuery, reset = false)
                         }
                     }
                 }
             }
     }
+
+
 
 
 
@@ -174,10 +188,13 @@ fun AppNavHost(
                     if (isSearchVisible) isCalendarVisible = false
                 },
                 onCalendarToggle = {
-                    isCalendarVisible = !isCalendarVisible
-                    isExpanded = isCalendarVisible
-                    if (isCalendarVisible) {
+                    if (isCalendarVisible || isSearchVisible) {
+                        // ✅ 둘 중 하나라도 열려 있으면 모두 닫기
+                        isCalendarVisible = false
                         isSearchVisible = false
+                    } else {
+                        // ✅ 둘 다 닫혀 있으면 캘린더 열기
+                        isCalendarVisible = true
                     }
                 },
                 onRecentSearchClick = { query -> onSearch(query) },
@@ -222,10 +239,13 @@ fun AppNavHost(
                     if (isSearchVisible) isCalendarVisible = false
                 },
                 onCalendarToggle = {
-                    isCalendarVisible = !isCalendarVisible
-                    isExpanded = isCalendarVisible
-                    if (isCalendarVisible) {
+                    if (isCalendarVisible || isSearchVisible) {
+                        // ✅ 둘 중 하나라도 열려 있으면 모두 닫기
+                        isCalendarVisible = false
                         isSearchVisible = false
+                    } else {
+                        // ✅ 둘 다 닫혀 있으면 캘린더 열기
+                        isCalendarVisible = true
                     }
                 },
                 onRecentSearchClick = { query -> onSearch(query) },
