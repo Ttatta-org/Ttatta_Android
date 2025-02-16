@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.filter
 import java.io.File
 import java.time.LocalDate
 
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun AppNavHost(
     navController: NavHostController,
