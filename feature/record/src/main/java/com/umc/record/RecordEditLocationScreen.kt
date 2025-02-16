@@ -54,6 +54,7 @@ import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.MapView
 import com.umc.record.component.ShadowedIcon
+import com.umc.design.R as Res
 
 data class SelectedPosition(
     val x: Float,
@@ -65,6 +66,7 @@ data class SelectedPosition(
 fun RecordEditLocationScreen(
     mapView: @Composable () -> Unit,
     onLocationButtonClicked: () -> Unit,
+    onChangeLocationButtonClicked: (String) -> Unit,
     location: String
 ) {
     val context = LocalContext.current
@@ -85,7 +87,7 @@ fun RecordEditLocationScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(end = 12.96.dp, bottom = 180.dp), // 바텀시트(150dp) + 21dp 만큼 띄우기
+                    .padding(end = 12.96.dp, bottom = 185.dp), // 바텀시트(150dp) + 21dp 만큼 띄우기
                 contentAlignment = Alignment.BottomEnd
             ) {
                 IconButton(
@@ -103,7 +105,10 @@ fun RecordEditLocationScreen(
             }
 
             // 바텀 시트
-            EditLocationBottomSheet(location = location)
+            EditLocationBottomSheet(
+                location = location,
+                onConfirm = onChangeLocationButtonClicked
+            )
 
             // Topbar를 Box의 상단에 배치 (최상단에 유지)
             Box(
@@ -184,7 +189,10 @@ fun Topbar() {
 }
 
 @Composable
-fun EditLocationBottomSheet(location: String) {
+fun EditLocationBottomSheet(
+    location: String,
+    onConfirm: (String) -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxSize() // 전체 화면 크기 차지
@@ -209,7 +217,7 @@ fun EditLocationBottomSheet(location: String) {
             ) {
                 // 헤더 이미지
                 Image(
-                    painter = painterResource(id = com.umc.design.R.drawable.ic_header_deco), // 헤더 데코 이미지 리소스
+                    painter = painterResource(id = Res.drawable.ic_header_deco), // 헤더 데코 이미지 리소스
                     contentDescription = "Header Decoration",
                     modifier = Modifier
                         .size(width = 39.18.dp, height = 32.dp) // 이미지 크기 설정
@@ -227,7 +235,8 @@ fun EditLocationBottomSheet(location: String) {
 
                 Button(
                     onClick = {
-                        Log.d("RecordEditLocationScreen", "📍 Returning to RecordScreen")
+                        Log.d("RecordEditLocationScreen", "📍 Returning to RecordScreen with location: $location")
+                        onConfirm(location)  // 위치 정보 전달 후 이전 화면으로 이동
                     },
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFCAD98)),
@@ -314,6 +323,7 @@ fun PreviewRecordEditLocationScreen() {
     RecordEditLocationScreen(
         mapView = {},
         onLocationButtonClicked = {},
+        onChangeLocationButtonClicked = {},
         location = "Cafe Porte"
     )
 }
