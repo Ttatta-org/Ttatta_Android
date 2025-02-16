@@ -154,23 +154,41 @@ fun SearchScreen(
                             .zIndex(1f)
                     )
                 }
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0xFFFEF6F2))
-                        .padding(top = 50.dp)
-                ) {
-                    LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
-                        item { Spacer(modifier = Modifier.height(50.dp)) }
-                        items(searchResults) { diary ->
-                            DiaryCard(
-                                diary = diary,
-                                onDetailClick = {
-                                    selectedDiaryId = diary.id
-                                    onShowDetailModal()
-                                },
-                            )
+                if (searchResults.isNotEmpty()){
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFFEF6F2))
+                            .padding(top = 50.dp)
+                    ) {
+                        LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
+                            item { Spacer(modifier = Modifier.height(50.dp)) }
+                            items(searchResults) { diary ->
+                                DiaryCard(
+                                    diary = diary,
+                                    onDetailClick = {
+                                        selectedDiaryId = diary.id
+                                        onShowDetailModal()
+                                    },
+                                )
+                            }
                         }
+                    }
+                }
+                else {
+                    // ✅ 검색결과가 없을 경우 빈 화면 표시
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFFEF6F2)),
+                        contentAlignment = Alignment.Center // ✅ 이미지가 하단에 붙도록 정렬
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.no_search_results), // ✅ Drawable에 있는 이미지 사용
+                            contentDescription = "초대장 이미지",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        )
                     }
                 }
                 TopBarComponent(

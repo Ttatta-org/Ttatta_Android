@@ -227,7 +227,7 @@ fun HomeScreen(
                                 )
                             }
                         }
-                    } else if (!isExpanded && !isSearchVisible) {
+                    } else {
                         // ✅ 다이어리가 없을 경우 빈 화면 표시
                         Box(
                             modifier = Modifier
