@@ -6,9 +6,20 @@ import android.location.Location
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.naver.maps.geometry.LatLng
@@ -187,31 +198,82 @@ class MapHandlerImpl @Inject constructor(
                         private var locationChangeListener: (Location) -> Unit = {}
 
                         override fun activate(listener: LocationSource.OnLocationChangedListener) {
-                            locationChangeListener = { listener.onLocationChanged(it) }
-                            locationHandler.addLocationChangeListener(locationChangeListener)
+                            try {
+                                { location: Location ->
+                                    listener.onLocationChanged(location)
+                                }.let { lambda ->
+                                    locationHandler.addLocationChangeListener(lambda)
+                                    locationChangeListener = lambda
+                                }
+                            } catch (e: Exception) { /* TODO */ }
                         }
 
                         override fun deactivate() {
-                            locationHandler.removeLocationChangeListener(locationChangeListener)
+                            try {
+                                locationHandler.removeLocationChangeListener(locationChangeListener)
+                            } catch (e: Exception) { /* TODO */ }
                         }
                     }
-                    locationTrackingMode = LocationTrackingMode.NoFollow
                 }
 
                 mapFlow.value = map
                 clusterManager.map = map
             }
-
-            onCreate(Bundle())
         }
     }
 
-    override fun getMapView(): @Composable () -> Unit {
-        return {
+//    override fun getMapView(): @Composable () -> Unit {
+//        return {
+//            AndroidView(
+//                factory = { mapView },
+//                modifier = Modifier.fillMaxSize()
+//            )
+//        }
+//    }
+    @Composable
+    override fun MapView(
+        isBlurApplied: Boolean,
+        isLocationMarkingEnabled: Boolean,
+    ) {
+        var capturedMap by remember { mutableStateOf<ImageBitmap?>(null) }
+
+        LaunchedEffect(key1 = isBlurApplied) {
+            if (isBlurApplied) {
+                getMap().takeSnapshot { capturedMap = it.asImageBitmap() }
+            } else {
+                capturedMap = null
+            }
+        }
+
+        LaunchedEffect(key1 = isLocationMarkingEnabled) {
+            if (isLocationMarkingEnabled) {
+                getMap().locationTrackingMode = LocationTrackingMode.Follow
+            } else {
+                getMap().locationTrackingMode = LocationTrackingMode.None
+            }
+        }
+
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
             AndroidView(
-                factory = { mapView },
-                modifier = Modifier.fillMaxSize()
+                factory = {
+                    mapView.apply {
+                        parent?.let { (it as ViewGroup).removeView(mapView) }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .alpha(if (capturedMap != null) 0f else 1f)
             )
+            capturedMap?.let { bitmap ->
+                Image(
+                    bitmap = bitmap,
+                    contentScale = ContentScale.Fit,
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize()
+                )
+            }
         }
     }
 
