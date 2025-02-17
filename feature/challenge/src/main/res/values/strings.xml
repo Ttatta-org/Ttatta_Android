@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="speech_bubble_content_no_challenge">오늘 하루 할 일을 만들어 보세요!</string>
+    <string name="speech_bubble_content_has_challenge_1">챌린지를 수행하면</string>
+    <string name="speech_bubble_content_has_challenge_2">50포인트를 얻을 수 있어요!!</string>
+    <string name="new_challenge">새 챌린지 생성하기</string>
+</resources>
