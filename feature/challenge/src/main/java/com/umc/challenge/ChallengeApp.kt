@@ -9,8 +9,6 @@ fun ChallengeApp(
 ) {
     ChallengeScreen(
         topBarProp = previewChallengeScreenTopBarProp,
-        challengeItemPropList = previewChallengeItemPropList,
-        accessorySet = previewAccessorySet,
-        onNewChallengeButtonClicked = {}
+        view = {}
     )
 }
