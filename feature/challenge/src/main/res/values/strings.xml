@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="speech_bubble_content_no_challenge">오늘 하루 할 일을 만들어 보세요!</string>
+    <string name="speech_bubble_content_has_challenge">챌린지를 수행하면 50포인트를 얻을 수 있어요!!</string>
+    <string name="new_challenge">새 챌린지 생성하기</string>
+    <string name="days_ago">일 전</string>
+    <string name="ttotto_card_content">우리 함께 새 챌린지를 생성해봐요!</string>
+    <string name="create">생성하기</string>
+    <string name="title">제목</string>
+    <string name="description">상세 설명</string>
+    <string name="title_field_placeholder">챌린지 제목을 입력해주세요</string>
+    <string name="description_field_placeholder">챌린지 내용을 입력해주세요</string>
+    <string name="challenge_completion_dialog_content_1">기록하기를 통해 챌린지를 완료할 수 있어요</string>
+    <string name="challenge_completion_dialog_content_2">기록하러 가볼까요?</string>
+    <string name="record">기록하기</string>
+    <string name="point_unit">P</string>
+    <string name="purchase_dialog_content">구매하시겠어요?</string>
+    <string name="purchase">구매하기</string>
+    <string name="equipped">착용중</string>
+    <string name="disrobe_item">아이템 착용을 해제할까요?</string>
+    <string name="equip_item">아이템을 착용할까요?</string>
+    <string name="back">뒤로가기</string>
+    <string name="equip">착용하기</string>
+    <string name="disrobe">해제하기</string>
+</resources>
