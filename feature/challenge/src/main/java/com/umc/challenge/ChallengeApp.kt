@@ -46,10 +46,12 @@ data class ClickedOwnedItemInfo(
 @Composable
 fun ChallengeApp(
     viewModel: ChallengeViewModel,
+    showPointGrantedPopup: Boolean,
     onNavigationBarVisibilityChanged: (Boolean) -> Unit,
-    onChallengeCompletionRequired: (id: Long, onSucceed: () -> Unit) -> Unit,
+    onChallengeCompletionRequired: (id: Long) -> Unit,
 ) {
     val navController = rememberNavController()
+    var showPointGrantedCardDialog by remember { mutableStateOf(showPointGrantedPopup) }
 
     LaunchedEffect(key1 = Unit) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -65,7 +67,6 @@ fun ChallengeApp(
         startDestination = "challenge"
     ) {
         composable("challenge") {
-            var showPointGrantedCardDialog by remember { mutableStateOf(false) }
             var clickedUncompletedChallengeInfo by remember { mutableStateOf<ClickedUncompletedChallengeInfo?>(null) }
 
             ChallengeScreen(
@@ -78,10 +79,7 @@ fun ChallengeApp(
                     ChallengeCompletionDialogProp(
                         onDismissed = { clickedUncompletedChallengeInfo = null },
                         onConfirmed = {
-                            onChallengeCompletionRequired(it.id) {
-                                showPointGrantedCardDialog = true
-                                viewModel.initialize()
-                            }
+                            onChallengeCompletionRequired(it.id)
                             clickedUncompletedChallengeInfo = null
                         }
                     )
