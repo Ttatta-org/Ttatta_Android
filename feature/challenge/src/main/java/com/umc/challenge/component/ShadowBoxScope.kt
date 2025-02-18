@@ -1,4 +1,4 @@
-package com.umc.challenge
+package com.umc.challenge.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
