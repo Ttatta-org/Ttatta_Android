@@ -1,12 +1,7 @@
 package com.umc.record
 
-import android.Manifest
-import android.app.Activity
-import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,9 +11,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale
-import androidx.core.net.toFile
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -33,8 +25,6 @@ import com.umc.record.util.createImageUri
 import com.umc.record.util.getImageMetadata
 import com.umc.record.util.uriToFile
 import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
 import java.time.LocalDateTime
 
 enum class RecordMode {
@@ -82,6 +72,7 @@ fun RecordApp(
         val metaData = remember { getImageMetadata(img) }
         val bitmap = remember { BitmapFactory.decodeStream(img.inputStream()).asImageBitmap() }
 
+        var diaryContent by remember { mutableStateOf("") }
         var date by remember { mutableStateOf(metaData.date ?: LocalDateTime.now()) }
         var coordinates by remember {
             mutableStateOf(
@@ -90,6 +81,7 @@ fun RecordApp(
             )
         }
         var locationName by remember { mutableStateOf("") }
+        var showCategoryDropdown by remember { mutableStateOf(false) }
         var selectedCategory by remember { mutableStateOf(viewModel.categoryInfos.find { it.name == "일상" }!!) }
 
         NavHost(
@@ -97,9 +89,6 @@ fun RecordApp(
             startDestination = "onboarding"
         ) {
             composable("onboarding") {
-                var diaryContent by remember { mutableStateOf("") }
-                var showCategoryDropdown by remember { mutableStateOf(false) }
-
                 RecordScreen(
                     image = bitmap,
                     date = date,
