@@ -1,6 +1,19 @@
 # 따따 Android
 따따 프로젝트의 안드로이드 리포지토리입니다.
 
+<br/>
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/30516a62-fb96-495a-b12c-116fd43614c1" width="950" height="600">
+</p>
+<br/>
+
+**📌 진행 사항 확인**
+
+- **Notion**에서 자세한 진행사항 보러가기 -> 
+  [![Notion](https://img.shields.io/badge/Notion-000000?style=flat-square&logo=notion&logoColor=white)](https://joyous-thyme-83d.notion.site/FE-16ac3dabe6628093affbed63f2212b65)
+<br>
+
 # Tech Stack
 
 다음은 프로젝트의 구현을 위해 사용하는 기술 스택을 정리한 표입니다.
