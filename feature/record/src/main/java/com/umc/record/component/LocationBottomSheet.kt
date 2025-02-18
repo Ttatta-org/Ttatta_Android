@@ -1,0 +1,137 @@
+package com.umc.record.component
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.umc.record.R
+import com.umc.record.util.hasFinalConsonant
+import com.umc.design.R as Res
+
+data class LocationBottomSheetProp(
+    val location: String,
+    val onConfirm: () -> Unit
+)
+
+private val bottomSheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+
+@Composable
+fun LocationBottomSheet(
+    prop: LocationBottomSheetProp?
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 16.dp,
+                shape = bottomSheetShape
+            )
+            .background(
+                color = Color(0xFFFEF6F2), // 배경색
+                shape = bottomSheetShape
+            )
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+                )
+        ) {
+            // 헤더 이미지
+            Box(
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = Res.drawable.ic_header_deco), // 헤더 데코 이미지 리소스
+                    contentDescription = null, modifier = Modifier.size(32.dp) // 이미지 크기 설정
+                )
+            }
+            // 안내 텍스트
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.height(64.dp)
+            ) {
+                if (prop != null) Text(
+                    text = "\'${prop.location}\'"
+                            + (if (prop.location.hasFinalConsonant()) "으로 " else "로 ")
+                            + stringResource(id = R.string.modify_location),
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        color = Color(0xFFFF9681),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        lineBreak = LineBreak.Heading,
+                    ),
+                    modifier = Modifier.padding(horizontal = 32.dp)
+                )
+            }
+            // 버튼
+            ElevatedButton(
+                onClick = prop?.onConfirm ?: {},
+                enabled = prop != null,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFCAD98),
+                    contentColor = Color.White
+                ),
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .padding(vertical = 8.dp)
+                    .shadow(
+                        elevation = 6.dp,
+                        shape = RoundedCornerShape(28.dp),
+                        spotColor = Color(0xDE806E38),
+                        ambientColor = Color(0xDE806E38),
+                        clip = true
+                    ),
+            ) {
+                Text(
+                    text = stringResource(id = R.string.set),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+    }
+}
+
+val previewLocationBottomSheetProp = LocationBottomSheetProp(
+    location = "서울특별시 강남구 역삼동",
+    onConfirm = {}
+)
+
+@Preview
+@Composable
+fun PreviewEditLocationBottomSheet() {
+    LocationBottomSheet(
+        prop = previewLocationBottomSheetProp
+    )
+}
