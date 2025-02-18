@@ -96,7 +96,7 @@ fun NavigationBar(
         ) {
             Box(
                 modifier = Modifier
-                    .background(color = Color.Grey300)
+                    .background(color = Color.Grey200)
                     .width(16.dp)
                     .height(1.dp)
             )
@@ -155,7 +155,7 @@ fun NavigationBar(
                 } else {
                     Box(
                         modifier = Modifier
-                            .background(color = Color.Grey300)
+                            .background(color = Color.Grey200)
                             .width(centerButtonSize.width)
                             .height(1.dp)
                     )
@@ -163,7 +163,7 @@ fun NavigationBar(
             }
             Box(
                 modifier = Modifier
-                    .background(color = Color.Grey300)
+                    .background(color = Color.Grey200)
                     .width(16.dp)
                     .height(1.dp)
             )

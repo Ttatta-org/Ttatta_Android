@@ -1,5 +1,6 @@
 package com.umc.ttatta
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -164,9 +165,8 @@ fun MainScreen(
                                 recordOptionPickerHeight = it.size.height
                             }
                     ) {
-                        RecordOptionPicker(
-                            prop = prop.recordOptionPickerProp
-                        )
+                        RecordOptionPicker(prop = prop.recordOptionPickerProp)
+                        BackHandler { prop.onDismissed() }
                     }
                 }
             }

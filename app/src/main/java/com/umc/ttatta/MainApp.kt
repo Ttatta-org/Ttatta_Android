@@ -5,7 +5,13 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -23,7 +29,10 @@ import com.umc.category.CategoryApp
 import com.umc.challenge.ChallengeApp
 import com.umc.footprint.FootprintApp
 import com.umc.home.HomeApp
+import com.umc.login.LoginApp
 import com.umc.mypage.MyPageApp
+import com.umc.record.RecordApp
+import com.umc.record.RecordMode
 import com.umc.ttatta.component.NavigationItem
 import com.umc.ttatta.component.RecordOptionPickerProp
 
@@ -33,7 +42,7 @@ fun MainApp(
 ) {
     val navigator = rememberNavController()
 
-    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+    val isLoggedIn by viewModel.isLoggedInState.collectAsState()
     var currentNavigationItem by remember { mutableStateOf<NavigationItem?>(null) }
     var showNavBar by remember { mutableStateOf(false) }
     var isCenterButtonActivated by remember { mutableStateOf(false) }
@@ -58,11 +67,13 @@ fun MainApp(
             onNavigate = {
                 navigator.navigate(
                     route = when (it) {
-                        NavigationItem.DIARY -> NavigationRoute.Home
-                        NavigationItem.FOOTPRINT -> NavigationRoute.Footprint
-                        NavigationItem.CHALLENGE -> NavigationRoute.Challenge
-                        NavigationItem.MY_PAGE -> NavigationRoute.MyPage
-                    }.route
+                        NavigationItem.DIARY -> NavigationRoute.Home.route
+                        NavigationItem.FOOTPRINT -> NavigationRoute.Footprint.route
+                        NavigationItem.CHALLENGE -> NavigationRoute.Challenge.getRoute(
+                            option = ChallengeRouteOption(showPointGranted = false)
+                        )
+                        NavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
+                    }
                 ) {
                     popUpTo(id = navigator.graph.startDestinationId) { inclusive = false }
                 }
@@ -70,11 +81,14 @@ fun MainApp(
             onCenterButtonClicked = { isCenterButtonActivated = true }
         ) else null,
         centerButtonProp = if (isCenterButtonActivated) {
-            val routeToRecordApp = { mode: String ->
+            val routeToRecordApp = { mode: RecordMode ->
                 isCenterButtonActivated = false
                 navigator.navigate(
                     route = NavigationRoute.Record.getRoute(
-                        option = RecordRouteOption(entryMode = mode)
+                        option = RecordRouteOption(
+                            entryMode = mode,
+                            challengeId = null,
+                        )
                     )
                 )
             }
@@ -82,8 +96,8 @@ fun MainApp(
             CenterButtonProp(
                 recordOptionPickerProp = RecordOptionPickerProp(
                     userName = viewModel.userName,
-                    onCameraOptionClicked = { routeToRecordApp("camera") },
-                    onGalleryOptionClicked = { routeToRecordApp("gallery") }
+                    onCameraOptionClicked = { routeToRecordApp(RecordMode.CAMERA) },
+                    onGalleryOptionClicked = { routeToRecordApp(RecordMode.GALLERY) }
                 ),
                 onDismissed = { isCenterButtonActivated = false }
             )
@@ -110,9 +124,11 @@ fun MainApp(
                 setNavGraph {
                     LaunchedEffect(Unit) { showNavBar = false }
 
-                    // LoginApp(
-                    //     viewModel = hiltViewModel()
-                    // )
+                    LoginApp(
+                        loginviewModel = hiltViewModel(),
+                        joinviewModel = hiltViewModel(),
+                        onNavigatingToHome = { viewModel.checkLogin() }
+                    )
                 }
             }
 
@@ -121,9 +137,16 @@ fun MainApp(
                     LaunchedEffect(Unit) { showNavBar = true }
                     FinishHandler()
 
-                    HomeApp(
-                        viewModel = hiltViewModel(),
-                    )
+                    Column {
+                        Spacer(
+                            modifier = Modifier.height(
+                                WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
+                            )
+                        )
+                        HomeApp(
+                            viewModel = hiltViewModel(),
+                        )
+                    }
                 }
             }
 
@@ -147,12 +170,26 @@ fun MainApp(
             }
 
             with(NavigationRoute.Challenge) {
-                setNavGraph {
+                setNavGraph { backStackEntry ->
+                    val option = getOption(backStackEntry.arguments!!) as ChallengeRouteOption
+
                     LaunchedEffect(Unit) { showNavBar = true }
                     FinishHandler()
 
                     ChallengeApp(
-                        viewModel = hiltViewModel()
+                        viewModel = hiltViewModel(),
+                        showPointGrantedPopup = option.showPointGranted,
+                        onNavigationBarVisibilityChanged = { showNavBar = it },
+                        onChallengeCompletionRequired = { challengeId ->
+                            navigator.navigate(
+                                route = NavigationRoute.Record.getRoute(
+                                    option = RecordRouteOption(
+                                        entryMode = RecordMode.CAMERA,
+                                        challengeId = challengeId
+                                    )
+                                )
+                            )
+                        },
                     )
                 }
             }
@@ -162,9 +199,16 @@ fun MainApp(
                     LaunchedEffect(Unit) { showNavBar = true }
                     FinishHandler()
 
-                    MyPageApp(
-                        viewModel = hiltViewModel()
-                    )
+                    Column {
+                        Spacer(
+                            modifier = Modifier.height(
+                                WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
+                            )
+                        )
+                        MyPageApp(
+                            viewModel = hiltViewModel(),
+                        )
+                    }
                 }
             }
 
@@ -184,9 +228,35 @@ fun MainApp(
                     LaunchedEffect(Unit) { showNavBar = false }
                     val option = getOption(backStackEntry.arguments!!) as RecordRouteOption
 
-                    // RecordApp(
-                    //     viewModel = hiltViewModel()
-                    // )
+                    RecordApp(
+                        viewModel = hiltViewModel(),
+                        mode = option.entryMode,
+                        onBack = { navigator.popBackStack() },
+                        onNavigateToCategoryApp = {
+                            navigator.navigate(
+                                route = NavigationRoute.Category.getRoute(
+                                    option = CategoryRouteOption(showTopBar = false)
+                                )
+                            )
+                        },
+                        onDone = {
+                            if (option.challengeId != null) viewModel.makeChallengeComplete(
+                                challengeId = option.challengeId,
+                                onSucceed = {
+                                    navigator.navigate(
+                                        route = NavigationRoute.Challenge.getRoute(
+                                            option = ChallengeRouteOption(showPointGranted = true)
+                                        )
+                                    ) {
+                                        popUpTo(route = NavigationRoute.Challenge.route) {
+                                            inclusive = true
+                                        }
+                                    }
+                                },
+                                onFailed = { /* TODO */ },
+                            )
+                        },
+                    )
                 }
             }
         }
