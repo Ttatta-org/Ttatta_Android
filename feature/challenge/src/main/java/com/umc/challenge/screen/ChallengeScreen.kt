@@ -1,4 +1,4 @@
-package com.umc.challenge
+package com.umc.challenge.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -18,10 +18,15 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.umc.challenge.component.ChallengeCompletionDialog
+import com.umc.challenge.component.ChallengeCompletionDialogProp
 import com.umc.challenge.component.ChallengeTopBar
 import com.umc.challenge.component.ChallengeTopBarProp
+import com.umc.challenge.component.PointGrantedCardDialog
+import com.umc.challenge.component.PointGrantedCardDialogProp
 import com.umc.challenge.component.previewChallengeTopBarProp
 import com.umc.challenge.view.ChallengeOnboardingView
+import com.umc.challenge.view.ChallengeState
 import com.umc.challenge.view.NewChallengeView
 import com.umc.challenge.view.previewChallengeOnboardingViewProp
 import com.umc.challenge.view.previewNewChallengeViewProp
@@ -36,6 +41,8 @@ data class ChallengeScreenTopBarProp(
 @Composable
 fun ChallengeScreen(
     topBarProp: ChallengeScreenTopBarProp,
+    challengeCompletionDialogProp: ChallengeCompletionDialogProp?,
+    pointGrantedCardDialogProp: PointGrantedCardDialogProp?,
     view: @Composable () -> Unit,
 ) {
     var topBarHeight by remember { mutableStateOf(0.dp) }
@@ -60,6 +67,9 @@ fun ChallengeScreen(
             )
         )
     }
+
+    challengeCompletionDialogProp?.let { ChallengeCompletionDialog(prop = it) }
+    pointGrantedCardDialogProp?.let { PointGrantedCardDialog(prop = it) }
 }
 
 val previewChallengeScreenTopBarProp = ChallengeScreenTopBarProp(
@@ -68,14 +78,19 @@ val previewChallengeScreenTopBarProp = ChallengeScreenTopBarProp(
     onMyItemsIconClicked = previewChallengeTopBarProp.onMyItemsIconClicked
 )
 
-
 @Preview(showBackground = true)
 @Composable
 fun PreviewChallengeScreen() {
     val navigator = rememberNavController()
+    var showChallengeCompletionDialog by remember { mutableStateOf(false) }
 
     ChallengeScreen(
         topBarProp = previewChallengeScreenTopBarProp,
+        challengeCompletionDialogProp = if (showChallengeCompletionDialog) ChallengeCompletionDialogProp(
+            onDismissed = { showChallengeCompletionDialog = false },
+            onConfirmed = { showChallengeCompletionDialog = false },
+        ) else null,
+        pointGrantedCardDialogProp = null,
     ) {
         NavHost(
             navController = navigator,
@@ -83,15 +98,24 @@ fun PreviewChallengeScreen() {
         ) {
             composable("onboarding") {
                 ChallengeOnboardingView(
-                    prop = previewChallengeOnboardingViewProp.copy(
-                        onNewChallengeButtonClicked = { navigator.navigate("new_challenge") }
-                    )
+                    prop = previewChallengeOnboardingViewProp.let {
+                        it.copy(
+                            onNewChallengeButtonClicked = { navigator.navigate("new_challenge") },
+                            challengeItemPropList = it.challengeItemPropList.map { prop ->
+                                if (prop.state == ChallengeState.IN_PROGRESS) {
+                                    prop.copy(onClicked = { showChallengeCompletionDialog = true })
+                                } else prop
+                            }
+                        )
+                    }
                 )
             }
 
             composable("new_challenge") {
                 NewChallengeView(
-                    prop = previewNewChallengeViewProp
+                    prop = previewNewChallengeViewProp.copy(
+                        onCreateButtonClicked = { navigator.navigate("onboarding") }
+                    )
                 )
             }
         }

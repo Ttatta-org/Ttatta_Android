@@ -1,6 +1,7 @@
 package com.umc.challenge.component
 
 import android.graphics.BitmapFactory
+import androidx.annotation.DrawableRes
 import androidx.annotation.RawRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,15 +35,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.svg.SvgDecoder
 import com.umc.challenge.R
 import com.umc.design.Primary200
 import com.umc.design.Secondary300
+
+data class TitledTopBarProp(
+    val mode: TitledTopBarMode,
+    val onHeightChanged: (Dp) -> Unit
+)
 
 private const val topBarResourceWidthRatio = 390f
 private const val topBarResourceCroppedHeightRatio = 87f
@@ -51,25 +57,25 @@ enum class TitledTopBarMode(
     val backgroundColor: Color,
     @RawRes val backgroundImage: Int,
     @RawRes val backgroundPreviewImage: Int,
-    val title: String,
+    @DrawableRes val title: Int,
 ) {
     SHOP(
         backgroundColor = Color.Primary200,
         backgroundImage = R.raw.img_top_bar_shop,
         backgroundPreviewImage = R.raw.img_top_bar_shop_for_preview,
-        title = "SHOP"
+        title = R.drawable.text_shop
     ),
     MY_ITEM(
         backgroundColor = Color.Secondary300,
         backgroundImage = R.raw.img_top_bar_my_item,
         backgroundPreviewImage = R.raw.img_top_bar_my_item_for_preview,
-        title = "MY ITEM"
+        title = R.drawable.text_my_item
     )
 }
 
 @Composable
 fun TitledTopBar(
-    mode: TitledTopBarMode
+    prop: TitledTopBarProp
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -84,7 +90,8 @@ fun TitledTopBar(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(color = mode.backgroundColor)
+                .background(color = prop.mode.backgroundColor)
+                .onGloballyPositioned { with(density) { prop.onHeightChanged(it.size.height.toDp()) } }
         ) {
             Spacer(modifier = Modifier.height(statusBarHeight))
             Box(
@@ -105,22 +112,21 @@ fun TitledTopBar(
                         modifier = Modifier.size(32.dp)
                     )
                 }
-                Text(
-                    text = mode.title,
-                    color = Color.White,
-                    fontSize = with(density) { 16.dp.toSp() }
+                Image(
+                    painter = painterResource(id = prop.mode.title),
+                    contentDescription = null,
                 )
             }
         }
         Image(
             painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(context)
-                    .data("android.resource://${context.packageName}/${mode.backgroundImage}")
+                    .data("android.resource://${context.packageName}/${prop.mode.backgroundImage}")
                     .decoderFactory(SvgDecoder.Factory()).build(),
                 // 프리뷰를 위한 이미지
                 error = BitmapPainter(
                     image = BitmapFactory.decodeResource(
-                        context.resources, mode.backgroundPreviewImage
+                        context.resources, prop.mode.backgroundPreviewImage
                     ).asImageBitmap(),
                 )
             ),
@@ -145,11 +151,21 @@ fun TitledTopBar(
 @Preview
 @Composable
 fun PreviewShopTitledTopBar() {
-    TitledTopBar(mode = TitledTopBarMode.SHOP)
+    TitledTopBar(
+        prop = TitledTopBarProp(
+            mode = TitledTopBarMode.SHOP,
+            onHeightChanged = {}
+        )
+    )
 }
 
 @Preview
 @Composable
 fun PreviewMyItemTitledTopBar() {
-    TitledTopBar(mode = TitledTopBarMode.MY_ITEM)
+    TitledTopBar(
+        prop = TitledTopBarProp(
+            mode = TitledTopBarMode.MY_ITEM,
+            onHeightChanged = {}
+        )
+    )
 }

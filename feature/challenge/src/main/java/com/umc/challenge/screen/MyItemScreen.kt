@@ -1,0 +1,394 @@
+package com.umc.challenge.screen
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.umc.challenge.R
+import com.umc.challenge.component.PointChip
+import com.umc.challenge.component.PointChipTheme
+import com.umc.challenge.component.TitledTopBar
+import com.umc.challenge.component.TitledTopBarMode
+import com.umc.challenge.component.TitledTopBarProp
+import com.umc.challenge.view.previewAccessorySet
+import com.umc.design.Primary300
+import com.umc.design.Secondary100
+import com.umc.design.character.Accessory
+import com.umc.design.character.AccessorySet
+import com.umc.design.character.CharacterView
+import com.umc.design.R as Res
+
+data class MyItemItemItemProp(
+    val accessory: Accessory,
+    val isEquipped: Boolean,
+    val onClicked: () -> Unit,
+)
+
+data class ClickedItemProp(
+    val item: Accessory,
+    val isEquipped: Boolean,
+    val onBackPressed: () -> Unit,
+    val onConfirmed: () -> Unit,
+)
+
+private val bottomSheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+private val itemItemShape = RoundedCornerShape(16.dp)
+
+@Composable
+fun MyItemScreen(
+    point: Int,
+    equippedAccessorySet: AccessorySet,
+    myItemItemItemPropList: List<MyItemItemItemProp>,
+    clickedItemProp: ClickedItemProp?,
+    onShopIconClicked: () -> Unit,
+) {
+    val density = LocalDensity.current
+    val gridState = rememberLazyGridState()
+
+    var topBarHeight by remember { mutableStateOf(0.dp) }
+    var chipMenuVerticalOffset by remember { mutableStateOf(0.dp) }
+    var characterViewWidth by remember { mutableStateOf(0.dp) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = Color.Secondary100)
+    ) {
+        // 내용
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Spacer(modifier = Modifier.height(chipMenuVerticalOffset + 32.dp))
+            // 캐릭터
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp)
+                    .onGloballyPositioned {
+                        with(density) {
+                            characterViewWidth = it.size.width.toDp()
+                        }
+                    }
+            ) {
+                CharacterView(
+                    accessorySet = equippedAccessorySet,
+                    width = characterViewWidth
+                )
+            }
+            // 아이템 바텀 시트
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .shadow(
+                        elevation = 16.dp,
+                        shape = bottomSheetShape
+                    )
+                    .background(
+                        color = Color.White,
+                        shape = bottomSheetShape
+                    )
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = Res.drawable.ic_header_deco),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+                if (clickedItemProp == null) LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    state = gridState,
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(myItemItemItemPropList.size) { index ->
+                        MyItemItemItem(prop = myItemItemItemPropList[index])
+                    }
+                    item { 
+                        Spacer(
+                            modifier = Modifier.height(
+                                WindowInsets.systemBars
+                                    .asPaddingValues()
+                                    .calculateBottomPadding()
+                            )
+                        )
+                    }
+                } else Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(
+                            bottom = WindowInsets.systemBars
+                                .asPaddingValues()
+                                .calculateBottomPadding()
+                        )
+                ) {
+                    Image(
+                        painter = painterResource(id = clickedItemProp.item.res),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(32.dp)
+                    )
+                    Text(
+                        text = "${clickedItemProp.item.title} ${
+                            stringResource(
+                                id = if (clickedItemProp.isEquipped) 
+                                    R.string.disrobe_item 
+                                else 
+                                    R.string.equip_item
+                            )
+                        }",
+                        fontWeight = FontWeight.W600,
+                        fontSize = 12.sp,
+                        color = Color(0xFF4B4B4B)
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        ElevatedButton(
+                            onClick = clickedItemProp.onBackPressed,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.White,
+                                contentColor = Color.Primary300,
+                            )
+                        ) {
+                            Text(text = stringResource(id = R.string.back))
+                        }
+                        ElevatedButton(
+                            onClick = clickedItemProp.onConfirmed,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color.Primary300,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    id = if (clickedItemProp.isEquipped)
+                                        R.string.disrobe
+                                    else
+                                        R.string.equip
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        // 탑 바
+        TitledTopBar(
+            prop = TitledTopBarProp(
+                mode = TitledTopBarMode.MY_ITEM,
+                onHeightChanged = { topBarHeight = it }
+            )
+        )
+        Column(
+            modifier = Modifier.onGloballyPositioned {
+                with(density) { chipMenuVerticalOffset = it.size.height.toDp() }
+            }
+        ) {
+            Spacer(modifier = Modifier.height(topBarHeight))
+            // 상단 메뉴
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp, alignment = Alignment.End),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(end = 16.dp, top = 32.dp)
+                    .fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier.clickable(
+                        indication = null,
+                        interactionSource = null,
+                        onClick = onShopIconClicked
+                    )
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_shop),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                PointChip(
+                    point = point,
+                    theme = PointChipTheme.GOLD
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MyItemItemItem(
+    prop: MyItemItemItemProp
+) {
+    val density = LocalDensity.current
+    var width by remember { mutableStateOf(0.dp) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(width)
+            .background(
+                brush = Brush.verticalGradient(
+                    0f to Color(0x80FEF6F2),
+                    1f to Color(0x80FFEAE2)
+                ),
+                shape = itemItemShape
+            )
+            .clip(itemItemShape)
+            .border(
+                width = 1.dp,
+                color = Color(0xFFFFDACB),
+                shape = itemItemShape,
+            )
+            .onGloballyPositioned { with(density) { width = it.size.width.toDp() } }
+    ) {
+        if (prop.isEquipped) Row(
+            horizontalArrangement = Arrangement.End,
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        shape = RoundedCornerShape(percent = 50),
+                        color = Color(0xFFFFEAE2)
+                    )
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.equipped),
+                    fontWeight = FontWeight.W600,
+                    fontSize = 12.sp,
+                    color = Color.Primary300,
+                )
+            }
+        }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .padding(32.dp)
+                .fillMaxSize()
+        ) {
+            Image(
+                painter = painterResource(id = prop.accessory.res),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+        Box(
+            contentAlignment = Alignment.BottomCenter,
+            modifier = Modifier
+                .padding(bottom = 16.dp)
+                .fillMaxSize()
+        ) {
+            Text(
+                text = prop.accessory.title,
+                fontWeight = FontWeight.W600,
+                fontSize = 12.sp,
+                color = Color(0xFF4B4B4B),
+            )
+        }
+    }
+}
+
+val previewMyItemItemItemPropList = listOf(
+    MyItemItemItemProp(
+        accessory = Accessory.TTUTTU_PERL_NECKLACE,
+        isEquipped = true,
+        onClicked = {}
+    ),
+    MyItemItemItemProp(
+        accessory = Accessory.TTOTTO_COZY_MUFFLER,
+        isEquipped = false,
+        onClicked = {}
+    ),
+    MyItemItemItemProp(
+        accessory = Accessory.TTOTTO_CAP,
+        isEquipped = false,
+        onClicked = {}
+    ),
+    MyItemItemItemProp(
+        accessory = Accessory.TTUTTU_BAG,
+        isEquipped = false,
+        onClicked = {}
+    ),
+    MyItemItemItemProp(
+        accessory = Accessory.TTUTTU_THREE_COLOR_BALLOONS,
+        isEquipped = false,
+        onClicked = {}
+    )
+)
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewMyItemScreen() {
+    MyItemScreen(
+        point = 1234,
+        equippedAccessorySet = previewAccessorySet,
+        myItemItemItemPropList = previewMyItemItemItemPropList,
+        clickedItemProp = ClickedItemProp(
+            item = Accessory.TTOTTO_COZY_MUFFLER,
+            isEquipped = false,
+            onBackPressed = {},
+            onConfirmed = {}
+        ),
+        onShopIconClicked = {}
+    )
+}

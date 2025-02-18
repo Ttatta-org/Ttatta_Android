@@ -39,7 +39,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,7 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.sp
 import com.umc.challenge.R
-import com.umc.challenge.ShadowBoxScope
+import com.umc.challenge.component.ShadowBoxScope
 import com.umc.design.Primary200
 import com.umc.design.Primary400
 import com.umc.design.Primary500
@@ -60,7 +59,7 @@ import com.umc.design.character.AccessorySet
 import com.umc.design.character.CharacterView
 
 data class ChallengeOnboardingViewProp(
-    val accessorySet: AccessorySet,
+    val equippedAccessorySet: AccessorySet,
     val challengeItemPropList: List<ChallengeItemProp>,
     val onNewChallengeButtonClicked: () -> Unit,
 )
@@ -126,7 +125,7 @@ fun ChallengeOnboardingView(
                 Spacer(modifier = Modifier.height(totalSpeechBubbleHeight))
                 // 캐릭터
                 CharacterView(
-                    accessorySet = prop.accessorySet,
+                    accessorySet = prop.equippedAccessorySet,
                     width = columnWidth
                 )
                 // 새 챌린지 버튼
@@ -288,7 +287,7 @@ val previewChallengeItemPropList = listOf(
 )
 
 val previewChallengeOnboardingViewProp = ChallengeOnboardingViewProp(
-    accessorySet = previewAccessorySet,
+    equippedAccessorySet = previewAccessorySet,
     challengeItemPropList = previewChallengeItemPropList,
     onNewChallengeButtonClicked = {}
 )
