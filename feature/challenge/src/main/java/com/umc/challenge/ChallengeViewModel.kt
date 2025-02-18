@@ -35,7 +35,9 @@ class ChallengeViewModel @Inject constructor(
     val failedChallenges get() = failedChallengesState.value
     val todayChallenges get() = todayChallengesState.value
 
-    init {
+    init { initialize() }
+
+    fun initialize() {
         getItemInfos(
             onSucceed = {},
             onFailed = {}
