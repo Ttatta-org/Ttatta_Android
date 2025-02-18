@@ -55,7 +55,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.challenge.R
-import com.umc.challenge.ShadowBoxScope
+import com.umc.challenge.component.ShadowBoxScope
 import com.umc.design.Grey300
 import com.umc.design.Primary200
 import com.umc.design.Primary300
