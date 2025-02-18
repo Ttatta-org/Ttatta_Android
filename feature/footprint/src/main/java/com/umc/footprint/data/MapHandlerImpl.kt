@@ -3,6 +3,7 @@ package com.umc.footprint.data
 import android.content.Context
 import android.graphics.PointF
 import android.location.Location
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.foundation.Image
@@ -158,12 +159,14 @@ class MapHandlerImpl @Inject constructor(
                     addOnCameraChangeListener { _, _ ->
                         onPreviousMarkerDismissed?.invoke()
                         onPreviousMarkerDismissed = null
-
-                        isNonClusteringZoomLevelReached.value = map.cameraPosition.zoom > 15
                     }
                     setOnMapClickListener { _, _ ->
                         onPreviousMarkerDismissed?.invoke()
                         onPreviousMarkerDismissed = null
+                    }
+                    addOnCameraIdleListener {
+                        isNonClusteringZoomLevelReached.value = map.cameraPosition.zoom > 16
+                        Log.d("MapHandlerImpl", "zoom level: ${map.cameraPosition.zoom}")
                     }
 
                     // UI 설정
