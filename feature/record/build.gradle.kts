@@ -2,8 +2,7 @@ import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.application)
-    // alias(libs.plugins.android.library)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
@@ -88,8 +87,8 @@ dependencies {
     // 네이버 지도 SDK
     implementation(libs.naver.map)
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-    implementation ("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+    // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    // implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
 
     // Play Services Location
     implementation(libs.play.services.location)

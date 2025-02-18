@@ -1,5 +1,9 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+    // alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
@@ -8,18 +12,24 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val recordMapProperties = Properties()
+recordMapProperties.load(FileInputStream(rootProject.file("local.properties")))
+
 android {
     namespace = "com.umc.ttatta.test.record"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.umc.ttatta.test.record"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // consumerProguardFiles("consumer-rules.pro")
+
+        buildConfigField(
+            "String",
+            "NAVER_SDK_CLIENT_ID",
+            "\"${recordMapProperties.getProperty("NAVER_SDK_CLIENT_ID")}\""
+        )
     }
 
     buildTypes {
@@ -38,6 +48,10 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
@@ -52,6 +66,10 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.hilt.android)
+    implementation(libs.play.services.location)
+    implementation(project(":feature:record"))
+//    implementation(libs.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -64,7 +82,21 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":design"))
     implementation(project(":data"))
-    implementation(project(":feature:record"))
+
+    // Coil
+    implementation("io.coil-kt.coil3:coil-compose:3.0.4")
+    implementation("io.coil-kt.coil3:coil-svg:3.0.4")
+
+    // 네이버 지도 SDK
+    implementation(libs.naver.map)
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    implementation ("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+    implementation("androidx.navigation:navigation-compose:2.7.5")
+
+    // Play Services Location
+    implementation(libs.play.services.location)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // Hilt
     implementation(libs.hilt.android)

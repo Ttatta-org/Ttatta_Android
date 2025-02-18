@@ -1,24 +1,16 @@
 package com.umc.record.core
 
 import androidx.compose.runtime.Composable
-import com.umc.design.CategoryColor
+import androidx.compose.ui.unit.dp
 
-data class MapMarker(
-    val latitude: Double,
-    val longitude: Double,
-    val zIndex: Int,
-    val color: CategoryColor? = null,
-    val onClicked: ((Float, Float) -> (() -> Unit)?)? = null,
-)
+val locatorWidth = 48.dp
+val locatorHeight = 48.dp
 
 interface MapHandler {
-    fun getMapView(): @Composable () -> Unit
+    @Composable fun MapView(isLocationMarkingEnabled: Boolean)
 
-    suspend fun moveTo(latitude: Double, longitude: Double)
-    suspend fun moveToCurrentPosition()
-    suspend fun getViewingPosition(): Pair<Double, Double>?
-    suspend fun addMarker(marker: MapMarker)
-    suspend fun removeMarker(marker: MapMarker)
-    suspend fun getAllMarkers(): List<MapMarker>
-    suspend fun removeAllMarkers()
+    suspend fun getCurrentPinnedCoordination(): Pair<Double, Double>  // (위도, 경도)
+    suspend fun movePin(latitude: Double, longitude: Double)
+
+    suspend fun addCameraIdleListener(listener: () -> Unit)
 }
