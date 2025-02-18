@@ -208,16 +208,17 @@ fun NewChallengeView(
                                     onValueChange = prop.onTitleChanged,
                                     textStyle = TextStyle(
                                         fontSize = 12.sp,
+                                        fontWeight = FontWeight.W400,
                                         color = Color.Black,
                                     ),
                                     modifier = Modifier.weight(1f)
-                                ) {
+                                ) { innerTextField ->
                                     if (prop.title.isBlank()) Text(
                                         text = stringResource(id = R.string.title_field_placeholder),
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.W400,
                                         color = Color.Grey300
-                                    )
+                                    ) else innerTextField()
                                 }
                                 Text(
                                     text = buildAnnotatedString {
@@ -278,16 +279,17 @@ fun NewChallengeView(
                                     onValueChange = prop.onDescriptionChanged,
                                     textStyle = TextStyle(
                                         fontSize = 12.sp,
-                                        color = Color.Black,
+                                        fontWeight = FontWeight.W400,
+                                        color = Color.Black
                                     ),
                                     modifier = Modifier.fillMaxWidth()
-                                ) {
+                                ) { innerTextField ->
                                     if (prop.description.isBlank()) Text(
                                         text = stringResource(id = R.string.description_field_placeholder),
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.W400,
                                         color = Color.Grey300
-                                    )
+                                    ) else innerTextField()
                                 }
                             }
                         }
