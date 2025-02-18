@@ -47,6 +47,7 @@ data class ClickedOwnedItemInfo(
 fun ChallengeApp(
     viewModel: ChallengeViewModel,
     onNavigationBarVisibilityChanged: (Boolean) -> Unit,
+    onChallengeCompletionRequired: (id: Long, onSucceed: () -> Unit) -> Unit,
 ) {
     val navController = rememberNavController()
 
@@ -76,7 +77,13 @@ fun ChallengeApp(
                 challengeCompletionDialogProp = clickedUncompletedChallengeInfo?.let {
                     ChallengeCompletionDialogProp(
                         onDismissed = { clickedUncompletedChallengeInfo = null },
-                        onConfirmed = { /* TODO */ }
+                        onConfirmed = {
+                            onChallengeCompletionRequired(it.id) {
+                                showPointGrantedCardDialog = true
+                                viewModel.initialize()
+                            }
+                            clickedUncompletedChallengeInfo = null
+                        }
                     )
                 },
                 pointGrantedCardDialogProp = if (showPointGrantedCardDialog) PointGrantedCardDialogProp(
@@ -112,7 +119,9 @@ fun ChallengeApp(
                                         onClicked = { clickedUncompletedChallengeInfo = ClickedUncompletedChallengeInfo(id = it.id) }
                                     )
                                 },
-                                onNewChallengeButtonClicked = { navController.navigate("new_challenge") }
+                                onNewChallengeButtonClicked = {
+                                    challengeScreenNavController.navigate("new_challenge")
+                                }
                             )
                         )
                     }
@@ -140,7 +149,7 @@ fun ChallengeApp(
                                     viewModel.createChallenge(
                                         title = title,
                                         description = description,
-                                        onSucceed = { navController.navigate("challenge") },
+                                        onSucceed = { challengeScreenNavController.popBackStack() },
                                         onFailed = { /* TODO */ }
                                     )
                                 }
