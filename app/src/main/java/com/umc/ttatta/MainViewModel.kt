@@ -41,6 +41,8 @@ class MainViewModel @Inject constructor(
                 onSucceed = { /* TODO */ },
                 onFailed = { /* TODO */ }
             )
+
+            isLoggedInFlow.value = isLoggedIn
         }
     }
 
