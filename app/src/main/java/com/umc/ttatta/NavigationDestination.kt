@@ -9,6 +9,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.umc.record.RecordMode
 
 sealed class NavigationRouteOption
 
@@ -33,7 +34,23 @@ sealed class NavigationRoute private constructor(
     data object Login : NavigationRoute("login")
     data object Home : NavigationRoute("home")
     data object Footprint : NavigationRoute("footprint")
-    data object Challenge : NavigationRoute("challenge")
+
+    data object Challenge : NavigationRoute(
+        route = "challenge?show_point_granted={show_point_granted}",
+        arguments = listOf(navArgument("show_point_granted") { type = NavType.BoolType })
+    ) {
+        override fun getRoute(option: NavigationRouteOption): String {
+            option as ChallengeRouteOption
+            return "challenge?show_point_granted=${option.showPointGranted}"
+        }
+
+        override fun getOption(bundle: Bundle): NavigationRouteOption {
+            return ChallengeRouteOption(
+                showPointGranted = bundle.getBoolean("show_point_granted")
+            )
+        }
+    }
+
     data object MyPage : NavigationRoute("my_page")
 
     data object Category : NavigationRoute(
@@ -53,26 +70,45 @@ sealed class NavigationRoute private constructor(
     }
 
     data object Record : NavigationRoute(
-        route = "record?entry_mode={entry_mode}",
-        arguments = listOf(navArgument("entry_mode") { type = NavType.StringType })
+        route = "record?entry_mode={entry_mode}&challenge_id={challenge_id}",
+        arguments = listOf(
+            navArgument("entry_mode") { type = NavType.StringType },
+            navArgument("challenge_id") { type = NavType.LongType },
+        )
     ) {
         override fun getRoute(option: NavigationRouteOption): String {
             option as RecordRouteOption
-            return "record?entry_mode=${option.entryMode}"
+            return "record?entry_mode=${
+                option.entryMode.name
+            }&challenge_id=${
+                option.challengeId ?: -1L
+            }"
         }
 
         override fun getOption(bundle: Bundle): NavigationRouteOption {
             return RecordRouteOption(
-                entryMode = bundle.getString("entry_mode") ?: ""
+                entryMode = when (bundle.getString("entry_mode") ?: "") {
+                    RecordMode.CAMERA.name -> RecordMode.CAMERA
+                    RecordMode.GALLERY.name -> RecordMode.GALLERY
+                    else -> throw IllegalArgumentException()
+                },
+                challengeId = bundle.getLong("challenge_id").let {
+                    if (it == -1L) null else it
+                }
             )
         }
     }
 }
+
+data class ChallengeRouteOption(
+    val showPointGranted: Boolean,
+): NavigationRouteOption()
 
 data class CategoryRouteOption(
     val showTopBar: Boolean,
 ) : NavigationRouteOption()
 
 data class RecordRouteOption(
-    val entryMode: String
+    val entryMode: RecordMode,
+    val challengeId: Long?,
 ) : NavigationRouteOption()
