@@ -76,12 +76,22 @@ fun RecordNavHost(
                 diaryText = diaryText,
                 selectedImage = selectedImage,
                 userName = userName,
+                location = location,
+                latitude = 37.5665,  // 서울 기본값 (실제 GPS 값 넣기)
+                longitude = 126.9780,
                 onCategorySelect = { viewModel.selectCategory(it) },
                 onDiaryTextUpdate = { viewModel.updateDiaryText(it) },
-                onEditLocation = { currentLocation ->
-                    onLocationChange(currentLocation) // ✅ 위치 변경 반영
-                    navController.navigate("record_edit_screen") // ✅ 네비게이션 이동
-                }
+                onSaveDiary = {
+                    viewModel.saveDiary(
+                        categoryId = 1,  // 임시 카테고리 ID
+                        content = diaryText,
+                        imagePath = selectedImage,
+                        latitude = 37.5665,  // GPS 데이터
+                        longitude = 126.9780,
+                        locationName = location
+                    )
+                },
+                onEditLocation = { newLocation -> /* 위치 수정 로직 */ }
             )
         }
         composable("record_edit_screen") {
@@ -106,13 +116,12 @@ fun RecordNavHost(
             RecordEditLocationScreen(
                 mapView = {
                     viewModel.MapView(
-                        isBlurApplied = false,
                         isLocationMarkingEnabled = true
                     )
                 },
                 onLocationButtonClicked = {
-                    viewModel.moveMapToCurrentPosition(
-                        onSucceed = { /* empty */ },
+                    viewModel.movePinToCurrentLocation(
+                        onSucceed = { /* Success 처리 */ },
                         onFailed = {
                             permissionRequester.checkLocationPermission(
                                 context = context,

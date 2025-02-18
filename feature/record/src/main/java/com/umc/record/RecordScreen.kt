@@ -44,6 +44,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.geometry.Offset
 import coil3.compose.rememberAsyncImagePainter
@@ -56,8 +58,12 @@ fun RecordScreen(
     diaryText: String,
     selectedImage: String?,
     userName: String,
+    location: String,
+    latitude: Double,  // 현재 위치 정보
+    longitude: Double,
     onCategorySelect: (String) -> Unit,
     onDiaryTextUpdate: (String) -> Unit,
+    onSaveDiary: () -> Unit,
     onEditLocation: (String) -> Unit
 ) {
     var showCustomDialog by remember { mutableStateOf(false) }
@@ -115,7 +121,11 @@ fun RecordScreen(
         RecordBottomSheet(
             name = userName,
             diaryText = diaryText,
-            onDiaryTextUpdate = onDiaryTextUpdate
+            selectedCategory = selectedCategory,
+            selectedImage = selectedImage,
+            location = location,
+            onDiaryTextUpdate = onDiaryTextUpdate,
+            onSaveDiary = onSaveDiary
         )
 
         // 다이얼로그
@@ -261,7 +271,11 @@ fun InfoTag(
 fun RecordBottomSheet(
     name: String,
     diaryText: String,
-    onDiaryTextUpdate: (String) -> Unit
+    selectedCategory: String,
+    selectedImage: String?,
+    location: String,
+    onDiaryTextUpdate: (String) -> Unit,
+    onSaveDiary: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -352,12 +366,21 @@ fun RecordBottomSheet(
                     }
 
                     // 추가 버튼 -> 클릭 이벤트 처리 해야함
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_add), // 리소스 파일의 추가 버튼
-                        contentDescription = "Add",
-                        tint = Color.Unspecified, // Tint 효과 제거
-                        modifier = Modifier.size(width = 42.94.dp, height = 40.dp) // 아이콘 크기 설정
-                    )
+                    Button(
+                        onClick = { onSaveDiary() }, // 저장 함수 실행
+                        shape = RoundedCornerShape(28.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFCAD98)),
+                        modifier = Modifier
+                            .height(50.dp)
+                            .fillMaxWidth(0.8f)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_add), // 리소스 파일의 추가 버튼
+                            contentDescription = "Add",
+                            tint = Color.Unspecified, // Tint 효과 제거
+                            modifier = Modifier.size(width = 42.94.dp, height = 40.dp) // 아이콘 크기 설정
+                        )
+                    }
                 }
             }
         }
