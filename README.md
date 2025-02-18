@@ -14,6 +14,14 @@
   [![Notion](https://img.shields.io/badge/Notion-000000?style=flat-square&logo=notion&logoColor=white)](https://joyous-thyme-83d.notion.site/FE-16ac3dabe6628093affbed63f2212b65)
 <br>
 
+### 🙌 팀원 소개
+
+|조윤식|정재훈|나현주|홍지현|
+|:---:|:---:|:---:|:---:|
+|<img src="https://github.com/CHOYUNSIG.png"  width="300" height="230">|<img src="https://github.com/deephoon.png"  width="300" height="230">|<img src="https://github.com/HyeonJooooo.png"  width="300" height="230">|<img src="https://github.com/Hongji03.png"  width="300" height="230">|
+|[@CHOYUNSIG](https://github.com/CHOYUNSIG)|[@deephoon](https://github.com/deephoon)|[@HyeonJooooo](https://github.com/HyeonJooooo)|[@Hongji03](https://github.com/Hongji03)|
+<br/>
+
 # Tech Stack
 
 다음은 프로젝트의 구현을 위해 사용하는 기술 스택을 정리한 표입니다.
