@@ -5,13 +5,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.umc.core.repository.DiaryRepository
 import com.umc.core.repository.UserRepository
+import com.umc.record.core.LocationHandler
 import com.umc.record.core.MapHandler
-import com.umc.record.core.MapMarker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.io.File
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 data class ClickedMarkerInfo(
@@ -23,13 +26,10 @@ data class ClickedMarkerInfo(
 @HiltViewModel
 class RecordViewModel @Inject constructor(
     private val mapHandler: MapHandler,
+    private val locationHandler: LocationHandler,
     private val userRepository: UserRepository,
+    private val diaryRepository: DiaryRepository
 ): ViewModel() {
-
-    private val markers = mutableMapOf<Long, MutableList<MapMarker>>()
-
-    private val clickedMarkerPositionState = mutableStateOf<Pair<Float, Float>?>(null)
-    private val clickedMarkerInfoState = mutableStateOf<ClickedMarkerInfo?>(null)
     private val userNameState = mutableStateOf("")
 
     // 사용자 이름을 StateFlow로 변경하여 Compose에서 사용할 수 있도록 수정
@@ -103,13 +103,8 @@ class RecordViewModel @Inject constructor(
 
     fun initialize() {
         viewModelScope.launch {
-
-            // 현재 위치로 맵 이동
             launch {
-                moveMapToCurrentPosition(
-                    onSucceed = { /* TODO */ },
-                    onFailed = { /* TODO */ },
-                )
+                movePinToCurrentLocation()  // 앱 시작 시 지도 위치 설정
             }
             // 사용자 이름 로드
             launch {
@@ -118,31 +113,68 @@ class RecordViewModel @Inject constructor(
                     onFailed = { /* TODO */ },
                 )
             }
+            launch {
+                loadUserName()
+            }
         }
     }
 
     // 지도
     @Composable
     fun MapView(
-        isBlurApplied: Boolean,
         isLocationMarkingEnabled: Boolean,
     ) {
         mapHandler.MapView(
-            isBlurApplied = false,
             isLocationMarkingEnabled = isLocationMarkingEnabled
         )
     }
 
-    fun moveMapToCurrentPosition(
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
+    // ✅ 현재 위치 가져와서 지도 이동시키는 함수
+    fun movePinToCurrentLocation(
+        onSucceed: () -> Unit = {},
+        onFailed: (Exception) -> Unit = {}
     ) {
         viewModelScope.launch {
             try {
-                mapHandler.moveToCurrentPosition()
+                val location = locationHandler.getCurrentLocation() // ✅ 현재 위치 가져오기
+                Log.d("RecordViewModel", "📍 현재 위치: ${location.latitude}, ${location.longitude}")
+
+                mapHandler.movePin(location.latitude, location.longitude) // ✅ 지도 핀 이동
+                Log.d("RecordViewModel", "✅ 지도 핀이 현재 위치로 이동됨")
+
                 onSucceed()
             } catch (e: Exception) {
+                Log.e("RecordViewModel", "🚨 현재 위치 가져오기 실패", e)
                 onFailed(e)
+            }
+        }
+    }
+
+    fun saveDiary(
+        categoryId: Long,
+        content: String,
+        imagePath: String?, // 이미지 경로 (갤러리 or 카메라)
+        latitude: Double,
+        longitude: Double,
+        locationName: String
+    ) {
+        viewModelScope.launch {
+            try {
+                val imageFile = imagePath?.let { File(it) } // 이미지 파일 변환
+
+                diaryRepository.createDiary(
+                    categoryId = categoryId,
+                    date = LocalDateTime.now(), // 현재 시간
+                    content = content,
+                    image = imageFile ?: File(""), // 이미지 없으면 빈 파일
+                    latitude = latitude,
+                    longitude = longitude,
+                    locationName = locationName
+                )
+
+                Log.d("RecordViewModel", "✅ 기록 저장 성공!")
+            } catch (e: Exception) {
+                Log.e("RecordViewModel", "🚨 기록 저장 실패: ${e.message}", e)
             }
         }
     }
@@ -159,34 +191,5 @@ class RecordViewModel @Inject constructor(
                 onFailed(e)
             }
         }
-    }
-
-    private fun markMap(
-        latitude: Double,
-        longitude: Double,
-        diaryId: Long,
-        clusterId: Long,
-        categoryId: Long,
-//        color: CategoryColor?,
-    ) {
-        val marker = MapMarker(
-            latitude = latitude,
-            longitude = longitude,
-            zIndex = diaryId.toInt(),
-//            color = color,
-            onClicked = onClicked@{ x, y ->
-                clickedMarkerInfoState.value = ClickedMarkerInfo(
-                    x = x,
-                    y = y,
-                    clusterId = clusterId,
-                )
-                return@onClicked {
-                    clickedMarkerInfoState.value = null
-                    //diaryStateMap.clear()
-                }
-            }
-        )
-        markers[categoryId]?.add(marker) ?: run { markers[categoryId] = mutableListOf(marker) }
-        viewModelScope.launch { mapHandler.addMarker(marker) }
     }
 }
