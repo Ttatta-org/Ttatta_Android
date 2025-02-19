@@ -55,9 +55,11 @@ class MainActivity : ComponentActivity() {
 }
 
 private fun ComponentActivity.setStatusBarTransparent() {
-    window.setFlags(
-        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-    )
-    WindowCompat.setDecorFitsSystemWindows(window, false)
+    window.apply {
+        WindowCompat.setDecorFitsSystemWindows(this, false)
+        setFlags(
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        )
+    }
 }
