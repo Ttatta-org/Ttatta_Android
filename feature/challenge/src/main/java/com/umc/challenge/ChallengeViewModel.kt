@@ -10,6 +10,7 @@ import com.umc.core.model.OwnedItem
 import com.umc.core.model.UnownedItem
 import com.umc.core.repository.ChallengeRepository
 import com.umc.core.repository.ItemRepository
+import com.umc.core.repository.UserRepository
 import com.umc.design.character.AccessorySet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -17,6 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChallengeViewModel @Inject constructor(
+    private val userRepository: UserRepository,
     private val challengeRepository: ChallengeRepository,
     private val itemRepository: ItemRepository
 ): ViewModel() {
@@ -34,6 +36,20 @@ class ChallengeViewModel @Inject constructor(
     val equippedAccessorySet get() = equippedAccessorySetState.value
     val failedChallenges get() = failedChallengesState.value
     val todayChallenges get() = todayChallengesState.value
+
+    fun getPoint(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            try {
+                pointState.intValue = userRepository.getUserInfo().point.toInt()
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
 
     fun getEquippedItems(
         onSucceed: () -> Unit = {},
@@ -120,12 +136,12 @@ class ChallengeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 itemRepository.purchaseItem(id)
-                getEquippedItems(
-                    onSucceed = onSucceed,
-                    onFailed = { throw it }
-                )
+                onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
+            } finally {
+                getEquippedItems()
+                getShopItems()
             }
         }
     }
@@ -140,12 +156,12 @@ class ChallengeViewModel @Inject constructor(
             try {
                 if (isEquipping) itemRepository.equipItem(id)
                 else itemRepository.disrobeItem(id)
-                getEquippedItems(
-                    onSucceed = onSucceed,
-                    onFailed = { throw it }
-                )
+                onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
+            } finally {
+                getOwnedItems()
+                getEquippedItems()
             }
         }
     }
@@ -159,13 +175,12 @@ class ChallengeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 challengeRepository.createChallenge(title, description)
-                getTodayChallenges(
-                    onSucceed = onSucceed,
-                    onFailed = { throw it }
-                )
+                onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
-            }   
+            } finally {
+                getTodayChallenges()
+            }
         }
     }
 }

@@ -67,11 +67,13 @@ fun ChallengeApp(
         startDestination = "challenge"
     ) {
         composable("challenge") {
+            var isLoading by remember { mutableStateOf(true) }
             var clickedUncompletedChallengeInfo by remember { mutableStateOf<ClickedUncompletedChallengeInfo?>(null) }
 
             LaunchedEffect(key1 = Unit) {
-                viewModel.getTodayChallenges()
+                viewModel.getTodayChallenges(onSucceed = { isLoading = false })
                 viewModel.getEquippedItems()
+                viewModel.getPoint()
             }
 
             ChallengeScreen(
@@ -112,6 +114,7 @@ fun ChallengeApp(
                         ChallengeOnboardingView(
                             prop = ChallengeOnboardingViewProp(
                                 equippedAccessorySet = viewModel.equippedAccessorySet,
+                                isNewChallengeButtonEnabled = !isLoading && viewModel.todayChallenges.size < 3,
                                 challengeItemPropList = viewModel.todayChallenges.map {
                                     ChallengeItemProp(
                                         title = it.title,
