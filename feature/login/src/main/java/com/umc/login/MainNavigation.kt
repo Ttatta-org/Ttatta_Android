@@ -27,18 +27,14 @@ fun MainNavigation(navController: NavHostController,
                    joinViewModel: JoinViewModel,
                    findIdViewModel: FindIdViewModel,
                    onNavigatingToHome: () -> Unit) {
-    AnimatedNavHost(
+    NavHost(
         navController = navController,
         startDestination = "login",
     ) {
         composable("login") {
             LoginScreen(navController, loginViewModel, onNavigatingToHome)
         }
-        composable(
-            "join",
-            enterTransition = { fadeIn(animationSpec = tween(700)) },
-            exitTransition = { fadeOut(animationSpec = tween(700)) }
-        ) {
+        composable("join") {
             JoinParentScreen(navController, joinViewModel)
         }
         composable("join_end") {
