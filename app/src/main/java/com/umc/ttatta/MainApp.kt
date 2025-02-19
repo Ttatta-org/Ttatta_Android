@@ -240,21 +240,21 @@ fun MainApp(
                             )
                         },
                         onDone = {
+                            val onSuccess = {
+                                navigator.navigate(
+                                    route = NavigationRoute.Challenge.getRoute(
+                                        option = ChallengeRouteOption(showPointGranted = true)
+                                    )
+                                ) {
+                                    popUpTo(route = NavigationRoute.Challenge.route) { inclusive = true }
+                                }
+                            }
+
                             if (option.challengeId != null) viewModel.makeChallengeComplete(
                                 challengeId = option.challengeId,
-                                onSucceed = {
-                                    navigator.navigate(
-                                        route = NavigationRoute.Challenge.getRoute(
-                                            option = ChallengeRouteOption(showPointGranted = true)
-                                        )
-                                    ) {
-                                        popUpTo(route = NavigationRoute.Challenge.route) {
-                                            inclusive = true
-                                        }
-                                    }
-                                },
+                                onSucceed = { onSuccess() },
                                 onFailed = { /* TODO */ },
-                            )
+                            ) else onSuccess()
                         },
                     )
                 }
