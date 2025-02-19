@@ -190,6 +190,7 @@ fun FootprintApp(
             onDismissed = { isCategorySelectionBarVisible = false }
         ) else null,
         onCategoryButtonClicked = {
+            if (viewModel.selectedCategoryId != null) viewModel.selectShowingCategory(categoryId = null)
             isCategorySelectionBarVisible = !isCategorySelectionBarVisible
         },
         onLocationButtonClicked = {
