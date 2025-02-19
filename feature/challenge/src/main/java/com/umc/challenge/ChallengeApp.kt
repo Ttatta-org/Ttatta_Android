@@ -114,7 +114,9 @@ fun ChallengeApp(
                                             ChallengeState.COMPLETED
                                         else
                                             ChallengeState.IN_PROGRESS,
-                                        onClicked = { clickedUncompletedChallengeInfo = ClickedUncompletedChallengeInfo(id = it.id) }
+                                        onClicked = {
+                                            if (!it.isCompleted) clickedUncompletedChallengeInfo = ClickedUncompletedChallengeInfo(id = it.id)
+                                        }
                                     )
                                 },
                                 onNewChallengeButtonClicked = {
