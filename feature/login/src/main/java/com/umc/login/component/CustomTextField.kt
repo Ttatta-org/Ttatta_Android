@@ -141,6 +141,7 @@ fun NicknameInputTextField(
             }
         },
         keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardType = KeyboardType.Text,
             imeAction = ImeAction.Done
         ),
         keyboardActions = KeyboardActions(onDone = { onImeAction() }),
@@ -370,9 +371,8 @@ fun EmailInputTextField(
         textStyle = LocalTextStyle.current.copy(
             textAlign = TextAlign.Center,
             fontSize = 14.sp,
-            fontWeight = FontWeight(600),
             lineHeight = 20.sp,
-            color = colorResource(R.color.gray_500)
+            color = Color.Black
         ),
         placeholder = {
             Box(
