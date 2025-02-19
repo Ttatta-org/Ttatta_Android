@@ -27,6 +27,8 @@ android {
         listOf(
             "NAVER_SDK_CLIENT_SECRET",
             "NAVER_SDK_CLIENT_ID",
+            "NAVER_OPEN_API_CLIENT_SECRET",
+            "NAVER_OPEN_API_CLIENT_ID",
             "SERVER_BASE_URL"
         ).forEach {
             buildConfigField("String", it, "\"${localProperties.getProperty(it)}\"")
