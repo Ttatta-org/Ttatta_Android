@@ -45,22 +45,13 @@ fun FindIdTopView(onBack: () -> Unit) {
 
     Column (modifier = Modifier.wrapContentSize(),
             horizontalAlignment = Alignment.CenterHorizontally) {
-        Row(
-            horizontalArrangement = Arrangement.Absolute.Left,
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 58.dp),
         ) {
             Spacer(modifier = Modifier.width(30.dp))
-            Image(
-                painter = painterResource(R.drawable.ic_back),
-                modifier = Modifier
-                    .size(15.dp, 21.dp)
-                    .clickable { onBack() },
-                contentScale = ContentScale.None,
-                contentDescription = "back_button"
-            )
-            Spacer(modifier = Modifier.width(122.dp)) // 가운데 정렬 방법 찾아야함 ㅠ
             Text(
                 text = stringResource(R.string.find_id),
                 fontSize = 15.sp,
@@ -68,6 +59,16 @@ fun FindIdTopView(onBack: () -> Unit) {
                 lineHeight = 20.sp,
                 textAlign = TextAlign.Center,
                 color = colorResource(R.color.orange_500)
+            )
+
+            Image(
+                painter = painterResource(R.drawable.ic_back),
+                modifier = Modifier
+                    .offset(x = (-160).dp, y = 0.dp)
+                    .size(15.dp, 21.dp)
+                    .clickable { onBack() },
+                contentScale = ContentScale.None,
+                contentDescription = "back_button"
             )
         }
         Spacer(modifier = Modifier.height(30.dp))
