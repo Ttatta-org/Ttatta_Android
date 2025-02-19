@@ -26,6 +26,7 @@ interface ServerApi {
     // 카카오 회원가입
     @POST("/users/signup/kakao")
     suspend fun signUpKakao(
+        @Header("OpenId") idToken: String,
         @Body body: SignUpKakaoRequestDTO
     ): BaseResponse<UserSignUpResultDTO>
 
@@ -35,23 +36,11 @@ interface ServerApi {
         @Body body: SignInRequestDTO
     ): BaseResponse<UserSignInResultDTO>
 
-    // 카카오 로그인
-    @POST("/users/signin/kakao")
-    suspend fun signInKakao(
-        @Body body: SignInKakaoRequestDTO
-    ): BaseResponse<UserSignInResultDTO>
-
     // 토큰 갱신
     @POST("/users/refresh")
     suspend fun refreshToken(
         @Header("RefreshToken") refreshToken: String
     ): BaseResponse<RefreshResultDTO>
-
-    // 인증번호 발송
-    @POST("/users/code")
-    suspend fun sendVerificationCode(
-        @Body body: SendVerificationCodeRequestDTO
-    ): BaseResponse<SendVerificationCodeResultDTO>
 
     // (개발용) 테스트 유저 생성
     @POST("/users/testuser")
@@ -99,17 +88,18 @@ interface ServerApi {
     @GET("/items/equipped")
     suspend fun getEquippedItems(): BaseResponse<IdListDTO>
 
-    // 인증번호 확인 (비밀번호 찾기)
-    @GET("/users/verify/pw")
+    // 인증메일 발송 (비밀번호 찾기)
+    @GET("/users/find/send-pw")
     suspend fun verifyVerificationCodeForPassword(
+        @Body body: SendVerificationMailFindPwRequestDTO,
         @Query("verificationCode") verificationCode: Int
-    ): BaseResponse<VerifyVerificationCodeForPasswordResultDTO>
+    ): BaseResponse<Any?>
 
     // 인증번호 확인 (아이디 찾기)
-    @GET("/users/verify/id")
+    @GET("/users/find/send-id")
     suspend fun verifyVerificationCodeForUsername(
-        @Query("verificationCode") verificationCode: Int
-    ): BaseResponse<VerifyVerificationCodeForUsernameResultDTO>
+        @Body body: CheckVerificationCodeRequestDTO
+    ): BaseResponse<FindIdResultDTO>
 
     // 아이디 중복 확인
     @GET("/users/signup/verify/overlap")
@@ -232,6 +222,48 @@ interface ServerApi {
     suspend fun deleteCategoryOnly(
         @Path("categoryId") categoryId: Long
     ): BaseResponse<Any?>
+
+    // 카카오 토큰 검증
+    @POST("/users/verificate/kakao")
+    suspend fun validKakaoToken(
+        @Header("OpneId") idToken: String
+    ): BaseResponse<TokenValidationResultDTO>
+
+    // 회원가입 인증메일 발송
+    @POST("/users/signup/verify/send")
+    suspend fun sendVerificationMailSignUp(
+        @Body body: SendVerificationMailSignUpRequestDTO
+    ): BaseResponse<Any?>
+
+    // 회원가입 인증번호 확인
+    @POST("/users/signup/verify/check")
+    suspend fun checkVerificationCodeSignUp(
+        @Body body: CheckVerificationCodeRequestDTO
+    ): BaseResponse<Any?>
+
+    // ID 찾기용 인증메일 발송
+    @POST("/users/find/send-id")
+    suspend fun sendVerificationMailFindId(
+        @Body body: SendVerificationMailFindIdRequestDTO
+    ): BaseResponse<Any?>
+
+    // PW 찾기용 인증메일 발송
+    @POST("/users/find/send-pw")
+    suspend fun sendVerificationMailFindPw(
+        @Body body: SendVerificationMailFindPwRequestDTO
+    ): BaseResponse<Any?>
+
+    // ID 찾기
+    @POST("/users/find/id")
+    suspend fun findId(
+        @Body body: CheckVerificationCodeRequestDTO
+    ): BaseResponse<FindIdResultDTO>
+
+    // PW 재설정
+    @POST("/users/find/pw")
+    suspend fun findPw(
+        @Body body: FindPwRequestDTO
+    ): BaseResponse<Any?>
 }
 
 suspend fun <T> ServerApi.withCheck(
@@ -250,8 +282,8 @@ suspend fun <T> ServerApi.withAuth(
         return withCheck { routine() }
     } catch (_: Exception) {
         val response = withCheck { refreshToken(authPreference.refreshToken!!) }
-        authPreference.refreshToken = response.refreshToken
-        authPreference.accessToken = response.accessToken
+        authPreference.refreshToken = response.refreshToken!!
+        authPreference.accessToken = response.accessToken!!
         return withCheck { routine() }
     }
 }
