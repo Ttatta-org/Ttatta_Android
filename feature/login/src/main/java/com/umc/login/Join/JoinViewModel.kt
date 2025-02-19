@@ -71,22 +71,26 @@ class JoinViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _isIdAvailable = MutableStateFlow(false) // 중복 확인 성공 여부
+    val isIdAvailable: StateFlow<Boolean> = _isIdAvailable.asStateFlow()
+
     private val _isPasswordValid = MutableStateFlow(false)
     val isPasswordValid: StateFlow<Boolean> = _isPasswordValid.asStateFlow()
 
     private val _isPasswordMatched = MutableStateFlow(false)
     val isPasswordMatched: StateFlow<Boolean> = _isPasswordMatched.asStateFlow()
 
+    // 버튼 활성화 조건 수정 (공백만 입력되거나 2자 미만인 경우 비활성화)
     val isNicknameButtonEnabled: StateFlow<Boolean> = combine(
         _nickNameState, _nicknameError, _isLoading
     ) { nickName, error, loading ->
-        nickName.isNotEmpty() && nickName.length <= 8 && error == null && !loading
+        nickName.trim().isNotEmpty() && nickName.length in 2..8 && error == null && !loading
     }.stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     val isIdButtonEnabled: StateFlow<Boolean> = combine(
-        _idState, _idError, _isLoading
-    ) { id, error, loading ->
-        id.isNotEmpty() && id.length <= 15 && error == null && !loading
+        _idState, _idError, _isLoading, _isIdAvailable
+    ) { id, error, loading, isAvailable ->
+        id.isNotEmpty() && id.length <= 15 && error == null && !loading && isAvailable
     }.stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     val isNameButtonEnabled: StateFlow<Boolean> = _nameState
@@ -109,18 +113,27 @@ class JoinViewModel @Inject constructor(
     }
 
     fun onNickNameChange(newNickName: String) {
-        if (newNickName.length <= 9) {
-            _nickNameState.value = newNickName
-            _isWarningVisible.value = (newNickName.length == 9)
-            _nicknameError.value = null // 기존 에러 초기화
+        // 한글과 영문(대소문자)만 허용
+        val filteredNickName = newNickName.filter { it.isLetter() || it == ' ' }
+
+        if (filteredNickName.length <= 8) {
+            _nickNameState.value = filteredNickName
+            _isWarningVisible.value = (filteredNickName.length == 8)
+
+            // 닉네임이 공백만 있을 경우 오류 메시지 표시
+            _nicknameError.value = when {
+                filteredNickName.trim().isEmpty() -> "닉네임에 공백만 입력할 수 없습니다."
+                filteredNickName.length < 2 -> "닉네임은 최소 2자 이상 입력해야 합니다."
+                else -> null
+            }
         }
     }
 
     fun onIdChange(newId: String) {
-        if (newId.length <= 16) {
+        if (newId.length <= 16 && newId.length >= 6) {
             _idState.value = newId
-            _isWarningVisible.value = (newId.length == 16)
-            _idError.value = null // 기존 에러 초기화
+            _idError.value = null
+            _isIdAvailable.value = false // 아이디 변경 시 중복 확인을 다시 해야 함
         }
     }
 
@@ -208,17 +221,25 @@ class JoinViewModel @Inject constructor(
         viewModelScope.launch {
             if (_idState.value.isBlank()) {
                 _idError.value = "아이디를 입력해주세요."
+                _isIdAvailable.value = false
                 return@launch
             }
 
-            _isLoading.value = true
+            _isLoading.value = true  // 로딩 시작
             try {
                 val isOccupied = userRepository.isIdAlreadyOccupied(_idState.value)
-                _idError.value = if (isOccupied) "이미 사용 중인 아이디입니다." else null
+                if (isOccupied) {
+                    _idError.value = "이미 사용 중인 아이디입니다."
+                    _isIdAvailable.value = false
+                } else {
+                    _idError.value = null
+                    _isIdAvailable.value = true
+                }
             } catch (e: Exception) {
                 _idError.value = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+                _isIdAvailable.value = false
             } finally {
-                _isLoading.value = false
+                _isLoading.value = false  // 로딩 종료
             }
         }
     }

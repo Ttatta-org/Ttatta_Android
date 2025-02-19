@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
@@ -194,17 +196,23 @@ fun IdInputTextField(
                 }
             ),
             trailingIcon = {
-                Text(
-                    text = stringResource(R.string.duplicate_check),
-                    color = if (isWarning) colorResource(R.color.negativeRed) else colorResource(R.color.gray_500),
-                    fontSize = 12.sp,
-                    modifier = Modifier
-                        .clickable {
-                            onImeAction()
-                            // TODO: 중복 확인 로직 추가
-                        }
-                        .padding(end = 6.dp)
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = colorResource(R.color.orange_200),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "중복 확인",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (errorMessage != null) colorResource(R.color.negativeRed) else colorResource(R.color.orange_200),
+                        modifier = Modifier
+                            .clickable { onImeAction() } // 버튼 클릭 시 중복 확인 실행
+                            .padding(end = 6.dp)
+                    )
+                }
             },
             modifier = Modifier
                 .width(310.dp)
