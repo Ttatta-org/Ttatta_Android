@@ -73,6 +73,7 @@ fun FindPw2TopView(onBack: () -> Unit) {
                 color = colorResource(R.color.orange_500)
             )
         }
+        
         Spacer(modifier = Modifier.height(30.dp))
         Text(
             modifier = Modifier.wrapContentSize(),
