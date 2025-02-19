@@ -40,7 +40,7 @@ fun JoinEmailView(viewModel: JoinViewModel, onNext: () -> Unit) {
     val isEmailValid by viewModel.isEmailValid.collectAsState()
     var expanded by remember { mutableStateOf(false) }
 
-    val domains = listOf("naver.com", "gmail.com", "yahoo.com", "직접입력")
+    val domains = listOf("naver.com", "gmail.com", "kakao.com",)
 
     Column(
         modifier = Modifier.fillMaxWidth(),
