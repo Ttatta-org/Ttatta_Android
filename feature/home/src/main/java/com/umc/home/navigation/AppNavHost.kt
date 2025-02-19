@@ -35,6 +35,14 @@ fun AppNavHost(
     navController: NavHostController,
     viewModel: HomeViewModel
 ) {
+    // ✅ Composable 내부에서 `isLoading` 상태를 추적하기 위해 `remember` 사용
+    var isLoading by remember { mutableStateOf(viewModel.isLoading) }
+
+    // ✅ ViewModel에서 isLoading 값이 변경될 때 UI에 반영되도록 observe
+    LaunchedEffect(viewModel.isLoading) {
+        isLoading = viewModel.isLoading
+    }
+
     // 화면에 필요한 로컬 UI 상태
     var isExpanded by remember { mutableStateOf(false) }
     var isCalendarVisible by remember { mutableStateOf(false) }
@@ -163,6 +171,7 @@ fun AppNavHost(
         composable("home") {
             HomeScreen(
                 // ViewModel의 데이터 전달
+                isloading = isLoading,
                 navController = navController,
                 diaryList = diaryList,               // List<Diary>
                 searchResults = searchResults,       // List<Diary>
