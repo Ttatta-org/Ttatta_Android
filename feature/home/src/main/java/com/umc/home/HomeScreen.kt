@@ -217,37 +217,37 @@ fun HomeScreen(
                     } else {
                         if (diaryList.isNotEmpty()){
 
-                        // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
-                        LazyColumn(
-                            state = lazyListState,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            item { Spacer(modifier = Modifier.height(50.dp)) }
-                            items(diaryList) { diary ->
-                                DiaryCard(
-                                    diary = diary,
-                                    onDetailClick = {
-                                        selectedDiaryId = diary.id
-                                        onShowDetailModal()
-                                    }
+                            // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
+                            LazyColumn(
+                                state = lazyListState,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                item { Spacer(modifier = Modifier.height(50.dp)) }
+                                items(diaryList) { diary ->
+                                    DiaryCard(
+                                        diary = diary,
+                                        onDetailClick = {
+                                            selectedDiaryId = diary.id
+                                            onShowDetailModal()
+                                        }
+                                    )
+                                }
+                            }
+                        } else {
+                            // ✅ 다이어리가 없을 경우 빈 화면 표시
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                contentAlignment = Alignment.BottomCenter // ✅ 이미지가 하단에 붙도록 정렬
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.invitation), // ✅ Drawable에 있는 이미지 사용
+                                    contentDescription = "초대장 이미지",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                 )
                             }
                         }
-                    } else {
-                        // ✅ 다이어리가 없을 경우 빈 화면 표시
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            contentAlignment = Alignment.BottomCenter // ✅ 이미지가 하단에 붙도록 정렬
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.invitation), // ✅ Drawable에 있는 이미지 사용
-                                contentDescription = "초대장 이미지",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
-                        }
-                    }
                     }
 //                    when {
 //                        isLoading -> {
