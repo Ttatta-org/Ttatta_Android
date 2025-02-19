@@ -317,6 +317,11 @@ class MapHandlerImpl @Inject constructor(
         markers.clear()
     }
 
+    override suspend fun dismissMarkerEvent() {
+        onPreviousMarkerDismissed?.invoke()
+        onPreviousMarkerDismissed = null
+    }
+
     private fun calculateClusteredMarkerSize(count: Int): Pair<Int, Int> {
         val density = context.resources.displayMetrics.density
         return listOf(clusteredMarkerMaxWidth, clusteredMarkerMaxHeight).map {

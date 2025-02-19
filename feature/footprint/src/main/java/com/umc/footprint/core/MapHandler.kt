@@ -33,4 +33,6 @@ interface MapHandler {
     suspend fun removeMarker(marker: MapMarker)
     suspend fun getAllMarkers(): List<MapMarker>
     suspend fun removeAllMarkers()
+
+    suspend fun dismissMarkerEvent()
 }

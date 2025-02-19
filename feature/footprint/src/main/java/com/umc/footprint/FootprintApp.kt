@@ -54,14 +54,25 @@ fun FootprintApp(
 
     LaunchedEffect(key1 = Unit) {
         // 뷰모델 정보 초기화
-        viewModel.initialize()
+        viewModel.getAllCategoryInfoFromServer()
+        viewModel.moveMapToCurrentPosition()
+        viewModel.getUserNameFromServer()
+        viewModel.selectShowingCategory(categoryId = null)
         // 위치 권한 확인
         isLocationMarkingEnabled = permissionRequester.checkLocationPermission(context = context)
     }
     
     // 일기가 새로 로드되었을 때마다 실행
     LaunchedEffect(key1 = viewModel.diaryMap) {
-        if (viewModel.diaryMap.isNotEmpty()) viewModel.diaryMap.values.forEach { diary ->
+        // 로딩에서 지워진 일기는 삭제
+        viewModel.diaryMap.values.map { diary -> diary.id }.toSet().let { ids ->
+            diaryCardLoadedPropMap.keys.toList().forEach { id ->
+                if (id !in ids) diaryCardLoadedPropMap.remove(id)
+            }
+        }
+        
+        // 로딩된 일기의 변경사항을 반영
+        viewModel.diaryMap.values.forEach { diary ->
             diaryCardLoadedPropMap[diary.id]?.let { diaryProp ->
                 // 일기가 사전에 로드된 적이 있을 때
                 diaryCardLoadedPropMap[diary.id] = diaryProp.copy(
@@ -89,7 +100,13 @@ fun FootprintApp(
                     }
                 )
             }
-        } else diaryCardLoadedPropMap.clear()
+        }
+
+        // 만약 일기가 전부 사라진 상태였을 경우
+        if (diaryCardLoadedPropMap.isEmpty()) {
+            viewModel.dismissSelectedMarker()
+            viewModel.getAllFootprint()
+        }
     }
 
     BackHandler(
