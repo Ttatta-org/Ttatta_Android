@@ -95,6 +95,7 @@ fun HomeScreen(
     lazyListState: LazyListState,
     isExpanded: Boolean,
     isSearchVisible: Boolean,
+    isSearchTriggered: Boolean,
     isCalendarVisible: Boolean,
     searchResults: List<Diary>,
     searchQuery: String,
@@ -146,7 +147,7 @@ fun HomeScreen(
 //
     var topBarHeight by remember { mutableStateOf(65.dp) }
 
-    var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
+//    var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
 
     var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
 
