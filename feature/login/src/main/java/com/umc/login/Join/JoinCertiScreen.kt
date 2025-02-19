@@ -27,7 +27,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun JoinCertiScreen(navController: NavHostController,viewModel: JoinViewModel = viewModel()) {
     Column(modifier = Modifier.wrapContentSize()) {
-        JoinCertiView(viewModel =viewModel,onNext = { navController.navigate("join_pw") })
+        JoinCertiView(viewModel =viewModel,onNext = { navController.navigate("join_end") })
     }
 }
 
@@ -55,7 +55,13 @@ fun JoinCertiView(viewModel: JoinViewModel, onNext: () -> Unit) {
 
         CertiInputTextField(
             value = certiCode,
-            onValueChange = viewModel::onCertiCodeChange,
+            onValueChange = {
+                viewModel.onCertiCodeChange(
+                    newCode = it,
+                    onSuccess = { onNext() },
+                    onFailure = { }
+                )
+            },
             placeholder = stringResource(R.string.join_certification_comment),
             timer = timer,
             errorMessage = certiError
@@ -78,7 +84,7 @@ fun JoinCertiView(viewModel: JoinViewModel, onNext: () -> Unit) {
             onClick = {  viewModel.verifyCertiCode(
                 onSuccess = { onNext() },
                 onFailure = { }
-            ) },
+            ) }, // 이메일 다시 보내는 로직
             modifier = Modifier
                 .width(310.dp)
                 .height(45.dp),
