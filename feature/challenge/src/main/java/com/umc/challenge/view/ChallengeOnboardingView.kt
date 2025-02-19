@@ -131,6 +131,7 @@ fun ChallengeOnboardingView(
                 // 새 챌린지 버튼
                 ElevatedButton(
                     onClick = prop.onNewChallengeButtonClicked,
+                    enabled = prop.challengeItemPropList.size < 3,
                     elevation = ButtonDefaults.elevatedButtonElevation(
                         defaultElevation = 4.dp
                     ),
