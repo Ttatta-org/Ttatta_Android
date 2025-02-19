@@ -1,6 +1,8 @@
 package com.umc.record
 
 import android.graphics.BitmapFactory
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
@@ -84,6 +86,17 @@ fun RecordApp(
         var showCategoryDropdown by remember { mutableStateOf(false) }
         var selectedCategory by remember { mutableStateOf(viewModel.categoryInfos.find { it.name == "일상" }!!) }
 
+        LaunchedEffect(key1 = Unit) {
+            coordinates?.let { location ->
+                viewModel.searchLocation(
+                    latitude = location.first,
+                    longitude = location.second,
+                    onSucceed = { locationName = it },
+                    onFailed = { /* TODO */ }
+                )
+            }
+        }
+
         NavHost(
             navController = navController,
             startDestination = "onboarding"
@@ -123,6 +136,12 @@ fun RecordApp(
                                     onSucceed = { onDone() },
                                     onFailed = { /* TODO */ }
                                 )
+                            } ?: run {
+                                Toast.makeText(
+                                    context,
+                                    "위치를 설정해 주세요!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         },
                         onDiaryContentChanged = { diaryContent = it }
@@ -170,6 +189,17 @@ fun RecordApp(
                         )
                     }
                 )
+
+                LaunchedEffect(key1 = Unit) {
+                    coordinates?.let { location ->
+                        viewModel.movePin(
+                            latitude = location.first,
+                            longitude = location.second,
+                            onSucceed = { /* TODO */ },
+                            onFailed = { /* TODO */ }
+                        )
+                    }
+                }
             }
         }
     }
