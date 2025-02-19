@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -108,6 +109,7 @@ fun TopBar(
                         contentAlignment = Alignment.CenterStart,
                         modifier = Modifier
                             .weight(1f)
+                            .height(32.dp)
                             .border(
                                 width = 1.dp,
                                 color = Color(0xFFFF9681),
@@ -125,9 +127,7 @@ fun TopBar(
                                 fontSize = 12.sp,
                                 color = Color.Black
                             ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                         ) { innerTextField ->
                             innerTextField()
                             if (prop.searchWord.isEmpty()) Text(

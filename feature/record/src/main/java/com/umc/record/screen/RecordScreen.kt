@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -96,6 +97,8 @@ fun RecordScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
+                        start = 16.dp,
+                        end = 16.dp,
                         top = 32.dp + WindowInsets.systemBars
                             .asPaddingValues()
                             .calculateTopPadding()
@@ -134,6 +137,7 @@ fun RecordScreen(
                 // 위치
                 Row(
                     modifier = Modifier
+                        .weight(1f, fill = false)
                         .background(
                             color = Color(0xFEF6F2E5),
                             shape = RoundedCornerShape(percent = 50)
@@ -252,7 +256,7 @@ fun PreviewRecordScreen() {
             context.resources.openRawResource(R.raw.img_test)
         ).asImageBitmap(),
         date = LocalDateTime.now(),
-        location = "Cafe PORTE",
+        location = "Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE",
         selectedCategoryColor = CategoryColor.GREEN,
         categoryDropdownProp = previewCategoryDropdownProp,
         diaryBottomSheetProp = previewDiaryBottomSheetProp,
