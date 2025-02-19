@@ -54,40 +54,51 @@ class UserRepositoryImpl @Inject constructor(
         serverApi.withCheck { signUp(body = body) }
     }
 
-    override suspend fun loginWithKakao(kakaoToken: String) {
-        val body = SignInKakaoRequestDTO(kakaoToken = kakaoToken)
-        val response = serverApi.withCheck { signInKakao(body = body) }
-        authPreference.accessToken = response.accessToken
-        authPreference.refreshToken = response.refreshToken
-        authPreference.userId = response.userId
+    override suspend fun tryLoginWithKakao(openIdToken: String): Boolean {
+        val response = serverApi.withCheck { serverApi.validKakaoToken(idToken = openIdToken) }
+        return response.isRegistered
     }
 
-    override suspend fun joinWithKakao(
-        kakaoToken: String,
-        name: String,
-        nickname: String,
-        email: String
-    ) {
-        val body = SignUpKakaoRequestDTO(
-            kakaoToken = kakaoToken,
-            nickname = name,
-        )
-        serverApi.withCheck { signUpKakao(body = body) }
+    override suspend fun postUserInfoWhenFirstKakaoLogin(openIdToken: String, nickname: String) {
+        val body = SignUpKakaoRequestDTO(nickname = nickname)
+        serverApi.signUpKakao(idToken = openIdToken, body = body)
     }
 
     override suspend fun requestVerificationCodeForJoining(email: String) {
-        TODO("Not yet implemented")
+        val body = SendVerificationMailSignUpRequestDTO(email = email)
+        serverApi.withCheck { sendVerificationMailSignUp(body = body) }
     }
 
-    override suspend fun checkVerificationCodeForJoining(code: Int): Boolean {
-        TODO("Not yet implemented")
+    override suspend fun checkVerificationCodeForJoining(email: String, code: Int): Boolean {
+        val body = CheckVerificationCodeRequestDTO(email = email, code = code.toString())
+        return try {
+            serverApi.withCheck { checkVerificationCodeSignUp(body = body) }
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
-    override suspend fun requestEmailForFindingId(email: String) {
-        TODO("Not yet implemented")
+    override suspend fun requestEmailForFindingId(name: String, email: String) {
+        TODO()
     }
 
-    override suspend fun requestEmailForFindingPassword(email: String, id: String) {
+    override suspend fun checkVerificationCodeForFindingId(
+        email: String,
+        code: Int
+    ): Pair<String, String> {
+        TODO()
+    }
+
+    override suspend fun requestEmailForFindingPassword(name: String, email: String, id: String) {
+        TODO()
+    }
+
+    override suspend fun checkIdForFindingPassword(id: String): Boolean {
+        TODO()
+    }
+
+    override suspend fun changePassword(email: String, newPassword: String) {
         TODO("Not yet implemented")
     }
 
