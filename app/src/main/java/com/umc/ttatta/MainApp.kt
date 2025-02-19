@@ -115,7 +115,7 @@ fun MainApp(
         navigationBarProp = if (showNavBar) NavigationBarProp(
             currentNavigationItem = currentNavigationItem,
             onNavigate = {
-                when (it) {
+                if (it != currentNavigationItem) when (it) {
                     NavigationItem.DIARY,
                     NavigationItem.FOOTPRINT,
                     NavigationItem.MY_PAGE -> navigator.navigate(
