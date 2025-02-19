@@ -69,6 +69,11 @@ fun ChallengeApp(
         composable("challenge") {
             var clickedUncompletedChallengeInfo by remember { mutableStateOf<ClickedUncompletedChallengeInfo?>(null) }
 
+            LaunchedEffect(key1 = Unit) {
+                viewModel.getTodayChallenges()
+                viewModel.getEquippedItems()
+            }
+
             ChallengeScreen(
                 topBarProp = ChallengeScreenTopBarProp(
                     point = viewModel.point,
@@ -130,6 +135,8 @@ fun ChallengeApp(
                         var title by remember { mutableStateOf("") }
                         var description by remember { mutableStateOf("") }
 
+                        LaunchedEffect(key1 = Unit) { viewModel.getFailedChallenges() }
+
                         NewChallengeView(
                             prop = NewChallengeViewProp(
                                 maxTitleLength = 20,
@@ -162,6 +169,11 @@ fun ChallengeApp(
         
         composable("shop") {
             var clickedShopItemInfo by remember { mutableStateOf<ClickedShopItemInfo?>(null) }
+
+            LaunchedEffect(key1 = Unit) {
+                viewModel.getEquippedItems()
+                viewModel.getShopItems()
+            }
 
             ShopScreen(
                 point = viewModel.point,
@@ -203,6 +215,11 @@ fun ChallengeApp(
         
         composable("my_item") {
             var clickedOwnedItemInfo by remember { mutableStateOf<ClickedOwnedItemInfo?>(null) }
+
+            LaunchedEffect(key1 = Unit) {
+                viewModel.getEquippedItems()
+                viewModel.getOwnedItems()
+            }
 
             MyItemScreen(
                 point = viewModel.point,

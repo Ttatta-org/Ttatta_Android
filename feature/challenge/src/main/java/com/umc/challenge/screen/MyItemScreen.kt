@@ -84,7 +84,7 @@ fun MyItemScreen(
     onShopIconClicked: () -> Unit,
 ) {
     val density = LocalDensity.current
-    val gridState = rememberLazyGridState()
+    val scrollState = rememberLazyGridState()
 
     var topBarHeight by remember { mutableStateOf(0.dp) }
     var chipMenuVerticalOffset by remember { mutableStateOf(0.dp) }
@@ -141,31 +141,72 @@ fun MyItemScreen(
                         modifier = Modifier.size(32.dp)
                     )
                 }
-                if (clickedItemProp == null) LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    state = gridState,
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
+                if (clickedItemProp == null) Box(
+                    modifier = Modifier.weight(1f)
                 ) {
-                    items(myItemItemItemPropList.size) { index ->
-                        MyItemItemItem(prop = myItemItemItemPropList[index])
-                    }
-                    item { 
-                        Spacer(
-                            modifier = Modifier.height(
-                                WindowInsets.systemBars
-                                    .asPaddingValues()
-                                    .calculateBottomPadding()
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        state = scrollState,
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier
+                    ) {
+                        items(myItemItemItemPropList.size) { index ->
+                            MyItemItemItem(prop = myItemItemItemPropList[index])
+                        }
+                        item {
+                            Spacer(
+                                modifier = Modifier.height(
+                                    WindowInsets.systemBars
+                                        .asPaddingValues()
+                                        .calculateBottomPadding()
+                                )
                             )
-                        )
+                        }
+                    }
+                    // 하얀 블러처리
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        if (scrollState.canScrollForward) Box(
+                            contentAlignment = Alignment.BottomCenter,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .height(48.dp)
+                                    .fillMaxWidth()
+                                    .background(
+                                        brush = Brush.verticalGradient(
+                                            0f to Color.Transparent,
+                                            1f to Color.White,
+                                        ),
+                                    )
+                            )
+                        }
+                        if (scrollState.canScrollBackward) Box(
+                            contentAlignment = Alignment.TopCenter,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .height(48.dp)
+                                    .fillMaxWidth()
+                                    .background(
+                                        brush = Brush.verticalGradient(
+                                            0f to Color.White,
+                                            1f to Color.Transparent,
+                                        ),
+                                    )
+                            )
+                        }
                     }
                 } else Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier
-                        .fillMaxSize()
+                        .weight(1f)
                         .padding(
                             bottom = WindowInsets.systemBars
                                 .asPaddingValues()
@@ -225,6 +266,11 @@ fun MyItemScreen(
                         }
                     }
                 }
+                Spacer(
+                    modifier = Modifier.height(
+                        WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+                    )
+                )
             }
         }
         // 탑 바

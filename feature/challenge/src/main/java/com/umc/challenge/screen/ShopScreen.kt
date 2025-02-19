@@ -10,11 +10,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -31,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -74,6 +78,7 @@ fun ShopScreen(
     onMyItemsIconClicked: () -> Unit
 ) {
     val density = LocalDensity.current
+    val scrollState = rememberLazyGridState()
 
     var topBarHeight by remember { mutableStateOf(0.dp) }
     var chipMenuVerticalOffset by remember { mutableStateOf(0.dp) }
@@ -126,18 +131,64 @@ fun ShopScreen(
                         modifier = Modifier.size(32.dp)
                     )
                 }
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    state = rememberLazyGridState(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize()
+                Box(
+                    modifier = Modifier.weight(1f)
                 ) {
-                    items(shopItemItemPropList.size) { index ->
-                        ShopItemItem(prop = shopItemItemPropList[index])
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        state = scrollState,
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(shopItemItemPropList.size) { index ->
+                            ShopItemItem(prop = shopItemItemPropList[index])
+                        }
+                    }
+                    // 하얀 블러처리
+                    Box(
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        if (scrollState.canScrollForward) Box(
+                            contentAlignment = Alignment.BottomCenter,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .height(48.dp)
+                                    .fillMaxWidth()
+                                    .background(
+                                        brush = Brush.verticalGradient(
+                                            0f to Color.Transparent,
+                                            1f to Color.White,
+                                        ),
+                                    )
+                            )
+                        }
+                        if (scrollState.canScrollBackward) Box(
+                            contentAlignment = Alignment.TopCenter,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .height(48.dp)
+                                    .fillMaxWidth()
+                                    .background(
+                                        brush = Brush.verticalGradient(
+                                            0f to Color.White,
+                                            1f to Color.Transparent,
+                                        ),
+                                    )
+                            )
+                        }
                     }
                 }
+                Spacer(
+                    modifier = Modifier.height(
+                        WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+                    )
+                )
             }
         }
         // 탑 바

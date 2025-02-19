@@ -35,34 +35,30 @@ class ChallengeViewModel @Inject constructor(
     val failedChallenges get() = failedChallengesState.value
     val todayChallenges get() = todayChallengesState.value
 
-    init { initialize() }
-
-    fun initialize() {
-        getItemInfos(
-            onSucceed = {},
-            onFailed = {}
-        )
-        getChallengeInfos(
-            onSucceed = {},
-            onFailed = {}
-        )
+    fun getEquippedItems(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            try {
+                val equipped = itemRepository.getEquippedItems()
+                equippedAccessorySetState.value = AccessorySet.create(equipped.map { it.item })
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
     }
 
-    private fun getItemInfos(
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit
+    fun getShopItems(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {}
     ) {
         viewModelScope.launch {
             try {
                 val (point, unownedItems) = itemRepository.getUnownedItemsWithPoint()
-                val (_, ownedItems) = itemRepository.getOwnedItemsWithPoint()
-                val equipped = itemRepository.getEquippedItems()
-
                 pointState.intValue = point
                 unownedItemsState.value = unownedItems
-                ownedItemsState.value = ownedItems
-                equippedAccessorySetState.value = AccessorySet.create(equipped.map { it.item })
-
                 onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
@@ -70,34 +66,61 @@ class ChallengeViewModel @Inject constructor(
         }
     }
 
-    private fun getChallengeInfos(
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit
+    fun getOwnedItems(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            try {
+                val (point, ownedItems) = itemRepository.getOwnedItemsWithPoint()
+                pointState.intValue = point
+                ownedItemsState.value = ownedItems
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
+
+    fun getTodayChallenges(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {}
     ) {
         viewModelScope.launch {
             try {
                 val todayChallenges = challengeRepository.getChallenges()
-                val failedChallenges = challengeRepository.getFailedChallenges()
-
                 todayChallengesState.value = todayChallenges
-                failedChallengesState.value = failedChallenges
-
                 onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
             }
         }
     }
-    
+
+    fun getFailedChallenges(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {}
+    ) {
+        viewModelScope.launch {
+            try {
+                val failedChallenges = challengeRepository.getFailedChallenges()
+                failedChallengesState.value = failedChallenges
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
+
     fun purchaseItem(
         id: Long,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {}
     ) {
         viewModelScope.launch {
             try {
                 itemRepository.purchaseItem(id)
-                getItemInfos(
+                getEquippedItems(
                     onSucceed = onSucceed,
                     onFailed = { throw it }
                 )
@@ -110,14 +133,14 @@ class ChallengeViewModel @Inject constructor(
     fun equipItem(
         id: Long,
         isEquipping: Boolean,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {}
     ) {
         viewModelScope.launch {
             try {
                 if (isEquipping) itemRepository.equipItem(id)
                 else itemRepository.disrobeItem(id)
-                getItemInfos(
+                getEquippedItems(
                     onSucceed = onSucceed,
                     onFailed = { throw it }
                 )
@@ -130,13 +153,13 @@ class ChallengeViewModel @Inject constructor(
     fun createChallenge(
         title: String,
         description: String,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {}
     ) {
         viewModelScope.launch {
             try {
                 challengeRepository.createChallenge(title, description)
-                getChallengeInfos(
+                getTodayChallenges(
                     onSucceed = onSucceed,
                     onFailed = { throw it }
                 )
