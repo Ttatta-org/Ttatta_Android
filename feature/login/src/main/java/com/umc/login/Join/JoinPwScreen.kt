@@ -62,8 +62,9 @@ fun JoinPwView(viewModel: JoinViewModel, onNext: () -> Unit) {
     val confirmPasswordState by viewModel.confirmPasswordState.collectAsState()
     val isPasswordValid by viewModel.isPasswordValid.collectAsState()
     val isPasswordMatched by viewModel.isPasswordMatched.collectAsState()
-    var passwordVisible by remember { mutableStateOf(false) }
-
+    // ✅ ViewModel에서 가시성 상태 가져오기
+    val isPasswordVisible by viewModel.isPasswordVisible.collectAsState()
+    val isConfirmPasswordVisible by viewModel.isConfirmPasswordVisible.collectAsState()
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -84,8 +85,8 @@ fun JoinPwView(viewModel: JoinViewModel, onNext: () -> Unit) {
             onValueChange = viewModel::onPasswordChange,
             placeholder = stringResource(R.string.join_pw_comment),
             isPassword = true,
-            passwordVisible = passwordVisible,
-            onPasswordToggleClick = { passwordVisible = !passwordVisible }
+            passwordVisible = isPasswordVisible,
+            onPasswordToggleClick = { viewModel.togglePasswordVisibility() }
         )
         Spacer(modifier = Modifier.height(5.dp))
 
@@ -105,8 +106,8 @@ fun JoinPwView(viewModel: JoinViewModel, onNext: () -> Unit) {
                 onValueChange = viewModel::onConfirmPasswordChange,
                 placeholder = stringResource(R.string.join_pw_check),
                 isPassword = true,
-                passwordVisible = passwordVisible,
-                onPasswordToggleClick = { passwordVisible = !passwordVisible }
+                passwordVisible = isConfirmPasswordVisible,
+                onPasswordToggleClick = { viewModel.toggleConfirmPasswordVisibility() }
             )
 
             Spacer(modifier = Modifier.height(5.dp))
