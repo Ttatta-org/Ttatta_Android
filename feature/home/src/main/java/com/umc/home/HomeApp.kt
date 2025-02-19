@@ -32,6 +32,7 @@ fun HomeApp(viewModel: HomeViewModel) {
         viewModel.loadDiaries(page = 0,isFiltered = false, date = null)
         //viewModel.loadAllDiaries()
         viewModel.loadAllRecordedDates()
+        viewModel.loadCategories()
     }
 
     val navController = rememberNavController()
