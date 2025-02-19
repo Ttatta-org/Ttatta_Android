@@ -5,11 +5,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.painter.Painter
 import kotlin.math.min
 
 class RecursivePainter private constructor(
-    private val root: RenderInfo
+    private val root: RenderInfo,
 ) : Painter() {
 
     companion object {
@@ -30,10 +31,10 @@ class RecursivePainter private constructor(
             with(root) {
                 canvas.save()
                 canvas.translate(horizontalPadding, verticalPadding)
-                canvas.scale(scaleFactor, scaleFactor)
                 render(
                     canvas = canvas,
-                    offset = Offset.Zero
+                    offset = Offset.Zero,
+                    scaleFactor = scaleFactor,
                 )
                 canvas.restore()
             }
@@ -49,18 +50,20 @@ interface RenderInfo {
     fun DrawScope.render(
         canvas: Canvas,
         offset: Offset,
+        scaleFactor: Float,
     ) {
         painter?.let { painter ->
             canvas.save()
             canvas.translate(offset.x, offset.y)
-            with(painter) { draw(size = originalSize) }
+            with(painter) { draw(size = originalSize * scaleFactor) }
             canvas.restore()
         }
         children.forEach { child ->
             with(child.info) {
                 render(
                     canvas = canvas,
-                    offset = offset + child.offset
+                    offset = offset + child.offset * scaleFactor,
+                    scaleFactor = scaleFactor
                 )
             }
         }
