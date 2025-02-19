@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,12 +35,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -69,6 +73,7 @@ fun CategoryModificationBar(
     prop: CategoryModificationBarProp
 ) {
     val density = LocalDensity.current
+    val keyboard = LocalSoftwareKeyboardController.current
     val bottom = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
 
     ModalBottomSheet(
@@ -133,6 +138,8 @@ fun CategoryModificationBar(
                                 BasicTextField(
                                     value = prop.categoryNameInputFieldValue,
                                     onValueChange = prop.onCategoryNameInputFieldValueChanged,
+                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                    keyboardActions = KeyboardActions(onDone = { keyboard?.hide() }),
                                     textStyle = TextStyle(
                                         fontSize = 12.sp
                                     )
