@@ -76,7 +76,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // 의존성 정의
-    implementation(project(":feature:login"))
+    // implementation(project(":feature:login"))
     implementation(project(":feature:challenge"))
     implementation(project(":feature:footprint"))
     implementation(project(":feature:mypage"))
