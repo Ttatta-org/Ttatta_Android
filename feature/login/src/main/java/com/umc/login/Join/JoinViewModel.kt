@@ -94,6 +94,9 @@ class JoinViewModel @Inject constructor(
     private val _isConfirmPasswordVisible = MutableStateFlow(false)
     val isConfirmPasswordVisible: StateFlow<Boolean> = _isConfirmPasswordVisible.asStateFlow()
 
+    private val _isNavigationTriggered = MutableStateFlow(false)
+    val isNavigationTriggered: StateFlow<Boolean> = _isNavigationTriggered.asStateFlow()
+
     // 버튼 활성화 조건 수정 (공백만 입력되거나 2자 미만인 경우 비활성화)
     val isNicknameButtonEnabled: StateFlow<Boolean> = combine(
         _nickNameState, _nicknameError, _isLoading
@@ -245,6 +248,14 @@ class JoinViewModel @Inject constructor(
         }
     }
 
+    fun triggerNavigation() {
+        _isNavigationTriggered.value = true
+    }
+
+    fun resetNavigationTrigger() {
+        _isNavigationTriggered.value = false
+    }
+
     fun onCertiCodeChange(
         newCode: String,
         onSuccess: () -> Unit,
@@ -252,32 +263,63 @@ class JoinViewModel @Inject constructor(
     ) {
         if (newCode.length <= 6) {
             _certiCodeState.value = newCode
-            _certiError.value = null // 입력 시 기존 에러 제거
+            _certiError.value = null // 에러 초기화
         }
 
-        if (newCode.length == 6) {
+        if (newCode.length == 6) { // 6자리 입력 시 자동 검증 및 회원가입 진행
             viewModelScope.launch {
                 try {
-                    val isValid = userRepository.checkVerificationCodeForJoining(_certiCodeState.value.toIntOrNull() ?: -1)
+                    val email = "${_emailLocalPartState.value}@${_emailDomainState.value}"
+                    val certiCode = newCode.trim()
+
+                    println("🔍 인증번호 입력됨: $certiCode, 이메일: $email")
+
+                    val isValid = userRepository.checkVerificationCodeForJoining(email, certiCode)
+
                     if (isValid) {
+                        println("✅ 인증 성공! 회원가입 진행 시작...")
+
+                        // 회원가입 진행
                         userRepository.join(
                             nickname = _nickNameState.value,
                             id = _idState.value,
                             password = _passwordState.value,
                             name = _nameState.value,
-                            email = "${_emailLocalPartState.value}@${_emailDomainState.value}"
+                            email = email
                         )
+
+                        println("✅ 회원가입 완료! onSuccess() 실행됨")
                         onSuccess()
                     } else {
-                        _certiError.value = "인증번호가 올바르지 않습니다."
-                        throw Exception()
+                        _certiError.value = "❌ 인증번호가 올바르지 않습니다."
+                        println("❌ 인증 실패: 인증번호가 올바르지 않음")
                     }
                 } catch (e: Exception) {
+                    _certiError.value = "❌ 인증 과정에서 오류가 발생했습니다."
+                    println("❌ 인증 중 오류 발생: ${e.message}")
                     onFailure()
                 }
             }
         }
     }
+
+    fun requestVerificationCode(
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val email = "${_emailLocalPartState.value}@${_emailDomainState.value}"
+                userRepository.requestVerificationCodeForJoining(email)
+                _emailError.value = null // 기존 에러 제거
+                onSuccess()
+            } catch (e: Exception) {
+                _emailError.value = "이메일 발송에 실패했습니다."
+                onFailure("이메일 발송에 실패했습니다.")
+            }
+        }
+    }
+
 
     private fun startTimer() {
         viewModelScope.launch {
@@ -323,23 +365,23 @@ class JoinViewModel @Inject constructor(
         }
     }
 
-    @Deprecated("Do not use")
-    fun verifyCertiCode(onSuccess: () -> Unit, onFailure: () -> Unit) {
-        viewModelScope.launch {
-            val isValid = userRepository.checkVerificationCodeForJoining(_certiCodeState.value.toIntOrNull() ?: -1)
-            if (isValid) {
-                userRepository.join(
-                    nickname = _nickNameState.value,
-                    id = _idState.value,
-                    password = _passwordState.value,
-                    name = _nameState.value,
-                    email = "${_emailLocalPartState.value}@${_emailDomainState.value}"
-                )
-                onSuccess()
-            } else {
-                _certiError.value = "인증번호가 올바르지 않습니다."
-                onFailure()
-            }
-        }
-    }
+//    @Deprecated("Do not use")
+//    fun verifyCertiCode(onSuccess: () -> Unit, onFailure: () -> Unit) {
+//        viewModelScope.launch {
+//            val isValid = userRepository.checkVerificationCodeForJoining(_certiCodeState.value.toIntOrNull() ?: -1)
+//            if (isValid) {
+//                userRepository.join(
+//                    nickname = _nickNameState.value,
+//                    id = _idState.value,
+//                    password = _passwordState.value,
+//                    name = _nameState.value,
+//                    email = "${_emailLocalPartState.value}@${_emailDomainState.value}"
+//                )
+//                onSuccess()
+//            } else {
+//                _certiError.value = "인증번호가 올바르지 않습니다."
+//                onFailure()
+//            }
+//        }
+//    }
 }
