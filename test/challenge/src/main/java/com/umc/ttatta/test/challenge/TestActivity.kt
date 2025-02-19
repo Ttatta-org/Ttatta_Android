@@ -34,11 +34,11 @@ class TestActivity: ComponentActivity() {
 
             ChallengeApp(
                 viewModel = viewModel,
+                showPointGrantedPopup = false,
                 onNavigationBarVisibilityChanged = {},
-                onChallengeCompletionRequired = { id, onSuccess ->
+                onChallengeCompletionRequired = { id ->
                     scope.launch {
                         challengeRepository.completeChallenge(id = id)
-                        onSuccess()
                     }
                 }
             )

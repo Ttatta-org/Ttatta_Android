@@ -36,7 +36,10 @@ class TestActivity: ComponentActivity() {
                     .fillMaxSize()
                     .background(Color.White)
             ) {
-                CategoryApp(viewModel = viewModel)
+                CategoryApp(
+                    showTopBar = true,
+                    viewModel = viewModel
+                )
             }
         }
     }
