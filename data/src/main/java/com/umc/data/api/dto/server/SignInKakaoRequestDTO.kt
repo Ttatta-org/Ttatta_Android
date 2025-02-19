@@ -14,9 +14,9 @@ package com.umc.data.api.dto.server
 
 /**
  * 
- * @param kakaoToken 
+ * @param nickname
  */
 data class SignInKakaoRequestDTO (
 
-    val kakaoToken: String? = null
+    val nickname: String? = null
 )

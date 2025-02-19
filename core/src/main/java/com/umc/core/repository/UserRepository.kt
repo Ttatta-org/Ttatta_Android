@@ -7,7 +7,6 @@ interface UserRepository {
     suspend fun isIdAlreadyOccupied(id: String): Boolean
 
     suspend fun login(id: String, password: String)
-    suspend fun loginWithKakao(kakaoToken: String)
     suspend fun logout()
 
     suspend fun join(
@@ -18,18 +17,19 @@ interface UserRepository {
         email: String,
     )
 
-    suspend fun joinWithKakao(
-        kakaoToken: String,
-        name: String,
-        nickname: String,
-        email: String,
-    )
+    suspend fun tryLoginWithKakao(openIdToken: String): Boolean  // 기존 가입 여부
+    suspend fun postUserInfoWhenFirstKakaoLogin(openIdToken: String, nickname: String)
 
-    // 확인 코드 인증은 아직 미완성된 API
     suspend fun requestVerificationCodeForJoining(email: String)
-    suspend fun checkVerificationCodeForJoining(code: Int): Boolean
-    suspend fun requestEmailForFindingId(email: String)
-    suspend fun requestEmailForFindingPassword(email: String, id: String)
+    suspend fun checkVerificationCodeForJoining(email: String, code: Int): Boolean
+
+    suspend fun requestEmailForFindingId(name: String, email: String)
+    suspend fun checkVerificationCodeForFindingId(email: String, code: Int): Pair<String, String>  // (이름, ID)
+
+    suspend fun requestEmailForFindingPassword(name: String, email: String, id: String)
+    suspend fun checkIdForFindingPassword(id: String): Boolean
+    suspend fun changePassword(email: String, newPassword: String)
+
 
     suspend fun getUserInfo(): UserInfo
     suspend fun modifyUserInfo(
