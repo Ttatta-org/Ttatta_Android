@@ -339,7 +339,10 @@ fun NameInputTextField(
                 )
             }
         },
-        keyboardOptions = KeyboardOptions.Default,
+        keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardType = KeyboardType.Text, // 텍스트 입력만 가능 (숫자 제외)
+            imeAction = androidx.compose.ui.text.input.ImeAction.Done
+        ),
         modifier = Modifier.width(310.dp).height(51.dp),
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color.Transparent,
