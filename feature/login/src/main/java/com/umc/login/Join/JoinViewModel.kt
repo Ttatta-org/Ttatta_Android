@@ -80,6 +80,12 @@ class JoinViewModel @Inject constructor(
     private val _isPasswordMatched = MutableStateFlow(false)
     val isPasswordMatched: StateFlow<Boolean> = _isPasswordMatched.asStateFlow()
 
+    private val _isPasswordVisible = MutableStateFlow(false)
+    val isPasswordVisible: StateFlow<Boolean> = _isPasswordVisible.asStateFlow()
+
+    private val _isConfirmPasswordVisible = MutableStateFlow(false)
+    val isConfirmPasswordVisible: StateFlow<Boolean> = _isConfirmPasswordVisible.asStateFlow()
+
     // 버튼 활성화 조건 수정 (공백만 입력되거나 2자 미만인 경우 비활성화)
     val isNicknameButtonEnabled: StateFlow<Boolean> = combine(
         _nickNameState, _nicknameError, _isLoading
@@ -148,6 +154,15 @@ class JoinViewModel @Inject constructor(
 
         // 아이디 변경 시 중복 확인 플래그 초기화
         _isIdAvailable.value = false
+    }
+
+    // ✅ 비밀번호 가시성 토글 함수
+    fun togglePasswordVisibility() {
+        _isPasswordVisible.value = !_isPasswordVisible.value
+    }
+
+    fun toggleConfirmPasswordVisibility() {
+        _isConfirmPasswordVisible.value = !_isConfirmPasswordVisible.value
     }
 
     fun onPasswordChange(newPassword: String) {
