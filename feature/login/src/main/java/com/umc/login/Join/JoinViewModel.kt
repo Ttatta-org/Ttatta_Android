@@ -26,7 +26,8 @@ class JoinViewModel @Inject constructor(
     private val _idState = MutableStateFlow("")
     val idState: StateFlow<String> = _idState.asStateFlow()
 
-    private val _passwordState = MutableStateFlow("")
+    private val _passwordState =
+        MutableStateFlow("")
     val passwordState: StateFlow<String> = _passwordState.asStateFlow()
 
     private val _confirmPasswordState = MutableStateFlow("")
