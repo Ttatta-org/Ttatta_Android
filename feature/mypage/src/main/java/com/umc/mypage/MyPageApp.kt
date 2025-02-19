@@ -15,6 +15,7 @@ import androidx.navigation.NavHostController
 @Composable
 fun MyPageApp(
     viewModel: MyPageViewModel,
+    onLoginCanceled: () -> Unit
 ) {
 
     LaunchedEffect(Unit) {
@@ -31,8 +32,24 @@ fun MyPageApp(
         userInfo = userInfo,
         isLoading = isLoading,
         errorMessage = errorMessage,
-        onLogout = { viewModel.logout(onSuccess = {}, onError = {}) },
-        onLeaveUser = { viewModel.leaveUser(onSuccess = {}, onError = {}) },
+        // ✅ 로그아웃 성공 시 `onLoginCanceled` 호출하여 로그인 화면으로 이동
+        onLogout = {
+            viewModel.logout(
+                onSuccess = {
+                    onLoginCanceled() // ✅ 로그아웃 후 로그인 화면으로 이동
+                },
+                onError = { /* 오류 처리 가능 */ }
+            )
+        },
+        // ✅ 회원 탈퇴 성공 시 `onLoginCanceled` 호출하여 로그인 화면으로 이동
+        onLeaveUser = {
+            viewModel.leaveUser(
+                onSuccess = {
+                    onLoginCanceled() // ✅ 회원 탈퇴 후 로그인 화면으로 이동
+                },
+                onError = { /* 오류 처리 가능 */ }
+            )
+        },
         onFabClick = { /* FAB 클릭 이벤트 처리 */ },
     )
 }
