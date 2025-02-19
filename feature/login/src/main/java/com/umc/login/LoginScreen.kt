@@ -169,7 +169,7 @@ fun LoginMiddleView(idState: String,
                 .width(310.dp)
                 .padding(top = 30.dp)
                 .height(45.dp),
-            shape = RoundedCornerShape(24.dp), // 라운딩 처리
+            shape = RoundedCornerShape(28.dp), // 라운딩 처리
             colors = ButtonDefaults.buttonColors(
                 containerColor = if (isButtonActive) colorResource(R.color.orange_200) else colorResource(R.color.yellow_300)
             )
@@ -276,7 +276,7 @@ fun KakaoLoginButton() {
             .width(310.dp)
             .padding(top = 10.dp)
             .height(45.dp),
-        shape = RoundedCornerShape(24.dp), // 라운딩 처리
+        shape = RoundedCornerShape(28.dp), // 라운딩 처리
         colors = ButtonDefaults.buttonColors(
             containerColor = colorResource(R.color.kakaoYellow)
         )

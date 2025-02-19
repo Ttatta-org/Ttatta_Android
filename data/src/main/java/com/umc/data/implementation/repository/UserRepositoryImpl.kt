@@ -1,5 +1,6 @@
 package com.umc.data.implementation.repository
 
+import androidx.compose.ui.platform.LocalContext
 import com.umc.core.model.LoginType
 import com.umc.core.model.UserInfo
 import com.umc.core.model.UserStatus
@@ -61,6 +62,7 @@ class UserRepositoryImpl @Inject constructor(
         authPreference.refreshToken = response.refreshToken
         authPreference.userId = response.userId
     }
+
 
     override suspend fun joinWithKakao(
         kakaoToken: String,

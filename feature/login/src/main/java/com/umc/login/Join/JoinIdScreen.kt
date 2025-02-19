@@ -88,7 +88,9 @@ fun JoinIdView(viewModel: JoinViewModel, onNext: () -> Unit) {
             onValueChange = viewModel::onIdChange,
             onImeAction = {
                 keyboardController?.hide()
-                viewModel.checkIdAvailability()
+                viewModel.checkIdAvailability(
+
+                )
             },
             placeholder = stringResource(R.string.join_id_comment),
             isWarning = isWarningVisible,
@@ -96,15 +98,30 @@ fun JoinIdView(viewModel: JoinViewModel, onNext: () -> Unit) {
             isLoading = isLoading
         )
 
-        Spacer(modifier = Modifier.height(5.dp))
+        // 경고 문구
+        if (idError != null) {
+            Text(
+                text = idError!!,
+                color = colorResource(R.color.negativeRed),
+                fontSize = 12.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight(400)
 
-        Text(
-            text = stringResource(R.string.join_id_small_comment),
-            color = if (isWarningVisible) colorResource(R.color.negativeRed) else colorResource(R.color.gray_400),
-            fontSize = 12.sp,
-            lineHeight = 20.sp,
-            fontWeight = FontWeight(400)
-        )
+            )
+        }
+        else{
+            Text(
+                text = stringResource(R.string.join_id_small_comment),
+                color = if (isWarningVisible) colorResource(R.color.negativeRed) else colorResource(R.color.gray_400),
+                fontSize = 12.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight(400)
+            )
+
+        }
+
+
+
         Spacer(modifier = Modifier.height(101.dp))
 
         Button(
