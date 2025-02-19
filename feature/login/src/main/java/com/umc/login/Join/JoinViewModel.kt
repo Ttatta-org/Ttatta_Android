@@ -152,9 +152,22 @@ class JoinViewModel @Inject constructor(
 
     fun onPasswordChange(newPassword: String) {
         _passwordState.value = newPassword
-        _isPasswordValid.value = newPassword.length >= 8
+
+        // 비밀번호 검증 조건
+        val hasUpperCase = newPassword.any { it.isUpperCase() }
+        val hasLowerCase = newPassword.any { it.isLowerCase() }
+        val hasDigit = newPassword.any { it.isDigit() }
+        val hasSpecialChar = newPassword.any { it in "!@#$%^&*()-_=+[]{};:'\",.<>?/\\|" }
+        val isValidLength = newPassword.length >= 8
+
+        // 종류별 개수 카운트 (2개 이상 조합 필수)
+        val charTypesCount = listOf(hasUpperCase, hasLowerCase, hasDigit, hasSpecialChar).count { it }
+
+        // 비밀번호 유효성 검사 (길이 충족 + 특수문자 포함 + 2종류 이상 조합)
+        _isPasswordValid.value = isValidLength && hasSpecialChar && charTypesCount >= 2
         _isPasswordMatched.value = (newPassword == _confirmPasswordState.value)
     }
+
 
     fun onConfirmPasswordChange(newConfirmPassword: String) {
         _confirmPasswordState.value = newConfirmPassword
