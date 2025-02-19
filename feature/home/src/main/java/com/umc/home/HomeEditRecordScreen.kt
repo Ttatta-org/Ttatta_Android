@@ -80,6 +80,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
+import com.umc.core.model.CategoryInfo
+import com.umc.design.CategoryColor
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.umc.design.R as Res
@@ -87,14 +89,18 @@ import com.umc.design.R as Res
 @Composable
 fun HomeEditRecordScreen(
     diary: Diary, // ✅ 클릭된 다이어리 정보
-    //viewModel: HomeViewModel, // ViewModel 전달받기
     navController: NavHostController, // NavController 전달받기
-    onModifyDiary: (Long, String, File?) -> Unit
+    onModifyDiary: (Long, Long, String, File?) -> Unit,
+    categoryList: List<CategoryInfo>,  // ✅ 카테고리 리스트 받기
+    selectedCategory: String?,  // ✅ 현재 선택된 카테고리 받기
+    onCategorySelected: (Long, String, Long) -> Unit // ✅ 카테고리 선택 콜백
 ) {
     var todayRecord by remember { mutableStateOf(diary.content) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(Uri.parse(diary.imageUrl)) }
-    //var selectedCategory by remember { mutableStateOf(diary.category) } // ✅ 기존 카테고리 표시
-    var selectedCategory by remember { mutableStateOf("일상") } // ✅ 여기서 기본값을 설정
+
+    // ✅ 선택된 카테고리를 `categoryId`와 매칭해서 이름으로 변환
+    val currentCategory = selectedCategory ?: "일상"
+    var selectedCategoryId by remember { mutableStateOf(diary.categoryId) }
 
     val context = LocalContext.current
 
@@ -149,8 +155,12 @@ fun HomeEditRecordScreen(
 
                     // Edit Category (기존 데이터 받아오기)
                     CustomCategoryField(
-                        initialCategory = selectedCategory,
-                        onCategorySelected = { selectedCategory = it }
+                        initialCategory = currentCategory,
+                        initialCategoryId = diary.categoryId,
+                        diaryId = diary.id,
+                        categoryList = categoryList,
+                        onCategorySelected = onCategorySelected
+
                     )
                     Spacer(Modifier.height(58.dp))
 
@@ -161,7 +171,7 @@ fun HomeEditRecordScreen(
                             //val imageFile = selectedImageUri?.let { uri -> File(uri.path!!) })
 
                             // ✅ 이미지 수정 안 할 경우 null 전달
-                            onModifyDiary(diary.id, todayRecord, imageFile)
+                            onModifyDiary(diary.id, selectedCategoryId, todayRecord, imageFile)
                             //navController.popBackStack()
                         },
                         shape = RoundedCornerShape(28.dp),
@@ -487,25 +497,52 @@ fun ImageUploadField(
     }
 }
 
+// ✅ 카테고리 색상에 맞는 아이콘 반환 함수
+fun getCategoryIcon(categoryList: List<CategoryInfo>, categoryId: Long?): Int {
+    val category = categoryList.find { it.id == categoryId }
+    return when (category?.color) {
+        CategoryColor.RED -> Res.drawable.ic_foot_red
+        CategoryColor.BLUE -> Res.drawable.ic_foot_blue
+        CategoryColor.NAVY -> Res.drawable.ic_foot_navy
+        CategoryColor.PINK -> Res.drawable.ic_foot_pink
+        CategoryColor.ORANGE -> Res.drawable.ic_foot_orange
+        CategoryColor.PURPLE -> Res.drawable.ic_foot_purple
+        CategoryColor.BROWN -> Res.drawable.ic_foot_brown
+        CategoryColor.YELLOW -> Res.drawable.ic_foot_yellow
+        CategoryColor.GREEN -> Res.drawable.ic_foot_green
+        CategoryColor.TURQUOISE -> Res.drawable.ic_foot_turquoise
+        CategoryColor.BLACK -> Res.drawable.ic_foot_black
+        CategoryColor.WHITE -> Res.drawable.ic_foot_white
+        else -> Res.drawable.ic_foot_red // ✅ 기본 아이콘
+    }
+}
+
 @Composable
 fun CustomCategoryField(
     initialCategory: String,
-    onCategorySelected: (String) -> Unit
+    initialCategoryId: Long?,
+    diaryId: Long,  // ✅ 다이어리 ID 추가
+    categoryList: List<CategoryInfo>,
+    onCategorySelected: (Long, String, Long) -> Unit
 ) {
     var isExpanded by remember { mutableStateOf(false) }
+
+    // ✅ 선택된 카테고리 & ID를 remember로 관리 (변경 사항 유지)
     var selectedCategory by remember { mutableStateOf(initialCategory) }
+    var selectedCategoryId by remember { mutableStateOf(initialCategoryId) }
+    var selectedIcon by remember { mutableIntStateOf(getCategoryIcon(categoryList, selectedCategoryId)) }
+
+    // ✅ 로그 추가 - 초기 값 확인
+    Log.d("CustomCategoryField", "초기 카테고리: $initialCategory ($initialCategoryId)")
 
 
-    // 사용자가 선택한 아이콘을 기억하도록 상태 저장
-    var selectedIcon by remember { mutableIntStateOf(Res.drawable.ic_foot_red) }
-
-    val categoryIcons = mapOf(
-        "일상" to Res.drawable.ic_foot_red,
-        "여행" to Res.drawable.ic_foot_blue,
-        "운동" to Res.drawable.ic_foot_navy,
-        "취미" to Res.drawable.ic_foot_pink,
-        "남자친구" to Res.drawable.ic_foot_orange
-    )
+//    val categoryIcons = mapOf(
+//        "일상" to Res.drawable.ic_foot_red,
+//        "여행" to Res.drawable.ic_foot_blue,
+//        "운동" to Res.drawable.ic_foot_navy,
+//        "취미" to Res.drawable.ic_foot_pink,
+//        "남자친구" to Res.drawable.ic_foot_orange
+//    )
 
     val rotationAngle by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
@@ -537,6 +574,8 @@ fun CustomCategoryField(
         }
 
         Spacer(Modifier.height(8.dp))
+
+        Log.d("CustomCategoryField", "현재 선택된 카테고리: $selectedCategory ($selectedCategoryId)")
 
         // 선택된 카테고리 카드 -> 높이 추후 수정
         Card(
@@ -624,23 +663,32 @@ fun CustomCategoryField(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        categoryIcons.forEach { (categoryName, iconResId) ->
+                        categoryList.forEach { category ->
                             Column {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable {
-                                            selectedCategory = categoryName
-                                            selectedIcon = iconResId
+                                            selectedCategory = category.name
+                                            selectedCategoryId = category.id
+                                            selectedIcon = getCategoryIcon(categoryList, category.id)
                                             isExpanded = false
-                                            onCategorySelected(categoryName)
+
+                                            // ✅ 변경된 카테고리 정보 전달
+                                            onCategorySelected(diaryId, category.name, category.id)
+
+                                            // ✅ 로그 추가 - 변경 확인
+                                            Log.d(
+                                                "CustomCategoryField",
+                                                "다이어리($diaryId)의 카테고리 변경: ${category.name} (ID: ${category.id}, Icon: ${selectedIcon})"
+                                            )
                                         }
                                         .padding(horizontal = 12.dp, vertical = 6.dp)
                                 ) {
                                     Icon(
-                                        painter = painterResource(id = iconResId),
-                                        contentDescription = categoryName,
+                                        painter = painterResource(id = getCategoryIcon(categoryList, category.id)),
+                                        contentDescription = category.name,
                                         modifier = Modifier.size(20.dp),
                                         tint = Color.Unspecified
                                     )
@@ -648,7 +696,7 @@ fun CustomCategoryField(
                                     Spacer(modifier = Modifier.width(10.dp))
 
                                     Text(
-                                        text = categoryName,
+                                        text = category.name,
                                         fontSize = 14.sp,
                                         color = Color(0xFF000000),
                                         fontWeight = FontWeight.Medium
