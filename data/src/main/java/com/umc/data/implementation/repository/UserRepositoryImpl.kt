@@ -69,7 +69,7 @@ class UserRepositoryImpl @Inject constructor(
         serverApi.withCheck { sendVerificationMailSignUp(body = body) }
     }
 
-    override suspend fun checkVerificationCodeForJoining(email: String, code: Int): Boolean {
+    override suspend fun checkVerificationCodeForJoining(email: String, code: String): Boolean {
         val body = CheckVerificationCodeRequestDTO(email = email, code = code.toString())
         return try {
             serverApi.withCheck { checkVerificationCodeSignUp(body = body) }
