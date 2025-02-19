@@ -1,7 +1,6 @@
 package com.umc.category.component
 
 import android.graphics.BitmapFactory
-import androidx.compose.animation.core.animate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -16,14 +15,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -80,12 +76,12 @@ fun TopBar(
         Image(
             painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(context)
-                    .data("android.resource://${context.packageName}/${R.raw.view_top_bar}")
+                    .data("android.resource://${context.packageName}/${R.raw.img_top_bar_category}")
                     .decoderFactory(SvgDecoder.Factory()).build(),
                 // 프리뷰를 위한 이미지
                 error = BitmapPainter(
                     image = BitmapFactory.decodeResource(
-                        context.resources, R.raw.view_top_bar_for_preview
+                        context.resources, R.raw.img_top_bar_category_for_preview
                     ).asImageBitmap(),
                 )
             ),
