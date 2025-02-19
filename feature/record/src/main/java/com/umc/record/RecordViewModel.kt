@@ -108,11 +108,7 @@ class RecordViewModel @Inject constructor(
                                 longitude = lng,
                             )
                         } catch (e: Exception) {
-                            currentPinnedLocationInfoState.value = CurrentPinnedLocationInfo(
-                                name = "",
-                                latitude = lat,
-                                longitude = lng,
-                            )
+                            currentPinnedLocationInfoState.value = null
                         }
                     }
                 }
@@ -188,6 +184,38 @@ class RecordViewModel @Inject constructor(
                 val (lat, lng) = geocoder.convertAddressToCoordinate(searchWord)
                 mapHandler.movePin(lat, lng)
                 onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
+
+    fun movePin(
+        latitude: Double,
+        longitude: Double,
+        onSucceed: () -> Unit,
+        onFailed: (e: Exception) -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                mapHandler.movePin(latitude, longitude)
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
+
+    fun searchLocation(
+        latitude: Double,
+        longitude: Double,
+        onSucceed: (address: String) -> Unit,
+        onFailed: (e: Exception) -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                val address = geocoder.convertCoordinateToAddress(latitude = latitude, longitude = longitude)
+                onSucceed(address)
             } catch (e: Exception) {
                 onFailed(e)
             }
