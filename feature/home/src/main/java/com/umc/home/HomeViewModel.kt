@@ -31,6 +31,11 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private var isFirstLoad = true  // ✅ 처음 로드 여부 확인
+//    var isLoading = true // ✅ 중복 요청 방지
+
+    // ✅ isLoading을 MutableStateFlow로 변경 (Compose에서 감지 가능!)
+    private val _isLoading = MutableStateFlow(true) // 🔥 초기값을 true로 설정
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     init {
         if (isFirstLoad) {
@@ -64,8 +69,6 @@ class HomeViewModel @Inject constructor(
     var currentPage = 0 // ✅ 일반 다이어리 리스트의 페이지 상태
     private var searchPage = 0
     //private var currentSearchPage = 0 // ✅ 검색 결과의 페이지 상태
-
-    var isLoading = false // ✅ 중복 요청 방지
 
     // ✅ **검색 결과 저장**
     private val _searchResultsState = MutableStateFlow<List<Diary>>(emptyList())
@@ -133,6 +136,8 @@ class HomeViewModel @Inject constructor(
                 Log.d("HomeViewModel", "✅ 전체 다이어리 저장 완료: ${allDiaries.size}개")
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "❌ 전체 다이어리 불러오기 실패: ${e.message}")
+            } finally {
+                _isLoading.value = false
             }
         }
     }
@@ -143,8 +148,8 @@ class HomeViewModel @Inject constructor(
      */
 
     fun loadDiaries(page: Int, date: LocalDate?, isFiltered: Boolean, reset: Boolean = false, onSucceed: () -> Unit = {}, onFailed: (Exception) -> Unit = {}) {
-        if (isLoading) return
-        isLoading = true
+
+//        _isLoading.value = true
 
         if (reset) {
             currentPage = 0
@@ -156,6 +161,7 @@ class HomeViewModel @Inject constructor(
             try {
                 val newDiaries = diaryRepository.getDiaries(page = page, date = date)
                 Log.d("HomeViewModel", "✅ 다이어리 데이터 로드 성공: ${newDiaries.size}개")
+                _isLoading.value = false
 
                 if (isFiltered) {
                     if (reset) {
@@ -177,7 +183,7 @@ class HomeViewModel @Inject constructor(
             } catch (e: Exception) {
                 onFailed(e)
             } finally {
-                isLoading = false
+                _isLoading.value = false
             }
         }
     }
@@ -201,8 +207,8 @@ class HomeViewModel @Inject constructor(
 
     // ✅ SearchScreen의 검색 기능 (검색 시 reset = true)
     fun searchDiaries(searchWord: String, reset: Boolean = true, onSucceed: () -> Unit = {}, onFailed: (Exception) -> Unit = {}) {
-        if (isLoading) return
-        isLoading = true
+        if (_isLoading.value) return
+        _isLoading.value = true
 
         if (reset) {
             searchPage = 0  // ✅ 검색 시작 시 항상 0으로 초기화
@@ -225,7 +231,7 @@ class HomeViewModel @Inject constructor(
             } catch (e: Exception) {
                 onFailed(e)
             } finally {
-                isLoading = false
+                _isLoading.value = false
             }
         }
     }
@@ -282,7 +288,7 @@ class HomeViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                Log.d("modifyDiary", "📤 수정 요청 시작 (diaryId: $diaryId, image: ${image?.path})")
+                Log.d("modifyDiary", "📤 수정 요청 시작 (diaryId: $diaryId, image: ${image?.path}, categoryId: $categoryId)")
 
                 // ✅ 다이어리 수정 API 호출
                 diaryRepository.modifyDiary(
