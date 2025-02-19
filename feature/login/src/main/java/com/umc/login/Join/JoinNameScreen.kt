@@ -44,6 +44,7 @@ import androidx.navigation.NavHostController
 import com.umc.login.R
 import com.umc.login.component.NameInputTextField
 
+
 @Composable
 fun JoinNameScreen(navController: NavHostController, viewModel: JoinViewModel = viewModel()) {
     Column(modifier = Modifier.wrapContentSize(), horizontalAlignment = Alignment.CenterHorizontally) {

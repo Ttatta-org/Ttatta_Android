@@ -119,19 +119,24 @@ class JoinViewModel @Inject constructor(
     }
 
     fun onNickNameChange(newNickName: String) {
-        // 한글과 영문(대소문자)만 허용
-        val filteredNickName = newNickName.filter { it.isLetter() || it == ' ' }
+        // 한글, 영문(대소문자), 숫자, 특수문자(!@#$%^&* 등) 허용
+        val allowedChars = Regex("^[가-힣a-zA-Z0-9!@#\$%^&*()_+=<>?]*$")
 
-        if (filteredNickName.length <= 8) {
-            _nickNameState.value = filteredNickName
-            _isWarningVisible.value = (filteredNickName.length == 8)
+        // 입력값이 허용된 문자만 포함하는지 확인
+        val isValid = allowedChars.matches(newNickName)
+
+        if (newNickName.length <= 8 && isValid) {
+            _nickNameState.value = newNickName
+            _isWarningVisible.value = (newNickName.length == 8)
 
             // 닉네임이 공백만 있을 경우 오류 메시지 표시
             _nicknameError.value = when {
-                filteredNickName.trim().isEmpty() -> "닉네임에 공백만 입력할 수 없습니다."
-                filteredNickName.length < 1 -> "닉네임은 최소 1자 이상 입력해야 합니다."
+                newNickName.trim().isEmpty() -> "닉네임에 공백만 입력할 수 없습니다."
+                newNickName.length < 1 -> "닉네임은 최소 1자 이상 입력해야 합니다."
                 else -> null
             }
+        } else if (!isValid) {
+            _nicknameError.value = "닉네임에는 한글, 영문, 숫자, 특수문자만 사용할 수 있습니다."
         }
     }
 
