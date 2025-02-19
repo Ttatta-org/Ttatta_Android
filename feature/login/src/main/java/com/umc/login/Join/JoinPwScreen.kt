@@ -117,10 +117,10 @@ fun JoinPwView(viewModel: JoinViewModel, onNext: () -> Unit) {
                 fontSize = 12.sp
             )
         }
-        else {
+        else if(!isPasswordValid) {
             Text(
                 text = stringResource(R.string.join_pw_small_comment),
-                color = colorResource(R.color.gray_400),
+                color = colorResource(R.color.orange_250),
                 fontSize = 12.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight(400)
