@@ -65,7 +65,7 @@ class FootprintViewModel @Inject constructor(
         }
     }
 
-    fun dismissSelectedMarker(
+    private fun dismissSelectedMarker(
         onSucceed: () -> Unit = {},
         onFailed: (e: Exception) -> Unit = {},
     ) {
@@ -104,7 +104,7 @@ class FootprintViewModel @Inject constructor(
         }
     }
 
-    fun getAllFootprint(
+    private fun getAllFootprint(
         onSucceed: () -> Unit = {},
         onFailed: (e: Exception) -> Unit = {},
     ) {
@@ -188,7 +188,17 @@ class FootprintViewModel @Inject constructor(
                 }
                 val endPage = diaryMap.keys.max()
 
-                (startPage .. endPage).forEach { page -> getDiaryFromServer(page = page) }
+                (startPage .. endPage).forEach { page ->
+                    getDiaryFromServer(
+                        page = page,
+                        onFailed = {
+                            if (diaryMap.isEmpty()) {
+                                dismissSelectedMarker()
+                                getAllFootprint()
+                            }
+                        }
+                    )
+                }
                 onSucceed()
             } catch (e: Exception) {
                 onFailed(e)

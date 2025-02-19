@@ -101,12 +101,6 @@ fun FootprintApp(
                 )
             }
         }
-
-        // 만약 일기가 전부 사라진 상태였을 경우
-        if (diaryCardLoadedPropMap.isEmpty()) {
-            viewModel.dismissSelectedMarker()
-            viewModel.getAllFootprint()
-        }
     }
 
     BackHandler(
@@ -207,8 +201,9 @@ fun FootprintApp(
             onDismissed = { isCategorySelectionBarVisible = false }
         ) else null,
         onCategoryButtonClicked = {
-            if (viewModel.selectedCategoryId != null) viewModel.selectShowingCategory(categoryId = null)
-            isCategorySelectionBarVisible = !isCategorySelectionBarVisible
+            if (viewModel.selectedCategoryId != null)
+                viewModel.selectShowingCategory(categoryId = null)
+            else isCategorySelectionBarVisible = !isCategorySelectionBarVisible
         },
         onLocationButtonClicked = {
             viewModel.moveMapToCurrentPosition(
