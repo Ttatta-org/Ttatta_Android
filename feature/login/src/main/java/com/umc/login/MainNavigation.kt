@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.umc.login.FindId.FindIdScreen
+import com.umc.login.FindId.FindIdViewModel
 import com.umc.login.FindPw.FindPwScreen1
 import com.umc.login.FindPw.FindPwScreen2
 import com.umc.login.Join.JoinFinalScreen
@@ -16,6 +17,7 @@ import com.umc.login.Join.JoinViewModel
 fun MainNavigation(navController: NavHostController,
                    loginViewModel: LoginViewModel,
                    joinViewModel: JoinViewModel,
+                   findIdViewModel: FindIdViewModel,
                    onNavigatingToHome: () -> Unit) {
     NavHost(
         navController = navController,
@@ -31,7 +33,7 @@ fun MainNavigation(navController: NavHostController,
             JoinFinalScreen(navController, joinViewModel)
         }
         composable("find_id") {
-            FindIdScreen(navController)
+            FindIdScreen(navController, findIdViewModel)
         }
         composable("find_pw") {
             FindPwScreen1(navController)
