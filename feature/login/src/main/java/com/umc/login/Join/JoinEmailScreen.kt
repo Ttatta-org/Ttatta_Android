@@ -40,7 +40,7 @@ fun JoinEmailView(viewModel: JoinViewModel, onNext: () -> Unit) {
     val isEmailValid by viewModel.isEmailValid.collectAsState()
     var expanded by remember { mutableStateOf(false) }
 
-    val domains = listOf("naver.com", "gmail.com", "kakao.com",)
+    val domains = listOf("naver.com", "gmail.com", "kakao.com", "직접입력",)
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -79,9 +79,17 @@ fun JoinEmailView(viewModel: JoinViewModel, onNext: () -> Unit) {
                 ) {
                     EmailInputTextField(
                         value = emailDomain,
-                        onValueChange = { if (isCustomDomain) viewModel.onCustomDomainChange(it) },
+                        onValueChange = {
+                            if (isCustomDomain) {
+                                viewModel.onCustomDomainChange(it)
+                            }
+                        },
                         placeholder = "직접입력",
-                        readOnly = !isCustomDomain
+                        readOnly = !isCustomDomain,
+                        onClick = {
+                            viewModel.enableCustomDomainInput() // ✅ 터치 시 직접 입력 모드로 변경
+                            expanded = false
+                        }
                     )
                     Icon(
                         painter = painterResource(id = R.drawable.ic_dropdown),

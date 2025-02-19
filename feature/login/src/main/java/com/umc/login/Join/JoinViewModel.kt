@@ -74,6 +74,14 @@ class JoinViewModel @Inject constructor(
     private val _isIdAvailable = MutableStateFlow(false) // 중복 확인 성공 여부
     val isIdAvailable: StateFlow<Boolean> = _isIdAvailable.asStateFlow()
 
+    // ✅ 성공 메시지 저장하는 StateFlow 추가
+    private val _idSuccessMessage = MutableStateFlow<String?>(null)
+    val idSuccessMessage: StateFlow<String?> = _idSuccessMessage.asStateFlow()
+
+    // ✅ 중복 확인 버튼 가시성 관리하는 StateFlow 추가
+    private val _isCheckButtonVisible = MutableStateFlow(true)
+    val isCheckButtonVisible: StateFlow<Boolean> = _isCheckButtonVisible.asStateFlow()
+
     private val _isPasswordValid = MutableStateFlow(false)
     val isPasswordValid: StateFlow<Boolean> = _isPasswordValid.asStateFlow()
 
@@ -159,6 +167,8 @@ class JoinViewModel @Inject constructor(
 
         // 아이디 변경 시 중복 확인 플래그 초기화
         _isIdAvailable.value = false
+        _idSuccessMessage.value = null  //  중복 확인 성공 메시지 제거
+        _isCheckButtonVisible.value = true  //  중복 확인 버튼 다시 보이게 설정
     }
 
     // ✅ 비밀번호 가시성 토글 함수
@@ -215,8 +225,18 @@ class JoinViewModel @Inject constructor(
     }
 
     fun onEmailDomainChange(newDomain: String) {
-        _emailDomainState.value = newDomain
-        _isCustomDomain.value = newDomain == "직접입력"
+        if (newDomain == "직접입력") {
+            _emailDomainState.value = "" // ✅ "직접입력"을 선택하면 필드를 비움
+            _isCustomDomain.value = true
+        } else {
+            _emailDomainState.value = newDomain
+            _isCustomDomain.value = false
+        }
+    }
+
+    fun enableCustomDomainInput() {
+        _isCustomDomain.value = true
+        _emailDomainState.value = "" // ✅ 도메인 필드를 비워서 바로 입력 가능하게 함
     }
 
     fun onCustomDomainChange(customDomain: String) {
@@ -274,6 +294,7 @@ class JoinViewModel @Inject constructor(
             if (_idState.value.isBlank()) {
                 _idError.value = "아이디를 입력해주세요."
                 _isIdAvailable.value = false
+                _idSuccessMessage.value = null
                 return@launch
             }
 
@@ -283,13 +304,19 @@ class JoinViewModel @Inject constructor(
                 if (isOccupied) {
                     _idError.value = "이미 사용 중인 아이디입니다."
                     _isIdAvailable.value = false
+                    _idSuccessMessage.value = null
+                    _isCheckButtonVisible.value = true // 중복 확인 실패 시 버튼 유지
                 } else {
                     _idError.value = null
                     _isIdAvailable.value = true
+                    _idSuccessMessage.value = "사용 가능한 아이디입니다." // 성공 메시지 설정
+                    _isCheckButtonVisible.value = false //  중복 확인 성공 시 버튼 숨기기
                 }
             } catch (e: Exception) {
                 _idError.value = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
                 _isIdAvailable.value = false
+                _idSuccessMessage.value = null
+                _isCheckButtonVisible.value = true // 오류 발생 시 버튼 유지
             } finally {
                 _isLoading.value = false  // 로딩 종료
             }
