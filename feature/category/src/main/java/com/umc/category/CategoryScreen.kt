@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,6 +28,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -84,7 +85,8 @@ fun CategoryScreen(
     onDoneButtonClicked: () -> Unit,
 ) {
     val density = LocalDensity.current
-    var topBarHeight by remember { mutableStateOf(0.dp) }
+    val statusBarHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
+    var top by remember(showTopBar) { mutableStateOf(0.dp) }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -94,7 +96,7 @@ fun CategoryScreen(
                 .fillMaxSize()
                 .background(color = Color.Secondary100)
         ) {
-            Spacer(modifier = Modifier.height(topBarHeight))
+            Spacer(modifier = Modifier.height(if (showTopBar) top else statusBarHeight))
             Column(
                 verticalArrangement = Arrangement.spacedBy(space = 32.dp),
                 modifier = Modifier.padding(32.dp)
@@ -271,7 +273,7 @@ fun CategoryScreen(
         }
 
         if (showTopBar) TopBar(
-            onHeightChanged = { topBarHeight = it },
+            onHeightChanged = { top = it },
         )
     }
 
