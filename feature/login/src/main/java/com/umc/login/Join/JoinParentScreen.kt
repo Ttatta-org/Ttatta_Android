@@ -32,7 +32,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.umc.login.component.AnimatedProgressBar
 import com.umc.login.R
 
@@ -53,52 +52,32 @@ fun JoinParentScreen(navController: NavHostController, joinViewModel: JoinViewMo
             }
         })
         JoinTopView(currentStep = currentStep, totalSteps = 6)
-        AnimatedNavHost(
+        NavHost(
             navController = localNavController,
             startDestination = "nickname",
             modifier = Modifier.weight(1f)
         ) {
-            composable("nickname",
-                enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(500)) },
-                exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(500)) },
-                popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(500)) },
-                popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
-            ) {
+            composable("nickname"){
                 LaunchedEffect(Unit) { currentStep = 1 }
                 JoinNicknameView(joinViewModel, onNext = { localNavController.navigate("id") })
             }
-            composable("id",
-                enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(500)) },
-                exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(500)) },
-                popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(500)) },
-                popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
-            ) {
+            composable("id") {
                 LaunchedEffect(Unit) { currentStep = 2 }
                 JoinIdView(joinViewModel, onNext = { localNavController.navigate("password") })
             }
-            composable("password",
-                enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(500)) },
-                exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(500)) },
-                popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(500)) },
-                popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
-            ) {
+            composable("password") {
                 LaunchedEffect(Unit) { currentStep = 3 }
                 JoinPwView(joinViewModel, onNext = { localNavController.navigate("name") })
             }
-            composable("name",
-                enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(500)) },
-                exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(500)) },
-                popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(500)) },
-                popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
-            ) {
+            composable("name") {
                 LaunchedEffect(Unit) { currentStep = 4 }
                 JoinNameView(joinViewModel, onNext = {localNavController.navigate("email")})
             }
             composable("email",
-                enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(500)) },
-                exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(500)) },
-                popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(500)) },
-                popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
+//                enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }, animationSpec = tween(500)) },
+//                exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }, animationSpec = tween(500)) },
+//                popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }, animationSpec = tween(500)) },
+//                popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }, animationSpec = tween(500)) }
             ) {
                 LaunchedEffect(Unit) { currentStep = 5 }
                 JoinEmailView(
