@@ -36,12 +36,12 @@ fun AppNavHost(
     viewModel: HomeViewModel
 ) {
     // ✅ Composable 내부에서 `isLoading` 상태를 추적하기 위해 `remember` 사용
-    var isLoading by remember { mutableStateOf(viewModel.isLoading) }
+    val isLoading by viewModel.isLoading.collectAsState()
 
     // ✅ ViewModel에서 isLoading 값이 변경될 때 UI에 반영되도록 observe
-    LaunchedEffect(viewModel.isLoading) {
-        isLoading = viewModel.isLoading
-    }
+//    LaunchedEffect(viewModel.isLoading) {
+//        isLoading = viewModel.isLoading
+//    }
 
     // 화면에 필요한 로컬 UI 상태
     var isExpanded by remember { mutableStateOf(false) }
@@ -58,6 +58,10 @@ fun AppNavHost(
     val searchQuery by viewModel.searchQuery.collectAsState()
     val recentSearches by viewModel.recentSearchesState.collectAsState()
     Log.d("RecentSearches", "📌 UI에서 받은 최근 검색어: $recentSearches")
+
+//    if (diaryList.isNotEmpty()) {
+//        isLoading = false
+//    }
 
     // ✅ 전체 일기 목록을 가져옴
 //    val fullDiaryList by viewModel.fullDiaryListState.collectAsState()
@@ -171,7 +175,7 @@ fun AppNavHost(
         composable("home") {
             HomeScreen(
                 // ViewModel의 데이터 전달
-                isloading = isLoading,
+                isLoading = isLoading,
                 navController = navController,
                 diaryList = diaryList,               // List<Diary>
                 searchResults = searchResults,       // List<Diary>
