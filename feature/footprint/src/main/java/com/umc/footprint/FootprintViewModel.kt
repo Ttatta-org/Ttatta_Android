@@ -1,7 +1,6 @@
 package com.umc.footprint
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,47 +28,17 @@ class FootprintViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
-    private val diaryStateMap = mutableStateMapOf<Int, DiaryForCard>()
+    private val diaryMapState = mutableStateOf<Map<Int, DiaryForCard>>(emptyMap())
     private val clickedMarkerInfoState = mutableStateOf<ClickedMarkerInfo?>(null)
     private val categoryListState = mutableStateOf<List<CategoryInfo>>(listOf())
     private val selectedCategoryIdState = mutableStateOf<Long?>(null)
     private val userNameState = mutableStateOf("")
 
     val clickedMarkerInfo get() = clickedMarkerInfoState.value
-    val diaryMap get() = diaryStateMap.toMap()
+    val diaryMap get() = diaryMapState.value
     val categoryList get() = categoryListState.value
     val selectedCategoryId get() = selectedCategoryIdState.value
     val userName get() = userNameState.value
-
-    fun initialize() {
-        viewModelScope.launch {
-            // 모든 발자국 로드 및 마커 추가
-            launch {
-                selectShowingCategory(categoryId = null)
-            }
-            // 현재 위치로 맵 이동
-            launch {
-                moveMapToCurrentPosition(
-                    onSucceed = { /* TODO */ },
-                    onFailed = { /* TODO */ },
-                )
-            }
-            // 카테고리 정보 로드
-            launch {
-                getAllCategoryInfoFromServer(
-                    onSucceed = { /* TODO */ },
-                    onFailed = { /* TODO */ },
-                )
-            }
-            // 사용자 이름 로드
-            launch {
-                getUserNameFromServer(
-                    onSucceed = { /* TODO */ },
-                    onFailed = { /* TODO */ },
-                )
-            }
-        }
-    }
 
     @Composable
     fun MapView(
@@ -83,8 +52,8 @@ class FootprintViewModel @Inject constructor(
     }
 
     fun moveMapToCurrentPosition(
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
@@ -96,28 +65,72 @@ class FootprintViewModel @Inject constructor(
         }
     }
 
-    fun selectShowingCategory(
-        categoryId: Long?,
+    fun dismissSelectedMarker(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
-            mapHandler.removeAllMarkers()
-            diaryRepository.getAllFootprints(categoryId = categoryId).forEach {
-                markMap(
-                    latitude = it.latitude,
-                    longitude = it.longitude,
-                    diaryId = it.diaryId,
-                    clusterId = it.clusterId,
-                    color = it.color,
-                )
+            try {
+                mapHandler.dismissMarkerEvent()
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
             }
-            selectedCategoryIdState.value = categoryId
+        }
+    }
+
+    fun selectShowingCategory(
+        categoryId: Long?,
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            try {
+                mapHandler.removeAllMarkers()
+                diaryRepository.getAllFootprints(categoryId = categoryId).forEach {
+                    markMap(
+                        latitude = it.latitude,
+                        longitude = it.longitude,
+                        diaryId = it.diaryId,
+                        clusterId = it.clusterId,
+                        color = it.color,
+                    )
+                }
+                selectedCategoryIdState.value = categoryId
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
+
+    fun getAllFootprint(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            try {
+                mapHandler.removeAllMarkers()
+                diaryRepository.getAllFootprints(categoryId = null).forEach {
+                    markMap(
+                        latitude = it.latitude,
+                        longitude = it.longitude,
+                        diaryId = it.diaryId,
+                        clusterId = it.clusterId,
+                        color = it.color,
+                    )
+                }
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
         }
     }
 
     fun getDiaryFromServer(
         page: Int,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
@@ -126,9 +139,10 @@ class FootprintViewModel @Inject constructor(
                     clusterId = clickedMarkerInfo!!.clusterId,
                     categoryId = selectedCategoryId,
                 )
-                diaryStateMap[page] = diary
+                diaryMapState.value += (page to diary)
                 onSucceed()
             } catch (e: Exception) {
+                diaryMapState.value -= page
                 onFailed(e)
             }
         }
@@ -137,8 +151,8 @@ class FootprintViewModel @Inject constructor(
     fun modifyDiary(
         diaryId: Long,
         content: String,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
@@ -147,11 +161,11 @@ class FootprintViewModel @Inject constructor(
                     content = content,
                 )
                 getDiaryFromServer(
-                    page = diaryStateMap.firstNotNullOf { (page, diary) ->
+                    page = diaryMap.firstNotNullOf { (page, diary) ->
                         if (diary.id == diaryId) page else null
                     },
                     onSucceed = { onSucceed() },
-                    onFailed = { throw it },
+                    onFailed = { onFailed(it) },
                 )
             } catch (e: Exception) {
                 onFailed(e)
@@ -161,28 +175,30 @@ class FootprintViewModel @Inject constructor(
 
     fun deleteDiary(
         diaryId: Long,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
                 diaryRepository.deleteDiary(diaryId = diaryId)
-                getDiaryFromServer(
-                    page = diaryStateMap.firstNotNullOf { (page, diary) ->
-                        if (diary.id == diaryId) page else null
-                    },
-                    onSucceed = onSucceed,
-                    onFailed = { throw it }
-                )
+                getAllCategoryInfoFromServer()
+
+                val startPage = diaryMap.firstNotNullOf { (page, diary) ->
+                    if (diary.id == diaryId) page else null
+                }
+                val endPage = diaryMap.keys.max()
+
+                (startPage .. endPage).forEach { page -> getDiaryFromServer(page = page) }
+                onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
             }
         }
     }
 
-    private fun getAllCategoryInfoFromServer(
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
+    fun getAllCategoryInfoFromServer(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
@@ -194,9 +210,9 @@ class FootprintViewModel @Inject constructor(
         }
     }
 
-    private fun getUserNameFromServer(
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
+    fun getUserNameFromServer(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
@@ -228,7 +244,7 @@ class FootprintViewModel @Inject constructor(
                 )
                 return@onClicked {
                     clickedMarkerInfoState.value = null
-                    diaryStateMap.clear()
+                    diaryMapState.value = emptyMap()
                 }
             }
         )
