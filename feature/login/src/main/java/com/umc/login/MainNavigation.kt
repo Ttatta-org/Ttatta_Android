@@ -8,6 +8,7 @@ import androidx.navigation.compose.composable
 import com.umc.login.FindId.FindIdScreen
 import com.umc.login.FindPw.FindPwScreen1
 import com.umc.login.FindPw.FindPwScreen2
+import com.umc.login.Join.JoinFinalScreen
 import com.umc.login.Join.JoinParentScreen
 import com.umc.login.Join.JoinViewModel
 
@@ -25,6 +26,9 @@ fun MainNavigation(navController: NavHostController,
         }
         composable("join") {
             JoinParentScreen(navController, joinViewModel)
+        }
+        composable("join_end") {
+            JoinFinalScreen(navController, joinViewModel)
         }
         composable("find_id") {
             FindIdScreen(navController)

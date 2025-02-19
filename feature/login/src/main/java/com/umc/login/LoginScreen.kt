@@ -164,7 +164,7 @@ fun LoginMiddleView(idState: String,
                 pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
                 disabledElevation = 0.dp // enabled가 false일때 그림자
             ),
-            onClick = onLoginClick,
+            onClick = {onLoginClick()},
             modifier = Modifier
                 .width(310.dp)
                 .padding(top = 30.dp)

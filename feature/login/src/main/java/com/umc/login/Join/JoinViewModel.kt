@@ -160,10 +160,37 @@ class JoinViewModel @Inject constructor(
         }
     }
 
-    fun onCertiCodeChange(newCode: String) {
+    fun onCertiCodeChange(
+        newCode: String,
+        onSuccess: () -> Unit,
+        onFailure: () -> Unit
+    ) {
         if (newCode.length <= 6) {
             _certiCodeState.value = newCode
             _certiError.value = null // 입력 시 기존 에러 제거
+        }
+
+        if (newCode.length == 6) {
+            viewModelScope.launch {
+                try {
+                    val isValid = userRepository.checkVerificationCodeForJoining(_certiCodeState.value.toIntOrNull() ?: -1)
+                    if (isValid) {
+                        userRepository.join(
+                            nickname = _nickNameState.value,
+                            id = _idState.value,
+                            password = _passwordState.value,
+                            name = _nameState.value,
+                            email = "${_emailLocalPartState.value}@${_emailDomainState.value}"
+                        )
+                        onSuccess()
+                    } else {
+                        _certiError.value = "인증번호가 올바르지 않습니다."
+                        throw Exception()
+                    }
+                } catch (e: Exception) {
+                    onFailure()
+                }
+            }
         }
     }
 
@@ -196,10 +223,18 @@ class JoinViewModel @Inject constructor(
         }
     }
 
+    @Deprecated("Do not use")
     fun verifyCertiCode(onSuccess: () -> Unit, onFailure: () -> Unit) {
         viewModelScope.launch {
             val isValid = userRepository.checkVerificationCodeForJoining(_certiCodeState.value.toIntOrNull() ?: -1)
             if (isValid) {
+                userRepository.join(
+                    nickname = _nickNameState.value,
+                    id = _idState.value,
+                    password = _passwordState.value,
+                    name = _nameState.value,
+                    email = "${_emailLocalPartState.value}@${_emailDomainState.value}"
+                )
                 onSuccess()
             } else {
                 _certiError.value = "인증번호가 올바르지 않습니다."
