@@ -99,8 +99,12 @@ fun HomeEditRecordScreen(
     var selectedImageUri by remember { mutableStateOf<Uri?>(Uri.parse(diary.imageUrl)) }
 
     // ✅ 선택된 카테고리를 `categoryId`와 매칭해서 이름으로 변환
-    val currentCategory = selectedCategory ?: "일상"
+//    val currentCategory = selectedCategory ?: "일상"
+//    var selectedCategoryId by remember { mutableStateOf(diary.categoryId) }
+    // ✅ 카테고리 ID를 remember로 관리
     var selectedCategoryId by remember { mutableStateOf(diary.categoryId) }
+    var selectedCategoryName by remember { mutableStateOf(selectedCategory ?: "일상") }
+    var selectedIcon by remember { mutableIntStateOf(getCategoryIcon(categoryList, selectedCategoryId)) }
 
     val context = LocalContext.current
 
@@ -155,12 +159,17 @@ fun HomeEditRecordScreen(
 
                     // Edit Category (기존 데이터 받아오기)
                     CustomCategoryField(
-                        initialCategory = currentCategory,
-                        initialCategoryId = diary.categoryId,
+                        initialCategory = selectedCategoryName,
+                        initialCategoryId = selectedCategoryId,
                         diaryId = diary.id,
                         categoryList = categoryList,
-                        onCategorySelected = onCategorySelected
+                        onCategorySelected = { diaryId, categoryName, categoryId ->
+                            selectedCategoryId = categoryId
+                            selectedCategoryName = categoryName
+                            selectedIcon = getCategoryIcon(categoryList, categoryId)
 
+                            Log.d("HomeEditRecordScreen", "✅ 카테고리 변경: $categoryName (ID: $categoryId)")
+                        }
                     )
                     Spacer(Modifier.height(58.dp))
 
