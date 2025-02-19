@@ -1,10 +1,17 @@
 package com.umc.login
 
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.umc.login.FindId.FindIdScreen
 import com.umc.login.FindPw.FindPwScreen1
 import com.umc.login.FindPw.FindPwScreen2
@@ -12,19 +19,24 @@ import com.umc.login.Join.JoinFinalScreen
 import com.umc.login.Join.JoinParentScreen
 import com.umc.login.Join.JoinViewModel
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun MainNavigation(navController: NavHostController,
                    loginViewModel: LoginViewModel,
                    joinViewModel: JoinViewModel,
                    onNavigatingToHome: () -> Unit) {
-    NavHost(
+    AnimatedNavHost(
         navController = navController,
         startDestination = "login"
     ) {
         composable("login") {
             LoginScreen(navController, loginViewModel, onNavigatingToHome)
         }
-        composable("join") {
+        composable(
+            "join",
+            enterTransition = { fadeIn(animationSpec = tween(700)) },
+            exitTransition = { fadeOut(animationSpec = tween(700)) }
+        ) {
             JoinParentScreen(navController, joinViewModel)
         }
         composable("join_end") {
