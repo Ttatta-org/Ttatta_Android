@@ -35,6 +35,14 @@ fun AppNavHost(
     navController: NavHostController,
     viewModel: HomeViewModel
 ) {
+    // ✅ Composable 내부에서 `isLoading` 상태를 추적하기 위해 `remember` 사용
+    var isLoading by remember { mutableStateOf(viewModel.isLoading) }
+
+    // ✅ ViewModel에서 isLoading 값이 변경될 때 UI에 반영되도록 observe
+    LaunchedEffect(viewModel.isLoading) {
+        isLoading = viewModel.isLoading
+    }
+
     // 화면에 필요한 로컬 UI 상태
     var isExpanded by remember { mutableStateOf(false) }
     var isCalendarVisible by remember { mutableStateOf(false) }
@@ -104,10 +112,10 @@ fun AppNavHost(
     }
 
     // ✅ 수정 기능 추가
-    val onModifyDiary: (Long, String, File?) -> Unit = { diaryId, content, image ->
+    val onModifyDiary: (Long, Long, String, File?) -> Unit = { diaryId, categoryId, content, image ->
         viewModel.modifyDiary(
             diaryId = diaryId,
-            categoryId = null,
+            categoryId = categoryId,
             content = content,
             image = image,
             onSucceed = {
@@ -163,12 +171,14 @@ fun AppNavHost(
         composable("home") {
             HomeScreen(
                 // ViewModel의 데이터 전달
+                isloading = isLoading,
                 navController = navController,
                 diaryList = diaryList,               // List<Diary>
                 searchResults = searchResults,       // List<Diary>
                 searchQuery = searchQuery,     // String
                 recentSearches = recentSearches,
                 lazyListState = lazyListState,
+                isSearchTriggered = isSearchTriggered,
 
                 // 로컬 UI 상태 전달
                 isExpanded = isExpanded,
@@ -220,6 +230,7 @@ fun AppNavHost(
                 searchQuery = searchQuery,     // String
                 recentSearches = recentSearches,
                 lazyListState = lazyListState,
+                isSearchTriggered = isSearchTriggered,
 
                 // 로컬 UI 상태 전달
                 isExpanded = isExpanded,
@@ -306,12 +317,27 @@ fun AppNavHost(
             val diaryId = backStackEntry.arguments?.getLong("diaryId") ?: -1
             val diary = diaryList.find { it.id == diaryId }
 
+            // ✅ ViewModel에서 카테고리 데이터 가져오기
+            val categoryList by viewModel.categoryListState.collectAsState()
+            val selectedCategoryPair by viewModel.selectedCategoryState.collectAsState()
+
+            // ✅ diary.categoryId를 기반으로 카테고리 이름 가져오기
+            val initialCategory = categoryList.find { it.id == diary?.categoryId }?.name ?: "일상"
+
             if (diary != null) {
                 HomeEditRecordScreen(
                     diary = diary,
-                    //viewModel = viewModel, // ViewModel 전달
-                    navController = navController, // NavController 전달
-                    onModifyDiary = onModifyDiary
+                    navController = navController,
+                    onModifyDiary = onModifyDiary,
+                    categoryList = categoryList,
+
+                    // ✅ 선택된 카테고리 없으면 기본값 사용
+                    selectedCategory = selectedCategoryPair[diary.id]?.second ?: initialCategory,
+
+                    // ✅ diaryId도 함께 전달하도록 수정
+                    onCategorySelected = { selectedDiaryId, newCategory, newCategoryId ->  // ✅ 변수명 변경
+                        viewModel.updateSelectedCategory(selectedDiaryId, newCategoryId, newCategory)
+                    }
                 )
             }
         }

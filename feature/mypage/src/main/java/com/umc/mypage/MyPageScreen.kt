@@ -158,8 +158,6 @@ fun ProfileSection(name: String, profileImage: String?) {
 
         Box(
             modifier = Modifier
-                .width(74.dp) // 버튼 너비
-                .height(20.dp) // 버튼 높이
                 .clip(
                     RoundedCornerShape(12.dp)
                 )
@@ -167,6 +165,8 @@ fun ProfileSection(name: String, profileImage: String?) {
             contentAlignment = Alignment.Center
         ) {
             Text(
+                modifier = Modifier
+                    .padding(vertical = 2.dp, horizontal = 10.dp),
                 text = "내 프로필 수정",
                 fontSize = 13.sp,
                 color = Color(0xFFFCAD98) // 텍스트 색상
@@ -247,7 +247,7 @@ fun AppSettingsSection(
 ) {
     Card(
         modifier = Modifier
-            .width(340.dp) // 카드 너비 설정
+            //.width(340.dp) // 카드 너비 설정
             .wrapContentHeight() // 카드 높이 동적으로 설정
             .shadow(
                 elevation = 6.dp, // 그림자의 높이 조정

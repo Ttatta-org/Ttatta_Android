@@ -67,16 +67,23 @@ class TestActivity : ComponentActivity() {
 
                 // ✅ 카테고리 조회 (없으면 생성)
                 var categories = diaryRepository.getAllCategoryInfo()
-                val categoryId = if (categories.isNotEmpty()) {
-                    categories.first().id
-                } else {
-                    diaryRepository.createCategory("TestCategory", CategoryColor.BLUE)
+                Log.d("CustomCategoryField", "📌 현재 카테고리 리스트: $categories")
+                val categoryId = categories.find { it.name == "남자친구" }?.id ?: run {
+                    Log.d("CustomCategoryField", "🚀 '남자친구' 카테고리가 없음. 새로 생성 중...")
+                    // ✅ "남자친구" 카테고리가 없으면 새로 생성
+                    diaryRepository.createCategory("남자친구", CategoryColor.BLUE)
+
+                    // ✅ 다시 카테고리 조회 후 "남자친구"의 ID 가져오기
                     categories = diaryRepository.getAllCategoryInfo()
-                    categories.first { it.name == "TestCategory" }.id
+                    Log.d("CustomCategoryField", "📌 카테고리 재조회 후 리스트: $categories")
+
+                    categories.find { it.name == "남자친구" }?.id
+                        ?: error("❌ '남자친구' 카테고리 생성 실패")
                 }
+                Log.d("CustomCategoryField", "✅ 선택된 카테고리 ID: $categoryId")
 
                 // ✅ 테스트용 이미지 파일 준비
-                val imageFile = File(cacheDir, "test_letter.jpg")
+                val imageFile = File(cacheDir, "test_rabbit.png")
                 if (!imageFile.exists()) {
                     try {
                         FileOutputStream(imageFile).use { out ->
@@ -100,15 +107,15 @@ class TestActivity : ComponentActivity() {
 //                    image = imageFile,
 //                    latitude = TestValues.LATITUDE,
 //                    longitude = TestValues.LONGITUDE,
-//                    locationName = "어딘가 어딘가 어딘가"
+//                    locationName = "카테고리확인용"
 //                )
 
                 // ✅ ViewModel에서 데이터 로드
-//                withContext(Dispatchers.Main) {
-//                    viewModel.loadDiaries(page = 0,isFiltered = false, date = null)
-//                    //viewModel.loadAllDiaries()
-//                    viewModel.loadAllRecordedDates()
-//                }
+                withContext(Dispatchers.Main) {
+                    viewModel.loadDiaries(page = 0,isFiltered = false, date = null)
+                    //viewModel.loadAllDiaries()
+                    viewModel.loadAllRecordedDates()
+                }
             } catch (e: Exception) {
                 Log.e("TestActivity", "❌ prepareTest() 실패: ${e.message}")
             }

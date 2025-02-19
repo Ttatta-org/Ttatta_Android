@@ -88,12 +88,14 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
+    isloading : Boolean,
     // HomeApp에서 전달받은 데이터와 콜백들
     navController: NavHostController,
     diaryList: List<Diary>,
     lazyListState: LazyListState,
     isExpanded: Boolean,
     isSearchVisible: Boolean,
+    isSearchTriggered: Boolean,
     isCalendarVisible: Boolean,
     searchResults: List<Diary>,
     searchQuery: String,
@@ -145,7 +147,7 @@ fun HomeScreen(
 //
     var topBarHeight by remember { mutableStateOf(65.dp) }
 
-    var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
+//    var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
 
     var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
 
@@ -203,39 +205,77 @@ fun HomeScreen(
                         .background(Color(0xFFFEF6F2))
                         .padding(top = 50.dp)
                 ) {
-                    if (diaryList.isNotEmpty()){
-
-                        // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
-                        LazyColumn(
-                            state = lazyListState,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            item { Spacer(modifier = Modifier.height(50.dp)) }
-                            items(diaryList) { diary ->
-                                DiaryCard(
-                                    diary = diary,
-                                    onDetailClick = {
-                                        selectedDiaryId = diary.id
-                                        onShowDetailModal()
-                                    }
+                    when {
+                        isloading -> {
+                            // ✅ 로딩 중이면 로딩 인디케이터 표시
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                // 빈화면 출력
+                            }
+                        }
+                        diaryList.isNotEmpty() -> {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                item { Spacer(modifier = Modifier.height(50.dp)) }
+                                items(diaryList) { diary ->
+                                    DiaryCard(
+                                        diary = diary,
+                                        onDetailClick = { /* 다이어리 상세 보기 */ }
+                                    )
+                                }
+                            }
+                        }
+                        else -> {
+                            // ✅ 다이어리가 없을 경우 초대장 이미지 표시
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.BottomCenter
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.invitation),
+                                    contentDescription = "초대장 이미지",
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                         }
-                    } else {
-                        // ✅ 다이어리가 없을 경우 빈 화면 표시
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            contentAlignment = Alignment.BottomCenter // ✅ 이미지가 하단에 붙도록 정렬
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.invitation), // ✅ Drawable에 있는 이미지 사용
-                                contentDescription = "초대장 이미지",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
-                        }
                     }
+
+//                    if (diaryList.isNotEmpty()){
+//
+//                        // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
+//                        LazyColumn(
+//                            state = lazyListState,
+//                            modifier = Modifier.fillMaxSize()
+//                        ) {
+//                            item { Spacer(modifier = Modifier.height(50.dp)) }
+//                            items(diaryList) { diary ->
+//                                DiaryCard(
+//                                    diary = diary,
+//                                    onDetailClick = {
+//                                        selectedDiaryId = diary.id
+//                                        onShowDetailModal()
+//                                    }
+//                                )
+//                            }
+//                        }
+//                    } else {
+//                        // ✅ 다이어리가 없을 경우 빈 화면 표시
+//                        Box(
+//                            modifier = Modifier
+//                                .fillMaxSize(),
+//                            contentAlignment = Alignment.BottomCenter // ✅ 이미지가 하단에 붙도록 정렬
+//                        ) {
+//                            Image(
+//                                painter = painterResource(id = R.drawable.invitation), // ✅ Drawable에 있는 이미지 사용
+//                                contentDescription = "초대장 이미지",
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                            )
+//                        }
+//                    }
                 }
 
                 TopBarComponent(
@@ -270,7 +310,11 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .offset(y = topBarHeight)
                         .height(30.dp)
-                        .background(Color.Transparent),
+                        .background(Color.Transparent)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { onCalendarToggle() },
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(

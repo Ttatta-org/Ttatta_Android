@@ -68,6 +68,7 @@ fun SearchScreen(
     lazyListState: LazyListState,
     isExpanded: Boolean,
     isSearchVisible: Boolean,
+    isSearchTriggered: Boolean,
     isCalendarVisible: Boolean,
     searchQuery: String,
     recentSearches: List<String>,
@@ -114,7 +115,7 @@ fun SearchScreen(
 //
     var topBarHeight by remember { mutableStateOf(65.dp) }
 
-    var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
+    // var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
 
     var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
 
@@ -216,7 +217,11 @@ fun SearchScreen(
                         .fillMaxWidth()
                         .offset(y = topBarHeight)
                         .height(30.dp)
-                        .background(Color.Transparent),
+                        .background(Color.Transparent)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { onCalendarToggle() },
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(
