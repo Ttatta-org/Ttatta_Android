@@ -41,9 +41,9 @@ class HomeViewModel @Inject constructor(
         if (isFirstLoad) {
             loadDiaries(page = 0,isFiltered = false, date = null)
             loadAllRecordedDates()
+            loadCategories()
             isFirstLoad = false  // ✅ 이후에는 다시 호출하지 않도록 설정
         }
-        loadCategories()
     }
 
     // 새로고침 필요할 때 호출하기
@@ -347,7 +347,7 @@ class HomeViewModel @Inject constructor(
     val categoryListState: StateFlow<List<CategoryInfo>> = _categoryListState.asStateFlow()
 
     // ✅ 카테고리 목록 불러오기
-    private fun loadCategories() {
+    fun loadCategories() {
         viewModelScope.launch {
             try {
                 val categories = diaryRepository.getAllCategoryInfo()
