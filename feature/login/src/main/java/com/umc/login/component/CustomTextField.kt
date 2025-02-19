@@ -206,8 +206,8 @@ fun IdInputTextField(
                     Text(
                         text = "중복 확인",
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (errorMessage != null) colorResource(R.color.negativeRed) else colorResource(R.color.orange_200),
+                        fontWeight = FontWeight(400),
+                        color = if (errorMessage != null) colorResource(R.color.negativeRed) else colorResource(R.color.gray_500),
                         modifier = Modifier
                             .clickable { onImeAction() } // 버튼 클릭 시 중복 확인 실행
                             .padding(end = 6.dp)
@@ -341,7 +341,7 @@ fun NameInputTextField(
         },
         keyboardOptions = KeyboardOptions.Default.copy(
             keyboardType = KeyboardType.Text, // 텍스트 입력만 가능 (숫자 제외)
-            imeAction = androidx.compose.ui.text.input.ImeAction.Done
+            imeAction = ImeAction.Done
         ),
         modifier = Modifier.width(310.dp).height(51.dp),
         colors = TextFieldDefaults.colors(
@@ -349,7 +349,7 @@ fun NameInputTextField(
             focusedContainerColor = Color.Transparent,
             focusedIndicatorColor = colorResource(R.color.gray_500),
             unfocusedIndicatorColor = colorResource(R.color.gray_500),
-            cursorColor = if (errorMessage != null) colorResource(R.color.negativeRed) else Color.Black
+            cursorColor = if (errorMessage != null) Color.Black else Color.Black
         )
     )
 }

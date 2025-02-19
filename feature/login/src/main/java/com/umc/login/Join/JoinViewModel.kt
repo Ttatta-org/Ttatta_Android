@@ -162,17 +162,17 @@ class JoinViewModel @Inject constructor(
     }
 
     fun onNameChange(newName: String) {
-        // 한글(완성형) 또는 영어(대소문자)만 허용
-        val filteredName = newName.filter { it.isLetter() && (it in '가'..'힣' || it in 'a'..'z' || it in 'A'..'Z') }
+        // 한글(완성형)과 영문(대소문자)만 허용하는 정규식
+        val regex = Regex("^[가-힣a-zA-Z]*$")
 
-        // 입력값을 즉시 반영
-        _nameState.value = filteredName
+        // 입력값을 즉시 반영 (한글 조합이 깨지지 않도록)
+        _nameState.value = newName
 
-        // 에러 메시지 설정
+        // 에러 메시지 설정 (입력값 전체가 유효한지 검사)
         _nameError.value = when {
             newName.isEmpty() -> "이름을 입력해주세요."
-            newName != filteredName -> "한글과 영문만 입력 가능합니다."
-            filteredName.length > 8 -> "이름은 최대 8자까지 입력 가능합니다."
+            !regex.matches(newName) -> "한글 입력 시 초성은 제한됩니다."
+            newName.length > 8 -> "이름은 최대 8자까지 입력 가능합니다."
             else -> null
         }
     }
