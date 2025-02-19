@@ -212,7 +212,7 @@ fun TopBarComponent(
                         .padding(horizontal = 40.dp),
                     contentAlignment = Alignment.TopStart
                 ) {
-                    if (searchResults.isEmpty()) { // 🔹 검색 버튼을 눌렀을 때만 검사
+                    if (searchResults.isEmpty() && isSearchTriggered) { // 🔹 검색 버튼을 눌렀을 때만 검사
                         Log.d("HomeScreen", "🚫 검색 결과 없음")
                         Row(
                             modifier = Modifier

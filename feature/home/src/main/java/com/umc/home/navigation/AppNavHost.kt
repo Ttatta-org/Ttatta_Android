@@ -178,6 +178,7 @@ fun AppNavHost(
                 searchQuery = searchQuery,     // String
                 recentSearches = recentSearches,
                 lazyListState = lazyListState,
+                isSearchTriggered = isSearchTriggered,
 
                 // 로컬 UI 상태 전달
                 isExpanded = isExpanded,
@@ -229,6 +230,7 @@ fun AppNavHost(
                 searchQuery = searchQuery,     // String
                 recentSearches = recentSearches,
                 lazyListState = lazyListState,
+                isSearchTriggered = isSearchTriggered,
 
                 // 로컬 UI 상태 전달
                 isExpanded = isExpanded,
