@@ -84,7 +84,7 @@ class JoinViewModel @Inject constructor(
     val isNicknameButtonEnabled: StateFlow<Boolean> = combine(
         _nickNameState, _nicknameError, _isLoading
     ) { nickName, error, loading ->
-        nickName.trim().isNotEmpty() && nickName.length in 2..8 && error == null && !loading
+        nickName.trim().isNotEmpty() && nickName.length in 1..8 && error == null && !loading
     }.stateIn(viewModelScope, SharingStarted.Lazily, false)
 
     val isIdButtonEnabled: StateFlow<Boolean> = combine(
@@ -123,18 +123,31 @@ class JoinViewModel @Inject constructor(
             // 닉네임이 공백만 있을 경우 오류 메시지 표시
             _nicknameError.value = when {
                 filteredNickName.trim().isEmpty() -> "닉네임에 공백만 입력할 수 없습니다."
-                filteredNickName.length < 2 -> "닉네임은 최소 2자 이상 입력해야 합니다."
+                filteredNickName.length < 1 -> "닉네임은 최소 1자 이상 입력해야 합니다."
                 else -> null
             }
         }
     }
 
     fun onIdChange(newId: String) {
-        if (newId.length <= 16 && newId.length >= 6) {
-            _idState.value = newId
-            _idError.value = null
-            _isIdAvailable.value = false // 아이디 변경 시 중복 확인을 다시 해야 함
+        // 영어(대소문자)와 숫자만 허용
+        val filteredId = newId.filter { it.isLetterOrDigit() }
+
+        // 입력된 값이 15자를 초과하지 않도록 제한
+        if (filteredId.length > 15) return
+
+        // 입력값 즉시 상태 반영 (UI에서 안 보이는 문제 해결)
+        _idState.value = filteredId
+
+        // 에러 메시지 설정
+        _idError.value = when {
+            filteredId.isEmpty() -> "아이디를 입력해주세요."
+            filteredId.length < 6 -> "아이디는 최소 6자 이상 입력해야 합니다."
+            else -> null
         }
+
+        // 아이디 변경 시 중복 확인 플래그 초기화
+        _isIdAvailable.value = false
     }
 
     fun onPasswordChange(newPassword: String) {

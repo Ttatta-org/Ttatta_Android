@@ -95,7 +95,7 @@ fun JoinIdView(viewModel: JoinViewModel, onNext: () -> Unit) {
             placeholder = stringResource(R.string.join_id_comment),
             isWarning = isWarningVisible,
             errorMessage = idError,
-            isLoading = isLoading
+            isLoading = isLoading,
         )
 
         // 경고 문구
