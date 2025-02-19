@@ -104,10 +104,10 @@ fun AppNavHost(
     }
 
     // ✅ 수정 기능 추가
-    val onModifyDiary: (Long, String, File?) -> Unit = { diaryId, content, image ->
+    val onModifyDiary: (Long, Long, String, File?) -> Unit = { diaryId, categoryId, content, image ->
         viewModel.modifyDiary(
             diaryId = diaryId,
-            categoryId = null,
+            categoryId = categoryId,
             content = content,
             image = image,
             onSucceed = {
@@ -306,12 +306,27 @@ fun AppNavHost(
             val diaryId = backStackEntry.arguments?.getLong("diaryId") ?: -1
             val diary = diaryList.find { it.id == diaryId }
 
+            // ✅ ViewModel에서 카테고리 데이터 가져오기
+            val categoryList by viewModel.categoryListState.collectAsState()
+            val selectedCategoryPair by viewModel.selectedCategoryState.collectAsState()
+
+            // ✅ diary.categoryId를 기반으로 카테고리 이름 가져오기
+            val initialCategory = categoryList.find { it.id == diary?.categoryId }?.name ?: "일상"
+
             if (diary != null) {
                 HomeEditRecordScreen(
                     diary = diary,
-                    //viewModel = viewModel, // ViewModel 전달
-                    navController = navController, // NavController 전달
-                    onModifyDiary = onModifyDiary
+                    navController = navController,
+                    onModifyDiary = onModifyDiary,
+                    categoryList = categoryList,
+
+                    // ✅ 선택된 카테고리 없으면 기본값 사용
+                    selectedCategory = selectedCategoryPair[diary.id]?.second ?: initialCategory,
+
+                    // ✅ diaryId도 함께 전달하도록 수정
+                    onCategorySelected = { selectedDiaryId, newCategory, newCategoryId ->  // ✅ 변수명 변경
+                        viewModel.updateSelectedCategory(selectedDiaryId, newCategoryId, newCategory)
+                    }
                 )
             }
         }

@@ -5,11 +5,13 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.umc.core.model.CategoryInfo
 import com.umc.core.model.Diary
 import com.umc.core.repository.DiaryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import java.io.File
@@ -36,6 +38,7 @@ class HomeViewModel @Inject constructor(
             loadAllRecordedDates()
             isFirstLoad = false  // ✅ 이후에는 다시 호출하지 않도록 설정
         }
+        loadCategories()
     }
 
     // 새로고침 필요할 때 호출하기
@@ -77,11 +80,12 @@ class HomeViewModel @Inject constructor(
     val searchQuery: StateFlow<String> = _searchQuery
 
     // 초기 데이터 로딩 (페이지 1, 날짜 필터 없음)
-    init {
-        loadAllDiaries()
-        loadAllRecordedDates()
-        //loadDiaries(page = 0, date = null) // 초기 데이터 로딩
-    }
+//    init {
+//        loadAllDiaries()
+//        loadAllRecordedDates()
+//        loadCategories()
+//        //loadDiaries(page = 0, date = null) // 초기 데이터 로딩
+//    }
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
@@ -231,135 +235,6 @@ class HomeViewModel @Inject constructor(
         Log.d("RecentSearchesViewModel", "🔹 검색어 추가됨: $updatedSearches")
     }
 
-//    fun loadDiaries(
-//        page: Int,
-//        date: LocalDate?,
-//        reset: Boolean = false, // ✅ 초기화 여부
-//        isFiltered: Boolean = false, // ✅ 특정 날짜의 데이터만 가져오는지 여부
-//        onSucceed: () -> Unit = {},
-//        onFailed: (e: Exception) -> Unit = {}
-//    ) {
-//        Log.d("Pagination", "🔥 loadDiaries() 호출됨 - 페이지: $page, 날짜: $date, reset: $reset, isFiltered: $isFiltered")
-//
-//        if (isLoading) {
-//            Log.d("Pagination", "❌ 중복 요청 방지 - API 요청 차단됨 (isLoading = true)")
-//            return
-//        }
-//
-//        isLoading = true
-//
-//        viewModelScope.launch {
-//            try {
-//                Log.d("HomeViewModel", "📌 loadDiaries() 실행됨 - 페이지: $page, 날짜: $date")
-//
-//                val newDiaries = diaryRepository.getDiaries(page = page, date = date)
-//
-//                if (isFiltered) {
-//                    // ✅ 특정 날짜의 데이터를 별도로 저장
-//                    _filteredDiaryListState.value = newDiaries
-//                } else {
-//                    // ✅ 기존 데이터 유지하면서 새로운 데이터 추가 (중복 방지)
-//                    if (reset) {
-//                        _diaryListState.value = newDiaries
-//                    } else {
-//                        _diaryListState.value = (_diaryListState.value.filterNot { diary ->
-//                            newDiaries.any { it.id == diary.id }
-//                        } + newDiaries).toList()
-//                    }
-//                }
-//
-//                if (newDiaries.isNotEmpty()) {
-//                    Log.d("Pagination", "🚀 페이지 증가 전: $currentPage")
-//                    currentPage++
-//                    Log.d("Pagination", "✅ 페이지 증가 후: $currentPage")
-//                } else {
-//                    Log.d("Pagination", "⚠️ 새로운 데이터 없음 (마지막 페이지 도달)")
-//                }
-//
-//                Log.d("HomeViewModel", "✅ 다이어리 데이터 로드 성공: ${newDiaries.size}개")
-//                onSucceed()
-//            } catch (e: Exception) {
-//                onFailed(e)
-//            } finally {
-//                isLoading = false
-//                Log.d("Pagination", "✅ isLoading 상태 해제됨 (false)")
-//            }
-//        }
-//    }
-//
-//    /**
-//     * 🔍 **검색어에 따라 일기 목록 불러오기**
-//     */
-//    /**
-//     * 🔍 **검색어에 따라 일기 목록 불러오기 (무한 스크롤)**
-//     */
-//    fun searchDiaries(
-//        searchWord: String,
-//        reset: Boolean = true, // ✅ 새로운 검색어 입력 시 초기화 여부
-//        onSucceed: () -> Unit,
-//        onFailed: (e: Exception) -> Unit
-//    ) {
-//        if (reset) {
-//            currentSearchPage = 0 // ✅ 새로운 검색어가 입력되면 페이지 초기화
-//            _searchResultsState.value = emptyList() // ✅ 기존 검색 결과 초기화
-//        }
-//
-//        if (isLoading) {
-//            Log.d("Pagination", "❌ 중복 요청 방지 - API 요청 차단됨 (isLoading = true)")
-//            return
-//        }
-//        isLoading = true
-//
-//        viewModelScope.launch {
-//            try {
-//                _searchQuery.value = searchWord
-//                Log.d("HomeViewModel", "🔍 검색어: $searchWord (페이지: $currentSearchPage)")
-//
-//                // ✅ 검색 API 호출 (page를 적용)
-//                val results = diaryRepository.getDiaries(page = currentSearchPage, searchWord = searchWord)
-//
-////                if (results.isNotEmpty()) {
-////                    _searchResultsState.value = (_searchResultsState.value + results).toList() // ✅ 기존 검색 결과에 추가
-//                // ✅ 검색어가 변경되면 새 리스트로 교체
-//
-//                _searchResultsState.value = results
-//                if (results.isNotEmpty() && _searchResultsState.value.size > 5) {
-//                    Log.d("Pagination", "📌 검색 리스트 업데이트됨 (총 개수: ${_searchResultsState.value.size})")
-//
-//                    currentSearchPage++ // ✅ 다음 페이지 설정
-//                    Log.d("Pagination", "✅ 검색 페이지 증가 후: $currentSearchPage")
-//
-//                } else {
-//                    Log.d("Pagination", "⚠️ 새로운 검색 데이터 없음 (마지막 페이지 도달)")
-//                }
-//
-//                // ✅ 최근 검색어 업데이트 (중복 제거 & 최신순 정렬)
-//                if (searchWord.isNotBlank() && reset) {
-//                    val updatedList = _recentSearchesState.value.toMutableList()
-//
-//                    updatedList.remove(searchWord) // 중복 제거
-//                    updatedList.add(0, searchWord) // 맨 앞에 추가
-//
-//                    if (updatedList.size > 3) {
-//                        updatedList.removeAt(updatedList.size - 1) // 최대 3개 유지
-//                    }
-//
-//                    _recentSearchesState.value = updatedList
-//                }
-//
-//                Log.d("HomeViewModel", "✅ 검색 결과: ${results.size}개")
-//
-//                onSucceed()
-//
-//            } catch (e: Exception) {
-//                Log.e("HomeViewModel", "❌ 검색 실패: ${e.message}")
-//                onFailed(e)
-//            } finally {
-//                isLoading = false // ✅ isLoading 해제
-//                Log.d("Pagination", "✅ isLoading 상태 해제됨 (false)")
-//            }
-//        }
-//    }
 
     /**
      * 일기 생성 API를 호출한 후, 목록을 갱신합니다.
@@ -421,6 +296,7 @@ class HomeViewModel @Inject constructor(
                 _diaryListState.value = _diaryListState.value.map { diary ->
                     if (diary.id == diaryId) {
                         diary.copy(
+                            categoryId = categoryId ?: diary.categoryId,
                             content = content ?: diary.content, // 변경된 내용 반영
                             imageUrl = image?.path ?: diary.imageUrl // 변경된 이미지 반영
                         )
@@ -430,6 +306,7 @@ class HomeViewModel @Inject constructor(
                 _fullDiaryListState.value = _fullDiaryListState.value.map { diary ->
                     if (diary.id == diaryId) {
                         diary.copy(
+                            categoryId = categoryId ?: diary.categoryId,
                             content = content ?: diary.content,
                             imageUrl = image?.path ?: diary.imageUrl
                         )
@@ -439,6 +316,7 @@ class HomeViewModel @Inject constructor(
                 _searchResultsState.value = _searchResultsState.value.map { diary ->
                     if (diary.id == diaryId) {
                         diary.copy(
+                            categoryId = categoryId ?: diary.categoryId,
                             content = content ?: diary.content,
                             imageUrl = image?.path ?: diary.imageUrl
                         )
@@ -453,6 +331,36 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    // 🔹 현재 선택된 카테고리 상태 (각 다이어리에 개별 적용하기 위해 Map 사용)
+    private val _selectedCategoryState = MutableStateFlow<Map<Long, Pair<Long, String>>>(emptyMap())
+    val selectedCategoryState: StateFlow<Map<Long, Pair<Long, String>>> = _selectedCategoryState.asStateFlow()
+
+    // 🔹 카테고리 목록 상태
+    private val _categoryListState = MutableStateFlow<List<CategoryInfo>>(emptyList())
+    val categoryListState: StateFlow<List<CategoryInfo>> = _categoryListState.asStateFlow()
+
+    // ✅ 카테고리 목록 불러오기
+    private fun loadCategories() {
+        viewModelScope.launch {
+            try {
+                val categories = diaryRepository.getAllCategoryInfo()
+                _categoryListState.value = categories
+                Log.d("HomeViewModel", "✅ 카테고리 불러오기 성공: ${categories.map { it.name }}")
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "❌ 카테고리 불러오기 실패: ${e.message}")
+            }
+        }
+    }
+
+    // ✅ 특정 다이어리의 선택된 카테고리 업데이트 (ID + 이름 저장)
+    fun updateSelectedCategory(diaryId: Long, categoryId: Long, categoryName: String) {
+        _selectedCategoryState.value = _selectedCategoryState.value.toMutableMap().apply {
+            put(diaryId, Pair(categoryId, categoryName)) // ✅ 특정 다이어리의 카테고리 변경
+        }
+        Log.d("HomeViewModel", "✅ 다이어리($diaryId)의 카테고리 업데이트: $categoryName ($categoryId)")
+    }
+
 
     /**
      * 일기 삭제 API를 호출한 후, 목록을 갱신합니다.

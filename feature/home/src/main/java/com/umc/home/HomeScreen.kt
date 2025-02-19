@@ -270,7 +270,11 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .offset(y = topBarHeight)
                         .height(30.dp)
-                        .background(Color.Transparent),
+                        .background(Color.Transparent)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { onCalendarToggle() },
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(
