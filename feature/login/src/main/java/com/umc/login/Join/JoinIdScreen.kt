@@ -104,6 +104,7 @@ fun JoinIdView(viewModel: JoinViewModel, onNext: () -> Unit) {
 
         //✅ 중복 확인 성공 메시지 표시
         if (idSuccessMessage != null) {
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = idSuccessMessage!!,
                 color = colorResource(R.color.positiveGreen), // ✅ 성공 메시지 색상 변경
@@ -114,6 +115,7 @@ fun JoinIdView(viewModel: JoinViewModel, onNext: () -> Unit) {
         }
         // ✅ 중복 확인 실패 시 기존 경고 메시지 유지
         else if (idError != null) {
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = idError!!,
                 color = colorResource(R.color.negativeRed),
@@ -122,6 +124,7 @@ fun JoinIdView(viewModel: JoinViewModel, onNext: () -> Unit) {
                 fontWeight = FontWeight(400)
             )
         } else {
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = stringResource(R.string.join_id_small_comment),
                 color = if (isWarningVisible) colorResource(R.color.negativeRed) else colorResource(R.color.gray_400),
@@ -130,8 +133,6 @@ fun JoinIdView(viewModel: JoinViewModel, onNext: () -> Unit) {
                 fontWeight = FontWeight(400)
             )
         }
-
-        Spacer(modifier = Modifier.height(20.dp))
 
 
 
