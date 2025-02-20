@@ -219,6 +219,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val results = diaryRepository.getDiaries(page = searchPage, searchWord = searchWord)
+
+                _isLoading.value = false
+
                 _searchResultsState.value = (_searchResultsState.value + results).distinctBy { it.id }
                 if (results.isNotEmpty()) {
                     searchPage++
