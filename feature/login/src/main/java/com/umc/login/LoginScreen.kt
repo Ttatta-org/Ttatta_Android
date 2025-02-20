@@ -155,8 +155,21 @@ fun LoginMiddleView(idState: String,
             passwordVisible = passwordVisible,
             onPasswordToggleClick = onPasswordToggleClick
         )
+        // ❌ 경고 메시지 추가
         if (errorMessage.isNotEmpty()) {
-            Text(text = errorMessage, color = Color.Red, fontSize = 12.sp)
+            Text(
+                text = errorMessage,
+                textAlign = TextAlign.Center,
+                color = colorResource(R.color.negativeRed),
+                fontSize = 12.sp,
+                fontWeight = FontWeight(400),
+                modifier = Modifier
+                    .padding( top = 4.dp)
+            )
+            Spacer(modifier = Modifier.height(17.dp))
+        }
+        else{
+            Spacer(modifier = Modifier.height(39.dp))
         }
         Button(
             elevation = ButtonDefaults.buttonElevation(
@@ -167,7 +180,6 @@ fun LoginMiddleView(idState: String,
             onClick = {onLoginClick()},
             modifier = Modifier
                 .width(310.dp)
-                .padding(top = 30.dp)
                 .height(45.dp),
             shape = RoundedCornerShape(28.dp), // 라운딩 처리
             colors = ButtonDefaults.buttonColors(
