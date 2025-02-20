@@ -156,14 +156,8 @@ class MapHandlerImpl @Inject constructor(
             getMapAsync { map ->
                 map.apply {
                     // 이벤트 리스너 설정
-                    addOnCameraChangeListener { _, _ ->
-                        onPreviousMarkerDismissed?.invoke()
-                        onPreviousMarkerDismissed = null
-                    }
-                    setOnMapClickListener { _, _ ->
-                        onPreviousMarkerDismissed?.invoke()
-                        onPreviousMarkerDismissed = null
-                    }
+                    addOnCameraChangeListener { _, _ -> dismiss() }
+                    setOnMapClickListener { _, _ -> dismiss() }
                     addOnCameraIdleListener {
                         isNonClusteringZoomLevelReached.value = map.cameraPosition.zoom > 15
                         Log.d("MapHandlerImpl", "zoom level: ${map.cameraPosition.zoom}")
@@ -317,7 +311,21 @@ class MapHandlerImpl @Inject constructor(
         markers.clear()
     }
 
+    override suspend fun addOnDismissListener(listener: () -> Unit) {
+        getMap().apply {
+            setOnMapClickListener { _, _ ->
+                dismiss()
+                listener()
+            }
+            addOnCameraChangeListener { _, _ -> listener() }
+        }
+    }
+
     override suspend fun dismissMarkerEvent() {
+        dismiss()
+    }
+
+    private fun dismiss() {
         onPreviousMarkerDismissed?.invoke()
         onPreviousMarkerDismissed = null
     }
