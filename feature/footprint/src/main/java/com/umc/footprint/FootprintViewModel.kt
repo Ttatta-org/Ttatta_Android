@@ -28,6 +28,8 @@ class FootprintViewModel @Inject constructor(
     private val userRepository: UserRepository,
 ) : ViewModel() {
 
+    private var previousClickedClusterId: Long? = null
+
     private val diaryMapState = mutableStateOf<Map<Int, DiaryForCard>>(emptyMap())
     private val clickedMarkerInfoState = mutableStateOf<ClickedMarkerInfo?>(null)
     private val categoryListState = mutableStateOf<List<CategoryInfo>>(listOf())
@@ -246,12 +248,17 @@ class FootprintViewModel @Inject constructor(
             longitude = longitude,
             zIndex = diaryId.toInt(),
             color = color,
-            onClicked = onClicked@{ x, y ->
-                clickedMarkerInfoState.value = ClickedMarkerInfo(
-                    x = x,
-                    y = y,
-                    clusterId = clusterId,
-                )
+            onClicked = onClicked@ { x, y ->
+                if (previousClickedClusterId != clusterId) {
+                    clickedMarkerInfoState.value = ClickedMarkerInfo(
+                        x = x,
+                        y = y,
+                        clusterId = clusterId,
+                    )
+                    previousClickedClusterId = clusterId
+                } else {
+                    previousClickedClusterId = null
+                }
                 return@onClicked {
                     clickedMarkerInfoState.value = null
                     diaryMapState.value = emptyMap()

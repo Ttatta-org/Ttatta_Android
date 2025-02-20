@@ -126,14 +126,13 @@ fun FootprintApp(
                 x = clickedMarkerInfo.x,
                 y = clickedMarkerInfo.y,
                 prop = DiaryCardProp(
+                    clusterId = clickedMarkerInfo.clusterId,
                     diaryCardLoadedPropMap = viewModel.diaryMap.mapValues { (_, value) ->
                         diaryCardLoadedPropMap[value.id]
                     },
                     onNewDiaryRequested = { page ->
                         viewModel.getDiaryFromServer(
                             page = page,
-                            onSucceed = { /* TODO */ },
-                            onFailed = { /* TODO */ },
                         )
                     }
                 )
@@ -163,8 +162,6 @@ fun FootprintApp(
                                         if (diaryModificationModeProp != null) viewModel.modifyDiary(
                                             diaryId = id,
                                             content = diaryModificationModeProp.contentValue,
-                                            onSucceed = { /* TODO */ },
-                                            onFailed = { /* TODO */ }
                                         )
                                         keyboard?.hide()
                                     }
@@ -207,7 +204,6 @@ fun FootprintApp(
         },
         onLocationButtonClicked = {
             viewModel.moveMapToCurrentPosition(
-                onSucceed = { /* empty */ },
                 onFailed = {
                     permissionRequester.checkLocationPermission(
                         context = context,
