@@ -7,8 +7,10 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
@@ -203,43 +205,6 @@ fun SearchScreen(
                     }
                 }
 
-//                if (searchResults.isNotEmpty()){
-//                    Column(
-//                        modifier = Modifier
-//                            .fillMaxSize()
-//                            .background(Color(0xFFFEF6F2))
-//                            .padding(top = 50.dp)
-//                    ) {
-//                        LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
-//                            item { Spacer(modifier = Modifier.height(50.dp)) }
-//                            items(searchResults) { diary ->
-//                                DiaryCard(
-//                                    diary = diary,
-//                                    onDetailClick = {
-//                                        selectedDiaryId = diary.id
-//                                        onShowDetailModal()
-//                                    },
-//                                )
-//                            }
-//                        }
-//                    }
-//                }
-//                else {
-//                    // ✅ 검색결과가 없을 경우 빈 화면 표시
-//                    Box(
-//                        modifier = Modifier
-//                            .fillMaxSize()
-//                            .background(Color(0xFFFEF6F2)),
-//                        contentAlignment = Alignment.Center // ✅ 이미지가 하단에 붙도록 정렬
-//                    ) {
-//                        Image(
-//                            painter = painterResource(id = R.drawable.no_search_results), // ✅ Drawable에 있는 이미지 사용
-//                            contentDescription = "초대장 이미지",
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                        )
-//                    }
-//                }
                 TopBarComponent(
                     navController = navController,
                     isExpanded = isCalendarVisible,
@@ -252,14 +217,22 @@ fun SearchScreen(
                     onSearchToggle = onSearchToggle,
                     onCalendarToggle = onCalendarToggle,
                     calendarContent = { modifier ->
-                        CalendarView(
-                            modifier = modifier,
-                            onDateSelected = { selectedDate ->
-                                Log.d("HomeScreen", "📌 2. CalendarView에서 날짜 선택됨: $selectedDate")
-                                onNavigateToFilteredDiaryScreen(selectedDate) // 🔹 네비게이션 실행
-                            },
-                            diaryDates = allDiaryDates
-                        )
+                        Column(modifier = modifier.fillMaxWidth()) {
+                            AnimatedVisibility(
+                                visible = isCalendarVisible,
+                                enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
+                                exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
+                            ) {
+                                CalendarView(
+                                    modifier = modifier,
+                                    onDateSelected = { selectedDate ->
+                                        Log.d("HomeScreen", "📌 2. CalendarView에서 날짜 선택됨: $selectedDate")
+                                        onNavigateToFilteredDiaryScreen(selectedDate) // 🔹 네비게이션 실행
+                                    },
+                                    diaryDates = allDiaryDates
+                                )
+                            }
+                        }
                     },
                     recentSearches = recentSearches,
                     onRecentSearchClick = onRecentSearchClick,
