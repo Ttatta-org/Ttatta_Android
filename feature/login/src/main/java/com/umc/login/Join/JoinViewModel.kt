@@ -47,9 +47,6 @@ class JoinViewModel @Inject constructor(
     private val _certiCodeState = MutableStateFlow("")
     val certiCodeState: StateFlow<String> = _certiCodeState.asStateFlow()
 
-    private val _timerState = MutableStateFlow(600) // 10분 (600초)
-    val timerState: StateFlow<Int> = _timerState.asStateFlow()
-
     private val _isWarningVisible = MutableStateFlow(false)
     val isWarningVisible: StateFlow<Boolean> = _isWarningVisible.asStateFlow()
 
@@ -94,6 +91,11 @@ class JoinViewModel @Inject constructor(
     private val _isConfirmPasswordVisible = MutableStateFlow(false)
     val isConfirmPasswordVisible: StateFlow<Boolean> = _isConfirmPasswordVisible.asStateFlow()
 
+    private val _timerState = MutableStateFlow(600) // 10분 (600초)
+    val timerState: StateFlow<Int> = _timerState.asStateFlow()
+
+    private val _isTimerRunning = MutableStateFlow(false) // 타이머가 실행 중인지 확인
+    val isTimerRunning: StateFlow<Boolean> = _isTimerRunning.asStateFlow()
 
     private val _isNavigationTriggered = MutableStateFlow(false)
     val isNavigationTriggered: StateFlow<Boolean> = _isNavigationTriggered.asStateFlow()
@@ -126,9 +128,6 @@ class JoinViewModel @Inject constructor(
         .map { it.length == 6 }
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
-    init {
-        startTimer()
-    }
 
     fun onNickNameChange(newNickName: String) {
         // 한글, 자모음 조합 허용 + 영문, 숫자, 특수문자 허용
@@ -245,13 +244,39 @@ class JoinViewModel @Inject constructor(
             _emailDomainState.value = customDomain
         }
     }
+    // ✅ 타이머 초기화 및 시작 메서드 (버튼 클릭 시 호출 가능)
+    fun startTimer() {
+        if (!_isTimerRunning.value) {
+            _isTimerRunning.value = true
+            _timerState.value = 600 // 타이머 초기화
 
-    fun triggerNavigation() {
-        _isNavigationTriggered.value = true
+            viewModelScope.launch {
+                while (_timerState.value > 0) {
+                    delay(1000L) // 1초 대기
+                    _timerState.value -= 1
+                }
+                _isTimerRunning.value = false
+                requestVerificationCodeForResend() // ✅ 타이머 종료 후 인증번호 자동 재전송
+            }
+        }
     }
 
-    fun resetNavigationTrigger() {
-        _isNavigationTriggered.value = false
+    // ✅ 인증번호 재전송 요청 + 타이머 초기화 포함
+    fun requestVerificationCodeForResend() {
+        viewModelScope.launch {
+            try {
+                val email = "${_emailLocalPartState.value}@${_emailDomainState.value}"
+                userRepository.requestVerificationCodeForJoining(email)
+                _emailError.value = null // 기존 에러 제거
+                println("✅ 인증번호가 이메일로 재전송되었습니다.")
+
+                // ✅ 인증번호 재전송 후 타이머 초기화 및 다시 시작
+                startTimer()
+            } catch (e: Exception) {
+                _emailError.value = "인증번호 재전송에 실패했습니다."
+                println("❌ 인증번호 재전송 실패: ${e.message}")
+            }
+        }
     }
 
     fun onCertiCodeChange(
@@ -316,6 +341,9 @@ class JoinViewModel @Inject constructor(
                 userRepository.requestVerificationCodeForJoining(email)
                 _emailError.value = null // 기존 에러 제거
                 onSuccess()
+
+                // ✅ 이메일 발송 성공 후 타이머 시작
+                startTimer()
             } catch (e: Exception) {
                 _emailError.value = "이메일 발송에 실패했습니다."
                 onFailure("이메일 발송에 실패했습니다.")
@@ -324,14 +352,15 @@ class JoinViewModel @Inject constructor(
     }
 
 
-    private fun startTimer() {
-        viewModelScope.launch {
-            while (_timerState.value > 0) {
-                delay(1000L) // 1초 대기
-                _timerState.value -= 1
-            }
-        }
-    }
+
+//    private fun startTimer() {
+//        viewModelScope.launch {
+//            while (_timerState.value > 0) {
+//                delay(1000L) // 1초 대기
+//                _timerState.value -= 1
+//            }
+//        }
+//    }
 
 
     fun checkIdAvailability() {

@@ -89,11 +89,7 @@ fun JoinCertiView(viewModel: JoinViewModel,navController: NavHostController) {
 
         Button(
             enabled = isCodeValid,
-            onClick = { viewModel.onCertiCodeChange(
-                newCode = viewModel.certiCodeState.value,  // ✅ 현재 입력된 인증번호 전달
-                onSuccess = { navController.navigate("join_end") },
-                onFailure = { }
-            )
+            onClick = { viewModel.requestVerificationCodeForResend()
             }, // 이메일 다시 보내는 로직
             modifier = Modifier
                 .width(310.dp)
