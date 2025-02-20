@@ -9,9 +9,11 @@ import com.umc.core.model.CategoryInfo
 import com.umc.core.model.Diary
 import com.umc.core.repository.DiaryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import kotlinx.coroutines.launch
 import java.io.File
@@ -202,6 +204,12 @@ class HomeViewModel @Inject constructor(
             Log.d("Pagination", "📌 전체 다이어리 로드 시도")
             // ✅ 전체 다이어리 무한 스크롤
             loadDiaries(page = currentPage, isFiltered = false, date = null)
+        }
+    }
+
+    fun getDiaryById(diaryId: Long): Flow<Diary?> {
+        return diaryListState.map { diaryList ->
+            diaryList.find { it.id == diaryId }
         }
     }
 

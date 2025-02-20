@@ -319,8 +319,11 @@ fun AppNavHost(
             route = "edit_record/{diaryId}",
             arguments = listOf(navArgument("diaryId") { type = NavType.LongType })
         ) { backStackEntry ->
-            val diaryId = backStackEntry.arguments?.getLong("diaryId") ?: -1
-            val diary = diaryList.find { it.id == diaryId }
+            val diaryId = backStackEntry.arguments?.getLong("diaryId") ?: -1L
+            val diary = (diaryList + filteredDiaryList + searchResults).find { it.id == diaryId }
+
+
+            Log.d("FilteredDiaryScreen", "✅ 필터화면에서 수정화면으로 선택된 일기 id : ${diaryId} diart : ${diary}")
 
             // ✅ ViewModel에서 카테고리 데이터 가져오기
             val categoryList by viewModel.categoryListState.collectAsState()
