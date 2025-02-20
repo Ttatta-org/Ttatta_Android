@@ -209,8 +209,9 @@ class JoinViewModel @Inject constructor(
     }
 
     fun onNameChange(newName: String) {
-        // 한글(완성형)과 영문(대소문자)만 허용하는 정규식
-        val regex = Regex("^[가-힣a-zA-Z]*$")
+        // 초성, 중성(자모)까지 포함해서 입력 중간 오류가 없게!
+        val regex = Regex("^[가-힣ㄱ-ㅎㅏ-ㅣa-zA-Z]*$")
+
 
         // 입력값을 즉시 반영 (한글 조합이 깨지지 않도록)
         _nameState.value = newName
@@ -218,7 +219,7 @@ class JoinViewModel @Inject constructor(
         // 에러 메시지 설정 (입력값 전체가 유효한지 검사)
         _nameError.value = when {
             newName.isEmpty() -> "이름을 입력해주세요."
-            !regex.matches(newName) -> "한글 입력 시 초성은 제한됩니다."
+            !regex.matches(newName) -> "입력 시 초성 및 특수문자는 제한됩니다."
             newName.length > 8 -> "이름은 최대 8자까지 입력 가능합니다."
             else -> null
         }
