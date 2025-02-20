@@ -35,10 +35,9 @@ fun Splash() {
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.img_splash_gradient),
+            painter = painterResource(id = R.drawable.img_gradient_background),
             contentDescription = "배경 이미지",
-            modifier = Modifier.size(1200.dp, 1200.dp),
-            contentScale = ContentScale.None // 이미지를 전체 영역에 맞게 확대/축소
+            contentScale = ContentScale.Fit // 이미지를 전체 영역에 맞게 확대/축소
         )
         Column(modifier = Modifier
             .fillMaxWidth(),
