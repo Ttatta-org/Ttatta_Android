@@ -218,7 +218,8 @@ fun NewChallengeView(
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.W400,
                                         color = Color.Grey300
-                                    ) else innerTextField()
+                                    )
+                                    innerTextField()
                                 }
                                 Text(
                                     text = buildAnnotatedString {
@@ -289,7 +290,8 @@ fun NewChallengeView(
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.W400,
                                         color = Color.Grey300
-                                    ) else innerTextField()
+                                    )
+                                    innerTextField()
                                 }
                             }
                         }
