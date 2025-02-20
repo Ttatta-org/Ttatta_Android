@@ -1,5 +1,6 @@
 package com.umc.record.component
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -47,7 +49,8 @@ data class DiaryBottomSheetProp(
     val userName: String,
     val diaryContent: String,
     val onCreateButtonClicked: () -> Unit,
-    val onDiaryContentChanged: (String) -> Unit
+    val onDiaryContentChanged: (String) -> Unit,
+    val isButtonEnabled: Boolean = true // ✅ 버튼 활성/비활성 상태 추가
 )
 
 private val bottomSheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
@@ -56,6 +59,8 @@ private val bottomSheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.
 fun DiaryBottomSheet(
     prop: DiaryBottomSheetProp,
 ) {
+    val context = LocalContext.current
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -133,15 +138,38 @@ fun DiaryBottomSheet(
                     }
                 }
                 // 추가 버튼
+//                IconButton(
+//                    onClick = prop.onCreateButtonClicked,
+//                    modifier = Modifier.size(48.dp)
+//                ) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.btn_add), // 리소스 파일의 추가 버튼
+//                        contentDescription = "Add",
+//                        tint = Color.Unspecified, // Tint 효과 제거
+//                        modifier = Modifier.size(48.dp) // 아이콘 크기 설정
+//                    )
+//                }
                 IconButton(
-                    onClick = prop.onCreateButtonClicked,
+                    onClick = {
+                        if (prop.isButtonEnabled) {
+                            prop.onCreateButtonClicked()
+                        } else {
+                            // ✅ 로딩 중일 때 Toast 메시지
+                            Toast.makeText(
+                                context,
+                                "일기를 등록 중입니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    enabled = true, // 항상 클릭 가능하도록 설정 (토스트 표시를 위해)
                     modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.btn_add), // 리소스 파일의 추가 버튼
+                        painter = painterResource(id = R.drawable.btn_add),
                         contentDescription = "Add",
-                        tint = Color.Unspecified, // Tint 효과 제거
-                        modifier = Modifier.size(48.dp) // 아이콘 크기 설정
+                        tint = if (prop.isButtonEnabled) Color.Unspecified else Color.Unspecified,
+                        modifier = Modifier.size(48.dp)
                     )
                 }
             }

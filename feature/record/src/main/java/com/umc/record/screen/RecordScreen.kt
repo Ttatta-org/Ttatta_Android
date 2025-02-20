@@ -74,6 +74,24 @@ fun RecordScreen(
 ) {
     val density = LocalDensity.current
 
+    // ✅ 카테고리 이름과 배경색 매핑
+    val categoryBackgroundColors = mapOf(
+        "RED" to Color(0xE6FFD7D7),
+        "ORANGE" to Color(0xE6FFE0D3),
+        "YELLOW" to Color(0xE6FFF0D2),
+        "GREEN" to Color(0xE6E4F5D6),
+        "TURQUOISE" to Color(0xE6E4F4F2),
+        "BLUE" to Color(0xE6E0EFF8),
+        "NAVY" to Color(0xE6D7DFF5),
+        "PURPLE" to Color(0xE6F2E1FF),
+        "BROWN" to Color(0xE6EACFC0),
+        "WHITE" to Color(0xE6FFFFFF),
+        "PINK" to Color(0xE6FFA6C3),
+        "BLACK" to Color(0xE69D9D9D)
+    )
+    // ✅ 기본 배경색
+    val defaultBackgroundColor = Color(0xE6FDDDC1)
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -176,11 +194,16 @@ fun RecordScreen(
                     }
                 }
                 // 카테고리
+                val categoryName = selectedCategoryColor?.name
+                val categoryBackgroundColor = categoryName?.let {
+                    categoryBackgroundColors[it]
+                } ?: defaultBackgroundColor
+
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .background(
-                            color = Color(0xFEF6F2E5),
+                            color = categoryBackgroundColor,
                             shape = RoundedCornerShape(percent = 50)
                         )
                         .clip(RoundedCornerShape(percent = 50))
