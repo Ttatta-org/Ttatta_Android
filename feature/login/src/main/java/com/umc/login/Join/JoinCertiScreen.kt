@@ -27,12 +27,14 @@ import kotlinx.coroutines.delay
 @Composable
 fun JoinCertiScreen(navController: NavHostController,viewModel: JoinViewModel = viewModel()) {
     Column(modifier = Modifier.wrapContentSize()) {
-        JoinCertiView(viewModel =viewModel,onNext = { navController.navigate("join_end") })
+        JoinCertiView(
+            viewModel =viewModel,navController =navController
+        )
     }
 }
 
 @Composable
-fun JoinCertiView(viewModel: JoinViewModel, onNext: () -> Unit) {
+fun JoinCertiView(viewModel: JoinViewModel,navController: NavHostController) {
     val certiCode by viewModel.certiCodeState.collectAsState()
     val timer by viewModel.timerState.collectAsState()
     val isCodeValid by viewModel.isCertiCodeValid.collectAsState()
@@ -56,10 +58,16 @@ fun JoinCertiView(viewModel: JoinViewModel, onNext: () -> Unit) {
         CertiInputTextField(
             value = certiCode,
             onValueChange = {
+                    newCode ->
                 viewModel.onCertiCodeChange(
-                    newCode = it,
-                    onSuccess = { onNext() },
-                    onFailure = { }
+                    newCode = newCode,
+                    onSuccess = {
+                        println("onSucess 실행됨!!")
+                        navController.navigate("join_end")
+                         },
+                    onFailure = {
+                        println("❌ 인증 실패: 인증번호가 틀렸거나 서버 오류 발생")
+                    }
                 )
             },
             placeholder = stringResource(R.string.join_certification_comment),
@@ -81,10 +89,12 @@ fun JoinCertiView(viewModel: JoinViewModel, onNext: () -> Unit) {
 
         Button(
             enabled = isCodeValid,
-            onClick = {  viewModel.verifyCertiCode(
-                onSuccess = { onNext() },
+            onClick = { viewModel.onCertiCodeChange(
+                newCode = viewModel.certiCodeState.value,  // ✅ 현재 입력된 인증번호 전달
+                onSuccess = { navController.navigate("join_end") },
                 onFailure = { }
-            ) }, // 이메일 다시 보내는 로직
+            )
+            }, // 이메일 다시 보내는 로직
             modifier = Modifier
                 .width(310.dp)
                 .height(45.dp),

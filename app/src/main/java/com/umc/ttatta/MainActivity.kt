@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        enableDebugMode()
+        //enableDebugMode()
         setStatusBarTransparent()
         setContent {
             val imageFile by imageFileState.collectAsState()

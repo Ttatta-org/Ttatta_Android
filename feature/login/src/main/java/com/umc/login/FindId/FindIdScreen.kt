@@ -28,14 +28,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.umc.login.R
 
 @Composable
-fun FindIdScreen(navController: NavHostController) {
+fun FindIdScreen(navController: NavHostController, viewModel: FindIdViewModel = viewModel()) {
     Column(modifier = Modifier.fillMaxSize()) {
         FindIdTopView(onBack = { navController.navigate("login") })
-        FindIdMainView(onNext = { navController.navigate("login") }, onBack = { navController.navigate("login") })
+        FindIdMainView(viewModel = viewModel ,onNext = { navController.navigate("login") })
     }
 }
 
@@ -85,17 +86,19 @@ fun FindIdTopView(onBack: () -> Unit) {
 }
 
 @Composable
-fun FindIdMainView(onNext: () -> Unit, onBack: () -> Unit) {
-    var localPart by remember { mutableStateOf("") }
-    var selectedDomain by remember { mutableStateOf("직접입력") }
-    var customDomain by remember { mutableStateOf("") }
-    var isCustomDomain by remember { mutableStateOf(false) }
+fun FindIdMainView(onNext: () -> Unit, viewModel: FindIdViewModel) {
+    val nameState by viewModel.findNameState.collectAsState()
+    val emailLocalPart by viewModel.findEmailLocalPartState.collectAsState()
+    val emailDomain by viewModel.findEmailDomainState.collectAsState()
+    val isCustomDomain by viewModel.isCustomDomain.collectAsState()
+    val certiCode by viewModel.findCertiCodeState.collectAsState()
+    val isButtonEnabled by viewModel.isFindButtonEnabled.collectAsState()
+    val foundId by viewModel.foundId.collectAsState()
+    val findError by viewModel.findError.collectAsState()
+
     var expanded by remember { mutableStateOf(false) }
-    var nameState by remember { mutableStateOf("") }
-    var isWarningVisible by remember { mutableStateOf(false) }
     val domains = listOf("naver.com", "gmail.com", "yahoo.com", "직접입력")
-    var certiCode by remember { mutableStateOf("") }
-    val isButtonEnabled = nameState.isNotEmpty() && nameState.length <= 8
+
     Spacer(modifier = Modifier.height(49.dp))
 
     Column(
@@ -105,14 +108,9 @@ fun FindIdMainView(onNext: () -> Unit, onBack: () -> Unit) {
     ){
         FindNameInputTextField(
             value = nameState,
-            onValueChange = {
-                if (it.length <= 9) {
-                    nameState = it
-                    isWarningVisible = (it.length == 9)
-                }
-            },
+            onValueChange = viewModel::onFindNameChange,
             placeholder = stringResource(R.string.find_id_name),
-            isWarning = isWarningVisible
+            isWarning = nameState.length == 9
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -122,8 +120,8 @@ fun FindIdMainView(onNext: () -> Unit, onBack: () -> Unit) {
             modifier = Modifier.width(318.dp)
         ) {
             FindEmailInputTextField(
-                value = localPart,
-                onValueChange = { localPart = it },
+                value = emailLocalPart,
+                onValueChange = viewModel::onFindEmailLocalPartChange,
                 placeholder = "이메일 입력"
             )
             Text(
@@ -139,8 +137,8 @@ fun FindIdMainView(onNext: () -> Unit, onBack: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     FindDomainInputTextField(
-                        value = if (isCustomDomain) customDomain else selectedDomain,
-                        onValueChange = { if (isCustomDomain) customDomain = it },
+                        value = emailDomain,
+                        onValueChange =  { if (isCustomDomain) viewModel.onFindCustomDomainChange(it) },
                         placeholder = "직접입력",
                         readOnly = !isCustomDomain
                     )
@@ -156,8 +154,7 @@ fun FindIdMainView(onNext: () -> Unit, onBack: () -> Unit) {
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     domains.forEach { domain ->
                         DropdownMenuItem(text = { Text(domain) }, onClick = {
-                            selectedDomain = domain
-                            isCustomDomain = domain == "직접입력"
+                            viewModel.onFindEmailDomainChange(domain)
                             expanded = false
                         })
                     }
@@ -174,7 +171,7 @@ fun FindIdMainView(onNext: () -> Unit, onBack: () -> Unit) {
                     lineHeight = 20.sp,
                     fontWeight = FontWeight(600),
                     color = colorResource(R.color.orange_500),
-                    modifier = Modifier.clickable { })
+                    modifier = Modifier.clickable {/*viewModel.requestFindCertiCode()*/ })
             }
         }
 
@@ -186,7 +183,7 @@ fun FindIdMainView(onNext: () -> Unit, onBack: () -> Unit) {
         ) {
             FindCertiInputTextField(
                 value = certiCode,
-                onValueChange = { if (it.length <= 6) certiCode = it },
+                onValueChange = viewModel::onFindCertiCodeChange,
                 placeholder = stringResource(R.string.join_certification_comment)
 
             )

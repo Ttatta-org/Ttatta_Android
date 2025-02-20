@@ -83,8 +83,10 @@ class LoginViewModel @Inject constructor(
                     id = idState.value,
                     password = pwState.value
                 )
+                _errorMessage.value = "" // 로그인 성공 시 에러 메시지 초기화
                 onSucceed()
             } catch (e: Exception) {
+                _errorMessage.value = "잘못된 아이디 또는 비밀번호입니다."
                 onFailed()
             }
         }

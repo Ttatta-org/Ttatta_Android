@@ -64,7 +64,10 @@ fun JoinIdView(viewModel: JoinViewModel, onNext: () -> Unit) {
     val isWarningVisible by viewModel.isWarningVisible.collectAsState()
     val isButtonEnabled by viewModel.isIdButtonEnabled.collectAsState()
     val idError by viewModel.idError.collectAsState()
+    val idSuccessMessage by viewModel.idSuccessMessage.collectAsState() // ✅ 성공 메시지 상태
     val isLoading by viewModel.isLoading.collectAsState()
+    val isCheckButtonVisible by viewModel.isCheckButtonVisible.collectAsState() // ✅ 버튼 가시성 상태
+
 
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -88,23 +91,51 @@ fun JoinIdView(viewModel: JoinViewModel, onNext: () -> Unit) {
             onValueChange = viewModel::onIdChange,
             onImeAction = {
                 keyboardController?.hide()
-                viewModel.checkIdAvailability()
+                viewModel.checkIdAvailability(
+
+                )
             },
             placeholder = stringResource(R.string.join_id_comment),
             isWarning = isWarningVisible,
             errorMessage = idError,
-            isLoading = isLoading
+            isLoading = isLoading,
+            isCheckButtonVisible = isCheckButtonVisible
         )
 
-        Spacer(modifier = Modifier.height(5.dp))
+        //✅ 중복 확인 성공 메시지 표시
+        if (idSuccessMessage != null) {
+            Text(
+                text = idSuccessMessage!!,
+                color = colorResource(R.color.positiveGreen), // ✅ 성공 메시지 색상 변경
+                fontSize = 12.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight(400)
+            )
+        }
+        // ✅ 중복 확인 실패 시 기존 경고 메시지 유지
+        else if (idError != null) {
+            Text(
+                text = idError!!,
+                color = colorResource(R.color.negativeRed),
+                fontSize = 12.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight(400)
+            )
+        } else {
+            Text(
+                text = stringResource(R.string.join_id_small_comment),
+                color = if (isWarningVisible) colorResource(R.color.negativeRed) else colorResource(R.color.gray_400),
+                fontSize = 12.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight(400)
+            )
+        }
 
-        Text(
-            text = stringResource(R.string.join_id_small_comment),
-            color = if (isWarningVisible) colorResource(R.color.negativeRed) else colorResource(R.color.gray_400),
-            fontSize = 12.sp,
-            lineHeight = 20.sp,
-            fontWeight = FontWeight(400)
-        )
+        Spacer(modifier = Modifier.height(20.dp))
+
+
+
+
         Spacer(modifier = Modifier.height(101.dp))
 
         Button(

@@ -20,7 +20,7 @@
     <string name="duplicate_check">중복확인</string>
     <string name="join_nickname">나만의 일기장 생성을 위해 이름을 입력해주세요</string>
     <string name="nickname_comment">닉네임</string>"
-    <string name="nickname_warning">이름은 8글자 이하로 작성해주세요.</string>
+    <string name="nickname_warning">닉네임은 8글자 이하로 작성해주세요.</string>
 
     <string name="join_id">사용하실 아이디를 입력해주세요</string>
     <string name="join_id_comment">아이디</string>

@@ -72,7 +72,11 @@ fun JoinFinalScreen(navController: NavHostController, viewModel: JoinViewModel =
                 pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
                 disabledElevation = 0.dp // enabled가 false일때 그림자
             ),
-            onClick = {},
+            onClick = { println("✅ 로그인 화면으로 이동!")
+                navController.navigate("login") {
+                    popUpTo("join") { inclusive = true } // 회원가입 스택 정리
+                }
+            },
             modifier = Modifier
                 .width(310.dp)
                 .height(45.dp),

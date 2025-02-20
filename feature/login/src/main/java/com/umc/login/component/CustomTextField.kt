@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
@@ -115,6 +117,7 @@ fun NicknameInputTextField(
     errorMessage: String?,
     isLoading: Boolean
 ) {
+    var isFocused by remember { mutableStateOf(false) } // ✅ 포커스 상태 추가
 
     TextField(
         value = value,
@@ -126,25 +129,29 @@ fun NicknameInputTextField(
             color = if (isWarning) colorResource(R.color.negativeRed) else Color.Black
         ),
         placeholder = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = placeholder,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight(600),
-                    color = colorResource(R.color.gray_500)
-                )
+            if (!isFocused && value.isEmpty()) { // ✅ 포커스가 없을 때만 플레이스홀더 표시
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = placeholder,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight(600),
+                        color = colorResource(R.color.gray_500)
+                    )
+                }
             }
         },
         keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardType = KeyboardType.Text,
             imeAction = ImeAction.Done
         ),
         keyboardActions = KeyboardActions(onDone = { onImeAction() }),
         modifier = Modifier
             .width(310.dp)
-            .height(51.dp),
+            .height(51.dp)
+            .onFocusChanged { isFocused = it.isFocused },
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color.Transparent,
             focusedContainerColor = Color.Transparent,
@@ -163,8 +170,10 @@ fun IdInputTextField(
     placeholder: String,
     isWarning: Boolean,
     errorMessage: String?,
-    isLoading: Boolean
+    isLoading: Boolean,
+    isCheckButtonVisible: Boolean // ✅ 버튼 가시성 추가
 ) {
+    var isFocused by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     Box(
         contentAlignment = Alignment.Center,
@@ -194,21 +203,26 @@ fun IdInputTextField(
                 }
             ),
             trailingIcon = {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = colorResource(R.color.orange_200),
+                        strokeWidth = 2.dp
+                    )
+                } else if (isCheckButtonVisible) { // ✅ 중복 확인 버튼 가시성 반영
                 Text(
-                    text = stringResource(R.string.duplicate_check),
-                    color = if (isWarning) colorResource(R.color.negativeRed) else colorResource(R.color.gray_500),
+                    text = "중복 확인",
                     fontSize = 12.sp,
-                    modifier = Modifier
-                        .clickable {
-                            onImeAction()
-                            // TODO: 중복 확인 로직 추가
-                        }
-                        .padding(end = 6.dp)
+                    fontWeight = FontWeight(400),
+                    color = colorResource(R.color.gray_500),
+                    modifier = Modifier.clickable { onImeAction() }
                 )
+            }
             },
             modifier = Modifier
                 .width(310.dp)
-                .height(51.dp),
+                .height(51.dp)
+                .onFocusChanged { isFocused = it.isFocused },
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,
@@ -218,17 +232,18 @@ fun IdInputTextField(
             )
         )
 
-        if (value.isEmpty()) {
+        // ✅ 플레이스홀더 표시 조건: 포커스가 없고 값이 비어있을 때만
+        if (value.isEmpty() && !isFocused) {
             Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center ,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 7.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = placeholder,
-                    lineHeight = 20.sp,
                     fontSize = 14.sp,
                     fontWeight = FontWeight(600),
-                    color = colorResource(R.color.gray_500)
+                    color = colorResource(R.color.gray_500),
+                    textAlign = TextAlign.Center
                 )
             }
         }
@@ -244,6 +259,7 @@ fun PwInputTextField(
     passwordVisible: Boolean = false,
     onPasswordToggleClick: (() -> Unit)? = null
 ) {
+    var isFocused by remember { mutableStateOf(false) }
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier.fillMaxWidth()
@@ -275,7 +291,8 @@ fun PwInputTextField(
             keyboardOptions = if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
             modifier = Modifier
                 .width(310.dp)
-                .height(51.dp),
+                .height(51.dp)
+                .onFocusChanged { isFocused = it.isFocused },
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,
@@ -284,7 +301,7 @@ fun PwInputTextField(
                 cursorColor = Color.Black
             )
         )
-        if (value.isEmpty()) {
+        if (value.isEmpty()&&!isFocused) {
             Box(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 7.dp),
                 contentAlignment = Alignment.Center
@@ -309,6 +326,8 @@ fun NameInputTextField(
     placeholder: String,
     errorMessage: String?
 ) {
+    var isFocused by remember { mutableStateOf(false) }
+
     TextField(
         value = value,
         onValueChange = { if (it.length <= 9) onValueChange(it) },
@@ -319,26 +338,34 @@ fun NameInputTextField(
             color = if (errorMessage != null) colorResource(R.color.negativeRed) else Color.Black
         ),
         placeholder = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = placeholder,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = colorResource(R.color.gray_500)
-                )
+            if (!isFocused && value.isEmpty()){
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = placeholder,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = colorResource(R.color.gray_500)
+                    )
+                }
             }
         },
-        keyboardOptions = KeyboardOptions.Default,
-        modifier = Modifier.width(310.dp).height(51.dp),
+        keyboardOptions = KeyboardOptions.Default.copy(
+            keyboardType = KeyboardType.Text, // 텍스트 입력만 가능 (숫자 제외)
+            imeAction = ImeAction.Done
+        ),
+        modifier = Modifier
+            .width(310.dp)
+            .height(51.dp)
+            .onFocusChanged { isFocused = it.isFocused },
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color.Transparent,
             focusedContainerColor = Color.Transparent,
             focusedIndicatorColor = colorResource(R.color.gray_500),
             unfocusedIndicatorColor = colorResource(R.color.gray_500),
-            cursorColor = if (errorMessage != null) colorResource(R.color.negativeRed) else Color.Black
+            cursorColor = if (errorMessage != null) Color.Black else Color.Black
         )
     )
 }
@@ -351,6 +378,8 @@ fun EmailInputTextField(
     readOnly: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
+    var isFocused by remember { mutableStateOf(false) }
+
     TextField(
         value = value,
         onValueChange = onValueChange,
@@ -359,26 +388,31 @@ fun EmailInputTextField(
         textStyle = LocalTextStyle.current.copy(
             textAlign = TextAlign.Center,
             fontSize = 14.sp,
-            fontWeight = FontWeight(600),
             lineHeight = 20.sp,
-            color = colorResource(R.color.gray_500)
+            color = Color.Black
         ),
         placeholder = {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = placeholder,
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight(600),
-                    color = colorResource(R.color.gray_500)
-                )
+            if (!isFocused&&value.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = placeholder,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight(600),
+                        color = colorResource(R.color.gray_500)
+                    )
+                }
             }
         },
         keyboardOptions = KeyboardOptions.Default,
-        modifier = Modifier.width(140.dp).height(51.dp).then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
+        modifier = Modifier
+            .width(140.dp)
+            .height(51.dp)
+            .onFocusChanged { isFocused = it.isFocused }
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
         colors = TextFieldDefaults.colors(
             unfocusedContainerColor = Color.Transparent,
             focusedContainerColor = Color.Transparent,
@@ -397,6 +431,7 @@ fun CertiInputTextField(
     timer: Int,
     errorMessage: String?
 ) {
+    var isFocused by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
@@ -410,22 +445,23 @@ fun CertiInputTextField(
                 textAlign = TextAlign.Center,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
-                fontWeight = FontWeight(600),
                 color = Color.Black
             ),
             placeholder = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = placeholder,
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                        fontWeight = FontWeight(600),
-                        color = colorResource(R.color.gray_500),
-                        textAlign = TextAlign.Center
-                    )
+                if (!isFocused&&value.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = placeholder,
+                            fontSize = 14.sp,
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight(600),
+                            color = colorResource(R.color.gray_500),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             },
             trailingIcon = {
@@ -439,7 +475,8 @@ fun CertiInputTextField(
             },
             modifier = Modifier
                 .width(310.dp)
-                .height(51.dp),
+                .height(51.dp)
+                .onFocusChanged { isFocused = it.isFocused },
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,

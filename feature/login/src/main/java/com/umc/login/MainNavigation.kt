@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.umc.login.FindId.FindIdScreen
+import com.umc.login.FindId.FindIdViewModel
 import com.umc.login.FindPw.FindPwScreen1
 import com.umc.login.FindPw.FindPwScreen2
 import com.umc.login.Join.JoinFinalScreen
@@ -24,26 +25,23 @@ import com.umc.login.Join.JoinViewModel
 fun MainNavigation(navController: NavHostController,
                    loginViewModel: LoginViewModel,
                    joinViewModel: JoinViewModel,
+                   findIdViewModel: FindIdViewModel,
                    onNavigatingToHome: () -> Unit) {
-    AnimatedNavHost(
+    NavHost(
         navController = navController,
-        startDestination = "login"
+        startDestination = "login",
     ) {
         composable("login") {
             LoginScreen(navController, loginViewModel, onNavigatingToHome)
         }
-        composable(
-            "join",
-            enterTransition = { fadeIn(animationSpec = tween(700)) },
-            exitTransition = { fadeOut(animationSpec = tween(700)) }
-        ) {
+        composable("join") {
             JoinParentScreen(navController, joinViewModel)
         }
         composable("join_end") {
-            JoinFinalScreen(navController, joinViewModel)
+            JoinFinalScreen(navController,joinViewModel)
         }
         composable("find_id") {
-            FindIdScreen(navController)
+            FindIdScreen(navController, findIdViewModel)
         }
         composable("find_pw") {
             FindPwScreen1(navController)
