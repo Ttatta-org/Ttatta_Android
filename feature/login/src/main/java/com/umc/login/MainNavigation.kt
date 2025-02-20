@@ -38,7 +38,7 @@ fun MainNavigation(navController: NavHostController,
             JoinParentScreen(navController, joinViewModel)
         }
         composable("join_end") {
-            JoinFinalScreen(navController, joinViewModel)
+            JoinFinalScreen(navController,joinViewModel)
         }
         composable("find_id") {
             FindIdScreen(navController, findIdViewModel)
