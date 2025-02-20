@@ -88,9 +88,10 @@ fun JoinPwView(viewModel: JoinViewModel, onNext: () -> Unit) {
             passwordVisible = isPasswordVisible,
             onPasswordToggleClick = { viewModel.togglePasswordVisibility() }
         )
-        Spacer(modifier = Modifier.height(5.dp))
+
 
         if (isPasswordValid) {
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = stringResource(R.string.join_pw_available),
                 color = colorResource(R.color.positiveGreen),
@@ -110,7 +111,7 @@ fun JoinPwView(viewModel: JoinViewModel, onNext: () -> Unit) {
                 onPasswordToggleClick = { viewModel.toggleConfirmPasswordVisibility() }
             )
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(7.dp))
 
             Text(
                 text = if (isPasswordMatched) "비밀번호가 일치해요!" else "비밀번호가 일치하지 않아요!",
@@ -119,6 +120,7 @@ fun JoinPwView(viewModel: JoinViewModel, onNext: () -> Unit) {
             )
         }
         else if(!isPasswordValid) {
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = stringResource(R.string.join_pw_small_comment),
                 color = colorResource(R.color.orange_250),
@@ -129,8 +131,8 @@ fun JoinPwView(viewModel: JoinViewModel, onNext: () -> Unit) {
             )
         }
 
-        if (!isPasswordValid) {Spacer(modifier = Modifier.height(101.dp))}
-        else if (isPasswordValid){Spacer(modifier = Modifier.height(34.dp))}
+        if (!isPasswordValid) {Spacer(modifier = Modifier.height(99.dp))}
+        else if (isPasswordValid){Spacer(modifier = Modifier.height(11.75.dp))}
 
         Button(
             enabled = isPasswordValid && isPasswordMatched,

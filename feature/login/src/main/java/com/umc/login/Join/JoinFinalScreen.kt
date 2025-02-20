@@ -17,6 +17,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,15 +39,18 @@ import com.umc.login.R
 
 @Composable
 fun JoinFinalScreen(navController: NavHostController, viewModel: JoinViewModel = viewModel()) {
+    val nickname by viewModel.nickNameState.collectAsState()
+
     Decoration()
     Column (
         modifier = Modifier
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
         Text(modifier = Modifier
             .padding(top = 174.dp),
-            text = "환영해요 서연님!", // 닉네임으로 할건지 아니면 이름으로 할건지 결정해야함!
+            text = "환영해요 ${nickname}님!", // 닉네임으로 할건지 아니면 이름으로 할건지 결정해야함!
             style = TextStyle(
                 fontSize = 28.sp,
                 fontWeight = FontWeight(800),
@@ -72,7 +77,7 @@ fun JoinFinalScreen(navController: NavHostController, viewModel: JoinViewModel =
                 pressedElevation = 0.dp, // 버튼을 눌렀을 때 그림자
                 disabledElevation = 0.dp // enabled가 false일때 그림자
             ),
-            onClick = { println("✅ 로그인 화면으로 이동!")
+            onClick = {
                 navController.navigate("login") {
                     popUpTo("join") { inclusive = true } // 회원가입 스택 정리
                 }
@@ -119,6 +124,13 @@ fun Decoration() {
             modifier = Modifier
                 .padding(top = 303.dp, start = 30.dp),
             contentDescription = "cloud1"
+        )
+        Image(
+            painter = painterResource(id = R.drawable.ic_ttuttuandttotto),
+            modifier = Modifier
+                .size(336.dp, 281.dp)
+                .align(Alignment.Center),
+            contentDescription = "ttuttuandttotto"
         )
         Image(
             painter = painterResource(id = R.drawable.img_cloud_join2),

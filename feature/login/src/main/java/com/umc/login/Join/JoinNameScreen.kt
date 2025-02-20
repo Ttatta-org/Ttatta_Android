@@ -79,9 +79,10 @@ fun JoinNameView(viewModel: JoinViewModel, onNext: () -> Unit) {
             errorMessage = nameError
         )
 
-        Spacer(modifier = Modifier.height(5.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         if (nameError != null) {
+            Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = nameError!!,
                 color = colorResource(R.color.negativeRed),
@@ -89,6 +90,7 @@ fun JoinNameView(viewModel: JoinViewModel, onNext: () -> Unit) {
                 fontWeight = FontWeight.Normal
             )
         } else {
+            Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = stringResource(R.string.join_name_small_comment),
                 color = colorResource(R.color.gray_400),

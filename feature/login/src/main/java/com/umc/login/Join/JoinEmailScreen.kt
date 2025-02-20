@@ -109,7 +109,7 @@ fun JoinEmailView(viewModel: JoinViewModel, onNext: () -> Unit) {
             }
         }
 
-        Spacer(modifier = Modifier.height(101.dp))
+        Spacer(modifier = Modifier.height(126.dp))
 
         // 인증메일 발송 버튼
         Button(
