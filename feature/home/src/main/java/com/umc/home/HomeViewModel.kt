@@ -39,6 +39,9 @@ class HomeViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(true) // 🔥 초기값을 true로 설정
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _isPaging = MutableStateFlow(false)
+    val isPaging: StateFlow<Boolean> = _isPaging.asStateFlow()
+
     init {
         if (isFirstLoad) {
             loadDiaries(page = 0,isFiltered = false, date = null)
@@ -69,6 +72,7 @@ class HomeViewModel @Inject constructor(
     val diaryListState: StateFlow<List<Diary>> = _diaryListState
 
     var currentPage = 0 // ✅ 일반 다이어리 리스트의 페이지 상태
+    private var currentFilteredPage = 0
     private var searchPage = 0
     //private var currentSearchPage = 0 // ✅ 검색 결과의 페이지 상태
 
@@ -148,70 +152,126 @@ class HomeViewModel @Inject constructor(
      * 서버에서 일기 목록을 가져와 diaryListState를 업데이트합니다.
      * 날짜 필터가 있을 경우 해당 날짜에 해당하는 일기를 불러옵니다.
      */
-
-    fun loadDiaries(page: Int, date: LocalDate?, isFiltered: Boolean, reset: Boolean = false, onSucceed: () -> Unit = {}, onFailed: (Exception) -> Unit = {}) {
-
-//        _isLoading.value = true
+    fun loadDiaries(
+        page: Int,
+        date: LocalDate?,
+        isFiltered: Boolean,
+        reset: Boolean = false,
+        onSucceed: () -> Unit = {},
+        onFailed: (Exception) -> Unit = {}
+    ) {
+//        if (_isPaging.value) return // 🚨 중복 호출 방지
+//
+//        _isPaging.value = true // ✅ 로딩 시작
 
         if (reset) {
-            currentPage = 0
-            if (isFiltered) _filteredDiaryListState.value = emptyList()
-            else _diaryListState.value = emptyList()
+             // ✅ 페이지 초기화
+            if (isFiltered) {
+                currentFilteredPage = 0
+                _filteredDiaryListState.value = emptyList()  // ✅ 필터링된 리스트 초기화
+            } else {
+                currentPage = 0
+                _diaryListState.value = emptyList()  // ✅ 일반 리스트 초기화
+            }
         }
 
         viewModelScope.launch {
             try {
                 val newDiaries = diaryRepository.getDiaries(page = page, date = date)
-                Log.d("HomeViewModel", "✅ 다이어리 데이터 로드 성공: ${newDiaries.size}개")
-                _isLoading.value = false
 
+                _isLoading.value = false // ✅ 로딩 상태 변경
+
+                // ✅ 새로운 다이어리 추가 (중복 방지)
                 if (isFiltered) {
-                    if (reset) {
-                        // 새로운 날짜 선택 시 기존 데이터 삭제
-                        _filteredDiaryListState.value = newDiaries
-                    } else {
-                        // 무한스크롤 시 기존 데이터 유지하면서 추가
-                        _filteredDiaryListState.value = (_filteredDiaryListState.value + newDiaries).distinctBy { it.id }
-                    }
-
-                    if (newDiaries.isNotEmpty()) currentPage++
+                    // ✅ 필터링된 다이어리 추가 (중복 방지)
+                    _filteredDiaryListState.value = (_filteredDiaryListState.value + newDiaries).distinctBy { it.id }
                 } else {
-                    // ✅ 전체 다이어리 리스트 업데이트
+                    // ✅ 일반 다이어리 추가 (중복 방지)
                     _diaryListState.value = (_diaryListState.value + newDiaries).distinctBy { it.id }
-                    if (newDiaries.isNotEmpty()) currentPage++
+                }
+
+                // ✅ 데이터가 있을 때만 페이지 증가
+                if (newDiaries.isNotEmpty()) {
+                    if (isFiltered) {
+                        currentFilteredPage++  // ✅ 필터된 페이지 증가
+                    } else {
+                        currentPage++  // ✅ 일반 페이지 증가
+                    }
                 }
 
                 onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
             } finally {
-                _isLoading.value = false
+                _isPaging.value = false // ✅ 페이지 로딩 완료 후 false 설정
             }
         }
     }
+
+//    fun loadDiaries(
+//        page: Int,
+//        date: LocalDate?,
+//        isFiltered: Boolean,
+//        reset: Boolean = false,
+//        onSucceed: () -> Unit = {},
+//        onFailed: (Exception) -> Unit = {}
+//    ) {
+//        if (_isPaging.value) return // 🚨 중복 호출 방지
+//
+//        _isPaging.value = true // ✅ 로딩 시작 표시
+//
+//        if (reset) {
+//            currentPage = 0  // ✅ 항상 0으로 초기화
+//            _diaryListState.value = emptyList()  // ✅ 기존 검색 결과 초기화
+//        }
+//
+//        viewModelScope.launch {
+//            try {
+//                if (reset) {
+//                    currentPage = 0
+//                    if (isFiltered) _filteredDiaryListState.value = emptyList()
+//                    else _diaryListState.value = emptyList()
+//                }
+//
+//                val newDiaries = diaryRepository.getDiaries(page = page, date = date)
+//                Log.d("HomeViewModel", "✅ 다이어리 데이터 로드 성공: ${newDiaries.size}개")
+//
+//                if (isFiltered) {
+//                    _filteredDiaryListState.value = (_filteredDiaryListState.value + newDiaries)
+//                        .distinctBy { it.id }
+//                } else {
+//                    _diaryListState.value = (_diaryListState.value + newDiaries)
+//                        .distinctBy { it.id }
+//                }
+//
+//                // ✅ 5개 이상 데이터 & 스크롤이 마지막에서 -2번째일 때만 페이지 증가
+//                if (newDiaries.size >= 5) {
+//                    Log.d("Pagination", "🔄 currentPage 증가: $currentPage -> ${currentPage + 1}")
+//                    currentPage++
+//                }
+//
+//                onSucceed()
+//            } catch (e: Exception) {
+//                onFailed(e)
+//            } finally {
+//                _isPaging.value = false // ✅ 페이지 로드 완료 후 다시 false 설정
+//            }
+//        }
+//    }
+
     fun loadNextPage(isFiltered: Boolean, selectedDate: LocalDate?) {
-        Log.d("Pagination", "🟢 loadNextPage() 호출됨 - 현재 선택 날짜: $selectedDate")
+        if (_isPaging.value) return // 🚨 중복 호출 방지
+
         Log.d("Pagination", "🟢 loadNextPage() 호출됨 - 현재 페이지: $currentPage")
 
-
-        Log.d("Pagination", "🔥 loadDiaries() 실행 시도 - 페이지: $currentPage")
-
         if (isFiltered) {
-            // ✅ 필터된 날짜의 다이어리 무한 스크롤
-            Log.d("Pagination", "📌 특정 날짜의 다이어리 로드 시도")
-            loadDiaries(page = currentPage, date = selectedDate, isFiltered = true)
+            loadDiaries(page = currentFilteredPage, date = selectedDate, isFiltered = true)
         } else {
-            Log.d("Pagination", "📌 전체 다이어리 로드 시도")
-            // ✅ 전체 다이어리 무한 스크롤
             loadDiaries(page = currentPage, isFiltered = false, date = null)
         }
     }
 
-    fun getDiaryById(diaryId: Long): Flow<Diary?> {
-        return diaryListState.map { diaryList ->
-            diaryList.find { it.id == diaryId }
-        }
-    }
+
 
     // ✅ SearchScreen의 검색 기능 (검색 시 reset = true)
     fun searchDiaries(searchWord: String, reset: Boolean = true, onSucceed: () -> Unit = {}, onFailed: (Exception) -> Unit = {}) {

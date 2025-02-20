@@ -147,18 +147,22 @@ fun AppNavHost(
                 val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
                 val totalItems = layoutInfo.totalItemsCount
 
-                if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 1) { // 마지막 아이템 감지
-                    val currentRoute = navController.currentDestination?.route
-                    Log.d("Pagination", "➡️ 현재 네비게이션 경로: $currentRoute")
+                Log.d("Pagination", "🔥 현재 보이는 마지막 아이템 인덱스: $lastVisibleItemIndex / 전체 아이템 수: $totalItems")
 
-                    when (currentRoute) {
-                        "home" -> {
-                            Log.d("Pagination", "♦️ 홈 무한스크롤 - viewModel.loadNextPage() 호출")
-                            viewModel.loadNextPage(isFiltered = false, selectedDate = null)
-                        }
-                        "search" -> {
-                            Log.d("Pagination", "♦️ 검색 결과 무한스크롤 - viewModel.searchDiaries() 호출")
-                            viewModel.searchDiaries(searchWord = searchQuery, reset = false)
+                if (totalItems > 1 && lastVisibleItemIndex >= totalItems - 2) { // 마지막 아이템 감지
+                    if (!viewModel.isPaging.value) { // 🚨 중복 실행 방지
+                        val currentRoute = navController.currentDestination?.route
+                        Log.d("Pagination", "➡️ 현재 네비게이션 경로: $currentRoute")
+
+                        when (currentRoute) {
+                            "home" -> {
+                                Log.d("Pagination", "♦️ 홈 무한스크롤 - viewModel.loadNextPage() 호출")
+                                viewModel.loadNextPage(isFiltered = false, selectedDate = null)
+                            }
+                            "search" -> {
+                                Log.d("Pagination", "♦️ 검색 결과 무한스크롤 - viewModel.searchDiaries() 호출")
+                                viewModel.searchDiaries(searchWord = viewModel.searchQuery.value, reset = false)
+                            }
                         }
                     }
                 }
