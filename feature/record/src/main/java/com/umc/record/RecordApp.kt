@@ -92,27 +92,43 @@ fun RecordApp(
                     userName = viewModel.userName,
                     diaryContent = diaryContent,
                     onCreateButtonClicked = {
-                        coordinates?.let { location ->
-                            viewModel.saveDiary(
-                                image = image,
-                                content = diaryContent,
-                                categoryId = viewModel.selectedCategory?.id ?: 0L,
-                                date = date,
-                                latitude = location.first,
-                                longitude = location.second,
-                                locationName = locationName,
-                                onSucceed = { onDone() },
-                                onFailed = { /* TODO */ }
-                            )
-                        } ?: run {
+                        if (viewModel.isSaving) {
+                            // ✅ 저장 중일 때 토스트 메시지 표시
                             Toast.makeText(
                                 context,
-                                "위치를 설정해 주세요!",
+                                "일기를 등록 중입니다.",
                                 Toast.LENGTH_SHORT
                             ).show()
+                        } else {
+                            coordinates?.let { location ->
+                                viewModel.saveDiary(
+                                    image = image,
+                                    content = diaryContent,
+                                    categoryId = viewModel.selectedCategory?.id ?: 0L,
+                                    date = date,
+                                    latitude = location.first,
+                                    longitude = location.second,
+                                    locationName = locationName,
+                                    onSucceed = onDone,
+                                    onFailed = {
+                                        Toast.makeText(
+                                            context,
+                                            "등록에 실패했습니다.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                )
+                            } ?: run {
+                                Toast.makeText(
+                                    context,
+                                    "위치를 설정해 주세요!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
                     },
-                    onDiaryContentChanged = onDiaryContentChanged
+                    onDiaryContentChanged = onDiaryContentChanged,
+                    isButtonEnabled = !viewModel.isSaving // ✅ 로딩 중일 때 버튼 비활성화
                 ),
                 onDateChipClicked = { /* TODO */ },
                 onLocationChipClicked = { navController.navigate("location") },

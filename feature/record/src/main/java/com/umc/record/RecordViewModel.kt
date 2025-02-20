@@ -47,6 +47,10 @@ class RecordViewModel @Inject constructor(
     val currentPinnedLocationInfo get() = currentPinnedLocationInfoState.value
     val selectedCategory get() = selectedCategoryState.value
 
+    private val isSavingState = mutableStateOf(false)
+    val isSaving get() = isSavingState.value
+
+
     init {
         getUserName()
         setMapIdleListener()
@@ -159,6 +163,9 @@ class RecordViewModel @Inject constructor(
         onSucceed: () -> Unit = {},
         onFailed: (e: Exception) -> Unit = {},
     ) {
+        if (isSavingState.value) return  // 중복 클릭 방지
+
+        isSavingState.value = true  // 로딩 시작
         viewModelScope.launch {
             try {
                 diaryRepository.createDiary(
@@ -173,6 +180,8 @@ class RecordViewModel @Inject constructor(
                 onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
+            } finally {
+                isSavingState.value = false  // 로딩 종료
             }
         }
     }
