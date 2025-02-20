@@ -71,13 +71,21 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun checkVerificationCodeForJoining(email: String, code: Int): Boolean {
         val body = CheckVerificationCodeRequestDTO(email = email, code = code.toString())
+
+        println("🔍 서버로 인증번호 확인 요청: 이메일=$email, 코드=$code")  // ✅ 요청 전 로그 추가
+
         return try {
-            serverApi.withCheck { checkVerificationCodeSignUp(body = body) }
+            val response = serverApi.withCheck { checkVerificationCodeSignUp(body = body) }
+            println("✅ 서버 응답 확인 완료!")  // ✅ 요청 성공 시 로그
             true
         } catch (e: Exception) {
+            println("❌ 서버 요청 실패: ${e.message}")  // ✅ 요청 실패 시 로그
             false
         }
     }
+
+
+
 
     override suspend fun requestEmailForFindingId(name: String, email: String) {
         TODO()
