@@ -1,6 +1,7 @@
 package com.umc.ttatta
 
 import android.app.Activity
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
@@ -29,16 +30,18 @@ import com.umc.category.CategoryApp
 import com.umc.challenge.ChallengeApp
 import com.umc.footprint.FootprintApp
 import com.umc.home.HomeApp
-import com.umc.login.LoginApp
 import com.umc.mypage.MyPageApp
 import com.umc.record.RecordApp
-import com.umc.record.RecordMode
 import com.umc.ttatta.component.NavigationItem
 import com.umc.ttatta.component.RecordOptionPickerProp
+import java.io.File
 
 @Composable
 fun MainApp(
-    viewModel: MainViewModel
+    viewModel: MainViewModel,
+    imageFile: File?,
+    onImagePickerCalled: () -> Unit,
+    onCameraCalled: () -> Unit,
 ) {
     val navigator = rememberNavController()
 
@@ -46,6 +49,53 @@ fun MainApp(
     var currentNavigationItem by remember { mutableStateOf<NavigationItem?>(null) }
     var showNavBar by remember { mutableStateOf(false) }
     var isCenterButtonActivated by remember { mutableStateOf(false) }
+    var recordingDiaryContent by remember { mutableStateOf("") }
+
+    // 3개의 화면은 라우팅 시 인자가 필요함 (챌린지, 기록하기, 카테고리 관리)
+    var challengeRoutingInfo by remember { mutableStateOf<ChallengeRoutingInfo?>(null) }
+    var recordRoutingInfo by remember { mutableStateOf<RecordRoutingInfo?>(null) }
+    var categoryRoutingInfo by remember { mutableStateOf<CategoryRoutingInfo?>(null) }
+    
+    // 3개의 화면으로 라우팅 시도를 할 시에는 반드시 info 계열의 상태값을 초기화하는 방식으로 작동해야 함
+    LaunchedEffect(key1 = challengeRoutingInfo) {
+        challengeRoutingInfo?.let { info ->
+            if (info.isPoppedFromRecord) navigator.popBackStack()
+            else navigator.navigate(route = NavigationRoute.Challenge.route)
+        }
+    }
+
+    LaunchedEffect(key1 = recordRoutingInfo) {
+        recordRoutingInfo?.let {
+            navigator.navigate(route = NavigationRoute.Record.route)
+        }
+    }
+
+    LaunchedEffect(key1 = categoryRoutingInfo) {
+        categoryRoutingInfo?.let {
+            navigator.navigate(route = NavigationRoute.Category.route)
+        }
+    }
+
+    // 특히, 기록하기 화면으로 라우팅할 시, 아래 상태값 변경을 통해 수행하여야 함
+    var recordEntryInfo by remember { mutableStateOf<RecordEntryInfo?>(null) }
+
+    LaunchedEffect(key1 = recordEntryInfo) {
+        recordEntryInfo?.let { info ->
+            when (info.mode) {
+                RecordRoutingOption.CAMERA -> onCameraCalled()
+                RecordRoutingOption.GALLERY -> onImagePickerCalled()
+            }
+        }
+    }
+
+    LaunchedEffect(key1 = imageFile) {
+        imageFile?.let {
+            recordRoutingInfo = RecordRoutingInfo(
+                image = it,
+                challengeId = recordEntryInfo?.challengeId,
+            )
+        }
+    }
 
     LaunchedEffect(key1 = Unit) {
         navigator.addOnDestinationChangedListener { _, destination, _ ->
@@ -65,39 +115,45 @@ fun MainApp(
         navigationBarProp = if (showNavBar) NavigationBarProp(
             currentNavigationItem = currentNavigationItem,
             onNavigate = {
-                navigator.navigate(
-                    route = when (it) {
-                        NavigationItem.DIARY -> NavigationRoute.Home.route
-                        NavigationItem.FOOTPRINT -> NavigationRoute.Footprint.route
-                        NavigationItem.CHALLENGE -> NavigationRoute.Challenge.getRoute(
-                            option = ChallengeRouteOption(showPointGranted = false)
-                        )
-                        NavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
+                if (it != currentNavigationItem) when (it) {
+                    NavigationItem.DIARY,
+                    NavigationItem.FOOTPRINT,
+                    NavigationItem.MY_PAGE -> navigator.navigate(
+                        route = when (it) {
+                            NavigationItem.DIARY -> NavigationRoute.Home
+                            NavigationItem.FOOTPRINT -> NavigationRoute.Footprint
+                            NavigationItem.MY_PAGE -> NavigationRoute.MyPage
+                            else -> throw Exception("wrong route")
+                        }.route
+                    ) {
+                        popUpTo(id = navigator.graph.startDestinationId) { inclusive = false }
                     }
-                ) {
-                    popUpTo(id = navigator.graph.startDestinationId) { inclusive = false }
+                    NavigationItem.CHALLENGE -> challengeRoutingInfo = ChallengeRoutingInfo(
+                        isPointGranted = false,
+                        isPoppedFromRecord = false,
+                    )
                 }
             },
             onCenterButtonClicked = { isCenterButtonActivated = true }
         ) else null,
         centerButtonProp = if (isCenterButtonActivated) {
-            val routeToRecordApp = { mode: RecordMode ->
-                isCenterButtonActivated = false
-                navigator.navigate(
-                    route = NavigationRoute.Record.getRoute(
-                        option = RecordRouteOption(
-                            entryMode = mode,
-                            challengeId = null,
-                        )
-                    )
-                )
-            }
-
             CenterButtonProp(
                 recordOptionPickerProp = RecordOptionPickerProp(
                     userName = viewModel.userName,
-                    onCameraOptionClicked = { routeToRecordApp(RecordMode.CAMERA) },
-                    onGalleryOptionClicked = { routeToRecordApp(RecordMode.GALLERY) }
+                    onCameraOptionClicked = {
+                        recordEntryInfo = RecordEntryInfo(
+                            mode = RecordRoutingOption.CAMERA,
+                            challengeId = null
+                        )
+                        isCenterButtonActivated = false
+                    },
+                    onGalleryOptionClicked = {
+                        recordEntryInfo = RecordEntryInfo(
+                            mode = RecordRoutingOption.GALLERY,
+                            challengeId = null
+                        )
+                        isCenterButtonActivated = false
+                    }
                 ),
                 onDismissed = { isCenterButtonActivated = false }
             )
@@ -123,12 +179,13 @@ fun MainApp(
             with(NavigationRoute.Login) {
                 setNavGraph {
                     LaunchedEffect(Unit) { showNavBar = false }
+                    FinishHandler()
 
-                    LoginApp(
-                        loginviewModel = hiltViewModel(),
-                        joinviewModel = hiltViewModel(),
-                        onNavigatingToHome = { viewModel.checkLogin() }
-                    )
+                    // LoginApp(
+                    //     loginviewModel = hiltViewModel(),
+                    //     joinviewModel = hiltViewModel(),
+                    //     onNavigatingToHome = { viewModel.checkLogin() }
+                    // )
                 }
             }
 
@@ -159,10 +216,8 @@ fun MainApp(
                         viewModel = hiltViewModel(),
                         isMapBlurApplied = isCenterButtonActivated,
                         onNavigateToCategoryApp = {
-                            navigator.navigate(
-                                route = NavigationRoute.Category.getRoute(
-                                    option = CategoryRouteOption(showTopBar = true)
-                                )
+                            categoryRoutingInfo = CategoryRoutingInfo(
+                                showTopBar = true
                             )
                         }
                     )
@@ -170,24 +225,21 @@ fun MainApp(
             }
 
             with(NavigationRoute.Challenge) {
-                setNavGraph { backStackEntry ->
-                    val option = getOption(backStackEntry.arguments!!) as ChallengeRouteOption
+                setNavGraph {
+                    val routingInfo = remember { challengeRoutingInfo!! }
 
                     LaunchedEffect(Unit) { showNavBar = true }
+
                     FinishHandler()
 
                     ChallengeApp(
                         viewModel = hiltViewModel(),
-                        showPointGrantedPopup = option.showPointGranted,
+                        showPointGrantedPopup = routingInfo.isPointGranted,
                         onNavigationBarVisibilityChanged = { showNavBar = it },
                         onChallengeCompletionRequired = { challengeId ->
-                            navigator.navigate(
-                                route = NavigationRoute.Record.getRoute(
-                                    option = RecordRouteOption(
-                                        entryMode = RecordMode.CAMERA,
-                                        challengeId = challengeId
-                                    )
-                                )
+                            recordEntryInfo = RecordEntryInfo(
+                                mode = RecordRoutingOption.GALLERY,
+                                challengeId = challengeId
                             )
                         },
                     )
@@ -207,52 +259,51 @@ fun MainApp(
                         )
                         MyPageApp(
                             viewModel = hiltViewModel(),
+                            onLoginCanceled = { viewModel.checkLogin() }
                         )
                     }
                 }
             }
 
             with(NavigationRoute.Category) {
-                setNavGraph { backStackEntry ->
-                    val option = getOption(backStackEntry.arguments!!) as CategoryRouteOption
+                setNavGraph {
+                    val routingInfo = remember { categoryRoutingInfo!! }
 
                     CategoryApp(
                         viewModel = hiltViewModel(),
-                        showTopBar = option.showTopBar,
+                        showTopBar = routingInfo.showTopBar,
                     )
                 }
             }
 
             with(NavigationRoute.Record) {
-                setNavGraph { backStackEntry ->
+                setNavGraph {
+                    val routingInfo = remember { recordRoutingInfo!! }
                     LaunchedEffect(Unit) { showNavBar = false }
-                    val option = getOption(backStackEntry.arguments!!) as RecordRouteOption
 
                     RecordApp(
                         viewModel = hiltViewModel(),
-                        mode = option.entryMode,
-                        onBack = { navigator.popBackStack() },
+                        image = routingInfo.image,
+                        diaryContent = recordingDiaryContent,
+                        onDiaryContentChanged = { recordingDiaryContent = it },
                         onNavigateToCategoryApp = {
-                            navigator.navigate(
-                                route = NavigationRoute.Category.getRoute(
-                                    option = CategoryRouteOption(showTopBar = false)
-                                )
+                            categoryRoutingInfo = CategoryRoutingInfo(
+                                showTopBar = false
                             )
                         },
                         onDone = {
-                            if (option.challengeId != null) viewModel.makeChallengeComplete(
-                                challengeId = option.challengeId,
-                                onSucceed = {
-                                    navigator.navigate(
-                                        route = NavigationRoute.Challenge.getRoute(
-                                            option = ChallengeRouteOption(showPointGranted = true)
+                            routingInfo.challengeId?.let { challengeId ->
+                                viewModel.makeChallengeComplete(
+                                    challengeId = challengeId,
+                                    onSucceed = {
+                                        challengeRoutingInfo = ChallengeRoutingInfo(
+                                            isPointGranted = true,
+                                            isPoppedFromRecord = true
                                         )
-                                    ) {
-                                        popUpTo(route = NavigationRoute.Challenge.route) { inclusive = true }
-                                    }
-                                },
-                                onFailed = { /* TODO */ },
-                            ) else navigator.popBackStack()
+                                    },
+                                    onFailed = { /* TODO */ },
+                                )
+                            } ?: run { navigator.popBackStack() }
                         },
                     )
                 }
@@ -262,6 +313,7 @@ fun MainApp(
 
     LaunchedEffect(key1 = isLoggedIn) {
         isLoggedIn?.let { isLoggedIn ->
+            // 로그인 상태에 따라 화면 분기
             navigator.navigate(
                 route = when (isLoggedIn) {
                     true -> NavigationRoute.Home
@@ -271,6 +323,7 @@ fun MainApp(
                 popUpTo(id = navigator.graph.startDestinationId) { inclusive = false }
             }
         } ?: run {
+            // 스플래시로 분기
             navigator.popBackStack(
                 destinationId = navigator.graph.startDestinationId,
                 inclusive = false,

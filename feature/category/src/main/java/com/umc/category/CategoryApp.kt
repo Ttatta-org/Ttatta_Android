@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.umc.category.component.CategoryDeletionDialogProp
 import com.umc.category.component.CategoryManagementBarProp
 import com.umc.category.component.CategoryModificationBarProp
@@ -18,6 +19,8 @@ fun CategoryApp(
     viewModel: CategoryViewModel,
     showTopBar: Boolean,
 ) {
+    val keyboard = LocalSoftwareKeyboardController.current
+
     var categoryNameInputFieldValue by remember { mutableStateOf("") }
     var selectedCategoryColor by remember { mutableStateOf<CategoryColor?>(null) }
     var selectedCategory by remember { mutableStateOf<CategoryInfo?>(null) }
@@ -38,12 +41,12 @@ fun CategoryApp(
             CategoryListItemProp(
                 name = category.name,
                 color = category.color,
-                onClicked = {
+                onClicked = if (category.name != "일상") { ->
                     selectedCategory = category
                     showCategoryManagementBar = true
                     modifiedCategoryNameInputFieldValue = category.name
                     modifiedCategoryColor = category.color
-                },
+                } else null,
             )
         },
         categoryManagementBarProp = if (showCategoryManagementBar) {
@@ -121,6 +124,7 @@ fun CategoryApp(
                 },
                 onFailed = {}
             )
+            keyboard?.hide()
         },
     )
 }

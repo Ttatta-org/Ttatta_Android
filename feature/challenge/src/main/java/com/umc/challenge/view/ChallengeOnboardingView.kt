@@ -60,6 +60,7 @@ import com.umc.design.character.CharacterView
 
 data class ChallengeOnboardingViewProp(
     val equippedAccessorySet: AccessorySet,
+    val isNewChallengeButtonEnabled: Boolean,
     val challengeItemPropList: List<ChallengeItemProp>,
     val onNewChallengeButtonClicked: () -> Unit,
 )
@@ -107,13 +108,13 @@ fun ChallengeOnboardingView(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(state = rememberScrollState())
             .background(color = Color.Secondary100)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(32.dp)
-                .verticalScroll(state = rememberScrollState())
                 .onGloballyPositioned {
                     with(density) { columnWidth = it.size.width.toDp() }
                 }
@@ -131,7 +132,7 @@ fun ChallengeOnboardingView(
                 // 새 챌린지 버튼
                 ElevatedButton(
                     onClick = prop.onNewChallengeButtonClicked,
-                    enabled = prop.challengeItemPropList.size < 3,
+                    enabled = prop.isNewChallengeButtonEnabled,
                     elevation = ButtonDefaults.elevatedButtonElevation(
                         defaultElevation = 4.dp
                     ),
@@ -289,6 +290,7 @@ val previewChallengeItemPropList = listOf(
 
 val previewChallengeOnboardingViewProp = ChallengeOnboardingViewProp(
     equippedAccessorySet = previewAccessorySet,
+    isNewChallengeButtonEnabled = true,
     challengeItemPropList = previewChallengeItemPropList,
     onNewChallengeButtonClicked = {}
 )

@@ -101,12 +101,6 @@ fun FootprintApp(
                 )
             }
         }
-
-        // 만약 일기가 전부 사라진 상태였을 경우
-        if (diaryCardLoadedPropMap.isEmpty()) {
-            viewModel.dismissSelectedMarker()
-            viewModel.getAllFootprint()
-        }
     }
 
     BackHandler(
@@ -132,14 +126,13 @@ fun FootprintApp(
                 x = clickedMarkerInfo.x,
                 y = clickedMarkerInfo.y,
                 prop = DiaryCardProp(
+                    clusterId = clickedMarkerInfo.clusterId,
                     diaryCardLoadedPropMap = viewModel.diaryMap.mapValues { (_, value) ->
                         diaryCardLoadedPropMap[value.id]
                     },
                     onNewDiaryRequested = { page ->
                         viewModel.getDiaryFromServer(
                             page = page,
-                            onSucceed = { /* TODO */ },
-                            onFailed = { /* TODO */ },
                         )
                     }
                 )
@@ -169,8 +162,6 @@ fun FootprintApp(
                                         if (diaryModificationModeProp != null) viewModel.modifyDiary(
                                             diaryId = id,
                                             content = diaryModificationModeProp.contentValue,
-                                            onSucceed = { /* TODO */ },
-                                            onFailed = { /* TODO */ }
                                         )
                                         keyboard?.hide()
                                     }
@@ -207,12 +198,12 @@ fun FootprintApp(
             onDismissed = { isCategorySelectionBarVisible = false }
         ) else null,
         onCategoryButtonClicked = {
-            if (viewModel.selectedCategoryId != null) viewModel.selectShowingCategory(categoryId = null)
-            isCategorySelectionBarVisible = !isCategorySelectionBarVisible
+            if (viewModel.selectedCategoryId != null)
+                viewModel.selectShowingCategory(categoryId = null)
+            else isCategorySelectionBarVisible = !isCategorySelectionBarVisible
         },
         onLocationButtonClicked = {
             viewModel.moveMapToCurrentPosition(
-                onSucceed = { /* empty */ },
                 onFailed = {
                     permissionRequester.checkLocationPermission(
                         context = context,

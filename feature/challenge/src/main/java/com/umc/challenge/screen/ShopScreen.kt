@@ -256,6 +256,7 @@ private fun ShopItemItem(
                 shape = itemItemShape
             )
             .clip(itemItemShape)
+            .clickable { prop.onClicked() }
             .border(
                 width = 1.dp,
                 color = Color(0xFFFFDACB),

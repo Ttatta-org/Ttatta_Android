@@ -57,6 +57,7 @@ val diaryCardWidth = 261.dp
 val diaryCardHeight = 311.dp
 
 data class DiaryCardProp(
+    val clusterId: Long,
     val diaryCardLoadedPropMap: Map<Int, DiaryCardLoadedProp?>,
     val onNewDiaryRequested: (Int) -> Unit,
 )
@@ -96,7 +97,7 @@ fun DiaryCard(prop: DiaryCardProp) {
     val cardRotationAngles = remember { mutableStateMapOf<Long, Float>() }
     val pagerState = rememberPagerState { 1 + (prop.diaryCardLoadedPropMap.keys.maxOrNull() ?: 0) }
 
-    LaunchedEffect(key1 = Unit) {
+    LaunchedEffect(key1 = prop.clusterId) {
         prop.onNewDiaryRequested(0)
     }
 
@@ -335,7 +336,7 @@ private fun DiaryCardBack(
                         ),
                         textStyle = TextStyle(
                             color = Color.Grey500,
-                            fontSize = 12.sp,
+                            fontSize = 13.sp,
                         ),
                         modifier = Modifier.focusRequester(focusRequester)
                     )
@@ -345,7 +346,7 @@ private fun DiaryCardBack(
                     text = prop.content,
                     style = TextStyle(
                         color = Color.Grey500,
-                        fontSize = 12.sp,
+                        fontSize = 13.sp,
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -362,6 +363,7 @@ private fun DiaryCardBack(
 }
 
 val previewDiaryCardProp = DiaryCardProp(
+    clusterId = 1L,
     diaryCardLoadedPropMap = List(10) { index ->
         index to DiaryCardLoadedProp(
             id = index.toLong(),
@@ -426,6 +428,7 @@ fun PreviewDiaryCard() {
     ) {
         DiaryCard(
             prop = DiaryCardProp(
+                clusterId = 1L,
                 diaryCardLoadedPropMap = diaryCardLoadedPropMap,
                 onNewDiaryRequested = { makeNewDiaryCardLoadedProp() },
             )

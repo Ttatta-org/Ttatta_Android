@@ -67,11 +67,13 @@ fun ChallengeApp(
         startDestination = "challenge"
     ) {
         composable("challenge") {
+            var isLoading by remember { mutableStateOf(true) }
             var clickedUncompletedChallengeInfo by remember { mutableStateOf<ClickedUncompletedChallengeInfo?>(null) }
 
             LaunchedEffect(key1 = Unit) {
-                viewModel.getTodayChallenges()
+                viewModel.getTodayChallenges(onSucceed = { isLoading = false })
                 viewModel.getEquippedItems()
+                viewModel.getPoint()
             }
 
             ChallengeScreen(
@@ -112,6 +114,7 @@ fun ChallengeApp(
                         ChallengeOnboardingView(
                             prop = ChallengeOnboardingViewProp(
                                 equippedAccessorySet = viewModel.equippedAccessorySet,
+                                isNewChallengeButtonEnabled = !isLoading && viewModel.todayChallenges.size < 3,
                                 challengeItemPropList = viewModel.todayChallenges.map {
                                     ChallengeItemProp(
                                         title = it.title,
@@ -178,17 +181,21 @@ fun ChallengeApp(
             ShopScreen(
                 point = viewModel.point,
                 equippedAccessorySet = viewModel.equippedAccessorySet,
-                shopItemItemPropList = viewModel.unownedItems.map {
-                    ShopItemItemProp(
-                        accessory = it.item,
-                        cost = it.cost,
-                        onClicked = {
-                            clickedShopItemInfo = ClickedShopItemInfo(
-                                id = it.id,
-                                itemName = it.item.title
-                            )
-                        }
-                    )
+                shopItemItemPropList = remember(viewModel.unownedItems) {
+                    viewModel.unownedItems.map {
+                        ShopItemItemProp(
+                            accessory = it.item,
+                            cost = it.cost,
+                            onClicked = {
+                                if (it.cost <= viewModel.point) {
+                                    clickedShopItemInfo = ClickedShopItemInfo(
+                                        id = it.id,
+                                        itemName = it.item.title
+                                    )
+                                }
+                            }
+                        )
+                    }
                 },
                 purchaseDialogProp = clickedShopItemInfo?.let { info ->
                     PurchaseDialogProp(
@@ -224,18 +231,20 @@ fun ChallengeApp(
             MyItemScreen(
                 point = viewModel.point,
                 equippedAccessorySet = viewModel.equippedAccessorySet,
-                myItemItemItemPropList = viewModel.ownedItems.map {
-                    MyItemItemItemProp(
-                        accessory = it.item,
-                        isEquipped = it.isEquipped,
-                        onClicked = { 
-                            clickedOwnedItemInfo = ClickedOwnedItemInfo(
-                                id = it.id,
-                                item = it.item,
-                                isEquipped = it.isEquipped
-                            ) 
-                        }
-                    )
+                myItemItemItemPropList = remember(viewModel.ownedItems) {
+                    viewModel.ownedItems.map {
+                        MyItemItemItemProp(
+                            accessory = it.item,
+                            isEquipped = it.isEquipped,
+                            onClicked = {
+                                clickedOwnedItemInfo = ClickedOwnedItemInfo(
+                                    id = it.id,
+                                    item = it.item,
+                                    isEquipped = it.isEquipped
+                                )
+                            }
+                        )
+                    }
                 },
                 clickedItemProp = clickedOwnedItemInfo?.let { info ->
                     ClickedItemProp(

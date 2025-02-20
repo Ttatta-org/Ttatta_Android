@@ -123,7 +123,7 @@ class MapHandlerImpl @Inject constructor(
     init {
         // 클러스터 매니저 설정
         clusterManager = Clusterer.Builder<MarkerKey>()
-            .maxZoom(15)
+            .maxZoom(14)
             .screenDistance(clusteringDp.value.toDouble())
             .clusterMarkerUpdater { info, marker ->
                 marker.toClusterMarker(clusterSize = info.size)
@@ -165,7 +165,7 @@ class MapHandlerImpl @Inject constructor(
                         onPreviousMarkerDismissed = null
                     }
                     addOnCameraIdleListener {
-                        isNonClusteringZoomLevelReached.value = map.cameraPosition.zoom > 16
+                        isNonClusteringZoomLevelReached.value = map.cameraPosition.zoom > 15
                         Log.d("MapHandlerImpl", "zoom level: ${map.cameraPosition.zoom}")
                     }
 

@@ -80,6 +80,6 @@ private fun getNewCharacterPainter(
         root = object : RenderInfo {
             override val originalSize = characterSize
             override val children = listOf(ttuttuRender, ttottoRender)
-        }
+        },
     )
 }

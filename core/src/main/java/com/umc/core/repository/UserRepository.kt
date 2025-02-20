@@ -21,7 +21,7 @@ interface UserRepository {
     suspend fun postUserInfoWhenFirstKakaoLogin(openIdToken: String, nickname: String)
 
     suspend fun requestVerificationCodeForJoining(email: String)
-    suspend fun checkVerificationCodeForJoining(email: String, code: String): Boolean
+    suspend fun checkVerificationCodeForJoining(email: String, code: Int): Boolean
 
     suspend fun requestEmailForFindingId(name: String, email: String)
     suspend fun checkVerificationCodeForFindingId(email: String, code: Int): Pair<String, String>  // (이름, ID)

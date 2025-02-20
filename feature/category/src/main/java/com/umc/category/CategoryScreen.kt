@@ -22,28 +22,32 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -67,7 +71,7 @@ import com.umc.design.R as Res
 data class CategoryListItemProp(
     val name: String,
     val color: CategoryColor?,
-    val onClicked: () -> Unit,
+    val onClicked: (() -> Unit)?,
 )
 
 @Composable
@@ -85,7 +89,9 @@ fun CategoryScreen(
     onDoneButtonClicked: () -> Unit,
 ) {
     val density = LocalDensity.current
+    val keyboard = LocalSoftwareKeyboardController.current
     val statusBarHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
+    val colorSelectionBarScrollState = rememberScrollState()
     var top by remember(showTopBar) { mutableStateOf(0.dp) }
 
     Box(
@@ -99,7 +105,7 @@ fun CategoryScreen(
             Spacer(modifier = Modifier.height(if (showTopBar) top else statusBarHeight))
             Column(
                 verticalArrangement = Arrangement.spacedBy(space = 32.dp),
-                modifier = Modifier.padding(32.dp)
+                modifier = Modifier.padding(top = 32.dp, start = 32.dp, end = 32.dp)
             ) {
                 // 새로 만들기
                 Column(
@@ -122,6 +128,8 @@ fun CategoryScreen(
                             BasicTextField(
                                 value = categoryNameInputFieldValue,
                                 onValueChange = onCategoryNameInputFieldValueChanged,
+                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                keyboardActions = KeyboardActions(onDone = { keyboard?.hide() }),
                                 textStyle = TextStyle(
                                     fontSize = 12.sp
                                 )
@@ -193,27 +201,69 @@ fun CategoryScreen(
                                     color = Color.Primary300
                                 )
                             }
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(space = 12.dp),
-                                modifier = Modifier
-                                    .horizontalScroll(state = rememberScrollState())
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                CategoryColor.entries.forEach { color ->
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier.clickable { onCategoryColorClicked(color) }
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(space = 12.dp),
+                                    modifier = Modifier
+                                        .horizontalScroll(state = colorSelectionBarScrollState)
+                                ) {
+                                    CategoryColor.entries.forEach { color ->
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier.clickable {
+                                                onCategoryColorClicked(color)
+                                            }
+                                        ) {
+                                            Image(
+                                                painter = painterResource(id = color.flowerIconId),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Fit,
+                                                modifier = Modifier.size(28.dp)
+                                            )
+                                            if (color == selectedCategoryColor) Image(
+                                                painter = painterResource(id = R.drawable.ic_check),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Fit,
+                                                modifier = Modifier.size(12.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                // 좌우 블러
+                                Box(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    if (colorSelectionBarScrollState.canScrollForward) Box(
+                                        contentAlignment = Alignment.CenterEnd,
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Image(
-                                            painter = painterResource(id = color.flowerIconId),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.Fit,
-                                            modifier = Modifier.size(28.dp)
+                                        Box(
+                                            modifier = Modifier
+                                                .background(
+                                                    brush = Brush.horizontalGradient(
+                                                        0f to Color.Transparent,
+                                                        1f to Color.Secondary100,
+                                                    )
+                                                )
+                                                .size(32.dp)
                                         )
-                                        if (color == selectedCategoryColor) Image(
-                                            painter = painterResource(id = R.drawable.ic_check),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.Fit,
-                                            modifier = Modifier.size(12.dp)
+                                    }
+                                    if (colorSelectionBarScrollState.canScrollBackward) Box(
+                                        contentAlignment = Alignment.CenterStart,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .background(
+                                                    brush = Brush.horizontalGradient(
+                                                        0f to Color.Secondary100,
+                                                        1f to Color.Transparent,
+                                                    )
+                                                )
+                                                .size(32.dp)
                                         )
                                     }
                                 }
@@ -305,7 +355,7 @@ private fun CategoryListItem(
             )
             Text(text = prop.name)
         }
-        IconButton(
+        if (prop.onClicked != null) IconButton(
             onClick = prop.onClicked,
             modifier = Modifier.size(32.dp)
         ) {
