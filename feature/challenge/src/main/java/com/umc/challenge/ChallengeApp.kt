@@ -181,17 +181,21 @@ fun ChallengeApp(
             ShopScreen(
                 point = viewModel.point,
                 equippedAccessorySet = viewModel.equippedAccessorySet,
-                shopItemItemPropList = viewModel.unownedItems.map {
-                    ShopItemItemProp(
-                        accessory = it.item,
-                        cost = it.cost,
-                        onClicked = {
-                            clickedShopItemInfo = ClickedShopItemInfo(
-                                id = it.id,
-                                itemName = it.item.title
-                            )
-                        }
-                    )
+                shopItemItemPropList = remember(viewModel.unownedItems) {
+                    viewModel.unownedItems.map {
+                        ShopItemItemProp(
+                            accessory = it.item,
+                            cost = it.cost,
+                            onClicked = {
+                                if (it.cost <= viewModel.point) {
+                                    clickedShopItemInfo = ClickedShopItemInfo(
+                                        id = it.id,
+                                        itemName = it.item.title
+                                    )
+                                }
+                            }
+                        )
+                    }
                 },
                 purchaseDialogProp = clickedShopItemInfo?.let { info ->
                     PurchaseDialogProp(
@@ -227,18 +231,20 @@ fun ChallengeApp(
             MyItemScreen(
                 point = viewModel.point,
                 equippedAccessorySet = viewModel.equippedAccessorySet,
-                myItemItemItemPropList = viewModel.ownedItems.map {
-                    MyItemItemItemProp(
-                        accessory = it.item,
-                        isEquipped = it.isEquipped,
-                        onClicked = { 
-                            clickedOwnedItemInfo = ClickedOwnedItemInfo(
-                                id = it.id,
-                                item = it.item,
-                                isEquipped = it.isEquipped
-                            ) 
-                        }
-                    )
+                myItemItemItemPropList = remember(viewModel.ownedItems) {
+                    viewModel.ownedItems.map {
+                        MyItemItemItemProp(
+                            accessory = it.item,
+                            isEquipped = it.isEquipped,
+                            onClicked = {
+                                clickedOwnedItemInfo = ClickedOwnedItemInfo(
+                                    id = it.id,
+                                    item = it.item,
+                                    isEquipped = it.isEquipped
+                                )
+                            }
+                        )
+                    }
                 },
                 clickedItemProp = clickedOwnedItemInfo?.let { info ->
                     ClickedItemProp(
