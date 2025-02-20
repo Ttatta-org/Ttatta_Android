@@ -264,23 +264,24 @@ class JoinViewModel @Inject constructor(
     ) {
         if (newCode.length <= 6) {
             _certiCodeState.value = newCode
-            _certiError.value = null // 에러 초기화
+            _certiError.value = null // 입력 시 기존 에러 제거
         }
 
-        if (newCode.length == 6) { // 6자리 입력 시 자동 검증 및 회원가입 진행
+        if (newCode.length == 6) {
             viewModelScope.launch {
                 try {
                     val email = "${_emailLocalPartState.value}@${_emailDomainState.value}"
-                    val certiCode = newCode.trim()
+                    val certiCode = newCode.toInt()
 
-                    println("🔍 인증번호 입력됨: $certiCode, 이메일: $email")
+                    println("🔍 서버로 인증번호 확인 요청: 이메일=$email, 코드=$certiCode")
 
                     val isValid = userRepository.checkVerificationCodeForJoining(email, certiCode)
 
-                    if (isValid) {
-                        println("✅ 인증 성공! 회원가입 진행 시작...")
+                    println("✅ 서버 응답: 인증번호 확인 결과 -> $isValid")
 
-                        // 회원가입 진행
+                    if (isValid) {
+                        println("✅ 인증 성공! 회원가입 진행 중...")
+
                         userRepository.join(
                             nickname = _nickNameState.value,
                             id = _idState.value,
@@ -290,19 +291,23 @@ class JoinViewModel @Inject constructor(
                         )
 
                         println("✅ 회원가입 완료! onSuccess() 실행됨")
-                        onSuccess()
+                        onSuccess()  // 🔥 여기서 onSuccess() 실행!
                     } else {
                         _certiError.value = "❌ 인증번호가 올바르지 않습니다."
-                        println("❌ 인증 실패: 인증번호가 올바르지 않음")
+                        println("❌ 인증 실패: 서버에서 false 반환")
+                        onFailure()
                     }
                 } catch (e: Exception) {
-                    _certiError.value = "❌ 인증 과정에서 오류가 발생했습니다."
+                    _certiError.value = "❌ 인증 과정에서 오류 발생: ${e.message}"
                     println("❌ 인증 중 오류 발생: ${e.message}")
                     onFailure()
                 }
             }
         }
     }
+
+
+
 
     fun requestVerificationCode(
         onSuccess: () -> Unit,

@@ -76,7 +76,7 @@ fun JoinParentScreen(navController: NavHostController, joinViewModel: JoinViewMo
             }
             composable("certification") {
                 LaunchedEffect(Unit) { currentStep = 6 }
-                JoinCertiView(viewModel = joinViewModel, onNext = {})
+                JoinCertiView(viewModel = joinViewModel, navController)
             }
         }
     }

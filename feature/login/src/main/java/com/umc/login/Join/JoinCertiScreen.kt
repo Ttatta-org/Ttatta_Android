@@ -28,19 +28,13 @@ import kotlinx.coroutines.delay
 fun JoinCertiScreen(navController: NavHostController,viewModel: JoinViewModel = viewModel()) {
     Column(modifier = Modifier.wrapContentSize()) {
         JoinCertiView(
-            viewModel =viewModel,
-            onNext = {
-                println("✅ join_end 화면으로 이동!")
-                navController.navigate("join_end") {
-                    popUpTo("join") { inclusive = true }
-                }
-            }
+            viewModel =viewModel,navController =navController
         )
     }
 }
 
 @Composable
-fun JoinCertiView(viewModel: JoinViewModel, onNext: () -> Unit) {
+fun JoinCertiView(viewModel: JoinViewModel,navController: NavHostController) {
     val certiCode by viewModel.certiCodeState.collectAsState()
     val timer by viewModel.timerState.collectAsState()
     val isCodeValid by viewModel.isCertiCodeValid.collectAsState()
@@ -67,8 +61,13 @@ fun JoinCertiView(viewModel: JoinViewModel, onNext: () -> Unit) {
                     newCode ->
                 viewModel.onCertiCodeChange(
                     newCode = newCode,
-                    onSuccess = { onNext() },
-                    onFailure = { }
+                    onSuccess = {
+                        println("onSucess 실행됨!!")
+                        navController.navigate("join_end")
+                         },
+                    onFailure = {
+                        println("❌ 인증 실패: 인증번호가 틀렸거나 서버 오류 발생")
+                    }
                 )
             },
             placeholder = stringResource(R.string.join_certification_comment),
@@ -92,7 +91,7 @@ fun JoinCertiView(viewModel: JoinViewModel, onNext: () -> Unit) {
             enabled = isCodeValid,
             onClick = { viewModel.onCertiCodeChange(
                 newCode = viewModel.certiCodeState.value,  // ✅ 현재 입력된 인증번호 전달
-                onSuccess = { onNext() },
+                onSuccess = { navController.navigate("join_end") },
                 onFailure = { }
             )
             }, // 이메일 다시 보내는 로직
