@@ -229,6 +229,7 @@ fun AppNavHost(
         // 🔍 SearchScreen (검색 결과 전용)
         composable("search") {
             SearchScreen(
+                isLoading = isLoading,
                 navController = navController,
                 searchResults = searchResults, // ✅ 검색된 결과만 표시
                 searchQuery = searchQuery,     // String

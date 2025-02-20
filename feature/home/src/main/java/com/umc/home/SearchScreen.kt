@@ -63,6 +63,7 @@ import java.time.LocalDate
 
 @Composable
 fun SearchScreen(
+    isLoading : Boolean,
     navController: NavHostController,
     searchResults: List<Diary>,
     lazyListState: LazyListState,
@@ -148,43 +149,97 @@ fun SearchScreen(
                             .zIndex(1f)
                     )
                 }
-                if (searchResults.isNotEmpty()){
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color(0xFFFEF6F2))
-                            .padding(top = 50.dp)
-                    ) {
-                        LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
-                            item { Spacer(modifier = Modifier.height(50.dp)) }
-                            items(searchResults) { diary ->
-                                DiaryCard(
-                                    diary = diary,
-                                    onDetailClick = {
-                                        selectedDiaryId = diary.id
-                                        onShowDetailModal()
-                                    },
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFFFEF6F2))
+                        .padding(top = 50.dp)
+                ) {
+                    Log.d("HomeViewModel", "검색 화면에서 isLoading 상태 확인: $isLoading")
+                    if (isLoading) {
+                        // ✅ 로딩 중이면 로딩 인디케이터 표시
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // 빈화면 출력
+                        }
+                    } else {
+                        if (searchResults.isNotEmpty()){
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            ) {
+                                LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
+                                    item { Spacer(modifier = Modifier.height(50.dp)) }
+                                    items(searchResults) { diary ->
+                                        DiaryCard(
+                                            diary = diary,
+                                            onDetailClick = {
+                                                selectedDiaryId = diary.id
+                                                onShowDetailModal()
+                                            },
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            // ✅ 검색결과가 없을 경우 빈 화면 표시
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color(0xFFFEF6F2)),
+                                contentAlignment = Alignment.Center // ✅ 이미지가 하단에 붙도록 정렬
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.no_search_results), // ✅ Drawable에 있는 이미지 사용
+                                    contentDescription = "초대장 이미지",
+                                    modifier = Modifier
+                                        .fillMaxWidth()
                                 )
                             }
                         }
                     }
                 }
-                else {
-                    // ✅ 검색결과가 없을 경우 빈 화면 표시
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color(0xFFFEF6F2)),
-                        contentAlignment = Alignment.Center // ✅ 이미지가 하단에 붙도록 정렬
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.no_search_results), // ✅ Drawable에 있는 이미지 사용
-                            contentDescription = "초대장 이미지",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                    }
-                }
+
+//                if (searchResults.isNotEmpty()){
+//                    Column(
+//                        modifier = Modifier
+//                            .fillMaxSize()
+//                            .background(Color(0xFFFEF6F2))
+//                            .padding(top = 50.dp)
+//                    ) {
+//                        LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
+//                            item { Spacer(modifier = Modifier.height(50.dp)) }
+//                            items(searchResults) { diary ->
+//                                DiaryCard(
+//                                    diary = diary,
+//                                    onDetailClick = {
+//                                        selectedDiaryId = diary.id
+//                                        onShowDetailModal()
+//                                    },
+//                                )
+//                            }
+//                        }
+//                    }
+//                }
+//                else {
+//                    // ✅ 검색결과가 없을 경우 빈 화면 표시
+//                    Box(
+//                        modifier = Modifier
+//                            .fillMaxSize()
+//                            .background(Color(0xFFFEF6F2)),
+//                        contentAlignment = Alignment.Center // ✅ 이미지가 하단에 붙도록 정렬
+//                    ) {
+//                        Image(
+//                            painter = painterResource(id = R.drawable.no_search_results), // ✅ Drawable에 있는 이미지 사용
+//                            contentDescription = "초대장 이미지",
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                        )
+//                    }
+//                }
                 TopBarComponent(
                     navController = navController,
                     isExpanded = isCalendarVisible,
