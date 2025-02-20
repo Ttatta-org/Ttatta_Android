@@ -171,7 +171,7 @@ fun FindIdMainView(onNext: () -> Unit, viewModel: FindIdViewModel) {
                     lineHeight = 20.sp,
                     fontWeight = FontWeight(600),
                     color = colorResource(R.color.orange_500),
-                    modifier = Modifier.clickable {viewModel.requestFindCertiCode() })
+                    modifier = Modifier.clickable {/*viewModel.requestFindCertiCode()*/ })
             }
         }
 

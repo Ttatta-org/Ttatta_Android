@@ -84,16 +84,16 @@ class FindIdViewModel @Inject constructor(
         }
     }
 
-    fun requestFindCertiCode() {
-        val email = "${_findEmailLocalPartState.value}@${_findEmailDomainState.value}"
-        viewModelScope.launch {
-            try {
-                userRepository.requestEmailForFindingId(email)
-            } catch (e: Exception) {
-                _findError.value = "이메일 요청 실패: ${e.message}"
-            }
-        }
-    }
+//    fun requestFindCertiCode() {
+//        val email = "${_findEmailLocalPartState.value}@${_findEmailDomainState.value}"
+//        viewModelScope.launch {
+//            try {
+//                userRepository.requestEmailForFindingId(email)
+//            } catch (e: Exception) {
+//                _findError.value = "이메일 요청 실패: ${e.message}"
+//            }
+//        }
+//    }
 
     fun findUserId() {
         val email = "${_findEmailLocalPartState.value}@${_findEmailDomainState.value}"
