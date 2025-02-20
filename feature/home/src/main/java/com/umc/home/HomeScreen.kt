@@ -334,14 +334,22 @@ fun HomeScreen(
                     onSearchToggle = onSearchToggle,
                     onCalendarToggle = onCalendarToggle,
                     calendarContent = { modifier ->
-                        CalendarView(
-                            modifier = modifier,
-                            onDateSelected = { selectedDate ->
-                                Log.d("HomeScreen", "📌 2. CalendarView에서 날짜 선택됨: $selectedDate")
-                                onNavigateToFilteredDiaryScreen(selectedDate) // 🔹 네비게이션 실행
-                            },
-                            diaryDates = allDiaryDates
-                        )
+                        Column(modifier = modifier.fillMaxWidth()) {
+                            AnimatedVisibility(
+                                visible = isCalendarVisible,
+                                enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
+                                exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
+                            ) {
+                                CalendarView(
+                                    modifier = modifier,
+                                    onDateSelected = { selectedDate ->
+                                        Log.d("HomeScreen", "📌 2. CalendarView에서 날짜 선택됨: $selectedDate")
+                                        onNavigateToFilteredDiaryScreen(selectedDate) // 🔹 네비게이션 실행
+                                    },
+                                    diaryDates = allDiaryDates
+                                )
+                            }
+                        }
                     },
                     recentSearches = recentSearches,
                     onRecentSearchClick = onRecentSearchClick,

@@ -207,8 +207,8 @@ class HomeViewModel @Inject constructor(
 
     // ✅ SearchScreen의 검색 기능 (검색 시 reset = true)
     fun searchDiaries(searchWord: String, reset: Boolean = true, onSucceed: () -> Unit = {}, onFailed: (Exception) -> Unit = {}) {
-        if (_isLoading.value) return
-        _isLoading.value = true
+//        if (_isLoading.value) return
+//        _isLoading.value = true
 
         if (reset) {
             searchPage = 0  // ✅ 검색 시작 시 항상 0으로 초기화
