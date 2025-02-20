@@ -1,6 +1,5 @@
 package com.umc.record.screen
 
-import android.location.Location
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,7 +34,7 @@ data class EditLocationScreenTopBarProp(
 fun EditLocationScreen(
     mapView: @Composable () -> Unit,
     topBarProp: EditLocationScreenTopBarProp,
-    bottomSheetProp: LocationBottomSheetProp?,
+    bottomSheetProp: LocationBottomSheetProp,
     onLocationButtonClicked: () -> Unit,
 ) {
     var topBarHeight by remember { mutableStateOf(0.dp) }

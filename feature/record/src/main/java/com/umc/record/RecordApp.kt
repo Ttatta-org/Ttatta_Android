@@ -1,10 +1,8 @@
 package com.umc.record
 
 import android.graphics.BitmapFactory
-import android.util.Log
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,182 +21,152 @@ import com.umc.record.component.LocationBottomSheetProp
 import com.umc.record.screen.EditLocationScreen
 import com.umc.record.screen.EditLocationScreenTopBarProp
 import com.umc.record.screen.RecordScreen
-import com.umc.record.util.createImageUri
 import com.umc.record.util.getImageMetadata
-import com.umc.record.util.uriToFile
 import java.io.File
 import java.time.LocalDateTime
-
-enum class RecordMode {
-    CAMERA,
-    GALLERY,
-}
 
 @Composable
 fun RecordApp(
     viewModel: RecordViewModel,
-    mode: RecordMode,
-    onBack: () -> Unit,
+    image: File,
+    diaryContent: String,
+    onDiaryContentChanged: (String) -> Unit,
     onNavigateToCategoryApp: () -> Unit,
     onDone: () -> Unit,
 ) {
     val context = LocalContext.current
     val navController = rememberNavController()
-    val uriForCameraMode = remember { createImageUri(context.contentResolver) }
-    var image by remember { mutableStateOf<File?>(null) }
 
-    val cameraLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.TakePicture()
-    ) { output ->
-        val img = if (output) uriToFile(context = context, uri = uriForCameraMode) else null
-        if (img != null) image = img
-        else onBack()
+    val metaData = remember { getImageMetadata(image) }
+    var date by remember { mutableStateOf(metaData.date ?: LocalDateTime.now()) }
+    var coordinates by remember {
+        mutableStateOf(
+            if (metaData.latitude != null && metaData.longitude != null) metaData.latitude to metaData.longitude
+            else null
+        )
     }
-
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        val img = uri?.let { uriToFile(context = context, uri = uri) }
-        if (img != null) image = img
-        else onBack()
-    }
+    var locationName by remember { mutableStateOf("") }
+    var showCategoryDropdown by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = Unit) {
-        when (mode) {
-            RecordMode.CAMERA -> cameraLauncher.launch(uriForCameraMode)
-            RecordMode.GALLERY -> galleryLauncher.launch("image/*")
+        coordinates?.let { location ->
+            viewModel.searchLocation(
+                latitude = location.first,
+                longitude = location.second,
+                onSucceed = { locationName = it },
+                onFailed = { /* TODO */ }
+            )
         }
     }
 
-    image?.let { img ->
-        val metaData = remember { getImageMetadata(img) }
-        val bitmap = remember { BitmapFactory.decodeStream(img.inputStream()).asImageBitmap() }
-
-        var diaryContent by remember { mutableStateOf("") }
-        var date by remember { mutableStateOf(metaData.date ?: LocalDateTime.now()) }
-        var coordinates by remember {
-            mutableStateOf(
-                if (metaData.latitude != null && metaData.longitude != null) metaData.latitude to metaData.longitude
-                else null
-            )
-        }
-        var locationName by remember { mutableStateOf("") }
-        var showCategoryDropdown by remember { mutableStateOf(false) }
-        var selectedCategory by remember { mutableStateOf(viewModel.categoryInfos.find { it.name == "일상" }!!) }
-
-        LaunchedEffect(key1 = Unit) {
-            coordinates?.let { location ->
-                viewModel.searchLocation(
-                    latitude = location.first,
-                    longitude = location.second,
-                    onSucceed = { locationName = it },
-                    onFailed = { /* TODO */ }
-                )
+    NavHost(
+        navController = navController,
+        startDestination = "onboarding",
+        exitTransition = { ExitTransition.None },
+        popExitTransition = { ExitTransition.None }
+    ) {
+        composable("onboarding") {
+            LaunchedEffect(key1 = Unit) {
+                viewModel.getAllCategoryInfo()
             }
-        }
 
-        NavHost(
-            navController = navController,
-            startDestination = "onboarding"
-        ) {
-            composable("onboarding") {
-                RecordScreen(
-                    image = bitmap,
-                    date = date,
-                    location = locationName,
-                    selectedCategoryColor = selectedCategory.color,
-                    categoryDropdownProp = if (showCategoryDropdown) CategoryDropdownProp(
-                        itemProps = viewModel.categoryInfos.map {
-                            CategoryDropdownItemProp(
-                                color = it.color,
-                                name = it.name,
-                                onClicked = {
-                                    selectedCategory = it
-                                    showCategoryDropdown = false
-                                }
-                            )
-                        },
-                        onNewCategoryButtonClicked = onNavigateToCategoryApp
-                    ) else null,
-                    diaryBottomSheetProp = DiaryBottomSheetProp(
-                        userName = viewModel.userName,
-                        diaryContent = diaryContent,
-                        onCreateButtonClicked = {
-                            coordinates?.let { location ->
-                                viewModel.saveDiary(
-                                    image = img,
-                                    content = diaryContent,
-                                    categoryId = selectedCategory.id,
-                                    date = date,
-                                    latitude = location.first,
-                                    longitude = location.second,
-                                    locationName = locationName,
-                                    onSucceed = { onDone() },
-                                    onFailed = { /* TODO */ }
-                                )
-                            } ?: run {
-                                Toast.makeText(
-                                    context,
-                                    "위치를 설정해 주세요!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+            RecordScreen(
+                image = image,
+                date = date,
+                location = locationName,
+                selectedCategoryColor = viewModel.selectedCategory?.color,
+                categoryDropdownProp = if (showCategoryDropdown) CategoryDropdownProp(
+                    itemProps = viewModel.categoryInfos.map {
+                        CategoryDropdownItemProp(
+                            color = it.color,
+                            name = it.name,
+                            onClicked = {
+                                viewModel.selectCategory(categoryId = it.id)
+                                showCategoryDropdown = false
                             }
-                        },
-                        onDiaryContentChanged = { diaryContent = it }
-                    ),
-                    onDateChipClicked = { /* TODO */ },
-                    onLocationChipClicked = { navController.navigate("location") },
-                    onCategoryChipClicked = { showCategoryDropdown = !showCategoryDropdown }
-                )
-            }
-
-            composable("location") {
-                var searchWord by remember { mutableStateOf("") }
-
-                EditLocationScreen(
-                    mapView = {
-                        viewModel.MapView(
-                            isLocationMarkingEnabled = false,
                         )
                     },
-                    topBarProp = EditLocationScreenTopBarProp(
-                        searchWord = searchWord,
-                        onSearchWordChanged = { searchWord = it },
-                        onSearchButtonClicked = {
-                            viewModel.searchLocation(
-                                searchWord = searchWord,
-                                onSucceed = { /* TODO */ },
+                    onNewCategoryButtonClicked = onNavigateToCategoryApp
+                ) else null,
+                diaryBottomSheetProp = DiaryBottomSheetProp(
+                    userName = viewModel.userName,
+                    diaryContent = diaryContent,
+                    onCreateButtonClicked = {
+                        coordinates?.let { location ->
+                            viewModel.saveDiary(
+                                image = image,
+                                content = diaryContent,
+                                categoryId = viewModel.selectedCategory?.id ?: 0L,
+                                date = date,
+                                latitude = location.first,
+                                longitude = location.second,
+                                locationName = locationName,
+                                onSucceed = { onDone() },
                                 onFailed = { /* TODO */ }
                             )
+                        } ?: run {
+                            Toast.makeText(
+                                context,
+                                "위치를 설정해 주세요!",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
-                    ),
-                    bottomSheetProp = viewModel.currentPinnedLocationInfo?.let { info ->
-                        LocationBottomSheetProp(
-                            location = info.name,
-                            onConfirm = {
-                                coordinates = info.latitude to info.longitude
-                                locationName = info.name
-                                navController.popBackStack()
-                            }
-                        )
                     },
-                    onLocationButtonClicked = {
-                        viewModel.movePinToCurrentLocation(
-                            onSucceed = { /* TODO */ },
-                            onFailed = { /* TODO */ }
-                        )
-                    }
-                )
+                    onDiaryContentChanged = onDiaryContentChanged
+                ),
+                onDateChipClicked = { /* TODO */ },
+                onLocationChipClicked = { navController.navigate("location") },
+                onCategoryChipClicked = { showCategoryDropdown = !showCategoryDropdown }
+            )
+        }
 
-                LaunchedEffect(key1 = Unit) {
-                    coordinates?.let { location ->
-                        viewModel.movePin(
-                            latitude = location.first,
-                            longitude = location.second,
+        composable("location") {
+            var searchWord by remember { mutableStateOf("") }
+
+            EditLocationScreen(
+                mapView = {
+                    viewModel.MapView(
+                        isLocationMarkingEnabled = false,
+                    )
+                },
+                topBarProp = EditLocationScreenTopBarProp(
+                    searchWord = searchWord,
+                    onSearchWordChanged = { searchWord = it },
+                    onSearchButtonClicked = {
+                        viewModel.searchLocation(
+                            searchWord = searchWord,
                             onSucceed = { /* TODO */ },
                             onFailed = { /* TODO */ }
                         )
                     }
+                ),
+                bottomSheetProp = LocationBottomSheetProp(
+                    location = viewModel.currentPinnedLocationInfo?.name,
+                    onConfirm = { confirmedLocationName ->
+                        // TODO: 현 코드는 버그의 위험이 있음
+                        viewModel.currentPinnedLocationInfo?.let { info ->
+                            coordinates = info.latitude to info.longitude
+                            locationName = confirmedLocationName
+                            navController.popBackStack()
+                        }
+                    }
+                ),
+                onLocationButtonClicked = {
+                    viewModel.movePinToCurrentLocation(
+                        onSucceed = { /* TODO */ },
+                        onFailed = { /* TODO */ }
+                    )
+                }
+            )
+
+            LaunchedEffect(key1 = Unit) {
+                coordinates?.let { location ->
+                    viewModel.movePin(
+                        latitude = location.first,
+                        longitude = location.second,
+                        onSucceed = { /* TODO */ },
+                        onFailed = { /* TODO */ }
+                    )
                 }
             }
         }

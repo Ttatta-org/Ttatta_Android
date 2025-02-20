@@ -72,7 +72,7 @@ fun DiaryBottomSheet(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(
-                bottom = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+                bottom = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()
             )
         ) {
             // 헤더 이미지

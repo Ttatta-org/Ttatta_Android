@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -32,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -48,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
 import com.umc.design.CategoryColor
 import com.umc.design.Primary300
 import com.umc.record.R
@@ -57,12 +56,13 @@ import com.umc.record.component.DiaryBottomSheet
 import com.umc.record.component.DiaryBottomSheetProp
 import com.umc.record.component.previewCategoryDropdownProp
 import com.umc.record.component.previewDiaryBottomSheetProp
-import java.time.LocalDate
+import java.io.File
+import java.io.FileOutputStream
 import java.time.LocalDateTime
 
 @Composable
 fun RecordScreen(
-    image: ImageBitmap,
+    image: File,
     date: LocalDateTime,
     location: String,
     selectedCategoryColor: CategoryColor?,
@@ -78,8 +78,8 @@ fun RecordScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         // 배경 이미지
-        Image(
-            bitmap = image,
+        AsyncImage(
+            model = image,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -252,9 +252,14 @@ fun PreviewRecordScreen() {
     val context = LocalContext.current
 
     RecordScreen(
-        image = BitmapFactory.decodeStream(
-            context.resources.openRawResource(R.raw.img_test)
-        ).asImageBitmap(),
+        image = File(
+            context.cacheDir,
+            "image.jpg"
+        ).apply {
+            FileOutputStream(this).use {
+                context.resources.openRawResource(R.raw.img_test).copyTo(it)
+            }
+        },
         date = LocalDateTime.now(),
         location = "Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE",
         selectedCategoryColor = CategoryColor.GREEN,

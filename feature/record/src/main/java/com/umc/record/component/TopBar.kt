@@ -129,12 +129,12 @@ fun TopBar(
                             ),
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                         ) { innerTextField ->
-                            innerTextField()
                             if (prop.searchWord.isEmpty()) Text(
                                 text = stringResource(id = R.string.search_placeholder), // 힌트 텍스트
                                 color = Color(0xFFCACACA),
                                 fontSize = 12.sp
                             )
+                            innerTextField()
                         }
                     }
                     IconButton(
