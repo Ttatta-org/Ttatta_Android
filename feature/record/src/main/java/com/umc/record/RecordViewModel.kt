@@ -17,7 +17,7 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 data class CurrentPinnedLocationInfo(
-    val name: String,
+    val name: String?,
     val latitude: Double,
     val longitude: Double,
 )
@@ -39,30 +39,27 @@ class RecordViewModel @Inject constructor(
 
     private val userNameState = mutableStateOf("")
     private val categoryInfosState = mutableStateOf(listOf<CategoryInfo>())
+    private val selectedCategoryState = mutableStateOf<CategoryInfo?>(null)
     private val currentPinnedLocationInfoState = mutableStateOf<CurrentPinnedLocationInfo?>(null)
 
     val userName get() = userNameState.value
     val categoryInfos get() = categoryInfosState.value
     val currentPinnedLocationInfo get() = currentPinnedLocationInfoState.value
+    val selectedCategory get() = selectedCategoryState.value
 
     init {
-        getUserName(
-            onSucceed = { /* TODO */ },
-            onFailed = { /* TODO */ },
-        )
+        getUserName()
+        setMapIdleListener()
         getAllCategoryInfo(
-            onSucceed = { /* TODO */ },
-            onFailed = { /* TODO */ },
-        )
-        setMapIdleListener(
-            onSucceed = { /* TODO */ },
-            onFailed = { /* TODO */ },
+            onSucceed = {
+                selectedCategoryState.value = categoryInfosState.value.find { it.name == "일상" }
+            }
         )
     }
 
     private fun getUserName(
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
@@ -74,9 +71,9 @@ class RecordViewModel @Inject constructor(
         }
     }
 
-    private fun getAllCategoryInfo(
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit
+    fun getAllCategoryInfo(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
@@ -89,26 +86,28 @@ class RecordViewModel @Inject constructor(
     }
 
     private fun setMapIdleListener(
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
                 mapHandler.addCameraIdleListener {
                     viewModelScope.launch {
                         val (lat, lng) = mapHandler.getCurrentPinnedCoordination()
+                        val info = CurrentPinnedLocationInfo(
+                            name = null,
+                            latitude = lat,
+                            longitude = lng,
+                        )
                         try {
                             val locationName = geocoder.convertCoordinateToAddress(
                                 latitude = lat,
                                 longitude = lng,
                             )
-                            currentPinnedLocationInfoState.value = CurrentPinnedLocationInfo(
-                                name = locationName,
-                                latitude = lat,
-                                longitude = lng,
-                            )
+                            currentPinnedLocationInfoState.value = info.copy(name = locationName)
                         } catch (e: Exception) {
-                            currentPinnedLocationInfoState.value = null
+                            e.printStackTrace()
+                            currentPinnedLocationInfoState.value = info
                         }
                     }
                 }
@@ -131,8 +130,8 @@ class RecordViewModel @Inject constructor(
 
     // ✅ 현재 위치 가져와서 지도 이동시키는 함수
     fun movePinToCurrentLocation(
-        onSucceed: () -> Unit,
-        onFailed: (Exception) -> Unit,
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
@@ -145,6 +144,10 @@ class RecordViewModel @Inject constructor(
         }
     }
 
+    fun selectCategory(categoryId: Long) {
+        selectedCategoryState.value = categoryInfosState.value.find { it.id == categoryId }
+    }
+
     fun saveDiary(
         image: File,
         content: String,
@@ -153,8 +156,8 @@ class RecordViewModel @Inject constructor(
         latitude: Double,
         longitude: Double,
         locationName: String,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
@@ -176,16 +179,22 @@ class RecordViewModel @Inject constructor(
 
     fun searchLocation(
         searchWord: String,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
-                val (lat, lng) = geocoder.convertAddressToCoordinate(searchWord)
-                mapHandler.movePin(lat, lng)
+                val location = geocoder.searchLocationByKeyword(searchWord).first()
+                mapHandler.movePin(location.latitude, location.longitude)
                 onSucceed()
             } catch (e: Exception) {
-                onFailed(e)
+                try {
+                    val (lat, lng) = geocoder.convertAddressToCoordinate(searchWord)
+                    mapHandler.movePin(lat, lng)
+                    onSucceed()
+                } catch (e: Exception) {
+                    onFailed(e)
+                }
             }
         }
     }
@@ -193,8 +202,8 @@ class RecordViewModel @Inject constructor(
     fun movePin(
         latitude: Double,
         longitude: Double,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {

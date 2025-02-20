@@ -42,6 +42,12 @@ class FootprintViewModel @Inject constructor(
     val selectedCategoryId get() = selectedCategoryIdState.value
     val userName get() = userNameState.value
 
+    init {
+        viewModelScope.launch {
+            mapHandler.addOnDismissListener { previousClickedClusterId = null }
+        }
+    }
+
     @Composable
     fun MapView(
         isBlurApplied: Boolean,
