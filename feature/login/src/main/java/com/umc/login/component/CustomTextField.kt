@@ -431,6 +431,7 @@ fun CertiInputTextField(
     timer: Int,
     errorMessage: String?
 ) {
+    var isFocused by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
@@ -444,22 +445,23 @@ fun CertiInputTextField(
                 textAlign = TextAlign.Center,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
-                fontWeight = FontWeight(600),
                 color = Color.Black
             ),
             placeholder = {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = placeholder,
-                        fontSize = 14.sp,
-                        lineHeight = 20.sp,
-                        fontWeight = FontWeight(600),
-                        color = colorResource(R.color.gray_500),
-                        textAlign = TextAlign.Center
-                    )
+                if (!isFocused&&value.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = placeholder,
+                            fontSize = 14.sp,
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight(600),
+                            color = colorResource(R.color.gray_500),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             },
             trailingIcon = {
@@ -473,7 +475,8 @@ fun CertiInputTextField(
             },
             modifier = Modifier
                 .width(310.dp)
-                .height(51.dp),
+                .height(51.dp)
+                .onFocusChanged { isFocused = it.isFocused },
             colors = TextFieldDefaults.colors(
                 unfocusedContainerColor = Color.Transparent,
                 focusedContainerColor = Color.Transparent,
