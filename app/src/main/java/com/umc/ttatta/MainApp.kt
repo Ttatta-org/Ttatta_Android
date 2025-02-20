@@ -30,6 +30,7 @@ import com.umc.category.CategoryApp
 import com.umc.challenge.ChallengeApp
 import com.umc.footprint.FootprintApp
 import com.umc.home.HomeApp
+import com.umc.login.LoginApp
 import com.umc.mypage.MyPageApp
 import com.umc.record.RecordApp
 import com.umc.ttatta.component.NavigationItem
@@ -181,11 +182,12 @@ fun MainApp(
                     LaunchedEffect(Unit) { showNavBar = false }
                     FinishHandler()
 
-                    // LoginApp(
-                    //     loginviewModel = hiltViewModel(),
-                    //     joinviewModel = hiltViewModel(),
-                    //     onNavigatingToHome = { viewModel.checkLogin() }
-                    // )
+                     LoginApp(
+                         loginviewModel = hiltViewModel(),
+                         joinviewModel = hiltViewModel(),
+                         findIdViewModel = hiltViewModel(),
+                         onNavigatingToHome = { viewModel.checkLogin() }
+                     )
                 }
             }
 
