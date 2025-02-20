@@ -348,13 +348,17 @@ class JoinViewModel @Inject constructor(
             try {
                 val email = "${_emailLocalPartState.value}@${_emailDomainState.value}"
                 userRepository.requestVerificationCodeForJoining(email)
+
+                // 이메일 발송 성공
                 _emailError.value = null // 기존 에러 제거
                 onSuccess()
 
-                // ✅ 이메일 발송 성공 후 타이머 시작
+                // 타이머 시작 등 추가 로직
                 startTimer()
+
             } catch (e: Exception) {
-                _emailError.value = "이메일 발송에 실패했습니다."
+                // 이메일 중복 등으로 인해 발송 실패
+                _emailError.value = "중복된 이메일은 사용이 불가해요!"
                 onFailure("이메일 발송에 실패했습니다.")
             }
         }

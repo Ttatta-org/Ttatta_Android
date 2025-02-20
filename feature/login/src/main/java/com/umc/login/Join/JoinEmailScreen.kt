@@ -39,7 +39,7 @@ fun JoinEmailView(viewModel: JoinViewModel, onNext: () -> Unit) {
     val isCustomDomain by viewModel.isCustomDomain.collectAsState()
     val isEmailValid by viewModel.isEmailValid.collectAsState()
     var expanded by remember { mutableStateOf(false) }
-
+    val emailError by viewModel.emailError.collectAsState()
     val domains = listOf("naver.com", "gmail.com", "kakao.com", "직접입력",)
 
     Column(
@@ -109,8 +109,21 @@ fun JoinEmailView(viewModel: JoinViewModel, onNext: () -> Unit) {
             }
         }
 
-        Spacer(modifier = Modifier.height(126.dp))
+        // [추가] 이메일 발송이 실패했을 때 노출할 경고 문구
+        if (!emailError.isNullOrEmpty()) {
+            Spacer(modifier = Modifier.height(97.dp))
+            Text(
+                text ="중복된 이메일은 사용이 불가해요!" ,             // "중복된 이메일은 사용이 불가해요!" 메시지
+                fontSize = 12.sp,
+                color = colorResource(R.color.negativeRed),
+                fontWeight = FontWeight(400)
+            )
+        }
+        else {
+            Spacer(modifier = Modifier.height(115.dp))
+        }
 
+        Spacer(modifier = Modifier.height(9.dp))
         // 인증메일 발송 버튼
         Button(
             enabled = isEmailValid,
