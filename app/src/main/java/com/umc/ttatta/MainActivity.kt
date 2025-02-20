@@ -64,8 +64,12 @@ class MainActivity : ComponentActivity() {
 
         permissionRequester = registerForActivityResult(
             ActivityResultContracts.RequestPermission()
-        ) {
-            // empty
+        ) { isGranted ->
+            if (isGranted) createImageUri()?.let { uri ->
+                imageUri = uri
+                imageFileState.value = null
+                cameraLauncher.launch(uri)
+            }
         }
 
         enableDebugMode()

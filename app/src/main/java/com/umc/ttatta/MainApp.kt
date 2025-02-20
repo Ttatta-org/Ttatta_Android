@@ -238,7 +238,7 @@ fun MainApp(
                         onNavigationBarVisibilityChanged = { showNavBar = it },
                         onChallengeCompletionRequired = { challengeId ->
                             recordEntryInfo = RecordEntryInfo(
-                                mode = RecordRoutingOption.GALLERY,
+                                mode = RecordRoutingOption.CAMERA,
                                 challengeId = challengeId
                             )
                         },
@@ -304,6 +304,7 @@ fun MainApp(
                                     onFailed = { /* TODO */ },
                                 )
                             } ?: run { navigator.popBackStack() }
+                            recordingDiaryContent = ""
                         },
                     )
                 }
