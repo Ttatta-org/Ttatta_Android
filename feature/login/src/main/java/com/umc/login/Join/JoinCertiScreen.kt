@@ -78,7 +78,7 @@ fun JoinCertiView(viewModel: JoinViewModel,navController: NavHostController) {
             errorMessage = certiError
         )
 
-        Spacer(modifier = Modifier.height(103.dp))
+        Spacer(modifier = Modifier.height(93.dp))
 
         // ✅ 기본 문구 또는 오류 메시지 표시
         Text(

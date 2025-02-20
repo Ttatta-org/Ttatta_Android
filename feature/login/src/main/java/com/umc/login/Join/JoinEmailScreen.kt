@@ -40,7 +40,9 @@ fun JoinEmailView(viewModel: JoinViewModel, onNext: () -> Unit) {
     val isEmailValid by viewModel.isEmailValid.collectAsState()
     var expanded by remember { mutableStateOf(false) }
     val emailError by viewModel.emailError.collectAsState()
+    val isSendingEmail by viewModel.isSendingEmail.collectAsState()
     val domains = listOf("naver.com", "gmail.com", "kakao.com", "직접입력",)
+
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -126,19 +128,12 @@ fun JoinEmailView(viewModel: JoinViewModel, onNext: () -> Unit) {
         Spacer(modifier = Modifier.height(9.dp))
         // 인증메일 발송 버튼
         Button(
-            enabled = isEmailValid,
-            onClick = { viewModel.requestVerificationCode(
-
-                onSuccess = {
-                    onNext()
-                    // 이메일 발송 성공 시 사용자에게 알림
-                    println("이메일이 성공적으로 발송되었습니다!")
-                },
-                onFailure = { errorMessage ->
-                    // 이메일 발송 실패 시 에러 메시지 표시
-                    println(errorMessage)
-                }
-            )
+            enabled = isEmailValid && !isSendingEmail, // 로딩 중이면 버튼 비활성화
+            onClick = {
+                viewModel.requestVerificationCode(
+                    onSuccess = onNext,  // 성공 시 화면 전환
+                    onFailure = { errorMessage -> println(errorMessage) }  // 실패 시 로그 출력
+                )
             },
             modifier = Modifier
                 .width(310.dp)
@@ -154,12 +149,20 @@ fun JoinEmailView(viewModel: JoinViewModel, onNext: () -> Unit) {
                 disabledElevation = 0.dp
             )
         ) {
-            Text(
-                text = stringResource(R.string.verifiy_button),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            if (isSendingEmail) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color.White,
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = stringResource(R.string.verifiy_button),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
         }
     }
 }

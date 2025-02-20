@@ -88,7 +88,8 @@ class UserRepositoryImpl @Inject constructor(
 
 
     override suspend fun requestEmailForFindingId(name: String, email: String) {
-        TODO()
+        val body = SendVerificationMailFindIdRequestDTO(name = name, email = email)
+        serverApi.withCheck { sendVerificationMailFindId(body) }
     }
 
     override suspend fun checkVerificationCodeForFindingId(

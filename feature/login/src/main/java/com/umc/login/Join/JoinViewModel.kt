@@ -103,6 +103,9 @@ class JoinViewModel @Inject constructor(
     private val _isResending = MutableStateFlow(false) // 재전송 중 여부
     val isResending: StateFlow<Boolean> = _isResending.asStateFlow()
 
+    private val _isSendingEmail = MutableStateFlow(false)
+    val isSendingEmail: StateFlow<Boolean> = _isSendingEmail.asStateFlow()
+
 
     // 버튼 활성화 조건 수정 (공백만 입력되거나 2자 미만인 경우 비활성화)
     val isNicknameButtonEnabled: StateFlow<Boolean> = combine(
@@ -325,7 +328,7 @@ class JoinViewModel @Inject constructor(
                         println("✅ 회원가입 완료! onSuccess() 실행됨")
                         onSuccess()  // 🔥 여기서 onSuccess() 실행!
                     } else {
-                        _certiError.value = "❌ 인증번호가 올바르지 않습니다."
+                        //_certiError.value = "❌ 인증번호가 올바르지 않습니다."
                         println("❌ 인증 실패: 서버에서 false 반환")
                         onFailure()
                     }
@@ -346,21 +349,20 @@ class JoinViewModel @Inject constructor(
         onFailure: (String) -> Unit
     ) {
         viewModelScope.launch {
+            _isSendingEmail.value = true // 로딩 시작
             try {
                 val email = "${_emailLocalPartState.value}@${_emailDomainState.value}"
                 userRepository.requestVerificationCodeForJoining(email)
 
-                // 이메일 발송 성공
                 _emailError.value = null // 기존 에러 제거
                 onSuccess()
-
-                // 타이머 시작 등 추가 로직
                 startTimer()
 
             } catch (e: Exception) {
-                // 이메일 중복 등으로 인해 발송 실패
                 _emailError.value = "중복된 이메일은 사용이 불가해요!"
                 onFailure("이메일 발송에 실패했습니다.")
+            } finally {
+                _isSendingEmail.value = false // 로딩 종료
             }
         }
     }
