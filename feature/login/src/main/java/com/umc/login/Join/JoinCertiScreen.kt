@@ -39,6 +39,8 @@ fun JoinCertiView(viewModel: JoinViewModel,navController: NavHostController) {
     val timer by viewModel.timerState.collectAsState()
     val isCodeValid by viewModel.isCertiCodeValid.collectAsState()
     val certiError by viewModel.certiError.collectAsState()
+    val isResending by viewModel.isResending.collectAsState() // ✅ 재전송 로딩 상태 추가
+    var errorMessage by remember { mutableStateOf<String?>(null) }//재전송 로딩 상태 추가
 
 
     Column(
@@ -67,6 +69,7 @@ fun JoinCertiView(viewModel: JoinViewModel,navController: NavHostController) {
                          },
                     onFailure = {
                         println("❌ 인증 실패: 인증번호가 틀렸거나 서버 오류 발생")
+                        errorMessage = "인증번호가 올바르지 않습니다. 다시 시도해 주세요." // ✅ 오류 메시지 설정
                     }
                 )
             },
@@ -77,9 +80,10 @@ fun JoinCertiView(viewModel: JoinViewModel,navController: NavHostController) {
 
         Spacer(modifier = Modifier.height(103.dp))
 
+        // ✅ 기본 문구 또는 오류 메시지 표시
         Text(
-            text = stringResource(R.string.join_certification_small_comment),
-            color = colorResource(R.color.orange_500),
+            text = errorMessage ?: stringResource(R.string.join_certification_small_comment),
+            color = if (errorMessage != null) colorResource(R.color.negativeRed) else colorResource(R.color.negativeRed),
             fontSize = 12.sp,
             lineHeight = 20.sp,
             fontWeight = FontWeight(400)

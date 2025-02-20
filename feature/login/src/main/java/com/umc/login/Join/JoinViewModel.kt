@@ -100,6 +100,10 @@ class JoinViewModel @Inject constructor(
     private val _isNavigationTriggered = MutableStateFlow(false)
     val isNavigationTriggered: StateFlow<Boolean> = _isNavigationTriggered.asStateFlow()
 
+    private val _isResending = MutableStateFlow(false) // 재전송 중 여부
+    val isResending: StateFlow<Boolean> = _isResending.asStateFlow()
+
+
     // 버튼 활성화 조건 수정 (공백만 입력되거나 2자 미만인 경우 비활성화)
     val isNicknameButtonEnabled: StateFlow<Boolean> = combine(
         _nickNameState, _nicknameError, _isLoading
@@ -261,8 +265,11 @@ class JoinViewModel @Inject constructor(
         }
     }
 
-    // ✅ 인증번호 재전송 요청 + 타이머 초기화 포함
+    // ✅ 인증번호 재전송 요청 (버튼 클릭 시 타이머 초기화 포함)
     fun requestVerificationCodeForResend() {
+        if (_isResending.value) return // ✅ 중복 요청 방지
+
+        _isResending.value = true
         viewModelScope.launch {
             try {
                 val email = "${_emailLocalPartState.value}@${_emailDomainState.value}"
@@ -270,11 +277,13 @@ class JoinViewModel @Inject constructor(
                 _emailError.value = null // 기존 에러 제거
                 println("✅ 인증번호가 이메일로 재전송되었습니다.")
 
-                // ✅ 인증번호 재전송 후 타이머 초기화 및 다시 시작
+                // ✅ 재전송 후 타이머 초기화 및 다시 시작
                 startTimer()
             } catch (e: Exception) {
                 _emailError.value = "인증번호 재전송에 실패했습니다."
                 println("❌ 인증번호 재전송 실패: ${e.message}")
+            } finally {
+                _isResending.value = false
             }
         }
     }
