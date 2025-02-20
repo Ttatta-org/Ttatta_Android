@@ -290,6 +290,7 @@ fun FilteredDiaryScreen(
                         onDelete = { onDeleteDiary(selectedDiaryId!!) },
                         onEdit = { navController.navigate("edit_record/${selectedDiaryId!!}") }
                     )
+                    Log.d("FilteredDiaryScreen", "✅ 필터화면에서 수정화면으로 선택된 일기 id : ${selectedDiaryId!!}")
                 }
             }
         }
