@@ -1,11 +1,15 @@
 package com.umc.ttatta
 
 import android.app.Activity
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -14,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,6 +35,7 @@ import com.umc.category.CategoryApp
 import com.umc.challenge.ChallengeApp
 import com.umc.footprint.FootprintApp
 import com.umc.home.HomeApp
+import com.umc.home.HomeViewModel
 import com.umc.login.LoginApp
 import com.umc.mypage.MyPageApp
 import com.umc.record.RecordApp
@@ -41,6 +47,7 @@ import java.io.File
 fun MainApp(
     viewModel: MainViewModel,
     imageFile: File?,
+    onPermissionRequiredInitially: () -> Unit,
     onImagePickerCalled: () -> Unit,
     onCameraCalled: () -> Unit,
 ) {
@@ -173,7 +180,7 @@ fun MainApp(
                 setNavGraph {
                     LaunchedEffect(Unit) { showNavBar = false }
 
-                    // TODO: 여기에 스플래시 화면 구현
+                    Splash()
                 }
             }
 
@@ -182,18 +189,22 @@ fun MainApp(
                     LaunchedEffect(Unit) { showNavBar = false }
                     FinishHandler()
 
-                     LoginApp(
-                         loginviewModel = hiltViewModel(),
-                         joinviewModel = hiltViewModel(),
-                         findIdViewModel = hiltViewModel(),
-                         onNavigatingToHome = { viewModel.checkLogin() }
-                     )
+                    LoginApp(
+                        loginviewModel = hiltViewModel(),
+                        joinviewModel = hiltViewModel(),
+                        findIdViewModel = hiltViewModel(),
+                        onNavigatingToHome = { viewModel.checkLogin() }
+                    )
                 }
             }
 
             with(NavigationRoute.Home) {
                 setNavGraph {
-                    LaunchedEffect(Unit) { showNavBar = true }
+                    val homeViewModel: HomeViewModel = hiltViewModel()
+                    LaunchedEffect(Unit) {
+                        showNavBar = true
+                        homeViewModel.loadAllDiaries()
+                    }
                     FinishHandler()
 
                     Column {
@@ -203,7 +214,7 @@ fun MainApp(
                             )
                         )
                         HomeApp(
-                            viewModel = hiltViewModel(),
+                            viewModel = homeViewModel,
                         )
                     }
                 }
@@ -305,7 +316,13 @@ fun MainApp(
                                     },
                                     onFailed = { /* TODO */ },
                                 )
-                            } ?: run { navigator.popBackStack() }
+                            } ?: run {
+                                navigator.navigate(NavigationRoute.Home.route) {
+                                    popUpTo(id = navigator.graph.startDestinationId) {
+                                        inclusive = false
+                                    }
+                                }
+                            }
                             recordingDiaryContent = ""
                         },
                     )
@@ -325,6 +342,8 @@ fun MainApp(
             ) {
                 popUpTo(id = navigator.graph.startDestinationId) { inclusive = false }
             }
+            // 로그인에 성공했을 때 권한 획득 요청
+            if (isLoggedIn) onPermissionRequiredInitially()
         } ?: run {
             // 스플래시로 분기
             navigator.popBackStack(
