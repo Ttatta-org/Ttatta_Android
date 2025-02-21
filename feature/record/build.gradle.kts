@@ -68,6 +68,7 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.play.services.location)
     implementation(libs.androidx.navigation.compose)
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

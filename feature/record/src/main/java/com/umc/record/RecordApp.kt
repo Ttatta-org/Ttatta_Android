@@ -1,6 +1,5 @@
 package com.umc.record
 
-import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
@@ -9,7 +8,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -66,6 +64,8 @@ fun RecordApp(
         popExitTransition = { ExitTransition.None }
     ) {
         composable("onboarding") {
+            var isUploading by remember { mutableStateOf(false) }
+
             LaunchedEffect(key1 = Unit) {
                 viewModel.getAllCategoryInfo()
             }
@@ -75,6 +75,7 @@ fun RecordApp(
                 date = date,
                 location = locationName,
                 selectedCategoryColor = viewModel.selectedCategory?.color,
+                showLoadingDialog = isUploading,
                 categoryDropdownProp = if (showCategoryDropdown) CategoryDropdownProp(
                     itemProps = viewModel.categoryInfos.map {
                         CategoryDropdownItemProp(
@@ -92,43 +93,28 @@ fun RecordApp(
                     userName = viewModel.userName,
                     diaryContent = diaryContent,
                     onCreateButtonClicked = {
-                        if (viewModel.isSaving) {
-                            // ✅ 저장 중일 때 토스트 메시지 표시
-                            Toast.makeText(
-                                context,
-                                "일기를 등록 중입니다.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            coordinates?.let { location ->
-                                viewModel.saveDiary(
-                                    image = image,
-                                    content = diaryContent,
-                                    categoryId = viewModel.selectedCategory?.id ?: 0L,
-                                    date = date,
-                                    latitude = location.first,
-                                    longitude = location.second,
-                                    locationName = locationName,
-                                    onSucceed = onDone,
-                                    onFailed = {
-                                        Toast.makeText(
-                                            context,
-                                            "등록에 실패했습니다.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                )
-                            } ?: run {
-                                Toast.makeText(
-                                    context,
-                                    "위치를 설정해 주세요!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                        if (!isUploading) coordinates?.let { location ->
+                            isUploading = true
+                            viewModel.saveDiary(
+                                image = image,
+                                content = diaryContent,
+                                categoryId = viewModel.selectedCategory?.id!!,
+                                date = date,
+                                latitude = location.first,
+                                longitude = location.second,
+                                locationName = locationName,
+                                onSucceed = onDone,
+                                onFailed = {
+                                    isUploading = false
+                                    Toast.makeText(context, "등록에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        } ?: run {
+                            Toast.makeText(context, "위치를 설정해 주세요!", Toast.LENGTH_SHORT).show()
                         }
                     },
                     onDiaryContentChanged = onDiaryContentChanged,
-                    isButtonEnabled = !viewModel.isSaving // ✅ 로딩 중일 때 버튼 비활성화
+                    isButtonEnabled = !isUploading
                 ),
                 onDateChipClicked = { /* TODO */ },
                 onLocationChipClicked = { navController.navigate("location") },

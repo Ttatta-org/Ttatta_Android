@@ -50,7 +50,7 @@ data class DiaryBottomSheetProp(
     val diaryContent: String,
     val onCreateButtonClicked: () -> Unit,
     val onDiaryContentChanged: (String) -> Unit,
-    val isButtonEnabled: Boolean = true // ✅ 버튼 활성/비활성 상태 추가
+    val isButtonEnabled: Boolean
 )
 
 private val bottomSheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
@@ -59,8 +59,6 @@ private val bottomSheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.
 fun DiaryBottomSheet(
     prop: DiaryBottomSheetProp,
 ) {
-    val context = LocalContext.current
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -137,32 +135,8 @@ fun DiaryBottomSheet(
                         )
                     }
                 }
-                // 추가 버튼
-//                IconButton(
-//                    onClick = prop.onCreateButtonClicked,
-//                    modifier = Modifier.size(48.dp)
-//                ) {
-//                    Icon(
-//                        painter = painterResource(id = R.drawable.btn_add), // 리소스 파일의 추가 버튼
-//                        contentDescription = "Add",
-//                        tint = Color.Unspecified, // Tint 효과 제거
-//                        modifier = Modifier.size(48.dp) // 아이콘 크기 설정
-//                    )
-//                }
                 IconButton(
-                    onClick = {
-                        if (prop.isButtonEnabled) {
-                            prop.onCreateButtonClicked()
-                        } else {
-                            // ✅ 로딩 중일 때 Toast 메시지
-                            Toast.makeText(
-                                context,
-                                "일기를 등록 중입니다.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    },
-                    enabled = true, // 항상 클릭 가능하도록 설정 (토스트 표시를 위해)
+                    onClick = { if (prop.isButtonEnabled) prop.onCreateButtonClicked() },
                     modifier = Modifier.size(48.dp)
                 ) {
                     Icon(
@@ -181,7 +155,8 @@ val previewDiaryBottomSheetProp = DiaryBottomSheetProp(
     userName = "hello",
     diaryContent = "",
     onCreateButtonClicked = {},
-    onDiaryContentChanged = {}
+    onDiaryContentChanged = {},
+    isButtonEnabled = true
 )
 
 @Preview

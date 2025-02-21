@@ -1,6 +1,5 @@
 package com.umc.record.screen
 
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -31,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -44,7 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
-import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.umc.design.CategoryColor
@@ -54,6 +50,7 @@ import com.umc.record.component.CategoryDropdown
 import com.umc.record.component.CategoryDropdownProp
 import com.umc.record.component.DiaryBottomSheet
 import com.umc.record.component.DiaryBottomSheetProp
+import com.umc.record.component.LoadingDialog
 import com.umc.record.component.previewCategoryDropdownProp
 import com.umc.record.component.previewDiaryBottomSheetProp
 import java.io.File
@@ -66,6 +63,7 @@ fun RecordScreen(
     date: LocalDateTime,
     location: String,
     selectedCategoryColor: CategoryColor?,
+    showLoadingDialog: Boolean,
     categoryDropdownProp: CategoryDropdownProp?,
     diaryBottomSheetProp: DiaryBottomSheetProp,
     onDateChipClicked: () -> Unit,
@@ -268,6 +266,8 @@ fun RecordScreen(
             )
         }
     }
+
+    if (showLoadingDialog) LoadingDialog()
 }
 
 @Preview(showBackground = true)
@@ -287,6 +287,7 @@ fun PreviewRecordScreen() {
         date = LocalDateTime.now(),
         location = "Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE",
         selectedCategoryColor = CategoryColor.GREEN,
+        showLoadingDialog = false,
         categoryDropdownProp = previewCategoryDropdownProp,
         diaryBottomSheetProp = previewDiaryBottomSheetProp,
         onDateChipClicked = {},
