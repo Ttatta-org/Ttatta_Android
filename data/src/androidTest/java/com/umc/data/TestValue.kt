@@ -4,7 +4,7 @@ import com.umc.design.CategoryColor
 import java.time.LocalDateTime
 
 object TestValue {
-    const val ID = "test_id_100"
+    const val ID = "test_id_101"
     const val PASSWORD = "test1234"
     const val NAME = "kim"
     const val NICKNAME = "tester"
