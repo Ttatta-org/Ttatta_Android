@@ -18,23 +18,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 
-val characterSize = Size(326f, 230f)
-
 @Composable
 fun CharacterView(
     accessorySet: AccessorySet,
+    characterType: CharacterType? = null,
     width: Dp,
-    height: Dp = width * characterSize.height / characterSize.width
+    height: Dp = (characterType?.size ?: characterSize).let { width * it.height / it.width },
 ) {
-    val painter = rememberCharacterPainter(accessorySet = accessorySet)
     val size = remember(width, height) { DpSize(width = width, height = height) }
+    val painter = rememberCharacterPainter(
+        accessorySet = accessorySet,
+        characterType = characterType,
+    )
 
     Canvas(
         modifier = Modifier.size(size)
@@ -47,7 +47,6 @@ fun CharacterView(
 @Preview(showBackground = true)
 @Composable
 fun PreviewCharacterView() {
-    val context = LocalContext.current
     var accessorySet by remember { mutableStateOf(AccessorySet.create()) }
 
     Column(
@@ -57,28 +56,26 @@ fun PreviewCharacterView() {
             .padding(32.dp)
     ) {
         Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.weight(1f)
+            contentAlignment = Alignment.Center, modifier = Modifier.weight(1f)
         ) {
             CharacterView(
                 accessorySet = accessorySet,
                 width = 240.dp,
+                characterType = CharacterType.TTUTTU,
             )
         }
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(
                 space = 16.dp,
-                alignment = Alignment.CenterHorizontally
+                alignment = Alignment.CenterHorizontally,
             ),
         ) {
             Accessory.entries.forEach { accessory ->
                 Button(
                     onClick = {
-                        if (accessorySet.contains(accessory))
-                            accessorySet -= accessory
-                        else
-                            accessorySet = accessorySet.plusReplacingConflict(accessory)
-                    }
+                        if (accessorySet.contains(accessory)) accessorySet -= accessory
+                        else accessorySet = accessorySet.plusReplacingConflict(accessory)
+                    },
                 ) {
                     Text(text = accessory.title)
                 }
