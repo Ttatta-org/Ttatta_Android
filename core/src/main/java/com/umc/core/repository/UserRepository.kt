@@ -24,12 +24,12 @@ interface UserRepository {
     suspend fun checkVerificationCodeForJoining(email: String, code: Int): Boolean
 
     suspend fun requestEmailForFindingId(name: String, email: String)
-    suspend fun checkVerificationCodeForFindingId(email: String, code: Int): Pair<String, String>  // (이름, ID)
+    suspend fun checkVerificationCodeForFindingId(email: String, code: Int): Pair<String, String>?  // (이름, ID)
 
-    suspend fun requestEmailForFindingPassword(name: String, email: String, id: String)
     suspend fun checkIdForFindingPassword(id: String): Boolean
+    suspend fun requestEmailForFindingPassword(name: String, email: String, id: String)
+    suspend fun checkVerificationCodeForFindingPassword(email: String, code: Int): Boolean
     suspend fun changePassword(email: String, newPassword: String)
-
 
     suspend fun getUserInfo(): UserInfo
     suspend fun modifyUserInfo(

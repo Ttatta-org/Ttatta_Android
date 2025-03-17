@@ -21,7 +21,7 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun isIdAlreadyOccupied(id: String): Boolean {
-        val response = serverApi.withCheck { checkUsernameSame(username = id) }
+        val response = serverApi.withCheck { checkIdDuplication(username = id) }
         return response.isAvailable != VerifyUsernameOverlapResultDTO.IsAvailable.AVAILABLE
     }
 
@@ -56,7 +56,7 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun tryLoginWithKakao(openIdToken: String): Boolean {
         val response = serverApi.withCheck { serverApi.validKakaoToken(idToken = openIdToken) }
-        return response.isRegistered
+        return response.isRegistered!!
     }
 
     override suspend fun postUserInfoWhenFirstKakaoLogin(openIdToken: String, nickname: String) {
@@ -66,49 +66,58 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun requestVerificationCodeForJoining(email: String) {
         val body = SendVerificationMailSignUpRequestDTO(email = email)
-        serverApi.withCheck { sendVerificationMailSignUp(body = body) }
+        serverApi.withCheck { sendVerificationMailForSignUp(body = body) }
     }
 
     override suspend fun checkVerificationCodeForJoining(email: String, code: Int): Boolean {
         val body = CheckVerificationCodeRequestDTO(email = email, code = code.toString())
 
-        println("🔍 서버로 인증번호 확인 요청: 이메일=$email, 코드=$code")  // ✅ 요청 전 로그 추가
-
         return try {
-            val response = serverApi.withCheck { checkVerificationCodeSignUp(body = body) }
-            println("✅ 서버 응답 확인 완료!")  // ✅ 요청 성공 시 로그
+            serverApi.withCheck { checkVerificationCodeForSignUp(body = body) }
             true
         } catch (e: Exception) {
-            println("❌ 서버 요청 실패: ${e.message}")  // ✅ 요청 실패 시 로그
             false
         }
     }
 
-
-
-
     override suspend fun requestEmailForFindingId(name: String, email: String) {
         val body = SendVerificationMailFindIdRequestDTO(name = name, email = email)
-        serverApi.withCheck { sendVerificationMailFindId(body) }
+        serverApi.withCheck { sendVerificationMailForFindingId(body) }
     }
 
     override suspend fun checkVerificationCodeForFindingId(
         email: String,
         code: Int
     ): Pair<String, String> {
-        TODO()
+        val body = CheckVerificationCodeRequestDTO(email = email, code = code.toString())
+        val response = serverApi.withCheck { findId(body = body) }
+        return response.name!! to response.id!!
     }
 
     override suspend fun requestEmailForFindingPassword(name: String, email: String, id: String) {
-        TODO()
+        val body = SendVerificationMailFindPwRequestDTO(name = name, email = email, username = id)
+        serverApi.withCheck { sendVerificationMailForFindingPassword(body = body) }
+    }
+
+    override suspend fun checkVerificationCodeForFindingPassword(
+        email: String,
+        code: Int,
+    ): Boolean {
+        return true
     }
 
     override suspend fun checkIdForFindingPassword(id: String): Boolean {
-        TODO()
+        return try {
+            serverApi.withCheck { checkIdDuplicationOnFindingPassword(id = id) }
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 
     override suspend fun changePassword(email: String, newPassword: String) {
-        TODO("Not yet implemented")
+        val body = FindPwRequestDTO(email = email, password = newPassword)
+        serverApi.withCheck { findPassword(body = body) }
     }
 
     override suspend fun logout() {

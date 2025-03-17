@@ -6,9 +6,14 @@ import com.umc.core.model.DiaryForCard
 import com.umc.core.model.Footprint
 import com.umc.core.repository.DiaryRepository
 import com.umc.data.api.ServerApi
-import com.umc.data.api.dto.server.*
+import com.umc.data.api.dto.server.CategoryDetailDTO
+import com.umc.data.api.dto.server.CreateCategoryDTO
+import com.umc.data.api.dto.server.EditDTO
+import com.umc.data.api.dto.server.ModifyCategoryDTO
+import com.umc.data.api.dto.server.PostDTO
 import com.umc.data.api.withAuth
 import com.umc.data.preference.AuthPreference
+import com.umc.data.util.toOffsetDateTimeInKorea
 import com.umc.design.CategoryColor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -30,7 +35,7 @@ class DiaryRepositoryImpl @Inject constructor(
         return response.diaryList?.map {
             Diary(
                 id = it.diaryId!!,
-                date = it.date!!,
+                date = it.date!!.toLocalDateTime(),
                 content = it.content!!,
                 imageUrl = it.image!!,
                 locationName = it.locationName!!,
@@ -46,7 +51,7 @@ class DiaryRepositoryImpl @Inject constructor(
         return response.searchDiaryList?.map {
             Diary(
                 id = it.diaryId!!,
-                date = it.date!!,
+                date = it.date!!.toLocalDateTime(),
                 content = it.content!!,
                 imageUrl = it.image!!,
                 locationName = it.locationName!!,
@@ -114,7 +119,7 @@ class DiaryRepositoryImpl @Inject constructor(
         val request = PostDTO(
             diaryCategoryId = categoryId,
             content = content,
-            date = date,
+            date = date.toOffsetDateTimeInKorea(),
             latitude = latitude,
             longitude = longitude,
             locationName = locationName,

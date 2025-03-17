@@ -3,7 +3,6 @@ package com.umc.data.implementation
 import com.google.gson.GsonBuilder
 import com.umc.core.Geocoder
 import com.umc.core.model.LocationSearchResult
-import com.umc.data.BuildConfig
 import com.umc.data.api.GeocodingApi
 import com.umc.data.api.LocationSearchApi
 import retrofit2.Retrofit
