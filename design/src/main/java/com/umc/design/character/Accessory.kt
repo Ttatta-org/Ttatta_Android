@@ -74,8 +74,8 @@ enum class Accessory(
         characterType = CharacterType.TTUTTU,
         bodyPart = BodyPart.TORSO,
         res = R.drawable.img_ttuttu_bag,
-        offset = Offset(16f, 50f),
-        size = Size(162f, 126f),
+        offset = Offset(34f, 63f),
+        size = Size(142f, 110f),
     ),
     TTUTTU_BLING_CAMERA(
         code = "TTUTTU_CAMERA",
