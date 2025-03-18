@@ -3,13 +3,8 @@ package com.umc.ttatta
 import android.app.Activity
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -18,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -190,9 +184,7 @@ fun MainApp(
                     FinishHandler()
 
                     LoginApp(
-                        loginviewModel = hiltViewModel(),
-                        joinviewModel = hiltViewModel(),
-                        findIdViewModel = hiltViewModel(),
+                        viewModel = hiltViewModel(),
                         onNavigatingToHome = { viewModel.checkLogin() }
                     )
                 }
