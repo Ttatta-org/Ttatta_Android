@@ -1,6 +1,6 @@
 package com.umc.data.di.api
 
-import com.google.gson.Gson
+import com.squareup.moshi.Moshi
 import com.umc.data.BuildConfig
 import com.umc.data.api.ServerApi
 import com.umc.data.preference.AuthPreference
@@ -11,7 +11,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
 
 @Module
@@ -21,7 +21,7 @@ object ServerApiModule {
     @Singleton
     fun provideServerApi(
         authPreference: AuthPreference,
-        gson: Gson,
+        moshi: Moshi,
     ): ServerApi {
         val logger = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
@@ -44,7 +44,7 @@ object ServerApiModule {
 
         return Retrofit.Builder()
             .baseUrl(BuildConfig.SERVER_BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create(gson))
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .client(client)
             .build()
             .create(ServerApi::class.java)
