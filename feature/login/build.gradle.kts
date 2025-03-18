@@ -63,10 +63,14 @@ dependencies {
 
     // 의존성 정의
     implementation(project(":core"))
+    implementation(project(":design"))
 
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.complier)
     implementation(libs.androidx.hilt.navigation)
+
+    // 카카오 로그인
+    implementation("com.kakao.sdk:v2-user:2.20.6")
 }

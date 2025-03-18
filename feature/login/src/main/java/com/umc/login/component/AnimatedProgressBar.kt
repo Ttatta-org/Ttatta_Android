@@ -3,52 +3,94 @@ package com.umc.login.component
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.umc.login.R
 
+data class AnimatedProgressBarProp(
+    val currentStep: Int,
+    val totalSteps: Int
+)
+
 @Composable
 fun AnimatedProgressBar(
-    currentStep: Int,
-    totalSteps: Int
+    prop: AnimatedProgressBarProp
 ) {
-    // 예: 4단계 -> 각 단계 25%
-    // currentStep가 1이면 0.25, 2면 0.5, 3이면 0.75, 4이면 1.0
-    val stepRatios = 1f / totalSteps
-    val targetProgress = stepRatios * currentStep
-
-    // 부드럽게 변하도록 animateFloatAsState
     val animatedProgress by animateFloatAsState(
-        targetValue = targetProgress,
-        animationSpec = tween(durationMillis = 650) // 0.65초
+        targetValue = 1f * prop.currentStep / prop.totalSteps,
+        animationSpec = tween(durationMillis = 650)
     )
 
     Box(
         modifier = Modifier
-            .width(340.dp)
-            .height(5.dp)
-            .background(colorResource(R.color.gray_200), shape = RoundedCornerShape(2.5.dp))
+            .fillMaxWidth()
+            .background(
+                color = colorResource(R.color.gray_200),
+                shape = RoundedCornerShape(percent = 50)
+            )
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(animatedProgress)  // 여기가 애니메이션됨
                 .height(5.dp)
+                .fillMaxWidth(animatedProgress)
                 .background(
                     brush = Brush.horizontalGradient(
                         colors = listOf(Color(0xFFFF9861), Color(0xFFFDDDC1))
                     ),
-                    shape = RoundedCornerShape(2.5.dp)
+                    shape = RoundedCornerShape(percent = 50)
                 )
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewAnimatedProgressBar() {
+    var currentStep by remember { mutableIntStateOf(2) }
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.padding(16.dp)
+    ) {
+        AnimatedProgressBar(
+            prop = AnimatedProgressBarProp(
+                currentStep = currentStep,
+                totalSteps = 4
+            )
+        )
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Button(
+                onClick = { currentStep-- },
+            ) {
+                Text(text = "이전")
+            }
+            Button(
+                onClick = { currentStep++ },
+            ) {
+                Text(text = "다음")
+            }
+        }
     }
 }

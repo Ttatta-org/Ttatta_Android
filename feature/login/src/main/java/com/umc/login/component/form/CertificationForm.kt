@@ -1,0 +1,230 @@
+package com.umc.login.component.form
+
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.umc.design.Grey300
+import com.umc.design.Grey400
+import com.umc.design.Primary500
+import com.umc.login.R
+import com.umc.login.component.CustomTextField
+import com.umc.login.component.CustomTextFieldProp
+import com.umc.login.component.CustomTextFieldTextAlignment
+import java.time.Duration
+
+@Composable
+fun CertificationForm(
+    name: String,
+    local: String,
+    domain: String,
+    code: String,
+    remainTime: Duration?,
+    isCertificateButtonEnabled: Boolean,
+    isEditable: Boolean,
+    onNameChanged: (String) -> Unit,
+    onLocalChanged: (String) -> Unit,
+    onDomainChanged: (String) -> Unit,
+    onCodeChanged: (String) -> Unit,
+    onSendCodeButtonClicked: () -> Unit,
+    onCertificateButtonClicked: () -> Unit,
+) {
+    val density = LocalDensity.current
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        CustomTextField(
+            prop = CustomTextFieldProp(
+                value = name,
+                onValueChanged = onNameChanged,
+                placeholder = stringResource(id = R.string.name_placeholder),
+                textAlignment = CustomTextFieldTextAlignment.START,
+                isEditable = isEditable,
+            )
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier.weight(1.5f)
+                ) {
+                    CustomTextField(
+                        prop = CustomTextFieldProp(
+                            value = local,
+                            onValueChanged = onLocalChanged,
+                            placeholder = stringResource(id = R.string.email_placeholder),
+                            textAlignment = CustomTextFieldTextAlignment.START,
+                            isEditable = isEditable,
+                        )
+                    )
+                }
+                Text(text = "@")
+                Box(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    CustomTextField(
+                        prop = CustomTextFieldProp(
+                            value = domain,
+                            onValueChanged = onDomainChanged,
+                            placeholder = stringResource(id = R.string.enter_yourself),
+                            textAlignment = CustomTextFieldTextAlignment.START,
+                            isEditable = isEditable,
+                            tail = {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        .clip(CircleShape)
+                                        .clickable { /* TODO: 드롭다운 */ }
+                                ) {
+                                    Box(
+                                        modifier = Modifier.padding(4.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.ic_dropdown),
+                                            contentDescription = null,
+                                            tint = Color.Grey300,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    )
+                }
+            }
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(percent = 50))
+                    .border(
+                        border = BorderStroke(color = Color.Primary500, width = 1.dp),
+                        shape = RoundedCornerShape(percent = 50),
+                    )
+                    .widthIn(min = 84.dp)
+                    .clickable { onSendCodeButtonClicked() }
+            ) {
+                Text(
+                    text = stringResource(id = R.string.send_email),
+                    color = Color.Primary500,
+                    fontSize = with(density) { 12.dp.toSp() },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+            }
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier.weight(1f)
+            ) {
+                CustomTextField(
+                    prop = CustomTextFieldProp(
+                        value = code,
+                        onValueChanged = onCodeChanged,
+                        placeholder = stringResource(id = R.string.certification_placeholder),
+                        textAlignment = CustomTextFieldTextAlignment.START,
+                        isEditable = isEditable,
+                        tail = {
+                            if (remainTime != null) Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .height(32.dp)
+                                    .padding(horizontal = 16.dp)
+                            ) {
+                                Text(
+                                    text = "%02d:%02d".format(remainTime.seconds / 60, remainTime.seconds % 60),
+                                    color = Color.Primary500,
+                                    fontSize = 12.sp
+                                )
+                            } else Spacer(
+                                modifier = Modifier.height(32.dp)
+                            )
+                        }
+                    )
+                )
+            }
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(percent = 50))
+                    .border(
+                        border = BorderStroke(
+                            color = if (isCertificateButtonEnabled)
+                                Color.Primary500
+                            else
+                                Color.Grey400,
+                            width = 1.dp
+                        ),
+                        shape = RoundedCornerShape(percent = 50),
+                    )
+                    .widthIn(min = 84.dp)
+                    .let {
+                        if (isCertificateButtonEnabled) it.clickable {
+                            onCertificateButtonClicked()
+                        } else it
+                    }
+            ) {
+                Text(
+                    text = stringResource(id = R.string.confirm),
+                    color = if (isCertificateButtonEnabled)
+                        Color.Primary500
+                    else
+                        Color.Grey400,
+                    fontSize = with(density) { 12.dp.toSp() },
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewCertificationForm() {
+    CertificationForm(
+        name = "",
+        local = "",
+        domain = "",
+        code = "",
+        remainTime = Duration.parse("PT3M12S"),
+        isCertificateButtonEnabled = false,
+        isEditable = true,
+        onNameChanged = {},
+        onLocalChanged = {},
+        onDomainChanged = {},
+        onCodeChanged = {},
+        onSendCodeButtonClicked = {},
+        onCertificateButtonClicked = {},
+    )
+}
