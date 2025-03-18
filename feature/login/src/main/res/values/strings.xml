@@ -1,68 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <resources>
-    <string name="login_comment">당신의 발자취 일기</string>
+    <string name="login">로그인</string>
+    <string name="join">회원가입</string>
+    <string name="nickname">닉네임</string>
+    <string name="id">아이디</string>
+    <string name="password">비밀번호</string>
+    <string name="name">이름</string>
+    <string name="email">이메일</string>
+    <string name="or">또는</string>
+    <string name="subscriber">가입자</string>
 
-    <string name="id_comment">아이디 입력</string>
-    <string name="password_comment">비밀번호 입력</string>
-
-    <string name="login_button">로그인</string>
-
-    <string name="loginLink_id">아이디 찾기</string>
-    <string name="loginLink_pw">비밀번호 찾기</string>
-    <string name="loginLink_join">회원가입</string>
-
-    <string name="login_or">또는</string>
-
+    <!-- 로그인 -->
+    <string name="under_logo_message">당신의 발자취 일기</string>
+    <string name="login_id_placeholder">아이디 입력</string>
+    <string name="login_password_placeholder">비밀번호 입력</string>
+    <string name="login_error_message">아이디 또는 비밀번호를 다시 확인해주세요!</string>
     <string name="kakao_login">카카오로 계속하기</string>
 
-<!--                               회원가입                             -->
+    <!-- 회원가입 -->
+    <string name="password_check">비밀번호 확인</string>
+    <string name="password_too_short_or_too_simple">비밀번호는 특수문자를 포함한 8자리 이상으로 정해주세요!</string>
+    <string name="password_enter_confirm">비밀번호 확인란에 동일한 비밀번호를 입력해주세요.</string>
+    <string name="password_not_match">비밀번호가 일치하지 않아요!</string>
+    <string name="password_match">비밀번호가 일치해요!</string>
+    <string name="password_available">사용 가능한 비밀번호에요!</string>
+    <string name="nickname_too_long">닉네임은 8글자 이하로 작성해주세요!</string>
     <string name="duplicate_check">중복확인</string>
-    <string name="join_nickname">나만의 일기장 생성을 위해 이름을 입력해주세요</string>
-    <string name="nickname_comment">닉네임</string>"
-    <string name="nickname_warning">닉네임은 8글자 이하로 작성해주세요.</string>
+    <string name="id_duplicated">이미 다른 사용자가 사용중인 아이디에요!</string>
+    <string name="id_available">사용 가능한 아이디에요!</string>
+    <string name="id_too_long_or_has_not_allowed_char">아이디는 영문으로 15자리 이하로 정해주세요!</string>
+    <string name="name_not_allowed_char">특수문자나, 숫자, 초성은 사용할 수 없습니다!</string>
+    <string name="certification_placeholder">인증번호 입력</string>
+    <string name="certification_mail_did_not_arrived">메일이 오지 않았다면 아래 버튼을 클릭해주세요.</string>
+    <string name="certification_not_correct">인증번호가 올바르지 않습니다. 다시 시도해 주세요.</string>
 
-    <string name="join_id">사용하실 아이디를 입력해주세요</string>
-    <string name="join_id_comment">아이디</string>
-    <string name="join_id_small_comment">아이디는 영문으로 15자리 이하로 정해주세요!</string>
+    <string name="join_nickname_description">나만의 일기장 생성을 위해 이름을 입력해주세요</string>
+    <string name="join_id_description">사용하실 아이디를 입력해주세요</string>
+    <string name="join_password_description">사용하실 비밀번호를 입력해주세요</string>
+    <string name="join_name_description">본인인증을 위해 이름을 입력해주세요</string>
+    <string name="join_email_description">본인인증을 위해 이메일을 입력해주세요</string>
+    <string name="join_certification_description">이메일로 받은 인증번호 6자리를 입력해주세요</string>
 
-    <string name="join_pw">사용하실 비밀번호를 입력해주세요</string>
-    <string name="join_pw_comment">비밀번호</string>
-    <string name="join_pw_small_comment">비밀번호는 특수문자를 포함한 8자리 이상으로 정해주세요!</string>
-    <string name="join_pw_check">비밀번호 확인</string>
-    <string name="join_pw_available">사용 가능한 비밀번호에요 !</string>
+    <string name="welcome">환영해요</string>
+    <string name="welcome_suffix">님!</string>
+    <string name="welcome_line1">지금부터 따따와 함께</string>
+    <string name="welcome_line2">소중한 일상을 기록해볼까요?</string>
 
-    <string name="join_name">본인인증을 위해 이름을 입력해주세요</string>
-    <string name="join_name_comment">이름</string>"
-    <string name="join_name_small_comment">특수문자나, 숫자, 초성은 사용할 수 없습니다</string>"
-
-    <string name="join_email">본인인증을 위해 이메일을 입력해주세요</string>
-    <string name="join_email_comment">이메일</string>"
-
-    <string name="join_certification">이메일로 받은 인증번호 6자리를 입력해주세요</string>
-    <string name="join_certification_comment">인증번호 입력</string>"
-    <string name="join_certification_small_comment">메일이 오지 않았다면 아래 버튼을 클릭해주세요</string>""
-    <string name="join_certification_notcorrect">인증번호가 올바르지 않습니다. 다시 시도해 주세요.</string>
-
-<!--    아이디 찾기 구현                     -->
-
+    <!-- 아이디/비번 찾기 -->
     <string name="find_id">아이디 찾기</string>
-    <string name="find_id_comment">본인확인 이메일 주소와 입력한 이메일 주소가 같아야,\n인증번호를 받을 수 있습니다.</string>
-    <string name="find_id_name">이름 입력</string>
+    <string name="find_password">비밀번호 찾기</string>
+    <string name="reset_password">비밀번호 재설정</string>
 
-    <string name="find_id_email">이메일 입력</string>
-    <string name="find_id_domain">직접입력</string>
-    <string name="find_id_certibutton">인증번호 발송</string>
-    <string name="find_id_confirmbutton">확인</string>
+    <string name="find_password_id_description">비밀번호를 찾고자 하는 아이디를 입력해 주세요.</string>
+    <string name="find_form_description">본인확인 이메일 주소와 입력한 이메일 주소가 같아야 인증번호를 받을 수 있습니다.</string>
+    <string name="find_password_reset_password_description">비밀번호를 변경해 주세요. 비밀번호는 특수문자를 포함한 8자리 이상으로 정해주세요!</string>
+    <string name="find_id_done">아이디 찾기가 완료되었어요!</string>
 
-<!--    비밀번호 찾기 구현                  -->
-    <string name="find_pw">비밀번호 찾기</string>
-    <string name="find_pw_comment">비밀번호를 찾고자 하는 아이디를 입력해 주세요.</string>
-    <string name="find_pw_id">아이디</string>
-
+    <string name="name_placeholder">이름 입력</string>
+    <string name="email_placeholder">이메일 입력</string>
+    <string name="enter_yourself">직접입력</string>
+    <string name="confirm">확인</string>
+    <string name="send_email">인증메일 발송</string>
+    <string name="resend_email">인증메일 재발송</string>
+    <string name="new_password_placeholder">새 비밀번호 입력</string>
+    <string name="new_password_confirm_placeholder">새 비밀번호 확인</string>
     <string name="next_button">다음으로</string>
-    <string name="verifiy_button">인증메일 발송</string>"
-    <string name="re_verifiy_button">인증메일 재발송</string>
-    <string name="find_id_button">아이디 찾기</string>
+    <string name="go_to_login">로그인하러 가기</string>
 
+    <!-- 카카오 가입 -->
+    <string name="start">시작하기</string>
 </resources>

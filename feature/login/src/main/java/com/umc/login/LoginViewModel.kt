@@ -1,93 +1,231 @@
 package com.umc.login
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.annotation.MainThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.umc.core.repository.UserRepository
+import com.umc.login.logic.certification.CertificationCodeValidationRequest
+import com.umc.login.logic.certification.CertificationCodeValidationRequestForFindingId
+import com.umc.login.logic.certification.CertificationCodeValidationRequestForFindingPassword
+import com.umc.login.logic.certification.CertificationCodeValidationRequestForJoin
+import com.umc.login.logic.certification.CertificationMailRequest
+import com.umc.login.logic.certification.CertificationMailRequestForFindingId
+import com.umc.login.logic.certification.CertificationMailRequestForFindingPassword
+import com.umc.login.logic.certification.CertificationMailRequestForJoin
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class FindingIdValidationSuccessInfo(
+    val name: String,
+    val id: String,
+)
+
+data class FindingPasswordValidationSuccessInfo(
+    val email: String,
+)
+
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val userRepository: UserRepository
-) : ViewModel() {
-    // 상태 변수
-    private val _idState = MutableStateFlow("")
-    val idState: StateFlow<String> = _idState.asStateFlow()
+    private val userRepository: UserRepository,
+): ViewModel() {
 
-    private val _pwState = MutableStateFlow("")
-    val pwState: StateFlow<String> = _pwState.asStateFlow()
+    private var findingIdValidationSuccessInfo: FindingIdValidationSuccessInfo? = null
+    private var findingPasswordValidationSuccessInfo: FindingPasswordValidationSuccessInfo? = null
 
-    private val _passwordVisible = MutableStateFlow(false)
-    val passwordVisible: StateFlow<Boolean> = _passwordVisible.asStateFlow()
-
-    private val _errorMessage = MutableStateFlow("")
-    val errorMessage: StateFlow<String> = _errorMessage.asStateFlow()
-
-    private val _isButtonActive = MutableStateFlow(false)
-    val isButtonActive: StateFlow<Boolean> = _isButtonActive.asStateFlow()
-
-    fun onIdChange(newId: String) {
-        _idState.value = newId
-        updateButtonState()
-    }
-
-    fun onPwChange(newPw: String) {
-        _pwState.value = newPw
-        updateButtonState()
-    }
-
-    fun togglePasswordVisibility() {
-        _passwordVisible.value = !_passwordVisible.value
-    }
-
-    private fun updateButtonState() {
-        _isButtonActive.value = _idState.value.isNotBlank() && _pwState.value.isNotBlank()
-    }
-
-    fun onLoginClick(
-        onSucceed: () -> Unit,
-        onFailed: () -> Unit,
+    fun login(
+        id: String,
+        password: String,
+        onSucceed: () -> Unit = {},
+        onFailed: (Exception) -> Unit = {},
     ) {
         viewModelScope.launch {
             try {
-                userRepository.login(
-                    id = idState.value,
-                    password = pwState.value
-                )
-                _errorMessage.value = "" // 로그인 성공 시 에러 메시지 초기화
+                userRepository.login(id = id, password = password)
                 onSucceed()
             } catch (e: Exception) {
-                _errorMessage.value = "잘못된 아이디 또는 비밀번호입니다."
-                onFailed()
+                onFailed(e)
+            }
+        }
+    }
+
+    fun join(
+        nickname: String,
+        id: String,
+        password: String,
+        name: String,
+        email: String,
+        onSucceed: () -> Unit = {},
+        onFailed: (Exception) -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            try {
+                userRepository.join(
+                    id = id,
+                    password = password,
+                    name = name,
+                    nickname = nickname,
+                    email = email,
+                )
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
+
+    fun checkIdDuplication(
+        id: String,
+        onSucceed: (isDuplicated: Boolean) -> Unit = {},
+        onFailed: (Exception) -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            try {
+                val isDuplicated = userRepository.isIdAlreadyOccupied(id = id)
+                onSucceed(isDuplicated)
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
+
+    fun requestCertificationMail(
+        request: CertificationMailRequest,
+        onSucceed: () -> Unit = {},
+        onFailed: (Exception) -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            try {
+                when (request) {
+                    is CertificationMailRequestForJoin -> run {
+                        userRepository.requestVerificationCodeForJoining(
+                            email = request.email,
+                        )
+                    }
+                    is CertificationMailRequestForFindingId -> run {
+                        userRepository.requestEmailForFindingId(
+                            email = request.email,
+                            name = request.name,
+                        )
+                    }
+                    is CertificationMailRequestForFindingPassword -> run {
+                        userRepository.requestEmailForFindingPassword(
+                            name = request.name,
+                            email = request.email,
+                            id = request.id,
+                        )
+                    }
+                }
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
+
+    fun requestCertificationCodeValidation(
+        request: CertificationCodeValidationRequest,
+        onSucceed: (isValid: Boolean) -> Unit = {},
+        onFailed: (Exception) -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            try {
+                val isValid = when (request) {
+                    is CertificationCodeValidationRequestForJoin -> run {
+                        return@run userRepository.checkVerificationCodeForJoining(
+                            email = request.email,
+                            code = request.code.toInt(),
+                        )
+                    }
+                    is CertificationCodeValidationRequestForFindingId -> run {
+                        val (id, name) = userRepository.checkVerificationCodeForFindingId(
+                            email = request.email,
+                            code = request.code.toInt(),
+                        ) ?: return@run false
+                        findingIdValidationSuccessInfo = FindingIdValidationSuccessInfo(
+                            name = name,
+                            id = id,
+                        )
+                        return@run true
+                    }
+                    is CertificationCodeValidationRequestForFindingPassword -> run {
+                        val isValid = userRepository.checkVerificationCodeForFindingPassword(
+                            email = request.email,
+                            code = request.code.toInt(),
+                        )
+                        if (isValid) findingPasswordValidationSuccessInfo = FindingPasswordValidationSuccessInfo(
+                            email = request.email
+                        )
+                        return@run isValid
+                    }
+                }
+                onSucceed(isValid)
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
+
+    fun findId(
+        onSucceed: (id: String, name: String) -> Unit = { _, _ -> },
+        onFailed: (Exception) -> Unit = {},
+    ) {
+        findingIdValidationSuccessInfo?.let { (name, id) ->
+            findingIdValidationSuccessInfo = null
+            onSucceed(id, name)
+        } ?: run {
+            onFailed(Exception("findingIdSuccessInfo is null"))
+        }
+    }
+
+    fun changePassword(
+        password: String,
+        onSucceed: () -> Unit = {},
+        onFailed: (Exception) -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            try {
+                findingPasswordValidationSuccessInfo?.let { (email) ->
+                    userRepository.changePassword(email = email, newPassword = password)
+                    findingPasswordValidationSuccessInfo = null
+                }
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
+
+    fun tryLoginWithKakaoOpenIdToken(
+        idToken: String,
+        onSucceed: (isLoggedIn: Boolean) -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            try {
+                val isAlreadyJoined = userRepository.tryLoginWithKakao(openIdToken = idToken)
+                onSucceed(isAlreadyJoined)
+            } catch (e: Exception) {
+                onFailed(e)
+            }
+        }
+    }
+
+    fun sendInfosForKakaoJoin(
+        idToken: String,
+        nickname: String,
+        onSucceed: () -> Unit = {},
+        onFailed: (Exception) -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            try {
+                userRepository.postUserInfoWhenFirstKakaoLogin(
+                    openIdToken = idToken,
+                    nickname = nickname,
+                )
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
             }
         }
     }
