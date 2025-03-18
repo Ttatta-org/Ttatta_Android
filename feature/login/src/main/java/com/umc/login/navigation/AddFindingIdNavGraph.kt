@@ -46,7 +46,7 @@ fun NavGraphBuilder.addFindingIdNavGraph(
 
         LaunchedEffect(key1 = Unit) {
             while (true) {
-                remainTime = startTime?.let { Duration.between(LocalTime.now(), it) }
+                remainTime = startTime?.let { Duration.parse("PT10M") - Duration.between(it, LocalTime.now()) }
                 if (remainTime?.isNegative == true) {
                     startTime = null
                     remainTime = null

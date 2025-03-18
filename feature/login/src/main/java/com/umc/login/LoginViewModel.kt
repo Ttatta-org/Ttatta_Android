@@ -166,6 +166,22 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    fun checkIdExist(
+        id: String,
+        onSucceed: (isExist: Boolean) -> Unit = {},
+        onFailed: (Exception) -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            val isExist = try {
+                userRepository.checkIdForFindingPassword(id = id)
+                true
+            } catch (_: Exception) {
+                false
+            }
+            onSucceed(isExist)
+        }
+    }
+
     fun findId(
         onSucceed: (id: String, name: String) -> Unit = { _, _ -> },
         onFailed: (Exception) -> Unit = {},

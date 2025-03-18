@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -28,7 +29,11 @@ import com.umc.login.logic.state.isIdValid
 import com.umc.login.logic.state.isPasswordValid
 import com.umc.login.screen.FormScreen
 import com.umc.login.screen.FormScreenDescriptionMessageProp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.Dispatcher
 import java.time.Duration
 import java.time.LocalTime
 
@@ -67,6 +72,7 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
     composable(
         route = "find_password"
     ) {
+        val scope = rememberCoroutineScope()
         val navController = rememberNavController()
         var currentDestination by remember { mutableStateOf(startDestination) }
 
@@ -99,7 +105,21 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                 FindingPasswordNavGraphDestination.RESET_PASSWORD -> isResetPasswordValid
             },
             isLogoVisible = false,
-            onNextButtonClicked = lambda@{
+            onNextButtonClicked = lambda@ {
+                if (currentDestination == FindingPasswordNavGraphDestination.ID) {
+                    viewModel.checkIdExist(
+                        id = id,
+                        onSucceed = { isExist ->
+                            if (isExist) scope.launch {
+                                withContext(context = Dispatchers.Main) {
+                                    navController.navigate(FindingPasswordNavGraphDestination.CERTIFICATION.route)
+                                }
+                            }
+                        },
+                    )
+                    return@lambda
+                }
+
                 if (currentDestination == FindingPasswordNavGraphDestination.RESET_PASSWORD) {
                     viewModel.changePassword(
                         password = password,
@@ -146,9 +166,7 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                     LaunchedEffect(key1 = Unit) {
                         while (true) {
                             remainTime = emailSentTime?.let {
-                                Duration.between(
-                                    LocalTime.now(), it
-                                )
+                                Duration.parse("PT10M") - Duration.between(it, LocalTime.now())
                             }
                             if (remainTime?.isNegative == true) {
                                 emailSentTime = null
