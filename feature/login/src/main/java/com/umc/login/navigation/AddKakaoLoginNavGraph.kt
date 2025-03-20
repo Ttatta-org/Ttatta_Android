@@ -39,22 +39,20 @@ fun NavGraphBuilder.addKakaoLoginNavGraph(
         var kakaoJoinEvent by remember { mutableStateOf<KakaoJoinEvent?>(null) }
 
         LaunchedEffect(key1 = Unit) {
-            val callback = { token: OAuthToken?, error: Throwable? ->
+            val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
                 if (error != null) {
                     onNavigatingBackToLogin()
-                } else if (token != null) {
-                    token.idToken?.let {
-                        viewModel.tryLoginWithKakaoOpenIdToken(
-                            idToken = it,
-                            onSucceed = { isLoggedIn: Boolean ->
-                                if (isLoggedIn) onNavigatingToHome()
-                                else kakaoJoinEvent = KakaoJoinEvent(idToken = it)
-                            },
-                            onFailed = {
-                                onNavigatingBackToLogin()
-                            },
-                        )
-                    }
+                } else token?.idToken?.let {
+                    viewModel.tryLoginWithKakaoOpenIdToken(
+                        idToken = it,
+                        onSucceed = { isLoggedIn: Boolean ->
+                            if (isLoggedIn) onNavigatingToHome()
+                            else kakaoJoinEvent = KakaoJoinEvent(idToken = it)
+                        },
+                        onFailed = {
+                            onNavigatingBackToLogin()
+                        },
+                    )
                 }
             }
 
