@@ -1,15 +1,24 @@
 package com.umc.login.navigation
 
-import android.util.Log
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.round
 import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
@@ -22,6 +31,9 @@ import com.umc.login.LoginViewModel
 import com.umc.login.R
 import com.umc.login.component.AnimatedProgressBarProp
 import com.umc.login.component.CustomTextFieldTextAlignment
+import com.umc.login.component.EmailDomainDropdown
+import com.umc.login.component.EmailDomainDropdownItemProp
+import com.umc.login.component.emailDomains
 import com.umc.login.component.form.CertificationCodeForm
 import com.umc.login.component.form.EmailForm
 import com.umc.login.component.form.IdForm
@@ -129,186 +141,226 @@ fun NavGraphBuilder.addJoinNavGraph(
 
         var emailSentTime by remember { mutableStateOf<LocalTime>(LocalTime.now()) }
 
-        // 이메일 입력 창에서 이메일 입력 후 다음 버튼 클릭 시
-        LaunchedEffect(key1 = emailSentTime) {
-            Log.d("JoinNavGraph", "emailSentTime: $emailSentTime, currentDestination: $currentDestination")
-            // if (currentDestination == JoinNavGraphDestination.EMAIL)
-            //     navController.navigate(route = JoinNavGraphDestination.CERTIFICATION.route)
-        }
+        var screenLayoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+        var emailFormLayoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+        var emailDropdownButtonCenterOffset by remember { mutableStateOf(Offset.Zero) }
+        var isEmailDomainDropdownExpanded by remember { mutableStateOf(false) }
 
-        FormScreen(
-            topLineMessage = null,
-            nextButtonLabel = stringResource(id = currentDestination.nextButtonLabelId),
-            nextButtonOverMessage = currentDestination.nextButtonOverMessageId?.let {
-                stringResource(id = it)
-            },
-            formScreenDescriptionMessageProp = FormScreenDescriptionMessageProp(
-                message = stringResource(id = currentDestination.descriptionMessageId),
-                color = Color.Primary300,
-            ),
-            animatedProgressBarProp = AnimatedProgressBarProp(
-                currentStep = JoinNavGraphDestination.entries.indexOf(currentDestination) + 1,
-                totalSteps = totalStepCount
-            ),
-            isNextButtonEnabled = when (currentDestination) {
-                JoinNavGraphDestination.NICKNAME -> nicknameValidationState == NicknameValidationState.VALID
-                JoinNavGraphDestination.ID -> idValidationState == IdValidationState.VALID
-                JoinNavGraphDestination.PASSWORD -> passwordValidationState == PasswordValidationState.VALID
-                JoinNavGraphDestination.NAME -> nameValidationState == NameValidationState.VALID
-                JoinNavGraphDestination.EMAIL -> emailValidationState == EmailValidationState.VALID
-                JoinNavGraphDestination.CERTIFICATION -> true
-            },
-            isLogoVisible = true,
-            onNextButtonClicked = {
-                when (currentDestination) {
-                    JoinNavGraphDestination.CERTIFICATION, JoinNavGraphDestination.EMAIL -> run {
-                        viewModel.requestCertificationMail(
-                            request = CertificationMailRequestForJoin(email = "$emailLocal@$emailDomain"),
-                            onSucceed = {
-                                emailSentTime = LocalTime.now()
-                                if (currentDestination == JoinNavGraphDestination.EMAIL) scope.launch {
-                                    withContext(Dispatchers.Main) {
-                                        navController.navigate(route = JoinNavGraphDestination.CERTIFICATION.route)
+        Box(
+            modifier = Modifier.onGloballyPositioned { screenLayoutCoordinates = it },
+        ) {
+            FormScreen(
+                topLineMessage = null,
+                nextButtonLabel = stringResource(id = currentDestination.nextButtonLabelId),
+                nextButtonOverMessage = currentDestination.nextButtonOverMessageId?.let {
+                    stringResource(id = it)
+                },
+                formScreenDescriptionMessageProp = FormScreenDescriptionMessageProp(
+                    message = stringResource(id = currentDestination.descriptionMessageId),
+                    color = Color.Primary300,
+                ),
+                animatedProgressBarProp = AnimatedProgressBarProp(
+                    currentStep = JoinNavGraphDestination.entries.indexOf(currentDestination) + 1,
+                    totalSteps = totalStepCount
+                ),
+                isNextButtonEnabled = when (currentDestination) {
+                    JoinNavGraphDestination.NICKNAME -> nicknameValidationState == NicknameValidationState.VALID
+                    JoinNavGraphDestination.ID -> idValidationState == IdValidationState.VALID
+                    JoinNavGraphDestination.PASSWORD -> passwordValidationState == PasswordValidationState.VALID
+                    JoinNavGraphDestination.NAME -> nameValidationState == NameValidationState.VALID
+                    JoinNavGraphDestination.EMAIL -> emailValidationState == EmailValidationState.VALID
+                    JoinNavGraphDestination.CERTIFICATION -> true
+                },
+                isLogoVisible = true,
+                onNextButtonClicked = {
+                    when (currentDestination) {
+                        JoinNavGraphDestination.CERTIFICATION, JoinNavGraphDestination.EMAIL -> run {
+                            viewModel.requestCertificationMail(
+                                request = CertificationMailRequestForJoin(email = "$emailLocal@$emailDomain"),
+                                onSucceed = {
+                                    emailSentTime = LocalTime.now()
+                                    if (currentDestination == JoinNavGraphDestination.EMAIL) scope.launch {
+                                        withContext(Dispatchers.Main) {
+                                            navController.navigate(route = JoinNavGraphDestination.CERTIFICATION.route)
+                                        }
                                     }
-                                }
+                                },
+                            )
+                        }
+                        else -> run {
+                            val index = JoinNavGraphDestination.entries.indexOf(currentDestination)
+                            navController.navigate(JoinNavGraphDestination.entries[index + 1].route)
+                        }
+                    }
+                },
+                onBackButtonClicked = {
+                    if (!navController.popBackStack()) onNavigatingBackToLogin()
+                },
+            ) {
+                NavHost(
+                    navController = navController,
+                    startDestination = startDestination.route,
+                ) {
+                    composable(
+                        route = JoinNavGraphDestination.NICKNAME.route
+                    ) {
+                        NicknameForm(
+                            nickname = nickname,
+                            state = nicknameValidationState,
+                            onNicknameChanged = { if (it.length <= 9) nickname = it },
+                        )
+                    }
+
+                    composable(
+                        route = JoinNavGraphDestination.ID.route
+                    ) {
+                        IdForm(
+                            id = id,
+                            state = idValidationState,
+                            onIdChanged = { id = it },
+                            onDuplicationCheckButtonClicked = {
+                                viewModel.checkIdDuplication(
+                                    id = id,
+                                    onSucceed = { isDuplicated ->
+                                        idValidationState = if (isDuplicated) IdValidationState.DUPLICATED
+                                        else IdValidationState.VALID
+                                    },
+                                )
                             },
                         )
                     }
-                    else -> run {
-                        val index = JoinNavGraphDestination.entries.indexOf(currentDestination)
-                        navController.navigate(JoinNavGraphDestination.entries[index + 1].route)
-                    }
-                }
-            },
-            onBackButtonClicked = {
-                if (!navController.popBackStack()) onNavigatingBackToLogin()
-            },
-        ) {
-            NavHost(
-                navController = navController,
-                startDestination = startDestination.route,
-            ) {
-                composable(
-                    route = JoinNavGraphDestination.NICKNAME.route
-                ) {
-                    NicknameForm(
-                        nickname = nickname,
-                        state = nicknameValidationState,
-                        onNicknameChanged = { nickname = it },
-                    )
-                }
 
-                composable(
-                    route = JoinNavGraphDestination.ID.route
-                ) {
-                    IdForm(
-                        id = id,
-                        state = idValidationState,
-                        onIdChanged = { id = it },
-                        onDuplicationCheckButtonClicked = {
-                            viewModel.checkIdDuplication(
-                                id = id,
-                                onSucceed = { isDuplicated ->
-                                    idValidationState = if (isDuplicated) IdValidationState.DUPLICATED
-                                    else IdValidationState.VALID
-                                },
+                    composable(
+                        route = JoinNavGraphDestination.PASSWORD.route
+                    ) {
+                        var isPasswordVisible by remember { mutableStateOf(false) }
+                        var isConfirmPasswordVisible by remember { mutableStateOf(false) }
+
+                        val isConfirmPasswordFieldShowing = remember(passwordValidationState) {
+                            passwordValidationState in setOf(
+                                PasswordValidationState.VALID,
+                                PasswordValidationState.NOT_MATCH,
+                                PasswordValidationState.CONFIRM_PASSWORD_NOT_ENTERED,
                             )
-                        },
-                    )
-                }
+                        }
 
-                composable(
-                    route = JoinNavGraphDestination.PASSWORD.route
-                ) {
-                    var isPasswordVisible by remember { mutableStateOf(false) }
-                    var isConfirmPasswordVisible by remember { mutableStateOf(false) }
-
-                    val isConfirmPasswordFieldShowing = remember(passwordValidationState) {
-                        passwordValidationState in setOf(
-                            PasswordValidationState.VALID,
-                            PasswordValidationState.NOT_MATCH,
-                            PasswordValidationState.CONFIRM_PASSWORD_NOT_ENTERED,
+                        PasswordForm(
+                            password = password,
+                            confirmPassword = confirmPassword,
+                            state = passwordValidationState,
+                            passwordPlaceholder = stringResource(id = R.string.password),
+                            confirmPasswordPlaceholder = stringResource(id = R.string.password_check),
+                            textAlignment = CustomTextFieldTextAlignment.CENTER,
+                            isPasswordVisible = isPasswordVisible,
+                            isConfirmPasswordVisible = isConfirmPasswordVisible,
+                            isConfirmPasswordFieldShowing = isConfirmPasswordFieldShowing,
+                            onPasswordChanged = { password = it },
+                            onConfirmPasswordChanged = { confirmPassword = it },
+                            onPasswordVisibilityChanged = { isPasswordVisible = it },
+                            onConfirmPasswordVisibilityChanged = { isConfirmPasswordVisible = it },
                         )
                     }
 
-                    PasswordForm(
-                        password = password,
-                        confirmPassword = confirmPassword,
-                        state = passwordValidationState,
-                        passwordPlaceholder = stringResource(id = R.string.password),
-                        confirmPasswordPlaceholder = stringResource(id = R.string.password_check),
-                        textAlignment = CustomTextFieldTextAlignment.CENTER,
-                        isPasswordVisible = isPasswordVisible,
-                        isConfirmPasswordVisible = isConfirmPasswordVisible,
-                        isConfirmPasswordFieldShowing = isConfirmPasswordFieldShowing,
-                        onPasswordChanged = { password = it },
-                        onConfirmPasswordChanged = { confirmPassword = it },
-                        onPasswordVisibilityChanged = { isPasswordVisible = it },
-                        onConfirmPasswordVisibilityChanged = { isConfirmPasswordVisible = it },
-                    )
-                }
-
-                composable(
-                    route = JoinNavGraphDestination.NAME.route
-                ) {
-                    NameForm(
-                        name = name,
-                        state = nameValidationState,
-                        onNameChanged = { name = it },
-                    )
-                }
-
-                composable(
-                    route = JoinNavGraphDestination.EMAIL.route
-                ) {
-                    EmailForm(
-                        local = emailLocal,
-                        domain = emailDomain,
-                        state = emailValidationState,
-                        onLocalChanged = { emailLocal = it },
-                        onDomainChanged = { emailDomain = it },
-                    )
-                }
-
-                composable(
-                    route = JoinNavGraphDestination.CERTIFICATION.route
-                ) {
-                    var code by remember { mutableStateOf("") }
-                    var remainTime by remember { mutableStateOf(emailDuration) }
-
-                    LaunchedEffect(key1 = Unit) {
-                        while (true) {
-                            remainTime = emailDuration - Duration.between(emailSentTime, LocalTime.now())
-                            if (remainTime.seconds <= 0) navController.popBackStack()
-                            delay(500L)
-                        }
+                    composable(
+                        route = JoinNavGraphDestination.NAME.route
+                    ) {
+                        NameForm(
+                            name = name,
+                            state = nameValidationState,
+                            onNameChanged = { name = it },
+                        )
                     }
 
-                    LaunchedEffect(key1 = code) {
-                        code.let { code ->
-                            if (code.length == 6 && code.isDigitsOnly()) viewModel.requestCertificationCodeValidation(
-                                request = CertificationCodeValidationRequestForJoin(
-                                    email = "$emailLocal@$emailDomain",
-                                    code = code,
-                                ),
-                                onSucceed = { isValid ->
-                                    if (isValid) viewModel.join(
-                                        nickname = nickname,
-                                        id = id,
-                                        password = password,
-                                        name = name,
-                                        email = "$emailLocal@$emailDomain",
-                                        onSucceed = { onNavigatingToJoinDone(name) },
-                                    )
-                                },
+                    composable(
+                        route = JoinNavGraphDestination.EMAIL.route
+                    ) {
+                        Box(
+                            modifier = Modifier.onGloballyPositioned { emailFormLayoutCoordinates = it },
+                        ) {
+                            EmailForm(
+                                local = emailLocal,
+                                domain = emailDomain,
+                                state = emailValidationState,
+                                onLocalChanged = { emailLocal = it },
+                                onDomainChanged = { emailDomain = it },
+                                onDomainDropdownExpandedChanged = { isEmailDomainDropdownExpanded = !isEmailDomainDropdownExpanded },
+                                onDomainDropdownButtonCenterOffsetCalculated = { emailDropdownButtonCenterOffset = it },
                             )
                         }
                     }
 
-                    CertificationCodeForm(
-                        code = code,
-                        remainTime = remainTime,
-                        onCodeChanged = { code = it },
+                    composable(
+                        route = JoinNavGraphDestination.CERTIFICATION.route
+                    ) {
+                        var code by remember { mutableStateOf("") }
+                        var remainTime by remember { mutableStateOf(emailDuration) }
+
+                        LaunchedEffect(key1 = Unit) {
+                            while (true) {
+                                remainTime = emailDuration - Duration.between(
+                                    emailSentTime, LocalTime.now()
+                                )
+                                if (remainTime.seconds <= 0)
+                                    navController.popBackStack()
+                                delay(500L)
+                            }
+                        }
+
+                        LaunchedEffect(key1 = code) {
+                            code.let { code ->
+                                if (code.length == 6 && code.isDigitsOnly()) viewModel.requestCertificationCodeValidation(
+                                    request = CertificationCodeValidationRequestForJoin(
+                                        email = "$emailLocal@$emailDomain",
+                                        code = code,
+                                    ),
+                                    onSucceed = { isValid ->
+                                        if (isValid) viewModel.join(
+                                            nickname = nickname,
+                                            id = id,
+                                            password = password,
+                                            name = name,
+                                            email = "$emailLocal@$emailDomain",
+                                            onSucceed = { onNavigatingToJoinDone(name) },
+                                        )
+                                    },
+                                )
+                            }
+                        }
+
+                        CertificationCodeForm(
+                            code = code,
+                            remainTime = remainTime,
+                            onCodeChanged = { code = it },
+                        )
+                    }
+                }
+            }
+
+            if (isEmailDomainDropdownExpanded) {
+                var dropdownWidth by remember { mutableIntStateOf(0) }
+                val screen = screenLayoutCoordinates
+                val emailForm = emailFormLayoutCoordinates
+
+                if (screen != null && emailForm != null) Box(
+                    modifier = Modifier
+                        .offset {
+                            screen.localPositionOf(emailForm)
+                                .plus(emailDropdownButtonCenterOffset)
+                                .plus(Offset(x = -dropdownWidth.toFloat(), y = 16.dp.toPx()))
+                                .round()
+                        }
+                        .onSizeChanged { dropdownWidth = it.width / 2 },
+                ) {
+                    EmailDomainDropdown(
+                        props = emailDomains.map {
+                            EmailDomainDropdownItemProp(
+                                domain = it,
+                                onClicked = {
+                                    emailDomain = it
+                                    isEmailDomainDropdownExpanded = false
+                                },
+                            )
+                        },
                     )
                 }
             }
@@ -318,7 +370,7 @@ fun NavGraphBuilder.addJoinNavGraph(
     composable(
         route = "join_done?name={name}",
         arguments = listOf(
-            navArgument("name") { type = NavType.StringType }
+            navArgument("name") { type = NavType.StringType },
         ),
     ) { backStackEntry ->
         val name = backStackEntry.arguments!!.getString("name")!!
