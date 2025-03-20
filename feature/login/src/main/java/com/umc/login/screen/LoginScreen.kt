@@ -99,49 +99,50 @@ fun LoginScreen(
                             color = if (isLoginErrorOccurred) Color.Negative else Color.Transparent
                         )
                     ) {
-                        // 아이디 입력창
-                        CustomTextField(
-                            prop = CustomTextFieldProp(
-                                value = id,
-                                onValueChanged = onIdChanged,
-                                placeholder = stringResource(id = R.string.login_id_placeholder),
-                                textAlignment = CustomTextFieldTextAlignment.CENTER,
-                                isVisible = true,
-                                tail = { Spacer(modifier = Modifier.height(32.dp)) },
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                        ) {
+                            // 아이디 입력창
+                            CustomTextField(
+                                prop = CustomTextFieldProp(
+                                    value = id,
+                                    onValueChanged = onIdChanged,
+                                    placeholder = stringResource(id = R.string.login_id_placeholder),
+                                    textAlignment = CustomTextFieldTextAlignment.CENTER,
+                                    isVisible = true,
+                                    tail = { Spacer(modifier = Modifier.height(32.dp)) },
+                                )
                             )
-                        )
-                        // 비밀 번호 입력창
-                        CustomTextField(
-                            prop = CustomTextFieldProp(
-                                value = password,
-                                onValueChanged = onPasswordChanged,
-                                placeholder = stringResource(id = R.string.login_password_placeholder),
-                                textAlignment = CustomTextFieldTextAlignment.CENTER,
-                                isVisible = isPasswordVisible,
-                                tail = {
-                                    Box(
-                                        modifier = Modifier.padding(
-                                            vertical = 8.dp,
-                                            horizontal = 16.dp
-                                        ),
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(
-                                                id = if (isPasswordVisible)
-                                                    R.drawable.ic_visibility
-                                                else
-                                                    R.drawable.ic_visibility_off
+                            // 비밀 번호 입력창
+                            CustomTextField(
+                                prop = CustomTextFieldProp(
+                                    value = password,
+                                    onValueChanged = onPasswordChanged,
+                                    placeholder = stringResource(id = R.string.login_password_placeholder),
+                                    textAlignment = CustomTextFieldTextAlignment.CENTER,
+                                    isVisible = isPasswordVisible,
+                                    tail = {
+                                        Box(
+                                            modifier = Modifier.padding(
+                                                vertical = 8.dp, horizontal = 16.dp
                                             ),
-                                            contentDescription = null,
-                                            tint = Color.Grey300,
-                                            modifier = Modifier
-                                                .size(16.dp)
-                                                .clickable { onPasswordVisibilityChanged(!isPasswordVisible) }
-                                        )
-                                    }
-                                }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(
+                                                    id = if (isPasswordVisible) R.drawable.ic_visibility
+                                                    else R.drawable.ic_visibility_off
+                                                ),
+                                                contentDescription = null,
+                                                tint = Color.Grey300,
+                                                modifier = Modifier
+                                                    .size(16.dp)
+                                                    .clickable { onPasswordVisibilityChanged(!isPasswordVisible) },
+                                            )
+                                        }
+                                    },
+                                )
                             )
-                        )
+                        }
                     }
                 }
                 Column(
