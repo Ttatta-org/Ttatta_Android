@@ -82,14 +82,7 @@ fun isPasswordValid(password: String, confirmPassword: String? = null): Password
     val hasDigit = password.any { it.isDigit() }
     val hasSpecialChar = password.any { it in "!@#\$%^&*()_+=<>?" }
 
-    // 종류별 개수 카운트 (2개 이상 조합 필수)
-    if (listOf(
-            hasUpperCase,
-            hasLowerCase,
-            hasDigit,
-            hasSpecialChar,
-        ).count { it } < 2
-    ) return PasswordValidationState.TOO_SIMPLE
+    if (!hasSpecialChar || !hasDigit || !hasLowerCase && !hasUpperCase) return PasswordValidationState.TOO_SIMPLE
 
     if (confirmPassword.isNullOrEmpty()) return PasswordValidationState.CONFIRM_PASSWORD_NOT_ENTERED
     if (password != confirmPassword) return PasswordValidationState.NOT_MATCH
