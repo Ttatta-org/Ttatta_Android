@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -42,7 +44,7 @@ import com.umc.login.R
 enum class CustomTextFieldTextAlignment {
     START,
     CENTER,
-    END,
+    FLEX_CENTER,
 }
 
 data class CustomTextFieldProp(
@@ -68,13 +70,6 @@ fun CustomTextField(
     val isFocused by interactionSource.collectIsFocusedAsState()
     val textMeasurer = rememberTextMeasurer()
     val density = LocalDensity.current
-    val arrangement = remember(prop.textAlignment) {
-        when (prop.textAlignment) {
-            CustomTextFieldTextAlignment.START -> Arrangement.Start
-            CustomTextFieldTextAlignment.CENTER -> Arrangement.Center
-            CustomTextFieldTextAlignment.END -> Arrangement.End
-        }
-    }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -83,53 +78,84 @@ fun CustomTextField(
             value = prop.value,
             onValueChange = prop.onValueChanged,
             readOnly = !prop.isEditable,
+            maxLines = 1,
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Done
+            ),
             visualTransformation = if (prop.isVisible) VisualTransformation.None
             else PasswordVisualTransformation(),
             interactionSource = interactionSource,
             modifier = Modifier.widthIn(min = 0.dp),
         ) { innerTextField ->
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                if (prop.value.isEmpty() && !isFocused) { // 플레이스홀더
+            // 텍스트
+            @Composable
+            fun customInnerTextField() {
+                val arrangement = if (prop.textAlignment == CustomTextFieldTextAlignment.START)
+                    Arrangement.Start
+                else
+                    Arrangement.Center
+
+                Box(
+                    contentAlignment = Alignment.Center,
+                ) {
+                    // 플레이스홀더
+                    if (prop.value.isEmpty() && !isFocused) {
+                        Row(
+                            horizontalArrangement = arrangement,
+                            modifier = Modifier
+                                .padding(horizontal = 8.dp)
+                                .fillMaxWidth(),
+                        ) {
+                            Text(
+                                text = prop.placeholder,
+                                color = Color.Grey300,
+                            )
+                        }
+                    }
+                    // 입력 텍스트
                     Row(
                         horizontalArrangement = arrangement,
                         modifier = Modifier
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = 8.dp)
                             .fillMaxWidth(),
                     ) {
-                        Text(
-                            text = prop.placeholder,
-                            color = Color.Grey300,
-                        )
-                    }
-                } // 입력 텍스트
-                Row(
-                    horizontalArrangement = arrangement,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth(),
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .width(
-                                width = with(density) {
-                                    max(
-                                        textMeasurer.measure(
-                                            text = if (prop.isVisible) prop.value
-                                            else "\u2022".repeat(prop.value.length),
-                                        ).size.width.toDp(),
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .width(
+                                    width = max(
+                                        with(density) {
+                                            textMeasurer.measure(
+                                                text = if (prop.isVisible) prop.value
+                                                else "\u2022".repeat(prop.value.length),
+                                            ).size.width.toDp()
+                                        },
                                         2.dp,
                                     )
-                                },
-                            )
-                            .graphicsLayer(clip = false),
-                    ) {
-                        innerTextField()
+                                )
+                                .graphicsLayer(clip = false),
+                        ) {
+                            innerTextField()
+                        }
                     }
-                } // 테일
+                }
+            }
+
+            if (prop.textAlignment == CustomTextFieldTextAlignment.FLEX_CENTER) Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Box(
+                    contentAlignment = Alignment.Center, modifier = Modifier.weight(1f)
+                ) {
+                    customInnerTextField()
+                }
+                prop.tail.invoke()
+            } else Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                customInnerTextField()
                 Row(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.fillMaxWidth(),
@@ -137,7 +163,8 @@ fun CustomTextField(
                     prop.tail.invoke()
                 }
             }
-        } // 밑줄
+        }
+        // 밑줄
         HorizontalDivider(color = Color.Grey300)
     }
 }
@@ -151,7 +178,8 @@ fun CustomTextFieldLabelScope(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        customTextField() // 하단 메시지
+        customTextField()
+        // 하단 메시지
         underMessageProp?.let { prop ->
             Text(
                 text = prop.value,
@@ -166,7 +194,7 @@ val previewCustomTextFieldProp = CustomTextFieldProp(
     value = "test",
     onValueChanged = {},
     placeholder = "placeholder",
-    textAlignment = CustomTextFieldTextAlignment.CENTER,
+    textAlignment = CustomTextFieldTextAlignment.FLEX_CENTER,
     isVisible = true,
     tail = {
         IconButton(

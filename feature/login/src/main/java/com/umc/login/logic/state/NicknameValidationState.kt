@@ -26,7 +26,7 @@ enum class NicknameValidationState(
 }
 
 fun isNicknameValid(nickname: String): NicknameValidationState {
-    if (nickname.length < 2) return NicknameValidationState.TOO_SHORT
+    if (nickname.isEmpty()) return NicknameValidationState.TOO_SHORT
     if (nickname.length > 8) return NicknameValidationState.TOO_LONG
     // if (!nickname.matches(Regex("^[가-힣a-zA-Z0-9]*$"))) return NicknameValidationState.NOT_ALLOWED_CHAR
     return NicknameValidationState.VALID
