@@ -27,11 +27,14 @@ android {
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField(
-            "String",
-            "NAVER_SDK_CLIENT_ID",
-            "\"${localProperties.getProperty("NAVER_SDK_CLIENT_ID")}\""
-        )
+        listOf(
+            "KAKAO_NATIVE_APP_KEY",
+            "NAVER_SDK_CLIENT_ID"
+        ).forEach {
+            buildConfigField("String", it, "\"${localProperties.getProperty(it)}\"")
+        }
+
+        manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = localProperties.getProperty("KAKAO_NATIVE_APP_KEY")
     }
 
     buildTypes {
@@ -96,4 +99,7 @@ dependencies {
 
     // 네이버 지도 SDK
     implementation(libs.naver.map)
+
+    // 카카오 로그인
+    implementation("com.kakao.sdk:v2-user:2.20.6")
 }

@@ -1,6 +1,7 @@
 package com.umc.ttatta
 
 import android.app.Application
+import com.kakao.sdk.common.KakaoSdk
 import com.naver.maps.map.NaverMapSdk
 import dagger.hilt.android.HiltAndroidApp
 
@@ -11,5 +12,7 @@ class MainApplication: Application() {
 
         NaverMapSdk.getInstance(this).client =
             NaverMapSdk.NaverCloudPlatformClient(BuildConfig.NAVER_SDK_CLIENT_ID)
+
+        KakaoSdk.init(this, BuildConfig.KAKAO_NATIVE_APP_KEY)
     }
 }
