@@ -26,7 +26,7 @@
       <SelectionState runConfigName="test.mypage">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="MainActivity">
+      <SelectionState runConfigName="TestActivity (home)">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
