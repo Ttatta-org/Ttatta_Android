@@ -30,7 +30,9 @@ class TestActivity : ComponentActivity() {
         Log.d("MyPageActivity", "🔥 onCreate() 시작됨")
 
         setContent {
-            MyPageApp(viewModel = viewModel)  // ✅ MyPageApp을 실행하여 UI 확인
+            MyPageApp(
+                viewModel = viewModel,
+                onLoginCanceled  = {})  // ✅ MyPageApp을 실행하여 UI 확인
         }
 
         // ✅ 테스트 실행
