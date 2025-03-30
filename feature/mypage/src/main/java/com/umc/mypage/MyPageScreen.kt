@@ -37,7 +37,6 @@ import com.umc.mypage.components.BottomNavigationBarWithFAB
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.mypage.components.TopBarComponent
 import com.umc.mypage.R
-import kotlinx.coroutines.flow.MutableStateFlow
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -72,7 +71,7 @@ fun MyPageScreen(
                         .fillMaxSize()
                         .padding(top = 60.dp)
                         .background(Color(0xFFFFF6F2))
-                        .padding(horizontal = 25.dp),
+                        .padding(horizontal = 22.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     item { Spacer(modifier = Modifier.height(40.dp)) }
@@ -82,16 +81,18 @@ fun MyPageScreen(
                                 name = userInfo.name,
                                 profileImage = userInfo.profileImageUrl
                             )
-                            Spacer(modifier = Modifier.height(20.dp))
+
+                            Spacer(modifier = Modifier.height(26.dp))
 
                             SummarySection(
                                 diaryCount = userInfo.totalDiaryCount,
                                 points = userInfo.point
                             )
-                            Spacer(modifier = Modifier.height(22.dp))
+
+                            Spacer(modifier = Modifier.height(12.dp))
 
                             AppSettingsSection(
-                                themeSubtitle = "기본 테마 사용 중",
+                                themeSubtitle = "기본 테마",
                                 notificationsEnabled = false,
                                 passwordLockEnabled = false,
                                 onThemeChangeClick = { /* 테마 변경 로직 */ },
@@ -137,24 +138,24 @@ fun ProfileSection(name: String, profileImage: String?) {
             model = profileImage ?: R.drawable.default_profile, // ✅ URL이 없으면 기본 이미지 사용
             contentDescription = "프로필 이미지",
             modifier = Modifier
-                .size(115.dp)
+                .size(100.dp)
                 .clip(CircleShape),
             contentScale = ContentScale.Crop,
             //contentScale = ContentScale.Fit
         )
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(15.dp))
 
         Text(
             text = displayName,
             style = MaterialTheme.typography.titleMedium.copy(
-                fontSize = 22.sp, // 텍스트 크기
-                fontWeight = FontWeight.SemiBold // 텍스트 굵기
+                fontSize = 18.sp, // 텍스트 크기
+                fontWeight = FontWeight.W800 // 텍스트 굵기
             ),
             color = Color(0xFF333333)
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Box(
             modifier = Modifier
@@ -166,65 +167,76 @@ fun ProfileSection(name: String, profileImage: String?) {
         ) {
             Text(
                 modifier = Modifier
-                    .padding(vertical = 2.dp, horizontal = 10.dp),
-                text = "내 프로필 수정",
+                    .padding(vertical = 3.dp, horizontal = 9.dp),
+                text = "프로필 수정",
                 fontSize = 13.sp,
-                color = Color(0xFFFCAD98) // 텍스트 색상
+                color = Color(0xFFFCA598) // 텍스트 색상
             )
         }
     }
 }
 
 @Composable
-fun SummarySection(diaryCount: Int, points: Long) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp) // ✅ 카드 간 간격을 10.dp로 고정
-    ) {
-        SummaryItem(label = "나의 일기", value = diaryCount, modifier = Modifier.weight(1f))
-        SummaryItem(label = "포인트", value = points, modifier = Modifier.weight(1f))
-    }
-}
+fun SummarySection(
+    diaryCount: Int,
+    points: Long) {
 
-@Composable
-fun SummaryItem(label: String, value: Number, modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth() // ✅ 남은 공간을 가득 채우도록 설정
-            .widthIn(max = 165.dp) // ✅ 카드가 너무 커지지 않도록 최대 width 제한
-            .height(50.dp)
             .shadow(
-                elevation = 6.dp,
-                shape = RoundedCornerShape(28.dp),
-                spotColor = Color(0xDE806E38),
-                ambientColor = Color(0xDE806E38),
-                clip = true
+                elevation = 2.dp, // 그림자의 높이 조정
+                shape = RoundedCornerShape(22.dp), // 카드의 모서리 둥글기
+                spotColor = Color(0xDE806E33),
+                ambientColor = Color(0xDE806E33),
+                clip = true // 모서리가 잘리도록 설정
             ),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(22.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         )
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly, // 아이템들을 균등하게 배치
+            verticalAlignment = Alignment.CenterVertically // 아이템들을 수직 중앙 정렬
         ) {
-            Text(
-                text = label,
-                fontSize = 15.sp,
-                color = Color(0xFF4B4B4B),
-                style = MaterialTheme.typography.bodyMedium
+            SummaryItem(label = "나의 일기", value = diaryCount)
+
+            // ✅ 세로 구분선
+            Box(
+                modifier = Modifier
+                    .height(30.dp)
+                    .width(0.5.dp)
+                    .background(Color(0xFFFFE6E1))
             )
-            Text(
-                text = pointNumberWithComma(value),
-                fontSize = 18.sp,
-                color = Color(0xFFFF7162),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+
+            SummaryItem(label = "포인트", value = points)
         }
+    }
+}
+
+@Composable
+fun SummaryItem(label: String, value: Number) {
+    Row(
+        modifier = Modifier.padding(vertical = 15.dp),
+    ) {
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            color = Color(0xFF4B4B4B),
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
+        )
+
+        Spacer(modifier = Modifier.width(4.dp))
+
+        Text(
+            text = pointNumberWithComma(value),
+            fontSize = 14.sp,
+            color = Color(0xFFFF8072),
+            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W800),
+        )
     }
 }
 
@@ -250,14 +262,14 @@ fun AppSettingsSection(
             //.width(340.dp) // 카드 너비 설정
             .wrapContentHeight() // 카드 높이 동적으로 설정
             .shadow(
-                elevation = 6.dp, // 그림자의 높이 조정
-                shape = RoundedCornerShape(28.dp), // 카드의 모서리 둥글기
-                spotColor = Color(0xDE806E38),
-                ambientColor = Color(0xDE806E38),
+                elevation = 2.dp, // 그림자의 높이 조정
+                shape = RoundedCornerShape(22.dp), // 카드의 모서리 둥글기
+                spotColor = Color(0xDE806E33),
+                ambientColor = Color(0xDE806E33),
                 clip = true // 모서리가 잘리도록 설정
             ),
-        shape = RoundedCornerShape(28.dp),
-        elevation = CardDefaults.cardElevation(4.dp),
+        shape = RoundedCornerShape(22.dp),
+        elevation = CardDefaults.cardElevation(2.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White // 카드 배경 색상 설정
         )
@@ -265,18 +277,18 @@ fun AppSettingsSection(
         Box {
             Column(
                 modifier = Modifier.padding(
-                    start = 35.dp,
-                    top = 27.dp,
+                    start = 30.dp,
+                    top = 20.dp,
                     end = 35.dp,
-                    bottom = 27.dp
+                    bottom = 19.dp
                 )
             ) {
                 // "앱 설정" 제목
                 Text(
                     text = "앱 설정",
-                    fontSize = 18.sp,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W600),
-                    color = Color(0xFF333333), // 제목 색상
+                    fontSize = 15.sp,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W800),
+                    color = Color(0xFF000000), // 제목 색상
                     modifier = Modifier.padding(bottom = 12.dp) // 아래 여백 추가
                 )
 
@@ -285,74 +297,142 @@ fun AppSettingsSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onThemeChangeClick() }
-                        .padding(8.dp),
+                        .padding(start = 10.dp, bottom = 7.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "테마 변경",
-                        fontSize = 15.sp,
-                        color = Color(0xFF8E8E8E),
-                        style = MaterialTheme.typography.bodyLarge
+                        text = "테마",
+                        fontSize = 14.sp,
+                        color = Color(0xFF4B4B4B),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
                     )
                     Spacer(modifier = Modifier.weight(1f)) // 여백 추가
                     Text(
                         text = themeSubtitle,
-                        fontSize = 15.sp,
-                        color = Color(0xFFAAAAAA), // 서브 텍스트 색상
-                        style = MaterialTheme.typography.bodySmall
+                        fontSize = 14.sp,
+                        color = Color(0xFFFFD0C8), // 서브 텍스트 색상
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
                     )
                 }
 
-                // 알림 설정
-                SettingSwitchItem(
-                    title = "알림 설정",
-                    isChecked = notificationsEnabled,
-                    onCheckedChange = onNotificationToggle
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onThemeChangeClick() }
+                        .padding(start = 10.dp, bottom = 7.dp),
+                    //verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "알림 설정",
+                        fontSize = 14.sp,
+                        color = Color(0xFF4B4B4B),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onThemeChangeClick() }
+                        .padding(start = 10.dp, bottom = 7.dp),
+                    //verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "암호 잠금",
+                        fontSize = 14.sp,
+                        color = Color(0xFF4B4B4B),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
+                    )
+                }
+
+//                // 알림 설정
+//                SettingSwitchItem(
+//                    title = "알림 설정",
+//                    isChecked = notificationsEnabled,
+//                    onCheckedChange = onNotificationToggle
+//                )
+//
+//                // 암호 잠금
+//                SettingSwitchItem(
+//                    title = "암호 잠금",
+//                    isChecked = passwordLockEnabled,
+//                    onCheckedChange = onPasswordLockToggle
+//                )
+//
+//                // 점선 구분선
+//                Spacer(modifier = Modifier.height(10.dp))
+//                DashedDivider()
+//                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    Card(
+        modifier = Modifier
+            //.width(340.dp) // 카드 너비 설정
+            .wrapContentHeight() // 카드 높이 동적으로 설정
+            .shadow(
+                elevation = 2.dp, // 그림자의 높이 조정
+                shape = RoundedCornerShape(22.dp), // 카드의 모서리 둥글기
+                spotColor = Color(0xDE806E33),
+                ambientColor = Color(0xDE806E33),
+                clip = true // 모서리가 잘리도록 설정
+            ),
+        shape = RoundedCornerShape(22.dp),
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White // 카드 배경 색상 설정
+        )
+    ) {
+        Box {
+            Column(
+                modifier = Modifier.padding(
+                    start = 30.dp,
+                    top = 20.dp,
+                    end = 35.dp,
+                    bottom = 19.dp
                 )
-
-                // 암호 잠금
-                SettingSwitchItem(
-                    title = "암호 잠금",
-                    isChecked = passwordLockEnabled,
-                    onCheckedChange = onPasswordLockToggle
-                )
-
-                // 점선 구분선
-                Spacer(modifier = Modifier.height(10.dp))
-                DashedDivider()
-                Spacer(modifier = Modifier.height(16.dp))
-
+            ) {
                 // "기타" 제목
                 Text(
                     text = "기타",
-                    fontSize = 18.sp,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W600),
-                    color = Color(0xFF333333),
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    fontSize = 15.sp,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W800),
+                    color = Color(0xFF000000), // 제목 색상
+                    modifier = Modifier.padding(bottom = 12.dp) // 아래 여백 추가
                 )
 
-                // 기타 설정
-                Text(
-                    text = "탈퇴하기",
-                    fontSize = 15.sp,
-                    color = Color(0xFF8E8E8E),
-                    style = MaterialTheme.typography.bodyLarge,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onLeaveUser() } // ✅ 클릭 이벤트
-                        .padding(8.dp) // 간격 조절
-                )
+                        .clickable { onLogout() }
+                        .padding(start = 10.dp, bottom = 7.dp),
+                    //verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "로그아웃",
+                        fontSize = 14.sp,
+                        color = Color(0xFF4B4B4B),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
+                    )
+                }
 
-                Text(
-                    text = "로그아웃",
-                    fontSize = 15.sp,
-                    color = Color(0xFF8E8E8E),
-                    style = MaterialTheme.typography.bodyLarge,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onLogout() } // ✅ 클릭 이벤트 추가
-                        .padding(8.dp) // 간격 조절
-                )
+                        .clickable { onLeaveUser() }
+                        .padding(start = 10.dp, bottom = 7.dp),
+                    //verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "탈퇴하기",
+                        fontSize = 14.sp,
+                        color = Color(0xFF4B4B4B),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
+                    )
+                }
             }
         }
     }
@@ -368,7 +448,7 @@ fun SettingSwitchItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
