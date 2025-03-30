@@ -132,10 +132,10 @@ fun RecordScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .background(
-                                color = Color(0xFEF6F2E5),
-                                shape = RoundedCornerShape(percent = 50)
+                                color = Color(0xFEFF9888),
+                                shape = RoundedCornerShape(15.dp)
                             )
-                            .clip(RoundedCornerShape(percent = 50))
+                            .clip(RoundedCornerShape(15.dp))
                             .clickable { onDateChipClicked() }
                             .onGloballyPositioned {
                                 val height = with(density) { it.size.height.toDp() }
@@ -150,9 +150,9 @@ fun RecordScreen(
                         Text(
                             text = date.toLocalDate().toString(),
                             textAlign = TextAlign.Center,
-                            fontSize = 15.sp,
+                            fontSize = 13.sp,
                             color = Color.Primary300,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 5.dp)
                         )
                     }
                     // 위치
@@ -160,10 +160,10 @@ fun RecordScreen(
                         modifier = Modifier
                             .weight(1f, fill = false)
                             .background(
-                                color = Color(0xFEF6F2E5),
-                                shape = RoundedCornerShape(percent = 50)
+                                color = Color(0xFEFF9888),
+                                shape = RoundedCornerShape(15.dp)
                             )
-                            .clip(RoundedCornerShape(percent = 50))
+                            .clip(RoundedCornerShape(15.dp))
                             .clickable { onLocationChipClicked() }
                             .onGloballyPositioned {
                                 val height = with(density) { it.size.height.toDp() }
@@ -188,7 +188,7 @@ fun RecordScreen(
                             )
                             Text(
                                 text = location,
-                                fontSize = 15.sp,
+                                fontSize = 13.sp,
                                 color = Color.Primary300,
                                 modifier = Modifier.padding(end = 4.dp),
                                 maxLines = 1,
@@ -207,9 +207,9 @@ fun RecordScreen(
                         modifier = Modifier
                             .background(
                                 color = categoryBackgroundColor,
-                                shape = RoundedCornerShape(percent = 50)
+                                shape = RoundedCornerShape(15.dp)
                             )
-                            .clip(RoundedCornerShape(percent = 50))
+                            .clip(RoundedCornerShape(15.dp))
                             .clickable { onCategoryChipClicked() }
                             .onGloballyPositioned {
                                 val height = with(density) { it.size.height.toDp() }
