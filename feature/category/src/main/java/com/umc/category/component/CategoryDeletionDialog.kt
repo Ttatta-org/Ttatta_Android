@@ -35,11 +35,15 @@ import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import com.umc.category.R
+import com.umc.design.Grey500
+import com.umc.design.Primary200
 import com.umc.design.Primary300
+import com.umc.design.theme.ThemeProvider
 import com.umc.design.R as Res
 
 data class CategoryDeletionDialogProp(
@@ -49,11 +53,10 @@ data class CategoryDeletionDialogProp(
 
 @Composable
 fun CategoryDeletionDialog(
-    prop: CategoryDeletionDialogProp
+    prop: CategoryDeletionDialogProp,
 ) {
     Dialog(
-        onDismissRequest = prop.onDismissed,
-        properties = DialogProperties(
+        onDismissRequest = prop.onDismissed, properties = DialogProperties(
             usePlatformDefaultWidth = false,
         )
     ) {
@@ -61,13 +64,11 @@ fun CategoryDeletionDialog(
         LaunchedEffect(key1 = Unit) { dialog.window.setDimAmount(0f) }
 
         Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
+            contentAlignment = Alignment.Center, modifier = Modifier
                 .fillMaxSize()
                 .background(
                     brush = Brush.verticalGradient(
-                        0f to Color.White,
-                        1f to Color.Primary300
+                        0f to Color.White, 1f to Color.Primary300
                     ),
                     alpha = 0.2f,
                 )
@@ -83,11 +84,11 @@ fun CategoryDeletionDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     ElevatedCard(
-                        shape = RoundedCornerShape(32.dp),
+                        shape = RoundedCornerShape(28.dp),
                         colors = CardDefaults.elevatedCardColors(
                             containerColor = Color.White
                         ),
-                        modifier = Modifier.widthIn(max = 360.dp)
+                        modifier = Modifier.widthIn(max = 360.dp),
                     ) {
                         Box(
                             contentAlignment = Alignment.TopEnd,
@@ -114,17 +115,19 @@ fun CategoryDeletionDialog(
                                     style = TextStyle(
                                         lineBreak = LineBreak.Heading,
                                         textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.Bold,
+                                        fontWeight = FontWeight.W600,
+                                        fontSize = 15.sp,
+                                        color = Color.Grey500,
                                     ),
-                                    modifier = Modifier.padding(horizontal = 32.dp)
+                                    modifier = Modifier.padding(horizontal = 32.dp),
                                 )
                                 ElevatedButton(
                                     onClick = prop.onConfirmed,
                                     colors = ButtonDefaults.elevatedButtonColors(
-                                        containerColor = Color.Primary300
+                                        containerColor = Color.Primary200
                                     ),
                                     elevation = ButtonDefaults.elevatedButtonElevation(
-                                        defaultElevation = 8.dp
+                                        defaultElevation = 6.dp,
                                     ),
                                     modifier = Modifier.fillMaxWidth(0.6f)
                                 ) {
@@ -138,8 +141,7 @@ fun CategoryDeletionDialog(
                                 modifier = Modifier.padding(16.dp)
                             ) {
                                 IconButton(
-                                    onClick = prop.onDismissed,
-                                    modifier = Modifier.size(32.dp)
+                                    onClick = prop.onDismissed, modifier = Modifier.size(32.dp)
                                 ) {
                                     Image(
                                         painter = painterResource(id = R.drawable.ic_x),
@@ -158,11 +160,12 @@ fun CategoryDeletionDialog(
 
 val previewCategoryDeletionDialogProp = CategoryDeletionDialogProp(
     onDismissed = {},
-    onConfirmed = {}
-)
+    onConfirmed = {})
 
 @Preview(backgroundColor = 0xFFFFFFFF, showBackground = true)
 @Composable
 fun PreviewCategoryDeletionDialog() {
-    CategoryDeletionDialog(prop = previewCategoryDeletionDialogProp)
+    ThemeProvider {
+        CategoryDeletionDialog(prop = previewCategoryDeletionDialogProp)
+    }
 }
