@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,6 +22,10 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.Primary500
+import com.umc.design.character.Accessory
+import com.umc.design.character.AccessorySet
+import com.umc.design.character.CharacterView
+import com.umc.design.theme.ThemeProvider
 import com.umc.ttatta.R
 
 private val cameraButtonSize = Size(141f, 40f)
@@ -31,6 +34,7 @@ private val buttonActualWidth = 160.dp
 
 data class RecordOptionPickerProp(
     val userName: String,
+    val accessories: AccessorySet,
     val onCameraOptionClicked: () -> Unit,
     val onGalleryOptionClicked: () -> Unit,
 )
@@ -52,12 +56,13 @@ fun RecordOptionPicker(
             color = Color.Primary500,
             fontWeight = FontWeight.Bold,
             fontSize = 24.sp,
+            lineHeight = 33.sp,
+            letterSpacing = 0.4.sp,
             textAlign = TextAlign.Center,
         )
-        Image(
-            painter = painterResource(id = R.drawable.img_ttotto_ttuttu),
-            contentDescription = null,
-            modifier = Modifier.width(240.dp)
+        CharacterView(
+            accessorySet = prop.accessories,
+            width = 200.dp,
         )
         Column(
             verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -103,11 +108,19 @@ fun RecordOptionPicker(
 @Preview
 @Composable
 fun PreviewRecordDialog() {
-    RecordOptionPicker(
-        prop = RecordOptionPickerProp(
-            userName = "test",
-            onCameraOptionClicked = {},
-            onGalleryOptionClicked = {},
+    ThemeProvider {
+        RecordOptionPicker(
+            prop = RecordOptionPickerProp(
+                userName = "test",
+                accessories = AccessorySet.create(
+                    Accessory.TTOTTO_BAG,
+                    Accessory.TTOTTO_HAT,
+                    Accessory.TTUTTU_BAG,
+                    Accessory.TTUTTU_HAT,
+                ),
+                onCameraOptionClicked = {},
+                onGalleryOptionClicked = {},
+            )
         )
-    )
+    }
 }

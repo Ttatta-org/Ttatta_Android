@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import com.umc.design.Grey200
 import com.umc.design.Grey300
 import com.umc.design.Primary500
+import com.umc.design.theme.ThemeProvider
 import com.umc.ttatta.R
 
 enum class NavigationItem(
@@ -87,7 +88,7 @@ fun NavigationBar(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(color = Color.White)
+            .background(color = Color.White),
     ) {
         Row(
             modifier = Modifier.padding(bottom = padding)
@@ -96,7 +97,7 @@ fun NavigationBar(
                 modifier = Modifier
                     .background(color = Color.Grey200)
                     .width(16.dp)
-                    .height(1.dp)
+                    .height(1.dp),
             )
             listOf(
                 NavigationItem.DIARY,
@@ -128,11 +129,10 @@ fun NavigationBar(
                                     Color.Grey200
                             )
                             .fillMaxWidth()
-                            .height(1.dp)
+                            .height(1.dp),
                     )
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
                         modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
                     ) {
                         Icon(
@@ -146,8 +146,9 @@ fun NavigationBar(
                         Text(
                             text = item.title,
                             fontSize = 10.sp,
-                            fontWeight = FontWeight.Thin,
-                            color = if (currentNavigationItem == item) Color.Primary500 else Color.Grey300
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W400,
+                            color = if (currentNavigationItem == item) Color.Primary500 else Color.Grey300,
                         )
                     }
                 } else {
@@ -155,7 +156,7 @@ fun NavigationBar(
                         modifier = Modifier
                             .background(color = Color.Grey200)
                             .width(centerButtonSize.width)
-                            .height(1.dp)
+                            .height(1.dp),
                     )
                 }
             }
@@ -163,7 +164,7 @@ fun NavigationBar(
                 modifier = Modifier
                     .background(color = Color.Grey200)
                     .width(16.dp)
-                    .height(1.dp)
+                    .height(1.dp),
             )
         }
     }
@@ -172,8 +173,10 @@ fun NavigationBar(
 @Preview
 @Composable
 fun PreviewNavigationBar() {
-    NavigationBar(
-        currentNavigationItem = NavigationItem.DIARY,
-        onNavigate = {}
-    )
+    ThemeProvider {
+        NavigationBar(
+            currentNavigationItem = NavigationItem.DIARY,
+            onNavigate = {},
+        )
+    }
 }
