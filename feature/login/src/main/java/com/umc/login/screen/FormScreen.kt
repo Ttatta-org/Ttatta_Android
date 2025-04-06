@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,6 +38,7 @@ import com.umc.design.Grey400
 import com.umc.design.Primary200
 import com.umc.design.Primary400
 import com.umc.design.Secondary300
+import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.AnimatedProgressBar
 import com.umc.login.component.AnimatedProgressBarProp
@@ -91,6 +93,8 @@ fun FormScreen(
                 ) {
                     Text(
                         text = topLineMessage,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.W600,
                         color = Color.Primary400,
                     )
                 }
@@ -123,6 +127,9 @@ fun FormScreen(
                     formScreenDescriptionMessageProp?.let {
                         Text(
                             text = it.message,
+                            fontSize = 14.sp,
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W600,
                             color = it.color,
                         )
                     }
@@ -136,14 +143,19 @@ fun FormScreen(
                     // 버튼 위 메시지
                     if (nextButtonOverMessage != null) Text(
                         text = nextButtonOverMessage,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.W400,
                         color = Color.Primary400,
-                        fontSize = 12.sp
                     )
                     // 다음 버튼
                     ElevatedButton(
                         enabled = isNextButtonEnabled,
                         onClick = onNextButtonClicked,
                         modifier = Modifier.fillMaxWidth(),
+                        elevation = ButtonDefaults.elevatedButtonElevation(
+                            defaultElevation = 2.dp,
+                            disabledElevation = 2.dp,
+                        ),
                         colors = ButtonDefaults.buttonColors(
                             contentColor = Color.White,
                             containerColor = Color.Primary200,
@@ -151,7 +163,12 @@ fun FormScreen(
                             disabledContainerColor = Color.Secondary300,
                         )
                     ) {
-                        Text(text = nextButtonLabel)
+                        Text(
+                            text = nextButtonLabel,
+                            fontSize = 15.sp,
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W600,
+                        )
                     }
                 }
             }
@@ -173,20 +190,22 @@ fun PreviewFormScreen() {
         }
     }
 
-    FormScreen(
-        topLineMessage = "비밀번호 찾기",
-        nextButtonLabel = "다음으로",
-        nextButtonOverMessage = "필수 입력 항목입니다",
-        animatedProgressBarProp = AnimatedProgressBarProp(currentStep = 2, totalSteps = 6),
-        formScreenDescriptionMessageProp = FormScreenDescriptionMessageProp(
-            message = "이메일을 입력해주세요",
-            color = Color.Grey400,
-        ),
-        isNextButtonEnabled = false,
-        isLogoVisible = true,
-        onNextButtonClicked = {},
-        onBackButtonClicked = {}
-    ) {
-        PreviewCustomTextField()
+    ThemeProvider {
+        FormScreen(
+            topLineMessage = "비밀번호 찾기",
+            nextButtonLabel = "다음으로",
+            nextButtonOverMessage = "필수 입력 항목입니다",
+            animatedProgressBarProp = AnimatedProgressBarProp(currentStep = 2, totalSteps = 6),
+            formScreenDescriptionMessageProp = FormScreenDescriptionMessageProp(
+                message = "이메일을 입력해주세요",
+                color = Color.Grey400,
+            ),
+            isNextButtonEnabled = false,
+            isLogoVisible = true,
+            onNextButtonClicked = {},
+            onBackButtonClicked = {},
+        ) {
+            PreviewCustomTextField()
+        }
     }
 }
