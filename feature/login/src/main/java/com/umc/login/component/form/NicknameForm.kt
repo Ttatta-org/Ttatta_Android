@@ -3,6 +3,7 @@ package com.umc.login.component.form
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldLabelScope
@@ -32,9 +33,11 @@ fun NicknameForm(
 @Preview(showBackground = true)
 @Composable
 fun PreviewNicknameForm() {
-    NicknameForm(
-        nickname = "",
-        state = NicknameValidationState.TOO_LONG,
-        onNicknameChanged = {},
-    )
+    ThemeProvider {
+        NicknameForm(
+            nickname = "",
+            state = NicknameValidationState.TOO_LONG,
+            onNicknameChanged = {},
+        )
+    }
 }

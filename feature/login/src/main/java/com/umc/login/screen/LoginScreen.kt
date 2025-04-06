@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -28,13 +29,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.Grey300
+import com.umc.design.Grey500
 import com.umc.design.Negative
 import com.umc.design.Primary200
 import com.umc.design.Primary300
+import com.umc.design.Secondary300
+import com.umc.design.theme.LocalFontTheme
+import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldLabelScope
@@ -79,12 +86,15 @@ fun LoginScreen(
                 Image(
                     painter = painterResource(id = R.drawable.ic_ttatta_logo),
                     contentDescription = null,
-                    modifier = Modifier.size(64.dp)
+                    modifier = Modifier.size(64.dp),
                 )
                 Text(
                     text = stringResource(id = R.string.under_logo_message),
-                    color = Color.Primary300,
                     fontSize = 12.sp,
+                    letterSpacing = (-0.4).sp,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight.W400,
+                    color = Color.Primary300,
                 )
             }
             Column(
@@ -152,23 +162,43 @@ fun LoginScreen(
                     // 로그인 버튼
                     ElevatedButton(
                         onClick = onLoginButtonClicked,
+                        enabled = id.isNotEmpty() && password.isNotEmpty(),  // TODO: business logic
                         modifier = Modifier.fillMaxWidth(),
+                        elevation = ButtonDefaults.elevatedButtonElevation(
+                            defaultElevation = 2.dp,
+                            disabledElevation = 2.dp,
+                        ),
                         colors = ButtonDefaults.buttonColors(
                             contentColor = Color.White,
-                            containerColor = Color.Primary200
-                        )
+                            containerColor = Color.Primary200,
+                            disabledContentColor = Color.White,
+                            disabledContainerColor = Color.Secondary300,
+                        ),
+                        contentPadding = PaddingValues(13.dp),
                     ) {
-                        Text(text = stringResource(id = R.string.login))
+                        Text(
+                            text = stringResource(id = R.string.login),
+                            fontSize = 15.sp,
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W600,
+                        )
                     }
                     // ID와 비번 찾기 및 회원 가입
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val textStyle = TextStyle(
+                            fontSize = 12.sp,
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W400,
+                            fontFamily = LocalFontTheme.current.font,
+                            color = Color.Primary300,
+                        )
+
                         Text(
                             text = stringResource(id = R.string.find_id),
-                            fontSize = 12.sp,
-                            color = Color.Primary300,
+                            style = textStyle,
                             modifier = Modifier.clickable { onFindIdButtonClicked() }
                         )
                         VerticalDivider(
@@ -177,8 +207,7 @@ fun LoginScreen(
                         )
                         Text(
                             text = stringResource(id = R.string.find_password),
-                            fontSize = 12.sp,
-                            color = Color.Primary300,
+                            style = textStyle,
                             modifier = Modifier.clickable { onFindPasswordButtonClicked() }
                         )
                         VerticalDivider(
@@ -187,8 +216,7 @@ fun LoginScreen(
                         )
                         Text(
                             text = stringResource(id = R.string.join),
-                            fontSize = 12.sp,
-                            color = Color.Primary300,
+                            style = textStyle,
                             modifier = Modifier.clickable { onJoinButtonClicked() }
                         )
                     }
@@ -209,7 +237,10 @@ fun LoginScreen(
                     )
                     Text(
                         text = stringResource(id = R.string.or),
-                        color = Color.Grey300
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        color = Color.Grey300,
+                        fontWeight = FontWeight.W400,
                     )
                     HorizontalDivider(
                         modifier = Modifier.weight(1f),
@@ -220,10 +251,14 @@ fun LoginScreen(
                 ElevatedButton(
                     onClick = onKakaoLoginButtonClicked,
                     modifier = Modifier.fillMaxWidth(),
+                    elevation = ButtonDefaults.elevatedButtonElevation(
+                        defaultElevation = 2.dp,
+                    ),
                     colors = ButtonDefaults.buttonColors(
-                        contentColor = Color.Black,
+                        contentColor = Color.Grey500,
                         containerColor = Color(0xFFFAE100)
-                    )
+                    ),
+                    contentPadding = PaddingValues(13.dp),
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -233,7 +268,12 @@ fun LoginScreen(
                             painter = painterResource(id = R.drawable.ic_kakao),
                             contentDescription = null,
                         )
-                        Text(text = stringResource(id = R.string.kakao_login))
+                        Text(
+                            text = stringResource(id = R.string.kakao_login),
+                            fontSize = 15.sp,
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W600,
+                        )
                     }
                 }
             }
@@ -244,18 +284,20 @@ fun LoginScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewLoginScreen() {
-    LoginScreen(
-        id = "",
-        password = "",
-        isPasswordVisible = false,
-        isLoginErrorOccurred = true,
-        onIdChanged = {},
-        onPasswordChanged = {},
-        onPasswordVisibilityChanged = {},
-        onLoginButtonClicked = {},
-        onKakaoLoginButtonClicked = {},
-        onFindIdButtonClicked = {},
-        onFindPasswordButtonClicked = {},
-        onJoinButtonClicked = {},
-    )
+    ThemeProvider {
+        LoginScreen(
+            id = "",
+            password = "",
+            isPasswordVisible = false,
+            isLoginErrorOccurred = true,
+            onIdChanged = {},
+            onPasswordChanged = {},
+            onPasswordVisibilityChanged = {},
+            onLoginButtonClicked = {},
+            onKakaoLoginButtonClicked = {},
+            onFindIdButtonClicked = {},
+            onFindPasswordButtonClicked = {},
+            onJoinButtonClicked = {},
+        )
+    }
 }

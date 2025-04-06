@@ -52,6 +52,7 @@ import com.umc.design.Secondary300
 import com.umc.design.character.Accessory
 import com.umc.design.character.AccessorySet
 import com.umc.design.character.CharacterView
+import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 
 @Composable
@@ -237,19 +238,26 @@ fun JoinDoneScreen(
                 colors = ButtonDefaults.buttonColors(
                     contentColor = Color.White,
                     containerColor = Color.Primary200,
-                )
+                ),
             ) {
-                Text(text = stringResource(id = R.string.go_to_login))
+                Text(
+                    text = stringResource(id = R.string.go_to_login),
+                    fontSize = 15.sp,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight.W600,
+                )
             }
         }
     }
 }
 
-@Preview(showBackground = true, widthDp = 500, heightDp = 500)
+@Preview(showBackground = true)
 @Composable
 fun JoinDoneScreenPreview() {
-    JoinDoneScreen(
-        name = "서연",
-        onBackToLoginButtonClicked = {},
-    )
+    ThemeProvider {
+        JoinDoneScreen(
+            name = "서연",
+            onBackToLoginButtonClicked = {},
+        )
+    }
 }

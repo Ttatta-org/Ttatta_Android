@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -41,7 +42,6 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
@@ -51,7 +51,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.umc.design.Grey500
 import com.umc.design.Primary200
-import com.umc.design.Primary300
 import com.umc.design.Primary400
 import com.umc.design.Secondary100
 import com.umc.design.Secondary200
@@ -59,6 +58,7 @@ import com.umc.design.character.Accessory
 import com.umc.design.character.AccessorySet
 import com.umc.design.character.CharacterType
 import com.umc.design.character.CharacterView
+import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 
 private val cardShape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
@@ -88,6 +88,8 @@ fun FindingIdDoneScreen(
                 .shadow(
                     elevation = 4.dp,
                     shape = cardShape,
+                    spotColor = Color(0x80000000),
+                    ambientColor = Color(0x80000000)
                 )
                 .widthIn(max = 480.dp)
                 .weight(1f, fill = false),
@@ -221,23 +223,21 @@ fun FindingIdDoneScreen(
                             ) {
                                 Text(
                                     text = text,
-                                    style = TextStyle(
-                                        color = Color.Grey500,
-                                        fontWeight = FontWeight.W600,
-                                        fontSize = 16.sp,
-                                    ),
+                                    color = Color.Grey500,
+                                    fontWeight = FontWeight.W600,
+                                    fontSize = 16.sp,
                                 )
                             }
                         }
 
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             cellText(text = stringResource(id = R.string.subscriber))
                             cellText(text = stringResource(id = R.string.id))
                         }
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
                             cellText(text = name)
                             cellText(text = id)
@@ -248,7 +248,10 @@ fun FindingIdDoneScreen(
         }
         // 버튼
         Column(
-            verticalArrangement = Arrangement.Bottom,
+            verticalArrangement = Arrangement.spacedBy(
+                space = 11.dp,
+                alignment = Alignment.Bottom,
+            ),
             modifier = Modifier
                 .widthIn(max = 480.dp)
                 .padding(32.dp),
@@ -257,24 +260,36 @@ fun FindingIdDoneScreen(
                 onClick = onGoToFindPasswordButtonClicked,
                 modifier = Modifier.fillMaxWidth(),
                 border = BorderStroke(
-                    color = Color.Primary300,
+                    color = Color.Primary200,
                     width = 1.dp,
                 ),
                 colors = ButtonDefaults.buttonColors(
-                    contentColor = Color.Primary300,
+                    contentColor = Color.Primary200,
                     containerColor = Color.White,
-                )
+                ),
+                contentPadding = PaddingValues(13.dp),
             ) {
-                Text(text = stringResource(id = R.string.find_password))
+                Text(
+                    text = stringResource(id = R.string.find_password),
+                    fontSize = 15.sp,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight.W600,
+                )
             }
             ElevatedButton(
                 onClick = onBackToLoginButtonClicked,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     contentColor = Color.White, containerColor = Color.Primary200
-                )
+                ),
+                contentPadding = PaddingValues(13.dp),
             ) {
-                Text(text = stringResource(id = R.string.go_to_login))
+                Text(
+                    text = stringResource(id = R.string.go_to_login),
+                    fontSize = 15.sp,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight.W600,
+                )
             }
         }
     }
@@ -283,10 +298,12 @@ fun FindingIdDoneScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewFindingIdDoneScreen() {
-    FindingIdDoneScreen(
-        id = "ddadda1225",
-        name = "이서연",
-        onBackToLoginButtonClicked = {},
-        onGoToFindPasswordButtonClicked = {},
-    )
+    ThemeProvider {
+        FindingIdDoneScreen(
+            id = "ddadda1225",
+            name = "이서연",
+            onBackToLoginButtonClicked = {},
+            onGoToFindPasswordButtonClicked = {},
+        )
+    }
 }

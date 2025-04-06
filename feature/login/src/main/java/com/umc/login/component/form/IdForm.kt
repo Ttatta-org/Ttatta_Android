@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.Primary200
+import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldLabelScope
@@ -66,10 +67,12 @@ fun IdForm(
 @Preview(showBackground = true)
 @Composable
 fun PreviewIdForm() {
-    IdForm(
-        id = "",
-        state = IdValidationState.VALID,
-        onIdChanged = {},
-        onDuplicationCheckButtonClicked = {}
-    )
+    ThemeProvider {
+        IdForm(
+            id = "",
+            state = IdValidationState.VALID,
+            onIdChanged = {},
+            onDuplicationCheckButtonClicked = {},
+        )
+    }
 }
