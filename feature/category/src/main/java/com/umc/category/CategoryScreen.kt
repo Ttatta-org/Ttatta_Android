@@ -8,6 +8,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +29,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,6 +67,8 @@ import com.umc.design.Primary200
 import com.umc.design.Primary300
 import com.umc.design.Primary500
 import com.umc.design.Secondary100
+import com.umc.design.theme.LocalFontTheme
+import com.umc.design.theme.ThemeProvider
 import java.util.Locale
 import com.umc.design.R as Res
 
@@ -88,7 +92,6 @@ fun CategoryScreen(
     onCategoryColorClicked: (CategoryColor) -> Unit,
     onDoneButtonClicked: () -> Unit,
 ) {
-    val density = LocalDensity.current
     val keyboard = LocalSoftwareKeyboardController.current
     val statusBarHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
     val colorSelectionBarScrollState = rememberScrollState()
@@ -117,11 +120,12 @@ fun CategoryScreen(
                     ) {
                         // 이름 입력 창
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+                            verticalArrangement = Arrangement.spacedBy(space = 11.dp)
                         ) {
                             Text(
                                 text = stringResource(id = R.string.new_footprint),
-                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.W600,
                                 color = Color.Primary300,
                                 modifier = Modifier.padding(horizontal = 16.dp)
                             )
@@ -131,6 +135,7 @@ fun CategoryScreen(
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                                 keyboardActions = KeyboardActions(onDone = { keyboard?.hide() }),
                                 textStyle = TextStyle(
+                                    fontFamily = LocalFontTheme.current.font,
                                     fontSize = 12.sp
                                 )
                             ) { innerTextField ->
@@ -146,7 +151,7 @@ fun CategoryScreen(
                                             color = Color.White,
                                             shape = RoundedCornerShape(percent = 50)
                                         )
-                                        .padding(vertical = 16.dp, horizontal = 24.dp)
+                                        .padding(vertical = 13.dp, horizontal = 28.dp)
                                 ) {
                                     Row(
                                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -155,13 +160,13 @@ fun CategoryScreen(
                                     ) {
                                         Box(
                                             contentAlignment = Alignment.CenterStart,
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .height(with(density) { 16.sp.toDp() })
+                                            modifier = Modifier.weight(1f)
                                         ) {
                                             if (categoryNameInputFieldValue.isBlank()) Text(
                                                 text = stringResource(id = R.string.footprint_placeholder),
-                                                fontSize = 12.sp,
+                                                fontSize = 13.sp,
+                                                lineHeight = 20.sp,
+                                                fontWeight = FontWeight.W400,
                                                 color = Color.Grey300,
                                             )
                                             innerTextField()
@@ -197,7 +202,7 @@ fun CategoryScreen(
                                 )
                                 Text(
                                     text = stringResource(id = R.string.color_choice),
-                                    fontWeight = FontWeight.Bold,
+                                    fontWeight = FontWeight.W600,
                                     color = Color.Primary300
                                 )
                             }
@@ -223,10 +228,10 @@ fun CategoryScreen(
                                                 contentScale = ContentScale.Fit,
                                                 modifier = Modifier.size(28.dp)
                                             )
-                                            if (color == selectedCategoryColor) Image(
+                                            if (color == selectedCategoryColor) Icon(
                                                 painter = painterResource(id = R.drawable.ic_check),
                                                 contentDescription = null,
-                                                contentScale = ContentScale.Fit,
+                                                tint = if (color == CategoryColor.WHITE) Color.Black else Color.White,
                                                 modifier = Modifier.size(12.dp)
                                             )
                                         }
@@ -277,14 +282,18 @@ fun CategoryScreen(
                         colors = ButtonDefaults.elevatedButtonColors(
                             containerColor = Color.Primary200,
                         ),
-                        modifier = Modifier.fillMaxWidth(0.5f),
+                        modifier = Modifier.widthIn(max = 200.dp).fillMaxWidth(),
                         elevation = ButtonDefaults.elevatedButtonElevation(
                             defaultElevation = 4.dp
-                        )
+                        ),
+                        contentPadding = PaddingValues(13.dp),
                     ) {
                         Text(
                             text = stringResource(id = R.string.done),
-                            color = Color.White
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W600,
                         )
                     }
                 }
@@ -304,7 +313,7 @@ fun CategoryScreen(
                         )
                         Text(
                             text = stringResource(id = R.string.category_list),
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.W600,
                             color = Color.Primary300
                         )
                     }
@@ -373,23 +382,25 @@ private fun CategoryListItem(
 fun PreviewCategoryScreen() {
     var fieldValue by remember { mutableStateOf("") }
 
-    CategoryScreen(
-        showTopBar = true,
-        maxCategoryNameLength = 20,
-        categoryNameInputFieldValue = fieldValue,
-        selectedCategoryColor = CategoryColor.RED,
-        categoryManagementBarProp = null,
-        categoryModificationBarProp = null,
-        categoryDeletionDialogProp = null,
-        categoryList = CategoryColor.entries.map { color ->
-            CategoryListItemProp(
-                name = color.name.lowercase(Locale.ROOT),
-                color = color,
-                onClicked = {},
-            )
-        },
-        onDoneButtonClicked = {},
-        onCategoryNameInputFieldValueChanged = { fieldValue = it },
-        onCategoryColorClicked = {},
-    )
+    ThemeProvider {
+        CategoryScreen(
+            showTopBar = true,
+            maxCategoryNameLength = 20,
+            categoryNameInputFieldValue = fieldValue,
+            selectedCategoryColor = CategoryColor.WHITE,
+            categoryManagementBarProp = null,
+            categoryModificationBarProp = null,
+            categoryDeletionDialogProp = null,
+            categoryList = CategoryColor.entries.map { color ->
+                CategoryListItemProp(
+                    name = color.name.lowercase(Locale.ROOT),
+                    color = color,
+                    onClicked = {},
+                )
+            },
+            onDoneButtonClicked = {},
+            onCategoryNameInputFieldValueChanged = { fieldValue = it },
+            onCategoryColorClicked = {},
+        )
+    }
 }
