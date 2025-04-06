@@ -35,7 +35,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,6 +54,7 @@ import com.umc.design.Grey500
 import com.umc.design.Primary200
 import com.umc.design.Primary300
 import com.umc.design.Primary500
+import com.umc.design.theme.LocalFontTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.design.R as Res
 
@@ -122,12 +122,10 @@ fun CategoryModificationBar(
                     ) {
                         Text(
                             text = stringResource(id = R.string.modify),
-                            style = TextStyle(
-                                fontSize = 15.sp,
-                                lineHeight = 20.sp,
-                                fontWeight = FontWeight.W600,
-                                color = Color.Grey500,
-                            ),
+                            fontSize = 15.sp,
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W600,
+                            color = Color.Grey500,
                         )
                         Column(
                             verticalArrangement = Arrangement.spacedBy(space = 24.dp)
@@ -139,11 +137,8 @@ fun CategoryModificationBar(
                                 Text(
                                     text = stringResource(id = R.string.modify_footprint),
                                     color = Color.Primary300,
-                                    style = TextStyle(
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.W600,
-                                        color = Color.Primary300,
-                                    ),
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.W600,
                                     modifier = Modifier.padding(horizontal = 16.dp)
                                 )
                                 BasicTextField(
@@ -152,6 +147,7 @@ fun CategoryModificationBar(
                                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                                     keyboardActions = KeyboardActions(onDone = { keyboard?.hide() }),
                                     textStyle = TextStyle(
+                                        fontFamily = LocalFontTheme.current.font,
                                         fontSize = 12.sp
                                     )
                                 ) { innerTextField ->
@@ -218,12 +214,10 @@ fun CategoryModificationBar(
                                     )
                                     Text(
                                         text = stringResource(id = R.string.color_choice),
-                                        style = TextStyle(
-                                            fontSize = 14.sp,
-                                            lineHeight = 20.sp,
-                                            fontWeight = FontWeight.W600,
-                                            color = Color.Primary300,
-                                        ),
+                                        fontSize = 14.sp,
+                                        lineHeight = 20.sp,
+                                        fontWeight = FontWeight.W600,
+                                        color = Color.Primary300,
                                     )
                                 }
                                 Row(

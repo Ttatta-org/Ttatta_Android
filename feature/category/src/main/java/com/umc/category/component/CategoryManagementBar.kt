@@ -29,7 +29,6 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -109,12 +108,10 @@ fun CategoryManagementBar(
                         ) {
                             Text(
                                 text = text,
-                                style = TextStyle(
-                                    fontSize = 15.sp,
-                                    lineHeight = 20.sp,
-                                    fontWeight = FontWeight.W600,
-                                    color = Color.Grey500,
-                                ),
+                                fontSize = 15.sp,
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight.W600,
+                                color = Color.Grey500,
                                 modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
                             )
                         }

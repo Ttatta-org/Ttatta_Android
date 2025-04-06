@@ -28,11 +28,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -108,17 +109,20 @@ fun CategoryDeletionDialog(
                                 )
                                 Text(
                                     text = buildAnnotatedString {
-                                        append(stringResource(id = R.string.delete_all_alert_message_1))
-                                        append("\n")
-                                        append(stringResource(id = R.string.delete_all_alert_message_2))
+                                        val line1 = stringResource(id = R.string.delete_all_alert_message_1)
+                                        val line2 = stringResource(id = R.string.delete_all_alert_message_2)
+
+                                        withStyle(
+                                            style = ParagraphStyle(lineBreak = LineBreak.Heading),
+                                        ) {
+                                            appendLine(line1)
+                                            append(line2)
+                                        }
                                     },
-                                    style = TextStyle(
-                                        lineBreak = LineBreak.Heading,
-                                        textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.W600,
-                                        fontSize = 15.sp,
-                                        color = Color.Grey500,
-                                    ),
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.W600,
+                                    fontSize = 15.sp,
+                                    color = Color.Grey500,
                                     modifier = Modifier.padding(horizontal = 32.dp),
                                 )
                                 ElevatedButton(

@@ -8,6 +8,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -65,6 +67,7 @@ import com.umc.design.Primary200
 import com.umc.design.Primary300
 import com.umc.design.Primary500
 import com.umc.design.Secondary100
+import com.umc.design.theme.LocalFontTheme
 import com.umc.design.theme.ThemeProvider
 import java.util.Locale
 import com.umc.design.R as Res
@@ -121,11 +124,9 @@ fun CategoryScreen(
                         ) {
                             Text(
                                 text = stringResource(id = R.string.new_footprint),
-                                style = TextStyle(
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.W600,
-                                    color = Color.Primary300,
-                                ),
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.W600,
+                                color = Color.Primary300,
                                 modifier = Modifier.padding(horizontal = 16.dp)
                             )
                             BasicTextField(
@@ -134,6 +135,7 @@ fun CategoryScreen(
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                                 keyboardActions = KeyboardActions(onDone = { keyboard?.hide() }),
                                 textStyle = TextStyle(
+                                    fontFamily = LocalFontTheme.current.font,
                                     fontSize = 12.sp
                                 )
                             ) { innerTextField ->
@@ -162,12 +164,10 @@ fun CategoryScreen(
                                         ) {
                                             if (categoryNameInputFieldValue.isBlank()) Text(
                                                 text = stringResource(id = R.string.footprint_placeholder),
-                                                style = TextStyle(
-                                                    fontSize = 13.sp,
-                                                    lineHeight = 20.sp,
-                                                    fontWeight = FontWeight.W400,
-                                                    color = Color.Grey300,
-                                                ),
+                                                fontSize = 13.sp,
+                                                lineHeight = 20.sp,
+                                                fontWeight = FontWeight.W400,
+                                                color = Color.Grey300,
                                             )
                                             innerTextField()
                                         }
@@ -282,14 +282,18 @@ fun CategoryScreen(
                         colors = ButtonDefaults.elevatedButtonColors(
                             containerColor = Color.Primary200,
                         ),
-                        modifier = Modifier.fillMaxWidth(0.5f),
+                        modifier = Modifier.widthIn(max = 200.dp).fillMaxWidth(),
                         elevation = ButtonDefaults.elevatedButtonElevation(
                             defaultElevation = 4.dp
-                        )
+                        ),
+                        contentPadding = PaddingValues(13.dp),
                     ) {
                         Text(
                             text = stringResource(id = R.string.done),
-                            color = Color.White
+                            color = Color.White,
+                            fontSize = 15.sp,
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W600,
                         )
                     }
                 }
