@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
+import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.component.CategorySelectionBar
 import com.umc.footprint.component.CategorySelectionBarProp
 import com.umc.footprint.component.DiaryCard
@@ -39,6 +40,7 @@ import com.umc.footprint.component.diaryCardHeight
 import com.umc.footprint.component.diaryCardWidth
 import com.umc.footprint.component.previewCategorySelectionBarProp
 import com.umc.footprint.component.previewDiaryCardProp
+import com.umc.footprint.component.previewDiaryModificationBarProp
 import com.umc.footprint.core.markerHeight
 
 data class PositionedDiaryCardProp(
@@ -169,17 +171,19 @@ fun FootprintScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewFootprintScreen() {
-    FootprintScreen(
-        mapView = {},
-        isCategorySelected = false,
-        diaryCardProp = PositionedDiaryCardProp(
-            x = 600f,
-            y = 1500f,
-            prop = previewDiaryCardProp,
-        ),
-        diaryModificationBarProp = null, // previewDiaryModificationBarProp,
-        categorySelectionBarProp = previewCategorySelectionBarProp,
-        onCategoryButtonClicked = {},
-        onLocationButtonClicked = {},
-    )
+    ThemeProvider {
+        FootprintScreen(
+            mapView = {},
+            isCategorySelected = false,
+            diaryCardProp = PositionedDiaryCardProp(
+                x = 600f,
+                y = 1500f,
+                prop = previewDiaryCardProp,
+            ),
+            diaryModificationBarProp = null, // previewDiaryModificationBarProp,
+            categorySelectionBarProp = previewCategorySelectionBarProp,
+            onCategoryButtonClicked = {},
+            onLocationButtonClicked = {},
+        )
+    }
 }
