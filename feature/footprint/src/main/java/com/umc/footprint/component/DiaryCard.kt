@@ -50,6 +50,7 @@ import coil3.compose.rememberAsyncImagePainter
 import com.umc.design.Grey500
 import com.umc.design.Primary400
 import com.umc.design.Secondary300
+import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.R
 import java.time.LocalDate
 
@@ -105,7 +106,7 @@ fun DiaryCard(prop: DiaryCardProp) {
         state = pagerState,
         userScrollEnabled = prop.diaryCardLoadedPropMap[pagerState.currentPage]?.let {
             it.diaryModificationModeProp == null
-        } ?: true,
+        } != false,
         modifier = Modifier.width(diaryCardWidth),
         beyondViewportPageCount = 2,
     ) { page ->
@@ -300,6 +301,7 @@ private fun DiaryCardBack(
                             "${prop.date.year}년 ${prop.date.monthValue}월 ${prop.date.dayOfMonth}일"
                         } ?: stringResource(id = R.string.loading),
                         fontSize = with(density) { 12.dp.toSp() },
+                        letterSpacing = with(density) { (-0.4).dp.toSp() },
                         color = Color.Primary400,
                     )
                 }
@@ -445,9 +447,11 @@ private val previewDiaryCardFrontProp = DiaryCardFrontProp(
 @Preview
 @Composable
 fun PreviewDiaryCardFront() {
-    DiaryCardFront(
-        prop = null // previewDiaryCardFrontProp
-    )
+    ThemeProvider {
+        DiaryCardFront(
+            prop = previewDiaryCardFrontProp
+        )
+    }
 }
 
 private val previewDiaryCardBackProp = DiaryCardBackProp(
@@ -460,7 +464,9 @@ private val previewDiaryCardBackProp = DiaryCardBackProp(
 @Preview
 @Composable
 fun PreviewDiaryCardBack() {
-    DiaryCardBack(
-        prop = null // previewDiaryCardBackProp
-    )
+    ThemeProvider {
+        DiaryCardBack(
+            prop = previewDiaryCardBackProp
+        )
+    }
 }

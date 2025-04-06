@@ -29,8 +29,11 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.umc.design.Grey500
 import com.umc.footprint.R
 import com.umc.design.R as Res
 
@@ -91,30 +94,28 @@ fun DiaryModificationBar(prop: DiaryModificationBarProp) {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(percent = 50))
-                                .clickable { prop.onModifyOptionClicked() }
-                        ) {
-                            Box(
+                        listOf(
+                            stringResource(id = R.string.modify) to prop.onModifyOptionClicked,
+                            stringResource(id = R.string.delete) to prop.onDeleteOptionClicked,
+                        ).forEach { (text, onClicked) ->
+                            Row(
                                 modifier = Modifier
-                                    .padding(vertical = 4.dp, horizontal = 8.dp)
-                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(percent = 50))
+                                    .clickable { onClicked() }
                             ) {
-                                Text(text = stringResource(id = R.string.modify))
-                            }
-                        }
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(percent = 50))
-                                .clickable { prop.onDeleteOptionClicked() }
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .padding(vertical = 4.dp, horizontal = 8.dp)
-                                    .fillMaxWidth()
-                            ) {
-                                Text(text = stringResource(id = R.string.delete))
+                                Box(
+                                    modifier = Modifier
+                                        .padding(vertical = 4.dp, horizontal = 8.dp)
+                                        .fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = text,
+                                        fontWeight = FontWeight.W600,
+                                        fontSize = 15.sp,
+                                        lineHeight = 20.sp,
+                                        color = Color.Grey500,
+                                    )
+                                }
                             }
                         }
                     }

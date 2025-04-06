@@ -25,15 +25,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.umc.design.CategoryColor
+import com.umc.design.Grey200
 import com.umc.design.Grey400
 import com.umc.design.Primary400
 import com.umc.design.R
 import com.umc.design.Secondary100
+import com.umc.design.theme.ThemeProvider
 
-val categorySelectionBarShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+val categorySelectionBarShape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
 
 data class CategorySelectionBarProp(
     val userName: String,
@@ -87,11 +91,16 @@ fun CategorySelectionBar(
                         append(stringResource(id = com.umc.footprint.R.string.category_list_suffix))
                         append(" ")
                         append(prop.itemProps.size.toString())
-                    }, color = Color.Primary400
+                    },
+                    color = Color.Primary400,
+                    fontWeight = FontWeight.W600,
+                    fontSize = 15.sp,
                 )
                 Text(
                     text = prop.itemProps.sumOf { it.count }.toString(),
-                    color = Color.Grey400
+                    color = Color.Grey400,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.W400,
                 )
             }
             // 카테고리 목록
@@ -120,6 +129,8 @@ fun CategorySelectionBar(
                                 )
                                 Text(
                                     text = stringResource(id = com.umc.footprint.R.string.new_category),
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.W400,
                                 )
                             }
                         }
@@ -131,7 +142,7 @@ fun CategorySelectionBar(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(1.dp)
-                                .background(color = Color.Grey400)
+                                .background(color = Color.Grey200),
                         )
                     }
                 }
@@ -165,10 +176,15 @@ fun CategoryItem(prop: CategoryItemProp) {
                 )
                 Text(
                     text = prop.name,
+                    fontWeight = FontWeight.W400,
+                    fontSize = 13.sp,
                 )
             }
             Text(
-                text = prop.count.toString(), color = Color.Grey400
+                text = prop.count.toString(),
+                color = Color.Grey400,
+                fontWeight = FontWeight.W400,
+                fontSize = 12.sp,
             )
         }
     }
@@ -216,5 +232,7 @@ val previewCategorySelectionBarProp = CategorySelectionBarProp(
 @Preview
 @Composable
 fun PreviewCategorySelectionBar() {
-    CategorySelectionBar(prop = previewCategorySelectionBarProp)
+    ThemeProvider {
+        CategorySelectionBar(prop = previewCategorySelectionBarProp)
+    }
 }
