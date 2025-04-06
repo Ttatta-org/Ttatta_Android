@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.toOffset
 import com.umc.design.Grey300
+import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldLabelScope
@@ -124,21 +125,22 @@ fun PreviewEmailForm() {
     var isExpanded by remember { mutableStateOf(false) }
     var buttonCenterOffset by remember { mutableStateOf(Offset.Zero) }
 
-    Box {
-        EmailForm(
-            local = "ddadda",
-            domain = "naver.com",
-            state = EmailValidationState.VALID,
-            onLocalChanged = {},
-            onDomainChanged = {},
-            onDomainDropdownExpandedChanged = { isExpanded = !isExpanded },
-            onDomainDropdownButtonCenterOffsetCalculated = { buttonCenterOffset = it },
-        )
+    ThemeProvider {
+        Box {
+            EmailForm(
+                local = "ddadda",
+                domain = "naver.com",
+                state = EmailValidationState.VALID,
+                onLocalChanged = {},
+                onDomainChanged = {},
+                onDomainDropdownExpandedChanged = { isExpanded = !isExpanded },
+                onDomainDropdownButtonCenterOffsetCalculated = { buttonCenterOffset = it },
+            )
 
-        if (isExpanded) Box(
-            modifier = Modifier.offset { buttonCenterOffset.round() }
-        ) {
-            PreviewEmailDomainDropdown()
+            if (isExpanded) Box(
+                modifier = Modifier.offset { buttonCenterOffset.round() }) {
+                PreviewEmailDomainDropdown()
+            }
         }
     }
 }

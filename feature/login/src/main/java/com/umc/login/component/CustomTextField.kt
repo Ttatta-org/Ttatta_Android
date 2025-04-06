@@ -29,6 +29,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -39,6 +41,7 @@ import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import com.umc.design.Grey300
 import com.umc.design.Positive
+import com.umc.design.theme.LocalFontTheme
 import com.umc.login.R
 
 enum class CustomTextFieldTextAlignment {
@@ -71,6 +74,14 @@ fun CustomTextField(
     val textMeasurer = rememberTextMeasurer()
     val density = LocalDensity.current
 
+    val innerTextStyle = TextStyle(
+        fontFamily = LocalFontTheme.current.font,
+        fontWeight = FontWeight.W600,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = (-0.4).sp,
+    )
+
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -82,6 +93,7 @@ fun CustomTextField(
             keyboardOptions = KeyboardOptions(
                 imeAction = ImeAction.Done
             ),
+            textStyle = innerTextStyle,
             visualTransformation = if (prop.isVisible) VisualTransformation.None
             else PasswordVisualTransformation(),
             interactionSource = interactionSource,
@@ -103,11 +115,14 @@ fun CustomTextField(
                         Row(
                             horizontalArrangement = arrangement,
                             modifier = Modifier
-                                .padding(horizontal = 8.dp)
+                                .padding(horizontal = 23.dp)
                                 .fillMaxWidth(),
                         ) {
                             Text(
                                 text = prop.placeholder,
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight.W600,
                                 color = Color.Grey300,
                             )
                         }
@@ -128,6 +143,7 @@ fun CustomTextField(
                                             textMeasurer.measure(
                                                 text = if (prop.isVisible) prop.value
                                                 else "\u2022".repeat(prop.value.length),
+                                                style = innerTextStyle,
                                             ).size.width.toDp()
                                         },
                                         2.dp,
@@ -183,25 +199,29 @@ fun CustomTextFieldLabelScope(
         underMessageProp?.let { prop ->
             Text(
                 text = prop.value,
-                color = prop.color,
                 fontSize = 12.sp,
+                lineHeight = 20.sp,
+                letterSpacing = (-0.4).sp,
+                fontWeight = FontWeight.W400,
+                color = prop.color,
             )
         }
     }
 }
 
 val previewCustomTextFieldProp = CustomTextFieldProp(
-    value = "test",
+    value = "따따따따따따따",
     onValueChanged = {},
     placeholder = "placeholder",
     textAlignment = CustomTextFieldTextAlignment.FLEX_CENTER,
     isVisible = true,
     tail = {
         IconButton(
-            onClick = {}) {
+            onClick = {},
+        ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_visibility_off),
-                contentDescription = null
+                contentDescription = null,
             )
         }
     },

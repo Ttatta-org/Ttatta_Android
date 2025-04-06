@@ -32,6 +32,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.center
 import androidx.compose.ui.unit.dp
@@ -39,7 +40,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toOffset
 import com.umc.design.Grey300
 import com.umc.design.Grey400
+import com.umc.design.Grey500
 import com.umc.design.Primary500
+import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldProp
@@ -113,7 +116,13 @@ fun CertificationForm(
                         )
                     )
                 }
-                Text(text = "@")
+                Text(
+                    text = "@",
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight.W600,
+                    color = Color.Grey500,
+                )
                 Box(
                     modifier = Modifier.weight(1f)
                 ) {
@@ -190,8 +199,10 @@ fun CertificationForm(
                             ) {
                                 Text(
                                     text = "%02d:%02d".format(remainTime.seconds / 60, remainTime.seconds % 60),
+                                    fontSize = 12.sp,
+                                    lineHeight = 20.sp,
+                                    fontWeight = FontWeight.W400,
                                     color = Color.Primary500,
-                                    fontSize = 12.sp
                                 )
                             } else Spacer(
                                 modifier = Modifier.height(32.dp)
@@ -238,21 +249,23 @@ fun CertificationForm(
 @Preview(showBackground = true)
 @Composable
 fun PreviewCertificationForm() {
-    CertificationForm(
-        name = "",
-        local = "",
-        domain = "",
-        code = "",
-        remainTime = Duration.parse("PT3M12S"),
-        isCertificateButtonEnabled = false,
-        isEditable = true,
-        onNameChanged = {},
-        onLocalChanged = {},
-        onDomainChanged = {},
-        onDomainDropdownExpandedChanged = {},
-        onDomainDropdownButtonCenterOffsetCalculated = {},
-        onCodeChanged = {},
-        onSendCodeButtonClicked = {},
-        onCertificateButtonClicked = {},
-    )
+    ThemeProvider {
+        CertificationForm(
+            name = "",
+            local = "",
+            domain = "",
+            code = "",
+            remainTime = Duration.parse("PT3M12S"),
+            isCertificateButtonEnabled = false,
+            isEditable = true,
+            onNameChanged = {},
+            onLocalChanged = {},
+            onDomainChanged = {},
+            onDomainDropdownExpandedChanged = {},
+            onDomainDropdownButtonCenterOffsetCalculated = {},
+            onCodeChanged = {},
+            onSendCodeButtonClicked = {},
+            onCertificateButtonClicked = {},
+        )
+    }
 }

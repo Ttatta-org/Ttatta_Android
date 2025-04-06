@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.umc.design.Grey300
+import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldLabelScope
@@ -114,19 +115,21 @@ fun PasswordForm(
 @Preview(showBackground = true)
 @Composable
 fun PreviewPasswordForm() {
-    PasswordForm(
-        password = "this_is_test",
-        confirmPassword = "",
-        state = PasswordValidationState.CONFIRM_PASSWORD_NOT_ENTERED,
-        passwordPlaceholder = stringResource(id = R.string.password),
-        confirmPasswordPlaceholder = stringResource(id = R.string.password_check),
-        textAlignment = CustomTextFieldTextAlignment.START,
-        isPasswordVisible = false,
-        isConfirmPasswordVisible = false,
-        isConfirmPasswordFieldShowing = true,
-        onPasswordChanged = {},
-        onConfirmPasswordChanged = {},
-        onPasswordVisibilityChanged = {},
-        onConfirmPasswordVisibilityChanged = {},
-    )
+    ThemeProvider {
+        PasswordForm(
+            password = "this_is_test",
+            confirmPassword = "",
+            state = PasswordValidationState.CONFIRM_PASSWORD_NOT_ENTERED,
+            passwordPlaceholder = stringResource(id = R.string.password),
+            confirmPasswordPlaceholder = stringResource(id = R.string.password_check),
+            textAlignment = CustomTextFieldTextAlignment.START,
+            isPasswordVisible = false,
+            isConfirmPasswordVisible = false,
+            isConfirmPasswordFieldShowing = true,
+            onPasswordChanged = {},
+            onConfirmPasswordChanged = {},
+            onPasswordVisibilityChanged = {},
+            onConfirmPasswordVisibilityChanged = {},
+        )
+    }
 }

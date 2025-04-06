@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.Primary500
+import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldProp
@@ -50,9 +51,11 @@ fun CertificationCodeForm(
 @Preview(showBackground = true)
 @Composable
 fun PreviewCertificationCodeForm() {
-    CertificationCodeForm(
-        code = "",
-        remainTime = Duration.parse("PT3M12S"),
-        onCodeChanged = {}
-    )
+    ThemeProvider {
+        CertificationCodeForm(
+            code = "",
+            remainTime = Duration.parse("PT3M12S"),
+            onCodeChanged = {},
+        )
+    }
 }
