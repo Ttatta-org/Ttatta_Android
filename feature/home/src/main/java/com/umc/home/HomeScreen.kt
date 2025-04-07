@@ -5,13 +5,16 @@ import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
+import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.awaitHorizontalDragOrCancellation
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -74,9 +77,13 @@ import java.time.LocalDateTime
 import java.time.YearMonth
 import coil3.compose.AsyncImage
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.zIndex
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -222,7 +229,7 @@ fun HomeScreen(
                                 state = lazyListState,
                                 modifier = Modifier.fillMaxSize()
                             ) {
-                                item { Spacer(modifier = Modifier.height(50.dp)) }
+                                item { Spacer(modifier = Modifier.height(60.dp)) }
                                 items(diaryList) { diary ->
                                     DiaryCard(
                                         diary = diary,
@@ -249,77 +256,6 @@ fun HomeScreen(
                             }
                         }
                     }
-//                    when {
-//                        isLoading -> {
-//                            // ✅ 로딩 중이면 로딩 인디케이터 표시
-//                            Box(
-//                                modifier = Modifier.fillMaxSize(),
-//                                contentAlignment = Alignment.Center
-//                            ) {
-//                                // 빈화면 출력
-//                            }
-//                        }
-//                        diaryList.isNotEmpty() -> {
-//                            LazyColumn(
-//                                modifier = Modifier.fillMaxSize()
-//                            ) {
-//                                item { Spacer(modifier = Modifier.height(50.dp)) }
-//                                items(diaryList) { diary ->
-//                                    DiaryCard(
-//                                        diary = diary,
-//                                        onDetailClick = { /* 다이어리 상세 보기 */ }
-//                                    )
-//                                }
-//                            }
-//                        }
-//                        else -> {
-//                            // ✅ 다이어리가 없을 경우 초대장 이미지 표시
-//                            Box(
-//                                modifier = Modifier.fillMaxSize(),
-//                                contentAlignment = Alignment.BottomCenter
-//                            ) {
-//                                Image(
-//                                    painter = painterResource(id = R.drawable.invitation),
-//                                    contentDescription = "초대장 이미지",
-//                                    modifier = Modifier.fillMaxWidth()
-//                                )
-//                            }
-//                        }
-//                    }
-
-//                    if (diaryList.isNotEmpty()){
-//
-//                        // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
-//                        LazyColumn(
-//                            state = lazyListState,
-//                            modifier = Modifier.fillMaxSize()
-//                        ) {
-//                            item { Spacer(modifier = Modifier.height(50.dp)) }
-//                            items(diaryList) { diary ->
-//                                DiaryCard(
-//                                    diary = diary,
-//                                    onDetailClick = {
-//                                        selectedDiaryId = diary.id
-//                                        onShowDetailModal()
-//                                    }
-//                                )
-//                            }
-//                        }
-//                    } else {
-//                        // ✅ 다이어리가 없을 경우 빈 화면 표시
-//                        Box(
-//                            modifier = Modifier
-//                                .fillMaxSize(),
-//                            contentAlignment = Alignment.BottomCenter // ✅ 이미지가 하단에 붙도록 정렬
-//                        ) {
-//                            Image(
-//                                painter = painterResource(id = R.drawable.invitation), // ✅ Drawable에 있는 이미지 사용
-//                                contentDescription = "초대장 이미지",
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                            )
-//                        }
-//                    }
                 }
 
                 TopBarComponent(
@@ -378,7 +314,7 @@ fun HomeScreen(
                             contentDescription = null,
                             modifier = Modifier
                                 .width(42.dp)
-                                .height(14.dp)
+                                .height(13.5.dp)
                         )
                     }
                 }
@@ -516,9 +452,46 @@ fun CalendarView(
     val daysInMonth = YearMonth.of(currentYear, currentMonth).lengthOfMonth()
     val firstDayOfWeek = YearMonth.of(currentYear, currentMonth).atDay(1).dayOfWeek.value % 7
 
+    var dragTotalX by remember { mutableStateOf(0f) }
+    var currentMonthOffset by remember { mutableStateOf(0) } // 월 이동 애니메이션용 오프셋
+
+
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = {
+                        dragTotalX = 0f
+                    },
+                    onDragEnd = {
+                        if (dragTotalX > 100f) {
+                            // 👉 오른쪽 스와이프
+                            if (currentMonth == 1) {
+                                currentMonth = 12
+                                currentYear -= 1
+                            } else {
+                                currentMonth -= 1
+                            }
+                            currentMonthOffset = -1
+                        } else if (dragTotalX < -100f) {
+                            // 👉 왼쪽 스와이프
+                            if (currentMonth == 12) {
+                                currentMonth = 1
+                                currentYear += 1
+                            } else {
+                                currentMonth += 1
+                            }
+                            currentMonthOffset = 1
+                        }
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        dragTotalX += dragAmount.x
+                    }
+                )
+            }
+
     ) {
         // 상단 월/연도와 이동 버튼
         Row(
@@ -675,7 +648,7 @@ fun DiaryCard(
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 25.dp)
             .shadow(
-                elevation = 6.dp, // 그림자의 높이 조정
+                elevation = 4.dp, // 그림자의 높이 조정
                 shape = RoundedCornerShape(28.dp), // 카드의 모서리 둥글기
                 spotColor = Color(0xDE806E38),
                 ambientColor = Color(0xDE806E38),
@@ -689,7 +662,7 @@ fun DiaryCard(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(top = 13.dp, bottom = 20.dp, start = 25.dp, end = 25.dp)
+                    .padding(top = 13.dp, bottom = 20.dp, start = 30.dp, end = 30.dp)
                     .fillMaxWidth()
                     .background(Color.White)
 
@@ -702,22 +675,26 @@ fun DiaryCard(
                         painter = painterResource(id = R.drawable.ic_point),
                         contentDescription = "Point Icon",
                         modifier = Modifier
-                            .width(39.dp)
+                            .width(39.18.dp)
                             .height(16.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
                         text = diary.date.formatToKorean(), // 날짜 텍스트
-                        style = MaterialTheme.typography.bodyMedium.copy(
+                        style = TextStyle(
                             color = Color(0xFFFF9681), // 텍스트 색상
-                            fontSize = 14.sp
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.W400,
+                            fontFamily = FontFamily.Default,
+                            letterSpacing = -0.4.sp,
+                            lineHeight = 20.sp
                         )
                     )
                 }
 
-                Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 // 구분선
                 Divider(
@@ -747,7 +724,7 @@ fun DiaryCard(
                         .fillMaxWidth()
                         .heightIn(max = 280.dp)
                         //.height(280.dp)
-                        .clip(RoundedCornerShape(18.dp)),
+                        .clip(RoundedCornerShape(15.dp)),
                     contentScale = ContentScale.Crop,
                     // 필요 시 placeholder나 error 설정도 할 수 있음
                     error = painterResource(id = R.drawable.if_image_error)
@@ -759,25 +736,25 @@ fun DiaryCard(
                 Row(
                     modifier = Modifier
                         .wrapContentWidth()
-                        .background(Color(0xFFFEF6F2), RoundedCornerShape(20.dp)) // 배경색 및 모양 설정
-                        .padding(horizontal = 12.dp),
+                        .background(Color(0xFFFEF6F2), RoundedCornerShape(15.dp)) // 배경색 및 모양 설정
+                        .padding(horizontal = 11.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_location), // 위치 아이콘 리소스 사용
                         contentDescription = "위치 아이콘",
                         modifier = Modifier
-                            .width(7.5.dp)
-                            .height(10.dp),
+                            .width(7.6.dp)
+                            .height(9.98.dp),
                     )
 
-                    Spacer(modifier = Modifier.width(5.dp))
+                    Spacer(modifier = Modifier.width(5.4.dp))
 
                     Text(
                         text = diary.locationName, // locationName 위치 가져오기
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = Color(0xFFFF9681), // 텍스트 색상
-                            fontSize = 12.sp
+                            fontSize = 10.sp
                         )
                     )
                 }
@@ -788,15 +765,18 @@ fun DiaryCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(17.dp))
+                        .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(15.dp))
                         .padding(vertical = 10.dp, horizontal = 12.dp)
                 ) {
                     Text(
                         text = diary.content,
-                        style = MaterialTheme.typography.bodyLarge.copy(
+                        style = TextStyle(
                             color = Color(0xFF4B4B4B), // 텍스트 색상
-                            fontSize = 14.sp,
-                            lineHeight = 16.sp
+                            fontSize = 12.sp,
+                            lineHeight = 16.sp,
+                            fontWeight = FontWeight.W400,
+                            fontFamily = FontFamily.Default,
+                            letterSpacing = -0.4.sp
                         )
                     )
                 }
@@ -806,7 +786,7 @@ fun DiaryCard(
                 onClick = onDetailClick,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 15.dp, end = 25.dp)
+                    .padding(top = 18.dp, end = 25.dp)
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_detail),
@@ -822,9 +802,9 @@ fun DiaryCard(
     }
 
     // 점선 구분선
-    Spacer(modifier = Modifier.height(10.dp))
+    Spacer(modifier = Modifier.height(20.dp))
     DashedDivider()
-    Spacer(modifier = Modifier.height(10.dp))
+    Spacer(modifier = Modifier.height(20.dp))
 }
 
 @Composable
