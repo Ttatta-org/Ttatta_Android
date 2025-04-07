@@ -32,6 +32,8 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -263,9 +265,9 @@ fun SearchBar(
         modifier = modifier
             .background(
                 color = Color(0xFFFEF6F2),
-                shape = RoundedCornerShape(15.dp)
+                shape = RoundedCornerShape(15.5.dp)
             )
-            .padding(horizontal = 10.dp, vertical = 5.dp)
+            .padding(horizontal = 17.dp, vertical = 6.dp)
             .fillMaxWidth(),
         contentAlignment = Alignment.CenterStart
     ) {
@@ -273,9 +275,13 @@ fun SearchBar(
         if (query.isEmpty()) {
             Text(
                 text = "찾고 싶은 내용을 입력해주세요!",
-                fontSize = 13.sp,
-                color = Color(0xFFCACACA),
-                modifier = Modifier.padding(start = 4.dp)
+                style = TextStyle(
+                    fontSize = 13.sp,
+                    color = Color(0xFFCACACA),
+                    fontWeight = FontWeight.W400,
+                    lineHeight = 20.sp,
+                    letterSpacing = (-0.4).sp
+                )
             )
         }
 
@@ -297,7 +303,6 @@ fun SearchBar(
             ),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 4.dp)
         )
     }
 }

@@ -722,7 +722,7 @@ fun DiaryCard(
                     contentDescription = "Diary Image",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = 280.dp)
+                        .heightIn(max = 300.dp)
                         //.height(280.dp)
                         .clip(RoundedCornerShape(15.dp)),
                     contentScale = ContentScale.Crop,
