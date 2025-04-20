@@ -1,4 +1,4 @@
-package com.umc.footprint.data
+package com.umc.footprint.implementation
 
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.clustering.ClusteringKey

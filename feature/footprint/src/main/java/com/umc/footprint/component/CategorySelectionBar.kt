@@ -36,32 +36,19 @@ import com.umc.design.Primary400
 import com.umc.design.R
 import com.umc.design.Secondary100
 import com.umc.design.theme.ThemeProvider
+import com.umc.footprint.model.prop.CategoryItemProp
+import com.umc.footprint.model.prop.CategorySelectionBarProp
 
 val categorySelectionBarShape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
 
-data class CategorySelectionBarProp(
-    val userName: String,
-    val itemProps: List<CategoryItemProp>,
-    val onNewCategoryButtonClicked: () -> Unit,
-    val onDismissed: () -> Unit,
-)
-
-data class CategoryItemProp(
-    val name: String,
-    val color: CategoryColor?,
-    val count: Int,
-    val onClicked: () -> Unit,
-)
-
 @Composable
 fun CategorySelectionBar(
-    prop: CategorySelectionBarProp
+    prop: CategorySelectionBarProp,
 ) {
     Box(
         modifier = Modifier
             .shadow(
-                shape = categorySelectionBarShape,
-                elevation = 16.dp
+                shape = categorySelectionBarShape, elevation = 16.dp
             )
             .background(
                 color = Color.Secondary100,
@@ -110,9 +97,11 @@ fun CategorySelectionBar(
                 items(count = prop.itemProps.size * 2 + 1) { index ->
                     if (index == 0) {
                         // 새 카테고리 등록 버튼
-                        Box(modifier = Modifier
-                            .clip(RoundedCornerShape(percent = 50))
-                            .clickable { prop.onNewCategoryButtonClicked() }) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(percent = 50))
+                                .clickable { prop.onNewCategoryButtonClicked() },
+                        ) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -155,8 +144,8 @@ fun CategorySelectionBar(
 fun CategoryItem(prop: CategoryItemProp) {
     Box(
         modifier = Modifier
-        .clip(RoundedCornerShape(percent = 50))
-        .clickable(onClick = prop.onClicked)
+            .clip(RoundedCornerShape(percent = 50))
+            .clickable(onClick = prop.onClicked)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -226,7 +215,6 @@ val previewCategorySelectionBarProp = CategorySelectionBarProp(
         )
     ),
     onNewCategoryButtonClicked = {},
-    onDismissed = {},
 )
 
 @Preview

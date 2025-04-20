@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -52,46 +51,13 @@ import com.umc.design.Primary400
 import com.umc.design.Secondary300
 import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.R
+import com.umc.footprint.core.DesignConstant
+import com.umc.footprint.model.prop.DiaryCardBackProp
+import com.umc.footprint.model.prop.DiaryCardFrontProp
+import com.umc.footprint.model.prop.DiaryCardLoadedProp
+import com.umc.footprint.model.prop.DiaryCardProp
+import com.umc.footprint.model.prop.DiaryModificationModeProp
 import java.time.LocalDate
-
-val diaryCardWidth = 261.dp
-val diaryCardHeight = 311.dp
-
-data class DiaryCardProp(
-    val clusterId: Long,
-    val diaryCardLoadedPropMap: Map<Int, DiaryCardLoadedProp?>,
-    val onNewDiaryRequested: (Int) -> Unit,
-)
-
-data class DiaryCardLoadedProp(
-    val id: Long,
-    val date: LocalDate,
-    val imageUrl: String,
-    val content: String,
-    val isFlipped: Boolean,
-    val diaryModificationModeProp: DiaryModificationModeProp?,
-    val onCardClicked: () -> Unit,
-    val onModifyButtonClicked: () -> Unit,
-)
-
-class DiaryCardFrontProp(
-    val date: LocalDate,
-    val imageUrl: String,
-    val onModifyButtonClicked: () -> Unit,
-)
-
-class DiaryCardBackProp(
-    val date: LocalDate,
-    val content: String,
-    val diaryModificationModeProp: DiaryModificationModeProp?,
-    val onModifyButtonClicked: () -> Unit
-)
-
-data class DiaryModificationModeProp(
-    val contentValue: String,
-    val onContentValueChanged: (String) -> Unit,
-    val onModificationDone: () -> Unit,
-)
 
 @Composable
 fun DiaryCard(prop: DiaryCardProp) {
@@ -107,7 +73,7 @@ fun DiaryCard(prop: DiaryCardProp) {
         userScrollEnabled = prop.diaryCardLoadedPropMap[pagerState.currentPage]?.let {
             it.diaryModificationModeProp == null
         } != false,
-        modifier = Modifier.width(diaryCardWidth),
+        modifier = Modifier.width(DesignConstant.DiaryCardSize.width),
         beyondViewportPageCount = 2,
     ) { page ->
         val diary = prop.diaryCardLoadedPropMap[page]
@@ -140,10 +106,9 @@ fun DiaryCard(prop: DiaryCardProp) {
                     interactionSource = null,
                 ) {
                     diary?.let { diary ->
-                        if (diary.diaryModificationModeProp == null)
-                            diary.onCardClicked()
+                        if (diary.diaryModificationModeProp == null) diary.onCardClicked()
                     }
-                }
+                },
         ) {
             // 앞면
             if (rotateAngle < 90f) {
@@ -154,13 +119,12 @@ fun DiaryCard(prop: DiaryCardProp) {
                             imageUrl = diary.imageUrl,
                             onModifyButtonClicked = diary.onModifyButtonClicked
                         )
-                    }
+                    },
                 )
             }
             // 뒷면
             else Box(
-                modifier = Modifier.graphicsLayer { rotationY = 180f }
-            ) {
+                modifier = Modifier.graphicsLayer { rotationY = 180f }) {
                 DiaryCardBack(
                     prop = diary?.let { diary ->
                         DiaryCardBackProp(
@@ -169,7 +133,7 @@ fun DiaryCard(prop: DiaryCardProp) {
                             diaryModificationModeProp = diary.diaryModificationModeProp,
                             onModifyButtonClicked = diary.onModifyButtonClicked
                         )
-                    }
+                    },
                 )
             }
         }
@@ -178,21 +142,18 @@ fun DiaryCard(prop: DiaryCardProp) {
 
 @Composable
 private fun DiaryCardFront(
-    prop: DiaryCardFrontProp?
+    prop: DiaryCardFrontProp?,
 ) {
     val density = LocalDensity.current
 
     Box(
-        modifier = Modifier
-            .width(diaryCardWidth)
-            .height(diaryCardHeight)
+        modifier = Modifier.size(DesignConstant.DiaryCardSize)
     ) {
         // 카드 이미지
         ShadowedImage(
             id = R.drawable.view_diary_popup,
             contentDescription = null,
-            width = diaryCardWidth,
-            height = diaryCardHeight,
+            size = DesignConstant.DiaryCardSize,
             shadowColor = Color(0x806E38DE)
         )
         // 카드 내용
@@ -245,11 +206,11 @@ private fun DiaryCardFront(
                     .size(220.dp)
                     .clip(RoundedCornerShape(8.dp))
             ) else Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(220.dp)
+                contentAlignment = Alignment.Center, modifier = Modifier.size(220.dp)
             ) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp),
+                    color = Color.Primary400,
                 )
             }
         }
@@ -258,20 +219,17 @@ private fun DiaryCardFront(
 
 @Composable
 private fun DiaryCardBack(
-    prop: DiaryCardBackProp?
+    prop: DiaryCardBackProp?,
 ) {
     val density = LocalDensity.current
 
     Box(
-        modifier = Modifier
-            .width(diaryCardWidth)
-            .height(diaryCardHeight)
+        modifier = Modifier.size(DesignConstant.DiaryCardSize)
     ) {
         ShadowedImage(
             id = R.drawable.view_diary_popup_flipped,
             contentDescription = null,
-            width = diaryCardWidth,
-            height = diaryCardHeight,
+            size = DesignConstant.DiaryCardSize,
             shadowColor = Color(0x806E38DE)
         )
         Column(
@@ -334,7 +292,7 @@ private fun DiaryCardBack(
                             imeAction = ImeAction.Done,
                         ),
                         keyboardActions = KeyboardActions(
-                            onDone = { prop.diaryModificationModeProp.onModificationDone() }
+                            onDone = { prop.diaryModificationModeProp.onModificationDone() },
                         ),
                         textStyle = TextStyle(
                             color = Color.Grey500,
@@ -345,19 +303,16 @@ private fun DiaryCardBack(
 
                     LaunchedEffect(key1 = Unit) { focusRequester.requestFocus() }
                 } else Text(
-                    text = prop.content,
-                    style = TextStyle(
+                    text = prop.content, style = TextStyle(
                         color = Color.Grey500,
                         fontSize = 13.sp,
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    ), modifier = Modifier.fillMaxWidth()
                 )
             } else Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(220.dp)
+                contentAlignment = Alignment.Center, modifier = Modifier.size(220.dp),
             ) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(32.dp)
+                    color = Color.Primary400, modifier = Modifier.size(32.dp),
                 )
             }
         }
@@ -412,8 +367,8 @@ fun PreviewDiaryCard() {
                                     content = contentState,
                                     diaryModificationModeProp = null,
                                 )
-                            }
-                        )
+                            },
+                        ),
                     )
                 },
             )
@@ -425,8 +380,7 @@ fun PreviewDiaryCard() {
     }
 
     Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier.fillMaxSize()
+        contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()
     ) {
         DiaryCard(
             prop = DiaryCardProp(

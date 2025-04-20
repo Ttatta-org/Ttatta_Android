@@ -3,7 +3,7 @@ package com.umc.footprint.di
 import android.content.Context
 import com.umc.footprint.core.LocationHandler
 import com.umc.footprint.core.MapHandler
-import com.umc.footprint.data.MapHandlerImpl
+import com.umc.footprint.implementation.MapHandlerImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

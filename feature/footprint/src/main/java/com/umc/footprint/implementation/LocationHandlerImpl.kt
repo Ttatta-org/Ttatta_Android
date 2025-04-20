@@ -1,4 +1,4 @@
-package com.umc.footprint.data
+package com.umc.footprint.implementation
 
 import android.annotation.SuppressLint
 import android.location.Location
