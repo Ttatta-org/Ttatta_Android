@@ -13,6 +13,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +40,7 @@ import com.umc.mypage.components.BottomNavigationBarWithFAB
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.mypage.components.TopBarComponent
 import com.umc.mypage.R
+import com.umc.mypage.components.Dialog
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -52,6 +56,8 @@ fun MyPageScreen(
 
     val systemUiController = rememberSystemUiController()
     val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
+
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     SideEffect {
         systemUiController.setStatusBarColor(
@@ -99,6 +105,8 @@ fun MyPageScreen(
                                 onNotificationToggle = {  },
                                 onPasswordLockToggle = {  },
                                 onLeaveUser = onLeaveUser,
+                                showLogoutDialog = showLogoutDialog,
+                                setShowLogoutDialog = { showLogoutDialog = it },
                                 onLogout = onLogout
                             )
                             Spacer(modifier = Modifier.height(30.dp))
@@ -124,6 +132,17 @@ fun MyPageScreen(
 //            )
 
         }
+    }
+
+    if (showLogoutDialog) {
+        Dialog(
+            message = "로그아웃 하시겠습니까?",
+            onDismiss = { showLogoutDialog = false },
+            onConfirm = {
+                showLogoutDialog = false
+                onLogout()  // 실제 로그아웃 로직 여기서 호출
+            }
+        )
     }
 }
 
@@ -255,6 +274,8 @@ fun AppSettingsSection(
     onNotificationToggle: (Boolean) -> Unit, // ✅ 알림 설정 변경 이벤트 추가
     onPasswordLockToggle: (Boolean) -> Unit, // ✅ 암호 잠금 설정 변경 이벤트 추가
     onLeaveUser: () -> Unit, // ✅ 탈퇴하기 이벤트 추가
+    showLogoutDialog: Boolean,
+    setShowLogoutDialog: (Boolean) -> Unit,
     onLogout: () -> Unit // ✅ 로그아웃 이벤트 추가
 ) {
     Card(
@@ -407,7 +428,7 @@ fun AppSettingsSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onLogout() }
+                        .clickable { setShowLogoutDialog(true) }
                         .padding(start = 10.dp, bottom = 7.dp),
                     //verticalAlignment = Alignment.CenterVertically
                 ) {
