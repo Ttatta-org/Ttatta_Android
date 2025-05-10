@@ -10,6 +10,7 @@ import com.umc.mypage.MyPageScreen
 import com.umc.mypage.MyPageViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.umc.mypage.NotificationSettingsScreen
 import com.umc.mypage.SignOutScreen
 
 @Composable
@@ -31,6 +32,9 @@ fun AppNavHost(
                 userInfo = userInfo,
                 isLoading = isLoading,
                 errorMessage = errorMessage,
+                onNavigateToNotifications = {
+                    navController.navigate("notification")
+                },
                 onLogout = {
                     viewModel.logout(
                         onSuccess = { /* 로그아웃 후 동작 */ },
@@ -62,5 +66,10 @@ fun AppNavHost(
             )
         }
 
+        composable("notification") {
+            NotificationSettingsScreen(
+
+            )
+        }
     }
 }

@@ -49,6 +49,7 @@ fun MyPageScreen(
     userInfo: UserInfo?,
     isLoading: Boolean,
     errorMessage: String?,
+    onNavigateToNotifications: () -> Unit,
     onLogout: () -> Unit,
     onLeaveUser: () -> Unit,
     onFabClick: () -> Unit,
@@ -103,6 +104,7 @@ fun MyPageScreen(
                                 passwordLockEnabled = false,
                                 onThemeChangeClick = { /* 테마 변경 로직 */ },
                                 onNotificationToggle = {  },
+                                onNavigateToNotifications = onNavigateToNotifications,
                                 onPasswordLockToggle = {  },
                                 onLeaveUser = onLeaveUser,
                                 showLogoutDialog = showLogoutDialog,
@@ -272,6 +274,7 @@ fun AppSettingsSection(
     passwordLockEnabled: Boolean,
     onThemeChangeClick: () -> Unit,
     onNotificationToggle: (Boolean) -> Unit, // ✅ 알림 설정 변경 이벤트 추가
+    onNavigateToNotifications: () -> Unit,
     onPasswordLockToggle: (Boolean) -> Unit, // ✅ 암호 잠금 설정 변경 이벤트 추가
     onLeaveUser: () -> Unit, // ✅ 탈퇴하기 이벤트 추가
     showLogoutDialog: Boolean,
@@ -340,7 +343,7 @@ fun AppSettingsSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onNotificationToggle(!notificationsEnabled) }
+                        .clickable { onNavigateToNotifications() }
                         .padding(start = 10.dp, bottom = 7.dp),
                     //verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -461,67 +464,67 @@ fun AppSettingsSection(
 }
 
 
-@Composable
-fun SettingSwitchItem(
-    title: String,
-    isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title,
-            fontSize = 15.sp,
-            color = Color(0xFF8E8E8E),
-            style = MaterialTheme.typography.bodyLarge
-        )
-        Spacer(modifier = Modifier.weight(1f)) // 여백 추가
-
-        // 커스텀 Switch 사용
-        CustomSwitch(
-            checked = isChecked,
-            onCheckedChange = onCheckedChange,
-            modifier = Modifier.padding(end = 5.dp)
-        )
-    }
-}
-
-@Composable
-fun CustomSwitch(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    // 전체 Switch 박스
-    Box(
-        modifier = modifier
-            .width(30.dp) // Switch 전체 너비
-            .height(16.dp) // Switch 전체 높이
-            .clip(
-                RoundedCornerShape(8.dp) // 커스텀 Border-Radius
-            )
-            .background(
-                if (checked) Color(0xFFFDDDC1) else Color(0xFFE1E1E1) // 상태에 따른 배경색
-            )
-            .clickable { onCheckedChange(!checked) }
-            .padding(end = 1.dp),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        // Thumb (Circle)
-        Box(
-            modifier = Modifier
-                .size(14.dp) // Thumb 크기
-                .align(if (checked) Alignment.CenterEnd else Alignment.CenterStart) // 상태에 따른 위치
-                .padding(1.dp) // Thumb 패딩
-                .clip(CircleShape) // 원형
-                .background(Color(0xFFF5F5F5)) // Thumb 배경색
-        )
-    }
-}
+//@Composable
+//fun SettingSwitchItem(
+//    title: String,
+//    isChecked: Boolean,
+//    onCheckedChange: (Boolean) -> Unit
+//) {
+//    Row(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .padding(10.dp),
+//        verticalAlignment = Alignment.CenterVertically
+//    ) {
+//        Text(
+//            text = title,
+//            fontSize = 15.sp,
+//            color = Color(0xFF8E8E8E),
+//            style = MaterialTheme.typography.bodyLarge
+//        )
+//        Spacer(modifier = Modifier.weight(1f)) // 여백 추가
+//
+//        // 커스텀 Switch 사용
+//        CustomSwitch(
+//            checked = isChecked,
+//            onCheckedChange = onCheckedChange,
+//            modifier = Modifier.padding(end = 5.dp)
+//        )
+//    }
+//}
+//
+//@Composable
+//fun CustomSwitch(
+//    checked: Boolean,
+//    onCheckedChange: (Boolean) -> Unit,
+//    modifier: Modifier = Modifier
+//) {
+//    // 전체 Switch 박스
+//    Box(
+//        modifier = modifier
+//            .width(30.dp) // Switch 전체 너비
+//            .height(16.dp) // Switch 전체 높이
+//            .clip(
+//                RoundedCornerShape(8.dp) // 커스텀 Border-Radius
+//            )
+//            .background(
+//                if (checked) Color(0xFFFDDDC1) else Color(0xFFE1E1E1) // 상태에 따른 배경색
+//            )
+//            .clickable { onCheckedChange(!checked) }
+//            .padding(end = 1.dp),
+//        contentAlignment = Alignment.CenterStart
+//    ) {
+//        // Thumb (Circle)
+//        Box(
+//            modifier = Modifier
+//                .size(14.dp) // Thumb 크기
+//                .align(if (checked) Alignment.CenterEnd else Alignment.CenterStart) // 상태에 따른 위치
+//                .padding(1.dp) // Thumb 패딩
+//                .clip(CircleShape) // 원형
+//                .background(Color(0xFFF5F5F5)) // Thumb 배경색
+//        )
+//    }
+//}
 
 @Composable
 fun DashedDivider() {
@@ -569,6 +572,7 @@ fun PreviewMyPageScreen() {
         userInfo = mockUserInfo,
         isLoading = false,
         errorMessage = null,
+        onNavigateToNotifications = {},
         onLogout = { /* 로그아웃 테스트 */ },
         onLeaveUser = { /* 탈퇴 테스트 */ },
         onFabClick = {}
