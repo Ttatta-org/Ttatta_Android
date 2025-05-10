@@ -69,11 +69,15 @@ class MyPageViewModel @Inject constructor(
     /**
      * ✅ 유저 탈퇴 기능
      */
-    fun leaveUser(onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun leaveUser(
+        reason: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
             try {
                 Log.d("MyPageViewModel", "🚀 회원 탈퇴 중...")
-                userRepository.leaveUser()
+                userRepository.leaveUser(reason)
                 Log.d("MyPageViewModel", "✅ 회원 탈퇴 성공")
                 onSuccess()
             } catch (e: Exception) {

@@ -336,10 +336,11 @@ fun AppSettingsSection(
                     )
                 }
 
+                // 알림 변경 설정
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onThemeChangeClick() }
+                        .clickable { onNotificationToggle(!notificationsEnabled) }
                         .padding(start = 10.dp, bottom = 7.dp),
                     //verticalAlignment = Alignment.CenterVertically
                 ) {
