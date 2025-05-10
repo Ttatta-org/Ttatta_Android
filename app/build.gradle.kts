@@ -9,6 +9,9 @@ plugins {
     // Hilt
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+
+    // FCM
+    id("com.google.gms.google-services")
 }
 
 val localProperties = Properties()
@@ -70,6 +73,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.firebase.messaging.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -102,4 +106,9 @@ dependencies {
 
     // 카카오 로그인
     implementation("com.kakao.sdk:v2-user:2.20.6")
+
+    // FCM
+    implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
+    implementation("com.google.firebase:firebase-analytics")
+
 }
