@@ -3,7 +3,7 @@ package com.umc.footprint.di
 import android.content.Context
 import com.google.android.gms.location.LocationServices
 import com.umc.footprint.core.LocationHandler
-import com.umc.footprint.data.LocationHandlerImpl
+import com.umc.footprint.implementation.LocationHandlerImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

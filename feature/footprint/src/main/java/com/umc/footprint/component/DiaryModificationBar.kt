@@ -35,15 +35,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.Grey500
 import com.umc.footprint.R
+import com.umc.footprint.model.prop.DiaryModificationBarProp
 import com.umc.design.R as Res
 
 val diaryModificationBarShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
-
-data class DiaryModificationBarProp(
-    val onModifyOptionClicked: () -> Unit,
-    val onDeleteOptionClicked: () -> Unit,
-    val onDismissed: () -> Unit,
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

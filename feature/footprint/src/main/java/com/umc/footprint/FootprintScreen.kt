@@ -1,6 +1,7 @@
 package com.umc.footprint
 
-import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,9 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,84 +24,75 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.component.CategorySelectionBar
-import com.umc.footprint.component.CategorySelectionBarProp
 import com.umc.footprint.component.DiaryCard
-import com.umc.footprint.component.DiaryCardProp
 import com.umc.footprint.component.DiaryModificationBar
-import com.umc.footprint.component.DiaryModificationBarProp
 import com.umc.footprint.component.ShadowedImage
 import com.umc.footprint.component.TopBar
-import com.umc.footprint.component.diaryCardHeight
-import com.umc.footprint.component.diaryCardWidth
 import com.umc.footprint.component.previewCategorySelectionBarProp
 import com.umc.footprint.component.previewDiaryCardProp
-import com.umc.footprint.component.previewDiaryModificationBarProp
-import com.umc.footprint.core.markerHeight
+import com.umc.footprint.model.prop.DiaryModificationBarProp
+import com.umc.footprint.model.prop.PositionedDiaryCardProp
+import com.umc.footprint.model.prop.VisibleCategorySelectionBarProp
+import com.umc.footprint.util.getDiaryCardTopLeftOffset
 
-data class PositionedDiaryCardProp(
-    val x: Float,
-    val y: Float,
-    val prop: DiaryCardProp,
-)
+private const val maxCategorySelectionBarHeightRatio = 0.6f
 
 @Composable
 fun FootprintScreen(
     mapView: @Composable () -> Unit,
     isCategorySelected: Boolean,
-    categorySelectionBarProp: CategorySelectionBarProp?,
+    categorySelectionBarProp: VisibleCategorySelectionBarProp,
     diaryCardProp: PositionedDiaryCardProp?,
     diaryModificationBarProp: DiaryModificationBarProp?,
     onCategoryButtonClicked: () -> Unit,
     onLocationButtonClicked: () -> Unit,
 ) {
     val density = LocalDensity.current
-    var screenHeight by remember { mutableStateOf(0.dp) }
+    var screenHeight by remember { mutableStateOf<Dp?>(null) }
+    var categorySelectionBarHeight by remember { mutableStateOf<Dp?>(null) }
 
-    var residualCategorySelectionBarProp by remember { mutableStateOf<CategorySelectionBarProp?>(null) }
-    var categorySelectionBarHeightRatio by remember { mutableFloatStateOf(0f) }
-
-    LaunchedEffect(key1 = categorySelectionBarProp) {
-        categorySelectionBarProp?.let { residualCategorySelectionBarProp = it }
-        animate(
-            initialValue = categorySelectionBarHeightRatio,
-            targetValue = if (categorySelectionBarProp != null) 1f else 0f,
-            block = { value, _ -> categorySelectionBarHeightRatio = value },
-        )
-    }
+    val categorySelectionBarOffset by animateDpAsState(
+        animationSpec = tween(durationMillis = 200),
+        targetValue = categorySelectionBarHeight?.let { height ->
+            if (categorySelectionBarProp.isVisible) 0.dp else height
+        } ?: 9999.dp,
+    )
 
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned { screenHeight = with(density) { it.size.height.toDp() } },
     ) {
         // 지도
-        mapView()
+        mapView.invoke()
         // 일기 팝업
-        diaryCardProp?.let { (x, y, prop) ->
+        diaryCardProp?.let { (offset, prop) ->
             Box(
                 modifier = Modifier.offset {
-                    Offset(
-                        x = x - diaryCardWidth.toPx() / 2,
-                        y = y - diaryCardHeight.toPx() - markerHeight.toPx() / 2,
+                    getDiaryCardTopLeftOffset(
+                        density = density,
+                        footprintOffset = offset,
                     ).round()
-                }
+                },
             ) {
                 DiaryCard(prop = prop)
             }
         }
         // 탑 바
         TopBar(
-            showBackground = categorySelectionBarProp != null
+            showBackground = categorySelectionBarProp.isVisible
         )
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .onGloballyPositioned { screenHeight = with(density) { it.size.height.toDp() } }
                 .let {
-                    if (categorySelectionBarProp != null) it.clickable(
+                    if (categorySelectionBarProp.isVisible) it.clickable(
                         indication = null,
                         interactionSource = null,
                     ) {
@@ -110,6 +100,11 @@ fun FootprintScreen(
                     }
                     else it
                 }
+                .offset {
+                    Offset(
+                        x = 0f, y = categorySelectionBarOffset.toPx()
+                    ).round()
+                },
         ) {
             // 플로팅 버튼
             Box(
@@ -128,13 +123,10 @@ fun FootprintScreen(
                         modifier = Modifier.size(72.dp),
                     ) {
                         ShadowedImage(
-                            id = if (isCategorySelected)
-                                R.drawable.ic_floating_button_category_selected
-                            else
-                                R.drawable.ic_floating_button_category_unselected,
+                            id = if (isCategorySelected) R.drawable.ic_floating_button_category_selected
+                            else R.drawable.ic_floating_button_category_unselected,
                             contentDescription = null,
-                            width = 72.dp,
-                            height = 72.dp,
+                            size = DpSize(72.dp, 72.dp),
                         )
                     }
                     // 내 위치로 이동
@@ -145,20 +137,22 @@ fun FootprintScreen(
                         ShadowedImage(
                             id = R.drawable.ic_floating_button_location,
                             contentDescription = null,
-                            width = 72.dp,
-                            height = 72.dp,
+                            size = DpSize(72.dp, 72.dp),
                         )
                     }
                 }
             }
             // 카테고리 메뉴
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = screenHeight * 0.6f * categorySelectionBarHeightRatio)
-            ) {
-                residualCategorySelectionBarProp?.let { prop ->
-                    CategorySelectionBar(prop = prop)
+            screenHeight?.let { screenHeight ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = screenHeight * maxCategorySelectionBarHeightRatio)
+                        .onGloballyPositioned {
+                            categorySelectionBarHeight = with(density) { it.size.height.toDp() }
+                        },
+                ) {
+                    CategorySelectionBar(prop = categorySelectionBarProp.prop)
                 }
             }
         }
@@ -176,12 +170,15 @@ fun PreviewFootprintScreen() {
             mapView = {},
             isCategorySelected = false,
             diaryCardProp = PositionedDiaryCardProp(
-                x = 600f,
-                y = 1500f,
+                offset = Offset(600f, 1500f),
                 prop = previewDiaryCardProp,
             ),
             diaryModificationBarProp = null, // previewDiaryModificationBarProp,
-            categorySelectionBarProp = previewCategorySelectionBarProp,
+            categorySelectionBarProp = VisibleCategorySelectionBarProp(
+                isVisible = false,
+                prop = previewCategorySelectionBarProp,
+                onDismissed = {},
+            ),
             onCategoryButtonClicked = {},
             onLocationButtonClicked = {},
         )

@@ -32,11 +32,9 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class TestActivity : ComponentActivity() {
-    @Inject
-    lateinit var userRepository: UserRepository
-    @Inject
-    lateinit var diaryRepository: DiaryRepository
+class TestActivity: ComponentActivity() {
+    @Inject lateinit var userRepository: UserRepository
+    @Inject lateinit var diaryRepository: DiaryRepository
 
     private val viewModel: FootprintViewModel by viewModels()
 
@@ -51,12 +49,12 @@ class TestActivity : ComponentActivity() {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White)
+                    .background(Color.White),
             ) {
                 NavHost(
                     navController = navigator,
                     startDestination = "footprint",
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     composable(
                         route = "footprint"
@@ -66,7 +64,7 @@ class TestActivity : ComponentActivity() {
                             isMapBlurApplied = false,
                             onNavigateToCategoryApp = {
                                 navigator.navigate("category")
-                            }
+                            },
                         )
                     }
 
@@ -82,7 +80,7 @@ class TestActivity : ComponentActivity() {
                 BottomNavigationBar(
                     selectedTab = NavigationItem.FOOTPRINT,
                     onTabSelected = {},
-                    onFabClick = {}
+                    onFabClick = {},
                 )
             }
         }
@@ -101,7 +99,7 @@ class TestActivity : ComponentActivity() {
 
                 userRepository.login(
                     id = TestValues.ID,
-                    password = TestValues.PASSWORD
+                    password = TestValues.PASSWORD,
                 )
 
                 diaryRepository.createCategory(
@@ -113,7 +111,7 @@ class TestActivity : ComponentActivity() {
                     name = "test category 2",
                     color = CategoryColor.GREEN,
                 )
-                
+
                 diaryRepository.getAllCategoryInfo().forEach { category ->
                     repeat(3) { index ->
                         val place = TestValues.PLACE[index]
@@ -122,8 +120,7 @@ class TestActivity : ComponentActivity() {
                             date = LocalDateTime.now().minusMonths(index.toLong()),
                             content = "test content $index",
                             image = File(
-                                cacheDir,
-                                "test_image_${place.name}.jpg"
+                                cacheDir, "test_image_${place.name}.jpg"
                             ).apply {
                                 FileOutputStream(this).use {
                                     resources.openRawResource(place.imageId).copyTo(it)
@@ -131,7 +128,7 @@ class TestActivity : ComponentActivity() {
                             },
                             latitude = place.latitude,
                             longitude = place.longitude,
-                            locationName = place.name
+                            locationName = place.name,
                         )
                     }
                 }
@@ -141,7 +138,7 @@ class TestActivity : ComponentActivity() {
 
             userRepository.login(
                 id = TestValues.ID,
-                password = TestValues.PASSWORD
+                password = TestValues.PASSWORD,
             )
         }
     }
