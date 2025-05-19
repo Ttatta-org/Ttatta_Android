@@ -30,12 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.component.CategorySelectionBar
-import com.umc.footprint.component.DiaryCard
+import com.umc.footprint.component.card.DiaryCard
 import com.umc.footprint.component.DiaryModificationBar
 import com.umc.footprint.component.ShadowedImage
 import com.umc.footprint.component.TopBar
 import com.umc.footprint.component.previewCategorySelectionBarProp
-import com.umc.footprint.component.previewDiaryCardProp
+import com.umc.footprint.component.card.previewDiaryCardProp
 import com.umc.footprint.model.prop.DiaryModificationBarProp
 import com.umc.footprint.model.prop.PositionedDiaryCardProp
 import com.umc.footprint.model.prop.VisibleCategorySelectionBarProp
