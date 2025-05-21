@@ -27,24 +27,24 @@ fun DiaryCardFront(
     DiaryCardFrame(
         prop = DiaryCardFrameProp(
             date = prop?.date,
-            borderColor = Color(0xFFE5E5E5),
-            backgroundColor = Color(0xFFFFFFFF),
-            contentContainerColor = Color(0xFFF5F5F5),
+            borderColor = prop?.categoryColor?.b ?: Color(0xFF555555),
+            backgroundColor = prop?.categoryColor?.c ?: Color.White,
+            contentContainerColor = prop?.categoryColor?.a ?: Color(0xFFAAAAAA),
             onModifyButtonClicked = prop?.onModifyButtonClicked,
             content = {
                 // 본문
                 if (prop != null) Image(
                     painter = rememberAsyncImagePainter(model = prop.imageUrl),
                     contentDescription = null,
-                    contentScale = ContentScale.Companion.Crop,
-                    modifier = Modifier.Companion.size(220.dp).clip(RoundedCornerShape(8.dp))
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(220.dp).clip(RoundedCornerShape(8.dp))
                 ) else Box(
-                    contentAlignment = Alignment.Companion.Center,
-                    modifier = Modifier.Companion.size(220.dp)
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(220.dp)
                 ) {
                     CircularProgressIndicator(
-                        modifier = Modifier.Companion.size(32.dp),
-                        color = Color.Companion.Primary400,
+                        modifier = Modifier.size(32.dp),
+                        color = Color.Primary400,
                     )
                 }
             },

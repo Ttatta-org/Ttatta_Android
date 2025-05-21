@@ -1,10 +1,16 @@
 package com.umc.footprint.component.card
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
@@ -12,118 +18,208 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.umc.design.CategoryColor
+import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.model.prop.DiaryCardBackProp
 import com.umc.footprint.model.prop.DiaryCardFrontProp
+import com.umc.footprint.model.prop.DiaryCardHorizontalPageArrowDirection
+import com.umc.footprint.model.prop.DiaryCardHorizontalPageArrowProp
 import com.umc.footprint.model.prop.DiaryCardLoadedProp
 import com.umc.footprint.model.prop.DiaryCardProp
 import com.umc.footprint.model.prop.DiaryModificationModeProp
+import com.umc.footprint.util.fadingEdgesHorizontal
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import java.time.LocalDate
-import kotlin.collections.get
+
+private val diaryCardVerticalPadding = 32.dp
 
 @Composable
 fun DiaryCard(prop: DiaryCardProp) {
     val cardRotationAngles = remember { mutableStateMapOf<Long, Float>() }
     val pagerState = rememberPagerState { 1 + (prop.diaryCardLoadedPropMap.keys.maxOrNull() ?: 0) }
+    val isScrollEnabled = prop.diaryCardLoadedPropMap[pagerState.currentPage]?.let {
+        it.diaryModificationModeProp == null
+    } != false
 
     LaunchedEffect(key1 = prop.clusterId) {
         prop.onNewDiaryRequested(0)
     }
 
-    HorizontalPager(
-        state = pagerState,
-        userScrollEnabled = prop.diaryCardLoadedPropMap[pagerState.currentPage]?.let {
-            it.diaryModificationModeProp == null
-        } != false,
-        modifier = Modifier.Companion.width(diaryCardFrameSize.width + diaryCardFrameShadowRadius * 2),
-        pageSpacing = diaryCardFrameShadowRadius * 2,
-        beyondViewportPageCount = 2,
-    ) { page ->
-        val diary = prop.diaryCardLoadedPropMap[page]
-        val rotateAngle = cardRotationAngles[diary?.id] ?: 0f
-
-        LaunchedEffect(key1 = Unit) {
-            prop.onNewDiaryRequested(page + 1)
-        }
-
-        LaunchedEffect(key1 = diary?.isFlipped) {
-            diary?.let { diary ->
-                animate(
-                    initialValue = rotateAngle,
-                    targetValue = if (diary.isFlipped) 180f else 0f,
-                    animationSpec = tween(durationMillis = 200)
-                ) { value, _ ->
-                    cardRotationAngles[diary.id] = value
-                }
-            }
-        }
-
-        Box(
+    Box(
+        modifier = Modifier
+            .width(diaryCardFrameSize.width + diaryCardFrameShadowRadius * 2)
+            .height(diaryCardFrameSize.height + diaryCardFrameShadowRadius + diaryCardFrameShadowYOffset + diaryCardVerticalPadding * 2)
+            .offset(y = -diaryCardVerticalPadding)
+    ) {
+        HorizontalPager(
+            state = pagerState,
+            userScrollEnabled = isScrollEnabled,
             modifier = Modifier
-                .padding(horizontal = diaryCardFrameShadowRadius)
-                .graphicsLayer {
-                    rotationY = rotateAngle
-                    cameraDistance = 8 * density
-                }
-                .clickable(
-                    indication = null,
-                    interactionSource = null,
-                ) {
-                    diary?.let { diary ->
-                        if (diary.diaryModificationModeProp == null) diary.onCardClicked()
-                    }
-                },
-        ) {
-            // 앞면
-            if (rotateAngle < 90f) {
-                DiaryCardFront(
-                    prop = diary?.let { diary ->
-                        DiaryCardFrontProp(
-                            date = diary.date,
-                            imageUrl = diary.imageUrl,
-                            onModifyButtonClicked = diary.onModifyButtonClicked
-                        )
-                    },
-                )
+                .fillMaxSize()
+                .fadingEdgesHorizontal(fadeWidth = diaryCardFrameShadowRadius),
+            pageSpacing = diaryCardFrameShadowRadius * 2,
+            beyondViewportPageCount = 2,
+        ) { page ->
+            val diary = prop.diaryCardLoadedPropMap[page]
+            val rotateAngle = cardRotationAngles[diary?.id] ?: 0f
+
+            LaunchedEffect(key1 = Unit) {
+                prop.onNewDiaryRequested(page + 1)
             }
-            // 뒷면
-            else Box(
-                modifier = Modifier.graphicsLayer { rotationY = 180f }) {
-                DiaryCardBack(
-                    prop = diary?.let { diary ->
-                        DiaryCardBackProp(
-                            date = diary.date,
-                            content = diary.content,
-                            diaryModificationModeProp = diary.diaryModificationModeProp,
-                            onModifyButtonClicked = diary.onModifyButtonClicked
-                        )
+
+            LaunchedEffect(key1 = diary?.isFlipped) {
+                diary?.let { diary ->
+                    animate(
+                        initialValue = rotateAngle,
+                        targetValue = if (diary.isFlipped) 180f else 0f,
+                        animationSpec = tween(durationMillis = 200)
+                    ) { value, _ ->
+                        cardRotationAngles[diary.id] = value
+                    }
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .padding(
+                        horizontal = diaryCardFrameShadowRadius, vertical = diaryCardVerticalPadding
+                    )
+                    .graphicsLayer {
+                        rotationY = rotateAngle
+                        cameraDistance = 8 * density
+                    }
+                    .clickable(
+                        indication = null,
+                        interactionSource = null,
+                    ) {
+                        diary?.let { diary ->
+                            if (diary.diaryModificationModeProp == null) diary.onCardClicked()
+                        }
                     },
-                )
+            ) {
+                // 앞면
+                if (rotateAngle < 90f) {
+                    DiaryCardFront(
+                        prop = diary?.let { diary ->
+                            DiaryCardFrontProp(
+                                date = diary.date,
+                                categoryColor = diary.categoryColor,
+                                imageUrl = diary.imageUrl,
+                                onModifyButtonClicked = diary.onModifyButtonClicked
+                            )
+                        },
+                    )
+                }
+                // 뒷면
+                else Box(
+                    modifier = Modifier.graphicsLayer { rotationY = 180f },
+                ) {
+                    DiaryCardBack(
+                        prop = diary?.let { diary ->
+                            DiaryCardBackProp(
+                                date = diary.date,
+                                categoryColor = diary.categoryColor,
+                                content = diary.content,
+                                diaryModificationModeProp = diary.diaryModificationModeProp,
+                                onModifyButtonClicked = diary.onModifyButtonClicked
+                            )
+                        },
+                    )
+                }
+            }
+        }
+
+        // 좌우 스크롤 표지 화살표
+        Box(
+            modifier = Modifier.padding(vertical = diaryCardVerticalPadding)
+        ) {
+            val scope = rememberCoroutineScope()
+            var targetPage by remember { mutableIntStateOf(0) }
+
+            val currentDiaryCategoryColor = prop.diaryCardLoadedPropMap[targetPage]?.categoryColor
+            val isLeftPageExist = targetPage > 0
+            val isRightPageExist = prop.diaryCardLoadedPropMap.containsKey(targetPage + 1)
+
+            LaunchedEffect(pagerState) {
+                scope.launch {
+                    snapshotFlow { pagerState.targetPage }.collect { targetPage = it }
+                }
+            }
+
+            DiaryCardHorizontalPageArrowDirection.entries.forEach { direction ->
+                Box(
+                    modifier = Modifier.offset(
+                        x = when (direction) {
+                            DiaryCardHorizontalPageArrowDirection.LEFT -> -diaryCardHorizontalPageArrowSize.width
+                            DiaryCardHorizontalPageArrowDirection.RIGHT -> diaryCardFrameSize.width + diaryCardFrameShadowRadius * 2
+                        },
+                        y = diaryCardFrameSize.height / 2 - diaryCardHorizontalPageArrowSize.height / 2
+                    )
+                ) {
+                    AnimatedVisibility(
+                        visible = when (direction) {
+                            DiaryCardHorizontalPageArrowDirection.LEFT -> isLeftPageExist
+                            DiaryCardHorizontalPageArrowDirection.RIGHT -> isRightPageExist
+                        },
+                        enter = fadeIn(tween(durationMillis = 200)),
+                        exit = fadeOut(tween(durationMillis = 200)),
+                    ) {
+                        currentDiaryCategoryColor?.let { categoryColor ->
+                            DiaryCardHorizontalPageArrow(
+                                prop = DiaryCardHorizontalPageArrowProp(
+                                    direction = direction,
+                                    outerColor = categoryColor.a,
+                                    innerColor = categoryColor.b,
+                                    colorAnimationDuration = 200,
+                                    onClicked = {
+                                        if (isScrollEnabled) scope.launch {
+                                            pagerState.animateScrollToPage(
+                                                page = pagerState.targetPage + when (direction) {
+                                                    DiaryCardHorizontalPageArrowDirection.LEFT -> -1
+                                                    DiaryCardHorizontalPageArrowDirection.RIGHT -> 1
+                                                }
+                                            )
+                                        }
+                                    },
+                                )
+                            )
+                        }
+                    }
+                }
             }
         }
     }
 }
 
+val previewDiaryCardLoadedProp = DiaryCardLoadedProp(
+    id = 1L,
+    date = LocalDate.now(),
+    categoryColor = CategoryColor.RED,
+    imageUrl = "",
+    content = "This is diary.",
+    isFlipped = false,
+    diaryModificationModeProp = null,
+    onCardClicked = {},
+    onModifyButtonClicked = {},
+)
+
 val previewDiaryCardProp = DiaryCardProp(
     clusterId = 1L,
     diaryCardLoadedPropMap = List(10) { index ->
-        index to DiaryCardLoadedProp(
-            id = index.toLong(),
-            date = LocalDate.now(),
-            imageUrl = "",
-            content = "This is diary.",
-            isFlipped = false,
-            diaryModificationModeProp = null,
-            onCardClicked = {},
-            onModifyButtonClicked = {},
-        )
+        index to previewDiaryCardLoadedProp
     }.toMap(),
     onNewDiaryRequested = {},
 )
@@ -131,37 +227,44 @@ val previewDiaryCardProp = DiaryCardProp(
 @Preview(showBackground = true)
 @Composable
 fun PreviewDiaryCard() {
+    val scope = rememberCoroutineScope()
     val diaryCardLoadedPropMap = remember { mutableStateMapOf<Int, DiaryCardLoadedProp>() }
+
     val makeNewDiaryCardLoadedProp: () -> Unit = remember {
         {
             val page = diaryCardLoadedPropMap.size
             val id = diaryCardLoadedPropMap.size.toLong()
-            diaryCardLoadedPropMap[page] = DiaryCardLoadedProp(
+            diaryCardLoadedPropMap[page] = previewDiaryCardLoadedProp.copy(
                 id = id,
-                date = LocalDate.now(),
-                imageUrl = "",
-                content = "This is diary.",
-                isFlipped = false,
-                diaryModificationModeProp = null,
+                categoryColor = CategoryColor.entries.random(),
                 onCardClicked = {
-                    val diary = diaryCardLoadedPropMap[page]!!
-                    diaryCardLoadedPropMap[page] = diary.copy(isFlipped = !diary.isFlipped)
+                    diaryCardLoadedPropMap[page]?.let { diary ->
+                        diaryCardLoadedPropMap[page] = diary.copy(isFlipped = !diary.isFlipped)
+                    }
                 },
                 onModifyButtonClicked = {
-                    val diary = diaryCardLoadedPropMap[page]!!
-                    var contentState by mutableStateOf(diary.content)
-                    diaryCardLoadedPropMap[page] = diary.copy(
-                        diaryModificationModeProp = DiaryModificationModeProp(
-                            contentValue = contentState,
-                            onContentValueChanged = { contentState = it },
-                            onModificationDone = {
+                    diaryCardLoadedPropMap[page]?.let { diary ->
+                        val contentState = MutableStateFlow(diary.content)
+
+                        scope.launch {
+                            contentState.collect { currentContent ->
                                 diaryCardLoadedPropMap[page] = diary.copy(
-                                    content = contentState,
-                                    diaryModificationModeProp = null,
+                                    isFlipped = true,
+                                    diaryModificationModeProp = DiaryModificationModeProp(
+                                        contentValue = currentContent,
+                                        onContentValueChanged = { contentState.value = it },
+                                        onModificationDone = {
+                                            diaryCardLoadedPropMap[page] = diary.copy(
+                                                isFlipped = true,
+                                                content = currentContent,
+                                                diaryModificationModeProp = null,
+                                            )
+                                        },
+                                    ),
                                 )
-                            },
-                        ),
-                    )
+                            }
+                        }
+                    }
                 },
             )
         }
@@ -171,16 +274,24 @@ fun PreviewDiaryCard() {
         repeat(3) { makeNewDiaryCardLoadedProp() }
     }
 
-    Box(
-        contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()
-    ) {
-        DiaryCard(
-            prop = DiaryCardProp(
-                clusterId = 1L,
-                diaryCardLoadedPropMap = diaryCardLoadedPropMap,
-                onNewDiaryRequested = { makeNewDiaryCardLoadedProp() },
+    ThemeProvider {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(color = Color(0xFFD7F3D0))
+        ) {
+            DiaryCard(
+                prop = DiaryCardProp(
+                    clusterId = 1L,
+                    diaryCardLoadedPropMap = diaryCardLoadedPropMap,
+                    onNewDiaryRequested = onNewDiaryRequested@{ page ->
+                        if (diaryCardLoadedPropMap.containsKey(page) || page >= 10) return@onNewDiaryRequested
+                        makeNewDiaryCardLoadedProp()
+                    },
+                )
             )
-        )
+        }
     }
 }
 

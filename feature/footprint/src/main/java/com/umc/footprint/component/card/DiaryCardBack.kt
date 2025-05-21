@@ -1,6 +1,7 @@
 package com.umc.footprint.component.card
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,6 +31,7 @@ import com.umc.footprint.model.prop.DiaryCardBackProp
 import com.umc.footprint.model.prop.DiaryCardFrameProp
 import java.time.LocalDate
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DiaryCardBack(
     prop: DiaryCardBackProp?,
@@ -37,15 +39,17 @@ fun DiaryCardBack(
     DiaryCardFrame(
         prop = DiaryCardFrameProp(
             date = prop?.date,
-            borderColor = Color(0xFFE5E5E5),
-            backgroundColor = Color(0xFFFFFFFF),
-            contentContainerColor = Color(0xFFF5F5F5),
+            borderColor = prop?.categoryColor?.b ?: Color(0xFF555555),
+            backgroundColor = prop?.categoryColor?.c ?: Color.White,
+            contentContainerColor = prop?.categoryColor?.a ?: Color(0xFFAAAAAA),
             onModifyButtonClicked = prop?.onModifyButtonClicked,
             content = {
                 // 본문
                 if (prop != null) Box(
-                    contentAlignment = Alignment.Companion.CenterStart,
-                    modifier = Modifier.Companion.padding(16.dp).fillMaxSize(),
+                    contentAlignment = Alignment.CenterStart,
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxSize(),
                 ) {
                     if (prop.diaryModificationModeProp != null) {
                         val focusRequester = remember { FocusRequester() }
@@ -54,32 +58,34 @@ fun DiaryCardBack(
                             value = prop.diaryModificationModeProp.contentValue,
                             onValueChange = prop.diaryModificationModeProp.onContentValueChanged,
                             keyboardOptions = KeyboardOptions(
-                                imeAction = ImeAction.Companion.Done,
+                                imeAction = ImeAction.Done,
                             ),
                             keyboardActions = KeyboardActions(
                                 onDone = { prop.diaryModificationModeProp.onModificationDone() },
                             ),
                             textStyle = TextStyle(
-                                color = Color.Companion.Grey500,
+                                color = Color.Grey500,
                                 fontSize = 13.sp,
                             ),
-                            modifier = Modifier.Companion.focusRequester(focusRequester)
+                            modifier = Modifier.focusRequester(focusRequester),
                         )
 
                         LaunchedEffect(key1 = Unit) { focusRequester.requestFocus() }
                     } else Text(
-                        text = prop.content, style = TextStyle(
-                            color = Color.Companion.Grey500,
+                        text = prop.content,
+                        style = TextStyle(
+                            color = Color.Grey500,
                             fontSize = 13.sp,
-                        ), modifier = Modifier.Companion.fillMaxWidth()
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 } else Box(
-                    contentAlignment = Alignment.Companion.Center,
-                    modifier = Modifier.Companion.size(220.dp),
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(220.dp),
                 ) {
                     CircularProgressIndicator(
-                        color = Color.Companion.Primary400,
-                        modifier = Modifier.Companion.size(32.dp),
+                        color = Color.Primary400,
+                        modifier = Modifier.size(32.dp),
                     )
                 }
             },
