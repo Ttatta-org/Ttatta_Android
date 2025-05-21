@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
@@ -111,7 +112,9 @@ fun DiaryCard(prop: DiaryCardProp) {
                     },
             ) {
                 // 앞면
-                if (rotateAngle < 90f) {
+                Box(
+                    modifier = Modifier.alpha(if (rotateAngle < 90f) 1f else 0f),
+                ) {
                     DiaryCardFront(
                         prop = diary?.let { diary ->
                             DiaryCardFrontProp(
@@ -124,8 +127,10 @@ fun DiaryCard(prop: DiaryCardProp) {
                     )
                 }
                 // 뒷면
-                else Box(
-                    modifier = Modifier.graphicsLayer { rotationY = 180f },
+                Box(
+                    modifier = Modifier
+                        .graphicsLayer { rotationY = 180f }
+                        .alpha(if (rotateAngle < 90f) 0f else 1f),
                 ) {
                     DiaryCardBack(
                         prop = diary?.let { diary ->
