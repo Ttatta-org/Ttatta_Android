@@ -18,14 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.umc.design.Grey500
-import com.umc.design.Primary400
+import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.model.prop.DiaryCardBackProp
 import com.umc.footprint.model.prop.DiaryCardFrameProp
@@ -36,12 +34,14 @@ import java.time.LocalDate
 fun DiaryCardBack(
     prop: DiaryCardBackProp?,
 ) {
+    val colors = LocalColorTheme.current
+
     DiaryCardFrame(
         prop = DiaryCardFrameProp(
             date = prop?.date,
-            borderColor = prop?.categoryColor?.b ?: Color(0xFF555555),
-            backgroundColor = prop?.categoryColor?.c ?: Color.White,
-            contentContainerColor = prop?.categoryColor?.a ?: Color(0xFFAAAAAA),
+            borderColor = prop?.categoryColor?.b ?: colors.primary[400],
+            backgroundColor = prop?.categoryColor?.c ?: colors.secondary[200],
+            contentContainerColor = prop?.categoryColor?.a ?: colors.secondary[300],
             onModifyButtonClicked = prop?.onModifyButtonClicked,
             content = {
                 // 본문
@@ -64,7 +64,7 @@ fun DiaryCardBack(
                                 onDone = { prop.diaryModificationModeProp.onModificationDone() },
                             ),
                             textStyle = TextStyle(
-                                color = Color.Grey500,
+                                color = colors.grey[700],
                                 fontSize = 13.sp,
                             ),
                             modifier = Modifier.focusRequester(focusRequester),
@@ -74,7 +74,7 @@ fun DiaryCardBack(
                     } else Text(
                         text = prop.content,
                         style = TextStyle(
-                            color = Color.Grey500,
+                            color = colors.grey[700],
                             fontSize = 13.sp,
                         ),
                         modifier = Modifier.fillMaxWidth(),
@@ -84,7 +84,7 @@ fun DiaryCardBack(
                     modifier = Modifier.size(220.dp),
                 ) {
                     CircularProgressIndicator(
-                        color = Color.Primary400,
+                        color = colors.primary[400],
                         modifier = Modifier.size(32.dp),
                     )
                 }

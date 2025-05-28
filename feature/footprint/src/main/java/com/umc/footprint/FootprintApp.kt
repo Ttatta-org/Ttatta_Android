@@ -103,6 +103,7 @@ fun FootprintApp(
                 diaryCardLoadedPropMap[diary.id] = DiaryCardLoadedProp(
                     id = diary.id,
                     date = diary.date,
+                    categoryColor = diary.color,
                     imageUrl = diary.imageUrl,
                     content = diary.content,
                     isFlipped = false,
@@ -128,11 +129,12 @@ fun FootprintApp(
             val diaryCardTopLeft = getDiaryCardTopLeftOffset(
                 density = density,
                 footprintOffset = event.offset,
+                includeArrowArea = true,
             )
 
             val isIncluded = calculateInclusion(
                 innerOffset = diaryCardTopLeft,
-                innerSize = with(density) { DesignConstant.DiaryCardSize.toSize() },
+                innerSize = with(density) { DesignConstant.DiaryCardSizeWithArrowArea.toSize() },
                 outerOffset = Offset.Zero,
                 outerSize = mapViewSize,
             )

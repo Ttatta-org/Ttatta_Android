@@ -32,7 +32,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.umc.design.CategoryColor
+import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
+import com.umc.footprint.core.DesignConstant
 import com.umc.footprint.model.prop.DiaryCardBackProp
 import com.umc.footprint.model.prop.DiaryCardFrontProp
 import com.umc.footprint.model.prop.DiaryCardHorizontalPageArrowDirection
@@ -49,6 +51,7 @@ private val diaryCardVerticalPadding = 32.dp
 
 @Composable
 fun DiaryCard(prop: DiaryCardProp) {
+    val colors = LocalColorTheme.current
     val cardRotationAngles = remember { mutableStateMapOf<Long, Float>() }
     val pagerState = rememberPagerState { 1 + (prop.diaryCardLoadedPropMap.keys.maxOrNull() ?: 0) }
     val isScrollEnabled = prop.diaryCardLoadedPropMap[pagerState.currentPage]?.let {
@@ -61,8 +64,8 @@ fun DiaryCard(prop: DiaryCardProp) {
 
     Box(
         modifier = Modifier
-            .width(diaryCardFrameSize.width + diaryCardFrameShadowRadius * 2)
-            .height(diaryCardFrameSize.height + diaryCardFrameShadowRadius + diaryCardFrameShadowYOffset + diaryCardVerticalPadding * 2)
+            .width(DesignConstant.DiaryCardSizeWithShadowArea.width)
+            .height(DesignConstant.DiaryCardSizeWithShadowArea.height + diaryCardVerticalPadding * 2)
             .offset(y = -diaryCardVerticalPadding)
     ) {
         HorizontalPager(
@@ -70,8 +73,8 @@ fun DiaryCard(prop: DiaryCardProp) {
             userScrollEnabled = isScrollEnabled,
             modifier = Modifier
                 .fillMaxSize()
-                .fadingEdgesHorizontal(fadeWidth = diaryCardFrameShadowRadius),
-            pageSpacing = diaryCardFrameShadowRadius * 2,
+                .fadingEdgesHorizontal(fadeWidth = DesignConstant.DiaryCardFrameShadowRadius),
+            pageSpacing = DesignConstant.DiaryCardFrameShadowRadius * 2,
             beyondViewportPageCount = 2,
         ) { page ->
             val diary = prop.diaryCardLoadedPropMap[page]
@@ -96,7 +99,8 @@ fun DiaryCard(prop: DiaryCardProp) {
             Box(
                 modifier = Modifier
                     .padding(
-                        horizontal = diaryCardFrameShadowRadius, vertical = diaryCardVerticalPadding
+                        horizontal = DesignConstant.DiaryCardFrameShadowRadius,
+                        vertical = diaryCardVerticalPadding,
                     )
                     .graphicsLayer {
                         rotationY = rotateAngle
@@ -168,10 +172,10 @@ fun DiaryCard(prop: DiaryCardProp) {
                 Box(
                     modifier = Modifier.offset(
                         x = when (direction) {
-                            DiaryCardHorizontalPageArrowDirection.LEFT -> -diaryCardHorizontalPageArrowSize.width
-                            DiaryCardHorizontalPageArrowDirection.RIGHT -> diaryCardFrameSize.width + diaryCardFrameShadowRadius * 2
+                            DiaryCardHorizontalPageArrowDirection.LEFT -> -DesignConstant.DiaryCardHorizontalPageArrowSize.width
+                            DiaryCardHorizontalPageArrowDirection.RIGHT -> DesignConstant.DiaryCardSizeWithShadowArea.width
                         },
-                        y = diaryCardFrameSize.height / 2 - diaryCardHorizontalPageArrowSize.height / 2
+                        y = DesignConstant.DiaryCardSize.height / 2 - DesignConstant.DiaryCardHorizontalPageArrowSize.height / 2
                     )
                 ) {
                     AnimatedVisibility(
@@ -182,26 +186,24 @@ fun DiaryCard(prop: DiaryCardProp) {
                         enter = fadeIn(tween(durationMillis = 200)),
                         exit = fadeOut(tween(durationMillis = 200)),
                     ) {
-                        currentDiaryCategoryColor?.let { categoryColor ->
-                            DiaryCardHorizontalPageArrow(
-                                prop = DiaryCardHorizontalPageArrowProp(
-                                    direction = direction,
-                                    outerColor = categoryColor.a,
-                                    innerColor = categoryColor.b,
-                                    colorAnimationDuration = 200,
-                                    onClicked = {
-                                        if (isScrollEnabled) scope.launch {
-                                            pagerState.animateScrollToPage(
-                                                page = pagerState.targetPage + when (direction) {
-                                                    DiaryCardHorizontalPageArrowDirection.LEFT -> -1
-                                                    DiaryCardHorizontalPageArrowDirection.RIGHT -> 1
-                                                }
-                                            )
-                                        }
-                                    },
-                                )
+                        DiaryCardHorizontalPageArrow(
+                            prop = DiaryCardHorizontalPageArrowProp(
+                                direction = direction,
+                                outerColor = currentDiaryCategoryColor?.a ?: colors.primary[400],
+                                innerColor = currentDiaryCategoryColor?.b ?: colors.secondary[200],
+                                colorAnimationDuration = 200,
+                                onClicked = {
+                                    if (isScrollEnabled) scope.launch {
+                                        pagerState.animateScrollToPage(
+                                            page = pagerState.targetPage + when (direction) {
+                                                DiaryCardHorizontalPageArrowDirection.LEFT -> -1
+                                                DiaryCardHorizontalPageArrowDirection.RIGHT -> 1
+                                            }
+                                        )
+                                    }
+                                },
                             )
-                        }
+                        )
                     }
                 }
             }

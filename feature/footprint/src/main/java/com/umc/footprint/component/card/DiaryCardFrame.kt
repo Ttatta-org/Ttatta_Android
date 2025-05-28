@@ -42,36 +42,34 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.R
+import com.umc.footprint.core.DesignConstant
 import com.umc.footprint.model.prop.DiaryCardFrameProp
 import java.time.LocalDate
 
-val diaryCardFrameSize = DpSize(249.dp, 298.dp)
-val diaryCardFrameShadowRadius = 10.dp
-val diaryCardFrameShadowYOffset = 4.dp
-private val contentSize = DpSize(220.dp, 220.dp)
-private val contentOffset = DpOffset(14.dp, 53.dp)
+val contentSize = DpSize(220.dp, 220.dp)
+val contentOffset = DpOffset(14.dp, 53.dp)
 private val contentBorderRadius = 8.dp
-private const val path = "M14 0.75H234.148C241.466 0.75 247.398 6.68223 247.398 14V272.449C247.398 279.767 241.466 285.699 234.148 285.699H141.316C136.516 285.699 132.144 288.463 130.085 292.8C127.339 298.583 119.109 298.583 116.363 292.8C114.304 288.463 109.933 285.699 105.133 285.699H14C6.68231 285.699 0.750132 279.767 0.75 272.449V14C0.75 6.68223 6.68223 0.75 14 0.75Z"
+const val path = "M14 0.75H234.148C241.466 0.75 247.398 6.68223 247.398 14V272.449C247.398 279.767 241.466 285.699 234.148 285.699H141.316C136.516 285.699 132.144 288.463 130.085 292.8C127.339 298.583 119.109 298.583 116.363 292.8C114.304 288.463 109.933 285.699 105.133 285.699H14C6.68231 285.699 0.750132 279.767 0.75 272.449V14C0.75 6.68223 6.68223 0.75 14 0.75Z"
 
 @Composable
 fun DiaryCardFrame(prop: DiaryCardFrameProp) {
     val density = LocalDensity.current
     val path = remember { Path().apply { addSvg(pathData = path) } }
-    val scaleFactor = remember { with(density) { diaryCardFrameSize.width.toPx() } / path.getBounds().width }
+    val scaleFactor = remember { with(density) { DesignConstant.DiaryCardSize.width.toPx() } / path.getBounds().width }
 
     Box(
-        modifier = Modifier.size(diaryCardFrameSize)
+        modifier = Modifier.size(DesignConstant.DiaryCardSize)
     ) {
         // 그림자
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
                 .blur(
-                    radiusX = diaryCardFrameShadowRadius,
-                    radiusY = diaryCardFrameShadowRadius,
+                    radiusX = DesignConstant.DiaryCardFrameShadowRadius,
+                    radiusY = DesignConstant.DiaryCardFrameShadowRadius,
                     edgeTreatment = BlurredEdgeTreatment.Unbounded,
                 )
-                .offset(y = diaryCardFrameShadowYOffset)
+                .offset(y = DesignConstant.DiaryCardFrameShadowYOffset)
         ) {
             scale(scale = scaleFactor, pivot = Offset.Zero) {
                 drawPath(
@@ -178,7 +176,8 @@ private val previewDiaryCardFrameProp = DiaryCardFrameProp(
         ) {
             Text(text = "DiaryCardFrame")
         }
-    })
+    },
+)
 
 @Preview(showBackground = true)
 @Composable
