@@ -64,9 +64,14 @@ class DiaryRepositoryImpl @Inject constructor(
         val response = serverApi.withAuth(authPreference) {
             getMapDiary(requestNum = page, clusterId = clusterId, diaryCategoryId = categoryId)
         }
+
+        val categories = getAllCategoryInfo()
+        val targetCategory = categories.find { it.id == response.diaryCategoryId }
+
         return DiaryForCard(
             id = response.diaryId!!,
             date = response.date!!.toLocalDate(),
+            color = targetCategory?.color,
             content = response.content!!,
             imageUrl = response.image!!,
         )
