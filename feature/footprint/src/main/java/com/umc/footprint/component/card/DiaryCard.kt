@@ -35,7 +35,9 @@ import com.umc.design.CategoryColor
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.core.DesignConstant
+import com.umc.footprint.model.prop.DiaryCardBackLoadedProp
 import com.umc.footprint.model.prop.DiaryCardBackProp
+import com.umc.footprint.model.prop.DiaryCardFrontLoadedProp
 import com.umc.footprint.model.prop.DiaryCardFrontProp
 import com.umc.footprint.model.prop.DiaryCardHorizontalPageArrowDirection
 import com.umc.footprint.model.prop.DiaryCardHorizontalPageArrowProp
@@ -74,7 +76,6 @@ fun DiaryCard(prop: DiaryCardProp) {
             modifier = Modifier
                 .fillMaxSize()
                 .fadingEdgesHorizontal(fadeWidth = DesignConstant.DiaryCardFrameShadowRadius),
-            pageSpacing = DesignConstant.DiaryCardFrameShadowRadius * 2,
             beyondViewportPageCount = 2,
         ) { page ->
             val diary = prop.diaryCardLoadedPropMap[page]
@@ -89,7 +90,7 @@ fun DiaryCard(prop: DiaryCardProp) {
                     animate(
                         initialValue = rotateAngle,
                         targetValue = if (diary.isFlipped) 180f else 0f,
-                        animationSpec = tween(durationMillis = 200)
+                        animationSpec = tween(durationMillis = 200),
                     ) { value, _ ->
                         cardRotationAngles[diary.id] = value
                     }
@@ -120,14 +121,17 @@ fun DiaryCard(prop: DiaryCardProp) {
                     modifier = Modifier.alpha(if (rotateAngle < 90f) 1f else 0f),
                 ) {
                     DiaryCardFront(
-                        prop = diary?.let { diary ->
-                            DiaryCardFrontProp(
-                                date = diary.date,
-                                categoryColor = diary.categoryColor,
-                                imageUrl = diary.imageUrl,
-                                onModifyButtonClicked = diary.onModifyButtonClicked
-                            )
-                        },
+                        prop = DiaryCardFrontProp(
+                            defaultColor = if (page == 0) prop.defaultCategoryColor else prop.diaryCardLoadedPropMap[page - 1]?.categoryColor,
+                            prop = diary?.let { diary ->
+                                DiaryCardFrontLoadedProp(
+                                    date = diary.date,
+                                    categoryColor = diary.categoryColor,
+                                    imageUrl = diary.imageUrl,
+                                    onModifyButtonClicked = diary.onModifyButtonClicked
+                                )
+                            },
+                        ),
                     )
                 }
                 // 뒷면
@@ -137,15 +141,18 @@ fun DiaryCard(prop: DiaryCardProp) {
                         .alpha(if (rotateAngle < 90f) 0f else 1f),
                 ) {
                     DiaryCardBack(
-                        prop = diary?.let { diary ->
-                            DiaryCardBackProp(
-                                date = diary.date,
-                                categoryColor = diary.categoryColor,
-                                content = diary.content,
-                                diaryModificationModeProp = diary.diaryModificationModeProp,
-                                onModifyButtonClicked = diary.onModifyButtonClicked
-                            )
-                        },
+                        prop = DiaryCardBackProp(
+                            defaultColor = if (page == 0) prop.defaultCategoryColor else prop.diaryCardLoadedPropMap[page - 1]?.categoryColor,
+                            prop = diary?.let { diary ->
+                                DiaryCardBackLoadedProp(
+                                    date = diary.date,
+                                    categoryColor = diary.categoryColor,
+                                    content = diary.content,
+                                    diaryModificationModeProp = diary.diaryModificationModeProp,
+                                    onModifyButtonClicked = diary.onModifyButtonClicked
+                                )
+                            },
+                        ),
                     )
                 }
             }
@@ -183,14 +190,14 @@ fun DiaryCard(prop: DiaryCardProp) {
                             DiaryCardHorizontalPageArrowDirection.LEFT -> isLeftPageExist
                             DiaryCardHorizontalPageArrowDirection.RIGHT -> isRightPageExist
                         },
-                        enter = fadeIn(tween(durationMillis = 200)),
-                        exit = fadeOut(tween(durationMillis = 200)),
+                        enter = fadeIn(tween(durationMillis = diaryCardFrameAnimationDurationMillis)),
+                        exit = fadeOut(tween(durationMillis = diaryCardFrameAnimationDurationMillis)),
                     ) {
                         DiaryCardHorizontalPageArrow(
                             prop = DiaryCardHorizontalPageArrowProp(
                                 direction = direction,
-                                outerColor = currentDiaryCategoryColor?.a ?: colors.primary[400],
-                                innerColor = currentDiaryCategoryColor?.b ?: colors.secondary[200],
+                                outerColor = currentDiaryCategoryColor?.b ?: colors.primary[400],
+                                innerColor = currentDiaryCategoryColor?.a ?: colors.secondary[200],
                                 colorAnimationDuration = 200,
                                 onClicked = {
                                     if (isScrollEnabled) scope.launch {
@@ -225,6 +232,7 @@ val previewDiaryCardLoadedProp = DiaryCardLoadedProp(
 
 val previewDiaryCardProp = DiaryCardProp(
     clusterId = 1L,
+    defaultCategoryColor = CategoryColor.BLUE,
     diaryCardLoadedPropMap = List(10) { index ->
         index to previewDiaryCardLoadedProp
     }.toMap(),
@@ -291,6 +299,7 @@ fun PreviewDiaryCard() {
             DiaryCard(
                 prop = DiaryCardProp(
                     clusterId = 1L,
+                    defaultCategoryColor = CategoryColor.BLUE,
                     diaryCardLoadedPropMap = diaryCardLoadedPropMap,
                     onNewDiaryRequested = onNewDiaryRequested@{ page ->
                         if (diaryCardLoadedPropMap.containsKey(page) || page >= 10) return@onNewDiaryRequested

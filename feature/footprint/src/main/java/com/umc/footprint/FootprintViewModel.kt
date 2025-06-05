@@ -260,7 +260,7 @@ class FootprintViewModel @Inject constructor(
         }
     }
 
-    private fun markMap(
+    private suspend fun markMap(
         latitude: Double,
         longitude: Double,
         diaryId: Long,
@@ -279,6 +279,7 @@ class FootprintViewModel @Inject constructor(
                         latitude = latitude,
                         longitude = longitude,
                         clusterId = clusterId,
+                        color = color,
                     )
                     previousClickedClusterId = clusterId
                 } else {
@@ -291,6 +292,7 @@ class FootprintViewModel @Inject constructor(
                 }
             }
         )
-        viewModelScope.launch { mapHandler.addMarker(marker) }
+
+        mapHandler.addMarker(marker)
     }
 }

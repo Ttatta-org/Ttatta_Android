@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
+import com.umc.footprint.model.prop.DiaryCardBackLoadedProp
 import com.umc.footprint.model.prop.DiaryCardBackProp
 import com.umc.footprint.model.prop.DiaryCardFrameProp
 import java.time.LocalDate
@@ -32,36 +33,37 @@ import java.time.LocalDate
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DiaryCardBack(
-    prop: DiaryCardBackProp?,
+    prop: DiaryCardBackProp,
 ) {
     val colors = LocalColorTheme.current
+    val categoryColor = prop.prop?.categoryColor ?: prop.defaultColor
 
     DiaryCardFrame(
         prop = DiaryCardFrameProp(
-            date = prop?.date,
-            borderColor = prop?.categoryColor?.b ?: colors.primary[400],
-            backgroundColor = prop?.categoryColor?.c ?: colors.secondary[200],
-            contentContainerColor = prop?.categoryColor?.a ?: colors.secondary[300],
-            onModifyButtonClicked = prop?.onModifyButtonClicked,
+            date = prop.prop?.date,
+            borderColor = categoryColor?.b ?: colors.primary[400],
+            backgroundColor = categoryColor?.c ?: colors.secondary[200],
+            contentContainerColor = categoryColor?.a ?: colors.secondary[300],
+            onModifyButtonClicked = prop.prop?.onModifyButtonClicked,
             content = {
                 // 본문
-                if (prop != null) Box(
+                if (prop.prop != null) Box(
                     contentAlignment = Alignment.CenterStart,
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxSize(),
                 ) {
-                    if (prop.diaryModificationModeProp != null) {
+                    if (prop.prop.diaryModificationModeProp != null) {
                         val focusRequester = remember { FocusRequester() }
 
                         BasicTextField(
-                            value = prop.diaryModificationModeProp.contentValue,
-                            onValueChange = prop.diaryModificationModeProp.onContentValueChanged,
+                            value = prop.prop.diaryModificationModeProp.contentValue,
+                            onValueChange = prop.prop.diaryModificationModeProp.onContentValueChanged,
                             keyboardOptions = KeyboardOptions(
                                 imeAction = ImeAction.Done,
                             ),
                             keyboardActions = KeyboardActions(
-                                onDone = { prop.diaryModificationModeProp.onModificationDone() },
+                                onDone = { prop.prop.diaryModificationModeProp.onModificationDone() },
                             ),
                             textStyle = TextStyle(
                                 color = colors.grey[700],
@@ -72,7 +74,7 @@ fun DiaryCardBack(
 
                         LaunchedEffect(key1 = Unit) { focusRequester.requestFocus() }
                     } else Text(
-                        text = prop.content,
+                        text = prop.prop.content,
                         style = TextStyle(
                             color = colors.grey[700],
                             fontSize = 13.sp,
@@ -94,10 +96,12 @@ fun DiaryCardBack(
 }
 
 private val previewDiaryCardBackProp = DiaryCardBackProp(
-    date = LocalDate.now(),
-    content = "This is diary.",
-    diaryModificationModeProp = null,
-    onModifyButtonClicked = {},
+    prop = DiaryCardBackLoadedProp(
+        date = LocalDate.now(),
+        content = "This is diary.",
+        diaryModificationModeProp = null,
+        onModifyButtonClicked = {},
+    ),
 )
 
 @Preview

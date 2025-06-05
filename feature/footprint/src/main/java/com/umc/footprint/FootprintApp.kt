@@ -125,6 +125,8 @@ fun FootprintApp(
 
     // 발자국 마커가 클릭되었을 때의 처리
     LaunchedEffect(key1 = viewModel.footprintMarkerClickedEvent) {
+        markerEvent = null
+
         viewModel.footprintMarkerClickedEvent?.let { event ->
             val diaryCardTopLeft = getDiaryCardTopLeftOffset(
                 density = density,
@@ -144,6 +146,7 @@ fun FootprintApp(
                 markerEvent = ModifiedFootprintMarkerClickedEvent(
                     offset = event.offset,
                     clusterId = event.clusterId,
+                    color = event.color,
                 )
             } else {
                 val offsetFromCenter = Offset(
@@ -164,13 +167,11 @@ fun FootprintApp(
                         markerEvent = ModifiedFootprintMarkerClickedEvent(
                             offset = mapViewSize.center + offsetFromCenter,
                             clusterId = event.clusterId,
+                            color = event.color,
                         )
                     },
                 )
             }
-        } ?: run {
-            // 마커 클릭 이벤트가 해지된 상태라면 카드를 없앰
-            markerEvent = null
         }
     }
 
@@ -203,6 +204,7 @@ fun FootprintApp(
                 offset = event.offset,
                 prop = DiaryCardProp(
                     clusterId = event.clusterId,
+                    defaultCategoryColor = event.color,
                     diaryCardLoadedPropMap = viewModel.diaryMap.mapValues { (_, value) ->
                         diaryCardLoadedPropMap[value.id]
                     },
