@@ -117,8 +117,14 @@ class FootprintViewModel @Inject constructor(
                     markMap(
                         latitude = it.latitude,
                         longitude = it.longitude,
-                        diaryId = it.diaryId,
                         clusterId = it.clusterId,
+                        zIndex = it.diaryId.toInt(),
+                        isOverlapping = try {
+                            diaryRepository.getDiaries(page = 1, clusterId = it.clusterId)
+                            true
+                        } catch (_: Exception) {
+                            false
+                        },
                         color = it.color,
                     )
                 }
@@ -141,8 +147,14 @@ class FootprintViewModel @Inject constructor(
                     markMap(
                         latitude = it.latitude,
                         longitude = it.longitude,
-                        diaryId = it.diaryId,
                         clusterId = it.clusterId,
+                        zIndex = it.diaryId.toInt(),
+                        isOverlapping = try {
+                            diaryRepository.getDiaries(page = 1, clusterId = it.clusterId)
+                            true
+                        } catch (_: Exception) {
+                            false
+                        },
                         color = it.color,
                     )
                 }
@@ -263,15 +275,17 @@ class FootprintViewModel @Inject constructor(
     private suspend fun markMap(
         latitude: Double,
         longitude: Double,
-        diaryId: Long,
         clusterId: Long,
+        zIndex: Int,
+        isOverlapping: Boolean,
         color: CategoryColor?,
     ) {
         val marker = MapMarker(
             latitude = latitude,
             longitude = longitude,
-            zIndex = diaryId.toInt(),
+            zIndex = zIndex,
             color = color,
+            isOverlapping = isOverlapping,
             onClicked = onClicked@ { offset ->
                 if (previousClickedClusterId != clusterId) {
                     footprintMarkerClickedEventState.value = FootprintMarkerClickedEvent(

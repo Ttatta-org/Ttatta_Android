@@ -140,9 +140,10 @@ class MapHandlerImpl @Inject constructor(
                 val key = info.key as MarkerKey
 
                 if (isNonClusteringZoomLevelReached.value) {
-                    naverMarker.toFootMarker(
+                    naverMarker.toNormalMarker(
                         color = key.mapMarker.color,
                         zIndex = key.mapMarker.zIndex,
+                        isOverlapping = key.mapMarker.isOverlapping,
                         onClicked = key.mapMarker.onClicked
                     )
                 } else {
@@ -229,9 +230,10 @@ class MapHandlerImpl @Inject constructor(
                 markers.values.toList().forEach { key ->
                     key.naverMarker?.let {
                         if (isReached) {
-                            it.toFootMarker(
+                            it.toNormalMarker(
                                 color = key.mapMarker.color,
                                 zIndex = key.mapMarker.zIndex,
+                                isOverlapping = key.mapMarker.isOverlapping,
                                 onClicked = key.mapMarker.onClicked
                             )
                         } else {
@@ -382,16 +384,16 @@ class MapHandlerImpl @Inject constructor(
         setOnClickListener { true }
     }
 
-    private fun Marker.toFootMarker(
+    private fun Marker.toNormalMarker(
         color: CategoryColor?,
         zIndex: Int,
+        isOverlapping: Boolean,
         onClicked: ((Offset) -> (() -> Unit)?)? = null,
     ) {
         val density = context.resources.displayMetrics.density
 
         anchor = PointF(0.5f, 0.5f)
-        // TODO: 발자국과 책 모양 중 적절한 것으로 선택하기
-        (if (false) bookMarkerImages[color] else footMarkerImages[color])?.let { icon = it }
+        (if (isOverlapping) bookMarkerImages[color] else footMarkerImages[color])?.let { icon = it }
         width = (DesignConstant.MarkerSize.width.value * density).roundToInt()
         height = (DesignConstant.MarkerSize.height.value * density).roundToInt()
         this.zIndex = zIndex
