@@ -21,7 +21,7 @@ object DesignConstant {
     )
 
     val DiaryCardSizeWithArrowArea get() = DpSize(
-        DiaryCardSizeWithShadowArea.width + DiaryCardHorizontalPageArrowSize.width,
+        DiaryCardSizeWithShadowArea.width + DiaryCardHorizontalPageArrowSize.width * 2,
         DiaryCardSizeWithShadowArea.height,
     )
 }
