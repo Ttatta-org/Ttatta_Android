@@ -27,15 +27,15 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.toSize
 import com.umc.footprint.core.DesignConstant
 import com.umc.footprint.model.event.DiaryModificationBarOpenEvent
-import com.umc.footprint.model.event.ModifiedFootprintMarkerClickedEvent
+import com.umc.footprint.model.event.ModifiedMapMarkerClickedEvent
 import com.umc.footprint.model.prop.CategoryItemProp
 import com.umc.footprint.model.prop.CategorySelectionBarProp
 import com.umc.footprint.model.prop.DiaryCardLoadedProp
 import com.umc.footprint.model.prop.DiaryCardProp
 import com.umc.footprint.model.prop.DiaryModificationBarProp
 import com.umc.footprint.model.prop.DiaryModificationModeProp
-import com.umc.footprint.model.prop.VisibleCategorySelectionBarProp
 import com.umc.footprint.model.prop.PositionedDiaryCardProp
+import com.umc.footprint.model.prop.VisibleCategorySelectionBarProp
 import com.umc.footprint.util.calculateInclusion
 import com.umc.footprint.util.checkLocationPermission
 import com.umc.footprint.util.getDiaryCardTopLeftOffset
@@ -60,7 +60,7 @@ fun FootprintApp(
             null
         )
     }
-    var markerEvent by remember { mutableStateOf<ModifiedFootprintMarkerClickedEvent?>(null) }
+    var markerEvent by remember { mutableStateOf<ModifiedMapMarkerClickedEvent?>(null) }
 
     val diaryCardLoadedPropMap = remember { mutableStateMapOf<Long, DiaryCardLoadedProp>() }
 
@@ -130,7 +130,8 @@ fun FootprintApp(
         viewModel.footprintMarkerClickedEvent?.let { event ->
             val diaryCardTopLeft = getDiaryCardTopLeftOffset(
                 density = density,
-                footprintOffset = event.offset,
+                markerOffset = event.offset,
+                // TODO: 발자국 모양 마커일 경우에만 해당 인자를 false로 변경
                 includeArrowArea = true,
             )
 
@@ -143,7 +144,7 @@ fun FootprintApp(
 
             // 카드를 띄울 공간이 화면을 벗어났는지를 확인
             if (isIncluded) {
-                markerEvent = ModifiedFootprintMarkerClickedEvent(
+                markerEvent = ModifiedMapMarkerClickedEvent(
                     offset = event.offset,
                     clusterId = event.clusterId,
                     color = event.color,
@@ -164,7 +165,7 @@ fun FootprintApp(
                     longitude = event.longitude,
                     pivot = offsetFromCenter,
                     onSucceed = {
-                        markerEvent = ModifiedFootprintMarkerClickedEvent(
+                        markerEvent = ModifiedMapMarkerClickedEvent(
                             offset = mapViewSize.center + offsetFromCenter,
                             clusterId = event.clusterId,
                             color = event.color,

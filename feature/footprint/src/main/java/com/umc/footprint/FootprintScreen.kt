@@ -77,7 +77,7 @@ fun FootprintScreen(
                 modifier = Modifier.offset {
                     getDiaryCardTopLeftOffset(
                         density = density,
-                        footprintOffset = offset,
+                        markerOffset = offset,
                     ).round()
                 },
             ) {

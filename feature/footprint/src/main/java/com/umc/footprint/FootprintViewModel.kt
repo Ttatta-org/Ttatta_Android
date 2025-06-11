@@ -12,7 +12,7 @@ import com.umc.core.repository.UserRepository
 import com.umc.design.CategoryColor
 import com.umc.footprint.core.MapHandler
 import com.umc.footprint.core.MapMarker
-import com.umc.footprint.model.event.FootprintMarkerClickedEvent
+import com.umc.footprint.model.event.MapMarkerClickedEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,12 +27,12 @@ class FootprintViewModel @Inject constructor(
     private var previousClickedClusterId: Long? = null
 
     private val diaryMapState = mutableStateOf<Map<Int, DiaryForCard>>(emptyMap())
-    private val footprintMarkerClickedEventState = mutableStateOf<FootprintMarkerClickedEvent?>(null)
+    private val mapMarkerClickedEventState = mutableStateOf<MapMarkerClickedEvent?>(null)
     private val categoryListState = mutableStateOf<List<CategoryInfo>>(listOf())
     private val selectedCategoryIdState = mutableStateOf<Long?>(null)
     private val userNameState = mutableStateOf("")
 
-    val footprintMarkerClickedEvent get() = footprintMarkerClickedEventState.value
+    val footprintMarkerClickedEvent get() = mapMarkerClickedEventState.value
     val diaryMap get() = diaryMapState.value
     val categoryList get() = categoryListState.value
     val selectedCategoryId get() = selectedCategoryIdState.value
@@ -288,7 +288,7 @@ class FootprintViewModel @Inject constructor(
             isOverlapping = isOverlapping,
             onClicked = onClicked@ { offset ->
                 if (previousClickedClusterId != clusterId) {
-                    footprintMarkerClickedEventState.value = FootprintMarkerClickedEvent(
+                    mapMarkerClickedEventState.value = MapMarkerClickedEvent(
                         offset = offset,
                         latitude = latitude,
                         longitude = longitude,
@@ -301,7 +301,7 @@ class FootprintViewModel @Inject constructor(
                 }
 
                 return@onClicked {
-                    footprintMarkerClickedEventState.value = null
+                    mapMarkerClickedEventState.value = null
                     diaryMapState.value = emptyMap()
                 }
             }

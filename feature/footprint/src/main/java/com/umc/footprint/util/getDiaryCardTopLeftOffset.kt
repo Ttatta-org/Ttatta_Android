@@ -6,15 +6,15 @@ import com.umc.footprint.core.DesignConstant
 
 fun getDiaryCardTopLeftOffset(
     density: Density,
-    footprintOffset: Offset,
+    markerOffset: Offset,
     includeArrowArea: Boolean = false,
 ): Offset {
     val diaryCardSize = if (includeArrowArea) DesignConstant.DiaryCardSizeWithArrowArea else DesignConstant.DiaryCardSizeWithShadowArea
 
     return with(density) {
         Offset(
-            x = footprintOffset.x - diaryCardSize.width.toPx() / 2,
-            y = footprintOffset.y - DesignConstant.MarkerSize.height.toPx() / 2 - diaryCardSize.height.toPx(),
+            x = markerOffset.x - diaryCardSize.width.toPx() / 2,
+            y = markerOffset.y - DesignConstant.MarkerSize.height.toPx() / 2 - diaryCardSize.height.toPx(),
         )
     }
 }
