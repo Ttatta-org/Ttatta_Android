@@ -69,27 +69,42 @@ class MapHandlerImpl @Inject constructor(
         )
     )
 
-    private val defaultMarkerImage: OverlayImage = OverlayImage.fromBitmap(
-        loadRawImageAsBitmap(
-            context = context,
-            rawResourceId = R.raw.ic_footprint,
-            size = DesignConstant.MarkerSize,
+    private val footMarkerImages: Map<CategoryColor, OverlayImage> = mapOf(
+        CategoryColor.RED to R.raw.ic_foot_red,
+        CategoryColor.ORANGE to R.raw.ic_foot_orange,
+        CategoryColor.YELLOW to R.raw.ic_foot_yellow,
+        CategoryColor.GREEN to R.raw.ic_foot_green,
+        CategoryColor.TURQUOISE to R.raw.ic_foot_turquoise,
+        CategoryColor.BLUE to R.raw.ic_foot_blue,
+        CategoryColor.NAVY to R.raw.ic_foot_navy,
+        CategoryColor.PURPLE to R.raw.ic_foot_purple,
+        CategoryColor.BROWN to R.raw.ic_foot_brown,
+        CategoryColor.PINK to R.raw.ic_foot_pink,
+        CategoryColor.WHITE to R.raw.ic_foot_white,
+        CategoryColor.BLACK to R.raw.ic_foot_black,
+    ).mapValues { (_, value) ->
+        OverlayImage.fromBitmap(
+            loadRawImageAsBitmap(
+                context = context,
+                rawResourceId = value,
+                size = DesignConstant.MarkerSize,
+            )
         )
-    )
+    }
 
-    private val markerImages: Map<CategoryColor, OverlayImage> = mapOf(
-        CategoryColor.RED to R.raw.ic_footprint_red,
-        CategoryColor.ORANGE to R.raw.ic_footprint_orange,
-        CategoryColor.YELLOW to R.raw.ic_footprint_yellow,
-        CategoryColor.GREEN to R.raw.ic_footprint_green,
-        CategoryColor.TURQUOISE to R.raw.ic_footprint_turquoise,
-        CategoryColor.BLUE to R.raw.ic_footprint_blue,
-        CategoryColor.NAVY to R.raw.ic_footprint_navy,
-        CategoryColor.PURPLE to R.raw.ic_footprint_purple,
-        CategoryColor.BROWN to R.raw.ic_footprint_brown,
-        CategoryColor.PINK to R.raw.ic_footprint_pink,
-        CategoryColor.WHITE to R.raw.ic_footprint_white,
-        CategoryColor.BLACK to R.raw.ic_footprint_black,
+    private val bookMarkerImages: Map<CategoryColor, OverlayImage> = mapOf(
+        CategoryColor.RED to R.raw.ic_book_red,
+        CategoryColor.ORANGE to R.raw.ic_book_orange,
+        CategoryColor.YELLOW to R.raw.ic_book_yellow,
+        CategoryColor.GREEN to R.raw.ic_book_green,
+        CategoryColor.TURQUOISE to R.raw.ic_book_turquoise,
+        CategoryColor.BLUE to R.raw.ic_book_blue,
+        CategoryColor.NAVY to R.raw.ic_book_navy,
+        CategoryColor.PURPLE to R.raw.ic_book_purple,
+        CategoryColor.BROWN to R.raw.ic_book_brown,
+        CategoryColor.PINK to R.raw.ic_book_pink,
+        CategoryColor.WHITE to R.raw.ic_book_white,
+        CategoryColor.BLACK to R.raw.ic_book_black,
     ).mapValues { (_, value) ->
         OverlayImage.fromBitmap(
             loadRawImageAsBitmap(
@@ -375,7 +390,8 @@ class MapHandlerImpl @Inject constructor(
         val density = context.resources.displayMetrics.density
 
         anchor = PointF(0.5f, 0.5f)
-        icon = markerImages[color] ?: defaultMarkerImage
+        // TODO: 발자국과 책 모양 중 적절한 것으로 선택하기
+        (if (false) bookMarkerImages[color] else footMarkerImages[color])?.let { icon = it }
         width = (DesignConstant.MarkerSize.width.value * density).roundToInt()
         height = (DesignConstant.MarkerSize.height.value * density).roundToInt()
         this.zIndex = zIndex
