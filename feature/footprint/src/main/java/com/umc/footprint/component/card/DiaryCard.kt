@@ -81,7 +81,7 @@ fun DiaryCard(prop: DiaryCardProp) {
             val diary = prop.diaryCardLoadedPropMap[page]
             val rotateAngle = cardRotationAngles[diary?.id] ?: 0f
 
-            LaunchedEffect(key1 = Unit) {
+            LaunchedEffect(key1 = prop.clusterId) {
                 prop.onNewDiaryRequested(page + 1)
             }
 

@@ -61,6 +61,7 @@ class FootprintViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
+                dismissSelectedMarker()
                 mapHandler.moveToCurrentPosition()
                 onSucceed()
             } catch (e: Exception) {
