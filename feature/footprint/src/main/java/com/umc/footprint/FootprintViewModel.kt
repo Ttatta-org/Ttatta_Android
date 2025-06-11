@@ -136,35 +136,6 @@ class FootprintViewModel @Inject constructor(
         }
     }
 
-    private fun getAllFootprint(
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        viewModelScope.launch {
-            try {
-                mapHandler.removeAllMarkers()
-                diaryRepository.getAllFootprints(categoryId = null).forEach {
-                    markMap(
-                        latitude = it.latitude,
-                        longitude = it.longitude,
-                        clusterId = it.clusterId,
-                        zIndex = it.diaryId.toInt(),
-                        isOverlapping = try {
-                            diaryRepository.getDiaries(page = 1, clusterId = it.clusterId)
-                            true
-                        } catch (_: Exception) {
-                            false
-                        },
-                        color = it.color,
-                    )
-                }
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
-    }
-
     fun getDiaryFromServer(
         page: Int,
         onSucceed: () -> Unit = {},
@@ -202,8 +173,8 @@ class FootprintViewModel @Inject constructor(
                     page = diaryMap.firstNotNullOf { (page, diary) ->
                         if (diary.id == diaryId) page else null
                     },
-                    onSucceed = { onSucceed() },
-                    onFailed = { onFailed(it) },
+                    onSucceed = onSucceed,
+                    onFailed = onFailed,
                 )
             } catch (e: Exception) {
                 onFailed(e)
@@ -230,9 +201,9 @@ class FootprintViewModel @Inject constructor(
                     getDiaryFromServer(
                         page = page,
                         onFailed = {
-                            if (diaryMap.isEmpty()) {
+                            if (page == 0) {
                                 dismissSelectedMarker()
-                                getAllFootprint()
+                                selectShowingCategory(categoryId = null)
                             }
                         }
                     )
@@ -293,6 +264,7 @@ class FootprintViewModel @Inject constructor(
                         latitude = latitude,
                         longitude = longitude,
                         clusterId = clusterId,
+                        isBook = isOverlapping,
                         color = color,
                     )
                     previousClickedClusterId = clusterId

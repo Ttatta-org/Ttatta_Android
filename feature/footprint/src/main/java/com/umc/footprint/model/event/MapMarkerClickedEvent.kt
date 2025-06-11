@@ -8,5 +8,6 @@ data class MapMarkerClickedEvent(
     val latitude: Double,
     val longitude: Double,
     val clusterId: Long,
+    val isBook: Boolean,
     val color: CategoryColor?,
 )

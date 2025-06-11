@@ -131,13 +131,15 @@ fun FootprintApp(
             val diaryCardTopLeft = getDiaryCardTopLeftOffset(
                 density = density,
                 markerOffset = event.offset,
-                // TODO: 발자국 모양 마커일 경우에만 해당 인자를 false로 변경
-                includeArrowArea = true,
+                includeArrowArea = event.isBook,
             )
 
             val isIncluded = calculateInclusion(
                 innerOffset = diaryCardTopLeft,
-                innerSize = with(density) { DesignConstant.DiaryCardSizeWithArrowArea.toSize() },
+                innerSize = with(density) {
+                    (if (event.isBook) DesignConstant.DiaryCardSizeWithArrowArea
+                    else DesignConstant.DiaryCardSizeWithShadowArea).toSize()
+                },
                 outerOffset = Offset.Zero,
                 outerSize = mapViewSize,
             )
@@ -153,8 +155,7 @@ fun FootprintApp(
                 val offsetFromCenter = Offset(
                     x = 0f,
                     y = with(density) {
-                        (DesignConstant.DiaryCardSize.height.toPx() / 2)
-                            .plus(DesignConstant.MarkerSize.height.toPx() / 4)
+                        (DesignConstant.DiaryCardSize.height.toPx() / 2).plus(DesignConstant.MarkerSize.height.toPx() / 4)
                             .plus(topPadding.toPx() / 2)
                     },
                 )
