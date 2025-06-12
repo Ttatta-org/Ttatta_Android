@@ -14,6 +14,8 @@ import com.umc.footprint.core.MapHandler
 import com.umc.footprint.core.MapMarker
 import com.umc.footprint.model.event.MapMarkerClickedEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -115,19 +117,21 @@ class FootprintViewModel @Inject constructor(
             try {
                 mapHandler.removeAllMarkers()
                 diaryRepository.getAllFootprints(categoryId = categoryId).forEach {
-                    markMap(
-                        latitude = it.latitude,
-                        longitude = it.longitude,
-                        clusterId = it.clusterId,
-                        zIndex = it.diaryId.toInt(),
-                        isOverlapping = try {
-                            diaryRepository.getDiaries(page = 1, clusterId = it.clusterId)
-                            true
-                        } catch (_: Exception) {
-                            false
-                        },
-                        color = it.color,
-                    )
+                    CoroutineScope(Dispatchers.IO).launch {
+                        markMap(
+                            latitude = it.latitude,
+                            longitude = it.longitude,
+                            clusterId = it.clusterId,
+                            zIndex = it.diaryId.toInt(),
+                            isOverlapping = try {
+                                diaryRepository.getDiaries(page = 1, clusterId = it.clusterId)
+                                true
+                            } catch (_: Exception) {
+                                false
+                            },
+                            color = it.color,
+                        )
+                    }
                 }
                 selectedCategoryIdState.value = categoryId
                 onSucceed()
