@@ -317,6 +317,7 @@ class MapHandlerImpl @Inject constructor(
         onPreviousMarkerDismissed?.invoke()
         onPreviousMarkerDismissed = null
         clusterManager.clear()
+        markers.clear()
     }
 
     override suspend fun addOnDismissListener(listener: () -> Unit) {
