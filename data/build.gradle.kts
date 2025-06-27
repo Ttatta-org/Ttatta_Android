@@ -9,6 +9,9 @@ plugins {
     // Hilt
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+
+    // FCM
+    id("com.google.gms.google-services")
 }
 
 val localProperties = Properties()
@@ -89,4 +92,7 @@ dependencies {
 
     // SharedPreference
     implementation(libs.preference.ktx)
+
+    // FCM
+    implementation("com.google.firebase:firebase-messaging-ktx")
 }
