@@ -1,9 +1,8 @@
 package com.umc.footprint.model.prop
 
-import java.time.LocalDate
+import com.umc.design.CategoryColor
 
 class DiaryCardFrontProp(
-    val date: LocalDate,
-    val imageUrl: String,
-    val onModifyButtonClicked: () -> Unit,
+    val defaultColor: CategoryColor? = null,
+    val prop: DiaryCardFrontLoadedProp? = null
 )

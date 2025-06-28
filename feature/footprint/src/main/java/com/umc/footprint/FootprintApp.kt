@@ -27,15 +27,15 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.toSize
 import com.umc.footprint.core.DesignConstant
 import com.umc.footprint.model.event.DiaryModificationBarOpenEvent
-import com.umc.footprint.model.event.ModifiedFootprintMarkerClickedEvent
+import com.umc.footprint.model.event.ModifiedMapMarkerClickedEvent
 import com.umc.footprint.model.prop.CategoryItemProp
 import com.umc.footprint.model.prop.CategorySelectionBarProp
 import com.umc.footprint.model.prop.DiaryCardLoadedProp
 import com.umc.footprint.model.prop.DiaryCardProp
 import com.umc.footprint.model.prop.DiaryModificationBarProp
 import com.umc.footprint.model.prop.DiaryModificationModeProp
-import com.umc.footprint.model.prop.VisibleCategorySelectionBarProp
 import com.umc.footprint.model.prop.PositionedDiaryCardProp
+import com.umc.footprint.model.prop.VisibleCategorySelectionBarProp
 import com.umc.footprint.util.calculateInclusion
 import com.umc.footprint.util.checkLocationPermission
 import com.umc.footprint.util.getDiaryCardTopLeftOffset
@@ -60,7 +60,7 @@ fun FootprintApp(
             null
         )
     }
-    var markerEvent by remember { mutableStateOf<ModifiedFootprintMarkerClickedEvent?>(null) }
+    var markerEvent by remember { mutableStateOf<ModifiedMapMarkerClickedEvent?>(null) }
 
     val diaryCardLoadedPropMap = remember { mutableStateMapOf<Long, DiaryCardLoadedProp>() }
 
@@ -103,6 +103,7 @@ fun FootprintApp(
                 diaryCardLoadedPropMap[diary.id] = DiaryCardLoadedProp(
                     id = diary.id,
                     date = diary.date,
+                    categoryColor = diary.color,
                     imageUrl = diary.imageUrl,
                     content = diary.content,
                     isFlipped = false,
@@ -124,31 +125,37 @@ fun FootprintApp(
 
     // 발자국 마커가 클릭되었을 때의 처리
     LaunchedEffect(key1 = viewModel.footprintMarkerClickedEvent) {
+        markerEvent = null
+
         viewModel.footprintMarkerClickedEvent?.let { event ->
             val diaryCardTopLeft = getDiaryCardTopLeftOffset(
                 density = density,
-                footprintOffset = event.offset,
+                markerOffset = event.offset,
+                includeArrowArea = event.isBook,
             )
 
             val isIncluded = calculateInclusion(
                 innerOffset = diaryCardTopLeft,
-                innerSize = with(density) { DesignConstant.DiaryCardSize.toSize() },
+                innerSize = with(density) {
+                    (if (event.isBook) DesignConstant.DiaryCardSizeWithArrowArea
+                    else DesignConstant.DiaryCardSizeWithShadowArea).toSize()
+                },
                 outerOffset = Offset.Zero,
                 outerSize = mapViewSize,
             )
 
             // 카드를 띄울 공간이 화면을 벗어났는지를 확인
             if (isIncluded) {
-                markerEvent = ModifiedFootprintMarkerClickedEvent(
+                markerEvent = ModifiedMapMarkerClickedEvent(
                     offset = event.offset,
                     clusterId = event.clusterId,
+                    color = event.color,
                 )
             } else {
                 val offsetFromCenter = Offset(
                     x = 0f,
                     y = with(density) {
-                        (DesignConstant.DiaryCardSize.height.toPx() / 2)
-                            .plus(DesignConstant.MarkerSize.height.toPx() / 4)
+                        (DesignConstant.DiaryCardSize.height.toPx() / 2).plus(DesignConstant.MarkerSize.height.toPx() / 4)
                             .plus(topPadding.toPx() / 2)
                     },
                 )
@@ -159,16 +166,14 @@ fun FootprintApp(
                     longitude = event.longitude,
                     pivot = offsetFromCenter,
                     onSucceed = {
-                        markerEvent = ModifiedFootprintMarkerClickedEvent(
+                        markerEvent = ModifiedMapMarkerClickedEvent(
                             offset = mapViewSize.center + offsetFromCenter,
                             clusterId = event.clusterId,
+                            color = event.color,
                         )
                     },
                 )
             }
-        } ?: run {
-            // 마커 클릭 이벤트가 해지된 상태라면 카드를 없앰
-            markerEvent = null
         }
     }
 
@@ -201,6 +206,7 @@ fun FootprintApp(
                 offset = event.offset,
                 prop = DiaryCardProp(
                     clusterId = event.clusterId,
+                    defaultCategoryColor = event.color,
                     diaryCardLoadedPropMap = viewModel.diaryMap.mapValues { (_, value) ->
                         diaryCardLoadedPropMap[value.id]
                     },

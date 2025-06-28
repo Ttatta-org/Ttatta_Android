@@ -12,8 +12,10 @@ import com.umc.core.repository.UserRepository
 import com.umc.design.CategoryColor
 import com.umc.footprint.core.MapHandler
 import com.umc.footprint.core.MapMarker
-import com.umc.footprint.model.event.FootprintMarkerClickedEvent
+import com.umc.footprint.model.event.MapMarkerClickedEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,12 +29,12 @@ class FootprintViewModel @Inject constructor(
     private var previousClickedClusterId: Long? = null
 
     private val diaryMapState = mutableStateOf<Map<Int, DiaryForCard>>(emptyMap())
-    private val footprintMarkerClickedEventState = mutableStateOf<FootprintMarkerClickedEvent?>(null)
+    private val mapMarkerClickedEventState = mutableStateOf<MapMarkerClickedEvent?>(null)
     private val categoryListState = mutableStateOf<List<CategoryInfo>>(listOf())
     private val selectedCategoryIdState = mutableStateOf<Long?>(null)
     private val userNameState = mutableStateOf("")
 
-    val footprintMarkerClickedEvent get() = footprintMarkerClickedEventState.value
+    val footprintMarkerClickedEvent get() = mapMarkerClickedEventState.value
     val diaryMap get() = diaryMapState.value
     val categoryList get() = categoryListState.value
     val selectedCategoryId get() = selectedCategoryIdState.value
@@ -61,6 +63,7 @@ class FootprintViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
+                dismissSelectedMarker()
                 mapHandler.moveToCurrentPosition()
                 onSucceed()
             } catch (e: Exception) {
@@ -114,38 +117,23 @@ class FootprintViewModel @Inject constructor(
             try {
                 mapHandler.removeAllMarkers()
                 diaryRepository.getAllFootprints(categoryId = categoryId).forEach {
-                    markMap(
-                        latitude = it.latitude,
-                        longitude = it.longitude,
-                        diaryId = it.diaryId,
-                        clusterId = it.clusterId,
-                        color = it.color,
-                    )
+                    CoroutineScope(Dispatchers.IO).launch {
+                        markMap(
+                            latitude = it.latitude,
+                            longitude = it.longitude,
+                            clusterId = it.clusterId,
+                            zIndex = it.diaryId.toInt(),
+                            isOverlapping = try {
+                                diaryRepository.getDiaries(page = 1, clusterId = it.clusterId)
+                                true
+                            } catch (_: Exception) {
+                                false
+                            },
+                            color = it.color,
+                        )
+                    }
                 }
                 selectedCategoryIdState.value = categoryId
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
-    }
-
-    private fun getAllFootprint(
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        viewModelScope.launch {
-            try {
-                mapHandler.removeAllMarkers()
-                diaryRepository.getAllFootprints(categoryId = null).forEach {
-                    markMap(
-                        latitude = it.latitude,
-                        longitude = it.longitude,
-                        diaryId = it.diaryId,
-                        clusterId = it.clusterId,
-                        color = it.color,
-                    )
-                }
                 onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
@@ -190,8 +178,8 @@ class FootprintViewModel @Inject constructor(
                     page = diaryMap.firstNotNullOf { (page, diary) ->
                         if (diary.id == diaryId) page else null
                     },
-                    onSucceed = { onSucceed() },
-                    onFailed = { onFailed(it) },
+                    onSucceed = onSucceed,
+                    onFailed = onFailed,
                 )
             } catch (e: Exception) {
                 onFailed(e)
@@ -218,9 +206,9 @@ class FootprintViewModel @Inject constructor(
                     getDiaryFromServer(
                         page = page,
                         onFailed = {
-                            if (diaryMap.isEmpty()) {
+                            if (page == 0) {
                                 dismissSelectedMarker()
-                                getAllFootprint()
+                                selectShowingCategory(categoryId = null)
                             }
                         }
                     )
@@ -260,25 +248,29 @@ class FootprintViewModel @Inject constructor(
         }
     }
 
-    private fun markMap(
+    private suspend fun markMap(
         latitude: Double,
         longitude: Double,
-        diaryId: Long,
         clusterId: Long,
+        zIndex: Int,
+        isOverlapping: Boolean,
         color: CategoryColor?,
     ) {
         val marker = MapMarker(
             latitude = latitude,
             longitude = longitude,
-            zIndex = diaryId.toInt(),
+            zIndex = zIndex,
             color = color,
+            isOverlapping = isOverlapping,
             onClicked = onClicked@ { offset ->
                 if (previousClickedClusterId != clusterId) {
-                    footprintMarkerClickedEventState.value = FootprintMarkerClickedEvent(
+                    mapMarkerClickedEventState.value = MapMarkerClickedEvent(
                         offset = offset,
                         latitude = latitude,
                         longitude = longitude,
                         clusterId = clusterId,
+                        isBook = isOverlapping,
+                        color = color,
                     )
                     previousClickedClusterId = clusterId
                 } else {
@@ -286,11 +278,12 @@ class FootprintViewModel @Inject constructor(
                 }
 
                 return@onClicked {
-                    footprintMarkerClickedEventState.value = null
+                    mapMarkerClickedEventState.value = null
                     diaryMapState.value = emptyMap()
                 }
             }
         )
-        viewModelScope.launch { mapHandler.addMarker(marker) }
+
+        mapHandler.addMarker(marker)
     }
 }

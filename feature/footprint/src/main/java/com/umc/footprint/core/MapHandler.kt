@@ -21,8 +21,6 @@ interface MapHandler {
     suspend fun moveToCurrentPosition()
     suspend fun getViewingPosition(): Pair<Double, Double>?
     suspend fun addMarker(marker: MapMarker)
-    suspend fun removeMarker(marker: MapMarker)
-    suspend fun getAllMarkers(): List<MapMarker>
     suspend fun removeAllMarkers()
 
     suspend fun addOnDismissListener(listener: () -> Unit)

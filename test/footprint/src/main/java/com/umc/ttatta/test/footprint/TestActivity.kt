@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -25,6 +27,7 @@ import com.umc.footprint.FootprintViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -35,6 +38,7 @@ import javax.inject.Inject
 class TestActivity: ComponentActivity() {
     @Inject lateinit var userRepository: UserRepository
     @Inject lateinit var diaryRepository: DiaryRepository
+    private val isLoginSuccessState = MutableStateFlow(false)
 
     private val viewModel: FootprintViewModel by viewModels()
 
@@ -45,6 +49,7 @@ class TestActivity: ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val navigator = rememberNavController()
+            val isLoginSuccess by isLoginSuccessState.collectAsStateWithLifecycle()
 
             Column(
                 modifier = Modifier
@@ -59,7 +64,7 @@ class TestActivity: ComponentActivity() {
                     composable(
                         route = "footprint"
                     ) {
-                        FootprintApp(
+                        if (isLoginSuccess) FootprintApp(
                             viewModel = viewModel,
                             isMapBlurApplied = false,
                             onNavigateToCategoryApp = {
@@ -140,6 +145,8 @@ class TestActivity: ComponentActivity() {
                 id = TestValues.ID,
                 password = TestValues.PASSWORD,
             )
+
+            isLoginSuccessState.value = true
         }
     }
 }
