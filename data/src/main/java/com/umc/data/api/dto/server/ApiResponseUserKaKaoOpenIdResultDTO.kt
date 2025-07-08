@@ -15,6 +15,8 @@
 
 package com.umc.data.api.dto.server
 
+import com.umc.data.api.dto.server.UserKaKaoOpenIdResultDTO
+
 import com.squareup.moshi.Json
 
 /**
@@ -27,7 +29,7 @@ import com.squareup.moshi.Json
  */
 
 
-data class ApiResponseTokenValidationResultDTO (
+data class ApiResponseUserKaKaoOpenIdResultDTO (
 
     @Json(name = "isSuccess")
     val isSuccess: kotlin.Boolean? = null,
@@ -39,7 +41,7 @@ data class ApiResponseTokenValidationResultDTO (
     val message: kotlin.String? = null,
 
     @Json(name = "result")
-    val result: TokenValidationResultDTO? = null
+    val result: UserKaKaoOpenIdResultDTO? = null
 
 )
 

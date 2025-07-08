@@ -22,22 +22,14 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * @param isRegistered 
- * @param accessToken 
- * @param refreshToken 
+ * @param pending 
  */
 
 
-data class TokenValidationResultDTO (
+data class IsPendingResultDTO (
 
-    @Json(name = "isRegistered")
-    val isRegistered: kotlin.Boolean? = null,
-
-    @Json(name = "accessToken")
-    val accessToken: kotlin.String? = null,
-
-    @Json(name = "refreshToken")
-    val refreshToken: kotlin.String? = null
+    @Json(name = "pending")
+    val pending: kotlin.Boolean? = null
 
 )
 
