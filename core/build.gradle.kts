@@ -34,6 +34,5 @@ android {
 dependencies {
 
     implementation(project(":design"))
-    implementation(project(":data"))
     implementation(libs.androidx.runtime.android)
 }
