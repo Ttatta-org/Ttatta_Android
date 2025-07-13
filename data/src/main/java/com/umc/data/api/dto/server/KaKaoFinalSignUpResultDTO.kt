@@ -31,7 +31,7 @@ import com.squareup.moshi.JsonClass
  */
 
 
-data class UserKaKaoSignUpResultDTO (
+data class KaKaoFinalSignUpResultDTO (
 
     @Json(name = "accessToken")
     val accessToken: kotlin.String? = null,

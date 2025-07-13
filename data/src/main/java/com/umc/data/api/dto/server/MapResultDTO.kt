@@ -27,6 +27,7 @@ import com.squareup.moshi.JsonClass
  * @param date 
  * @param content 
  * @param image 
+ * @param color 
  * @param firstDiary 
  * @param lastDiary 
  */
@@ -49,11 +50,37 @@ data class MapResultDTO (
     @Json(name = "image")
     val image: kotlin.String? = null,
 
+    @Json(name = "color")
+    val color: Color? = null,
+
     @Json(name = "firstDiary")
     val firstDiary: kotlin.Boolean? = null,
 
     @Json(name = "lastDiary")
     val lastDiary: kotlin.Boolean? = null
 
-)
+) {
+
+    /**
+     * 
+     *
+     * Values: RED,ORANGE,YELLOW,GREEN,SKYBLUE,BLUE,INDIGO,VIOLET,BROWN,WHITE,PINK,BLACK
+     */
+    @JsonClass(generateAdapter = false)
+    enum class Color(val value: kotlin.String) {
+        @Json(name = "RED") RED("RED"),
+        @Json(name = "ORANGE") ORANGE("ORANGE"),
+        @Json(name = "YELLOW") YELLOW("YELLOW"),
+        @Json(name = "GREEN") GREEN("GREEN"),
+        @Json(name = "SKYBLUE") SKYBLUE("SKYBLUE"),
+        @Json(name = "BLUE") BLUE("BLUE"),
+        @Json(name = "INDIGO") INDIGO("INDIGO"),
+        @Json(name = "VIOLET") VIOLET("VIOLET"),
+        @Json(name = "BROWN") BROWN("BROWN"),
+        @Json(name = "WHITE") WHITE("WHITE"),
+        @Json(name = "PINK") PINK("PINK"),
+        @Json(name = "BLACK") BLACK("BLACK");
+    }
+
+}
 

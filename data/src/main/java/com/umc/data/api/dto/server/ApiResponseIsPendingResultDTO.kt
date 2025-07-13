@@ -15,7 +15,7 @@
 
 package com.umc.data.api.dto.server
 
-import com.umc.data.api.dto.server.CreateCategoryResultDTO
+import com.umc.data.api.dto.server.IsPendingResultDTO
 
 import com.squareup.moshi.Json
 
@@ -29,7 +29,7 @@ import com.squareup.moshi.Json
  */
 
 
-data class ApiResponseCreateCategoryResultDTO (
+data class ApiResponseIsPendingResultDTO (
 
     @Json(name = "isSuccess")
     val isSuccess: kotlin.Boolean? = null,
@@ -41,7 +41,7 @@ data class ApiResponseCreateCategoryResultDTO (
     val message: kotlin.String? = null,
 
     @Json(name = "result")
-    val result: CreateCategoryResultDTO? = null
+    val result: IsPendingResultDTO? = null
 
 )
 

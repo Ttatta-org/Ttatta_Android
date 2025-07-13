@@ -55,13 +55,16 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun tryLoginWithKakao(openIdToken: String): Boolean {
-        val response = serverApi.withCheck { serverApi.validKakaoToken(idToken = openIdToken) }
+        val response = serverApi.withCheck { serverApi.loginWithKakao(idToken = openIdToken) }
+        authPreference.accessToken = response.accessToken
+        authPreference.refreshToken = response.refreshToken
         return response.isRegistered!!
     }
 
     override suspend fun postUserInfoWhenFirstKakaoLogin(openIdToken: String, nickname: String) {
+        // TODO: 필요 없는 인자(openIdToken) 제거
         val body = SignUpKakaoRequestDTO(nickname = nickname)
-        serverApi.signUpKakao(idToken = openIdToken, body = body)
+        serverApi.withAuth(authPreference) { signUpKakao(body = body) }
     }
 
     override suspend fun requestVerificationCodeForJoining(email: String) {
@@ -136,10 +139,14 @@ class UserRepositoryImpl @Inject constructor(
                 UserInfoResultDTO.LoginType.KAKAO -> LoginType.KAKAO
                 UserInfoResultDTO.LoginType.REGULAR -> LoginType.REGULAR
             },
-            email = response.email!!,
+            email = response.email ?: "", // TODO: 예외 처리 필수
             profileImageUrl = response.profileImg,
             point = response.point!!,
-            status = UserStatus.ACTIVE,  // TODO: 백엔드 구현시 연결
+            status = when (response.status!!) {
+                UserInfoResultDTO.Status.ACTIVE -> UserStatus.ACTIVE
+                UserInfoResultDTO.Status.INACTIVE -> UserStatus.INACTIVE
+                UserInfoResultDTO.Status.PENDING -> UserStatus.PENDING
+            },
             totalDiaryCount = response.diaryCount!!.toInt()
         )
     }

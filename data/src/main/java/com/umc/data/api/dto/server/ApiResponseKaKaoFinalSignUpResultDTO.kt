@@ -15,8 +15,6 @@
 
 package com.umc.data.api.dto.server
 
-import com.umc.data.api.dto.server.UserKaKaoSignUpResultDTO
-
 import com.squareup.moshi.Json
 
 /**
@@ -29,7 +27,7 @@ import com.squareup.moshi.Json
  */
 
 
-data class ApiResponseUserKaKaoSignUpResultDTO (
+data class ApiResponseKaKaoFinalSignUpResultDTO (
 
     @Json(name = "isSuccess")
     val isSuccess: kotlin.Boolean? = null,
@@ -41,7 +39,7 @@ data class ApiResponseUserKaKaoSignUpResultDTO (
     val message: kotlin.String? = null,
 
     @Json(name = "result")
-    val result: UserKaKaoSignUpResultDTO? = null
+    val result: KaKaoFinalSignUpResultDTO? = null
 
 )
 
