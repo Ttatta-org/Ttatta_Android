@@ -82,13 +82,24 @@ fun AppNavHost(
                 onLockPassword = {
                     navController.navigate("lockpassword")
                 },
+                onChangePassword = {
+                    navController.navigate("changepassword")
+                }
             )
         }
         composable("lockpassword") {
             LockPasswordScreen(
-                step = com.umc.mypage.PasswordStep.INPUT,
+                isChangingPassword = false,
                 onComplete = {
-                    navController.navigate("lockpasswordconfirm")
+                    navController.popBackStack()
+                }
+            )
+        }
+        composable("changepassword") {
+            LockPasswordScreen(
+                isChangingPassword = true,
+                onComplete = {
+                    navController.popBackStack()
                 }
             )
         }

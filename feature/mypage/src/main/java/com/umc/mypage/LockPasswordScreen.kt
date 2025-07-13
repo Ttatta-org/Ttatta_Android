@@ -20,27 +20,32 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 enum class PasswordStep {
-    INPUT, CONFIRM, MISMATCH, CHANGE_INPUT, CHANGE_CONFIRM, CHANGE_MISMATCH
+    SET_INPUT, SET_CONFIRM, SET_MISMATCH,
+    CHANGE_INPUT, CHANGE_CONFIRM, CHANGE_MISMATCH
 }
-
 @Composable
 fun LockPasswordScreen(
-    step: PasswordStep,
+    isChangingPassword: Boolean = false,
     onComplete: (String) -> Unit
 ) {
+    var step by remember {
+        mutableStateOf(
+            if (isChangingPassword) PasswordStep.CHANGE_INPUT else PasswordStep.SET_INPUT
+        )
+    }
     var input by remember { mutableStateOf("") }
-    var confirm by remember { mutableStateOf("") }
+    var firstInput by remember { mutableStateOf("") }
 
     val title = when (step) {
-        PasswordStep.INPUT, PasswordStep.CONFIRM -> "암호 입력"
+        PasswordStep.SET_INPUT, PasswordStep.SET_CONFIRM -> "암호 입력"
+        PasswordStep.SET_MISMATCH -> "암호 입력"
         PasswordStep.CHANGE_INPUT, PasswordStep.CHANGE_CONFIRM -> "암호 변경"
-        PasswordStep.MISMATCH, PasswordStep.CHANGE_MISMATCH -> "암호 변경"
+        PasswordStep.CHANGE_MISMATCH -> "암호 변경"
     }
 
     val subtitle = when (step) {
-        PasswordStep.INPUT, PasswordStep.CHANGE_INPUT -> "암호를 입력해주세요."
-        PasswordStep.CONFIRM, PasswordStep.CHANGE_CONFIRM -> "확인을 위해 한 번 더 입력해 주세요."
-        PasswordStep.MISMATCH, PasswordStep.CHANGE_MISMATCH -> "🔴 암호가 일치하지 않아요! 다시 입력해주세요."
+        PasswordStep.SET_INPUT, PasswordStep.CHANGE_INPUT -> "암호를 입력해주세요."
+        else -> "확인을 위해 한 번 더 입력해 주세요."
     }
 
     BoxWithConstraints(
@@ -85,11 +90,32 @@ fun LockPasswordScreen(
                     Text(text = title, fontSize = 22.sp, fontWeight = FontWeight.W700, color = Color(0xFFFF9888))
                     Spacer(modifier = Modifier.height(7.dp))
 
-                    // dhfpswl 200
+                    // 오렌지 200
                     Text(text = subtitle, fontSize = 14.sp,fontWeight = FontWeight.W400, color = Color(0xFFFFD0C8))
                     Spacer(modifier = Modifier.height(17.7.dp))
 
                     PasswordDots(input.length)
+
+                    if (step == PasswordStep.SET_MISMATCH || step == PasswordStep.CHANGE_MISMATCH) {
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_warning_red),
+                                contentDescription = "경고",
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                            )
+                            Text(
+                                text = "암호가 일치하지 않아요! 다시 입력해주세요.",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.W400,
+                                color = Color(0xFFFF6060)
+                            )
+                        }
+                    }
                 }
 
                 NumberPad(
@@ -101,24 +127,86 @@ fun LockPasswordScreen(
                         if (input.length < 4) input += it
                         if (input.length == 4) {
                             when (step) {
-                                PasswordStep.INPUT, PasswordStep.CHANGE_INPUT -> {
-                                    onComplete(input)
+                                PasswordStep.SET_INPUT, PasswordStep.CHANGE_INPUT -> {
+                                    firstInput = input
+                                    input = ""
+                                    step = when (step) {
+                                        PasswordStep.SET_INPUT -> PasswordStep.SET_CONFIRM
+                                        else -> PasswordStep.CHANGE_CONFIRM
+                                    }
                                 }
-                                PasswordStep.CONFIRM, PasswordStep.CHANGE_CONFIRM -> {
-                                    if (input == confirm) {
+
+                                PasswordStep.SET_CONFIRM, PasswordStep.SET_MISMATCH -> {
+                                    if (input == firstInput) {
                                         onComplete(input)
                                     } else {
                                         input = ""
+                                        step = PasswordStep.SET_MISMATCH
                                     }
                                 }
+
+                                PasswordStep.CHANGE_CONFIRM, PasswordStep.CHANGE_MISMATCH -> {
+                                    if (input == firstInput) {
+                                        onComplete(input)
+                                    } else {
+                                        input = ""
+                                        step = PasswordStep.CHANGE_MISMATCH
+                                    }
+                                }
+
                                 else -> {}
                             }
                         }
+
                     },
                     onBackspace = { if (input.isNotEmpty()) input = input.dropLast(1) },
                     onCancel = { input = "" }
                 )
             }
+        }
+    }
+}
+
+@Composable
+fun Subtitle(step: PasswordStep) {
+    when (step) {
+        PasswordStep.SET_MISMATCH, PasswordStep.CHANGE_MISMATCH -> {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_warning_red), // ⚠️ 원하는 이미지로 바꾸세요
+                    contentDescription = "경고",
+                    modifier = Modifier
+                        .size(11.dp)
+                        .padding(end = 8.dp)
+                )
+                Text(
+                    text = "암호가 일치하지 않아요! 다시 입력해주세요.",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W400,
+                    color = Color.Red
+                )
+            }
+        }
+
+        PasswordStep.SET_CONFIRM, PasswordStep.CHANGE_CONFIRM -> {
+            Text(
+                text = "확인을 위해 한 번 더 입력해 주세요.",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.W400,
+                color = Color(0xFFFFD0C8)
+            )
+        }
+
+        else -> {
+            Text(
+                text = "암호를 입력해주세요.",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.W400,
+                color = Color(0xFFFFD0C8)
+            )
         }
     }
 }
@@ -253,11 +341,11 @@ fun NumberPad(
         }
     }
 }
-@Preview(showBackground = true)
-@Composable
-fun PreviewLockPasswordScreen(){
-    LockPasswordScreen(
-        step = PasswordStep.INPUT,
-        onComplete = {}
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewLockPasswordScreen(){
+//    LockPasswordScreen(
+//        step = PasswordStep.INPUT,
+//        onComplete = {}
+//    )
+//}

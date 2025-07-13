@@ -3,6 +3,7 @@ package com.umc.mypage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,6 +37,7 @@ import com.umc.mypage.components.TopBarComponent
 @Composable
 fun LockSettingsScreen(
     onLockPassword: () -> Unit,
+    onChangePassword: () -> Unit,
     onFabClick: () -> Unit = {}
 ){
     val systemUiController = rememberSystemUiController()
@@ -78,7 +80,8 @@ fun LockSettingsScreen(
 
                                     Row(
                                         Modifier
-                                            .fillMaxWidth(),
+                                            .fillMaxWidth()
+                                            .clickable { onChangePassword() },
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
 
