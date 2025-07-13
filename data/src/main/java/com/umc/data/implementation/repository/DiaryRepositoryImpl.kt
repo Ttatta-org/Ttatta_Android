@@ -9,6 +9,7 @@ import com.umc.data.api.ServerApi
 import com.umc.data.api.dto.server.CategoryDetailDTO
 import com.umc.data.api.dto.server.CreateCategoryDTO
 import com.umc.data.api.dto.server.EditDTO
+import com.umc.data.api.dto.server.MapResultDTO
 import com.umc.data.api.dto.server.ModifyCategoryDTO
 import com.umc.data.api.dto.server.PostDTO
 import com.umc.data.api.withAuth
@@ -65,13 +66,23 @@ class DiaryRepositoryImpl @Inject constructor(
             getMapDiary(requestNum = page, clusterId = clusterId, diaryCategoryId = categoryId)
         }
 
-        val categories = getAllCategoryInfo()
-        val targetCategory = categories.find { it.id == response.diaryCategoryId }
-
         return DiaryForCard(
             id = response.diaryId!!,
             date = response.date!!.toLocalDate(),
-            color = targetCategory?.color,
+            color = when (response.color!!) {
+                MapResultDTO.Color.RED -> CategoryColor.RED
+                MapResultDTO.Color.ORANGE -> CategoryColor.ORANGE
+                MapResultDTO.Color.YELLOW -> CategoryColor.YELLOW
+                MapResultDTO.Color.GREEN -> CategoryColor.GREEN
+                MapResultDTO.Color.SKYBLUE -> CategoryColor.TURQUOISE
+                MapResultDTO.Color.BLUE -> CategoryColor.BLUE
+                MapResultDTO.Color.INDIGO -> CategoryColor.NAVY
+                MapResultDTO.Color.VIOLET -> CategoryColor.PURPLE
+                MapResultDTO.Color.BROWN -> CategoryColor.BROWN
+                MapResultDTO.Color.PINK -> CategoryColor.PINK
+                MapResultDTO.Color.WHITE -> CategoryColor.WHITE
+                MapResultDTO.Color.BLACK -> CategoryColor.BLACK
+            },
             content = response.content!!,
             imageUrl = response.image!!,
         )
