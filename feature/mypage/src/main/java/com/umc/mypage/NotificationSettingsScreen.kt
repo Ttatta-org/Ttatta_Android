@@ -223,7 +223,8 @@ fun NotificationSettingItem(
     description: String? = null,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    bottomContent: @Composable (() -> Unit)? = null
+    bottomContent: @Composable (() -> Unit)? = null,
+    onSwitchOn: (() -> Unit)? = null,
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -238,7 +239,10 @@ fun NotificationSettingItem(
 
             CustomSwitch(
                 checked = checked,
-                onCheckedChange = { onCheckedChange(it) }
+                onCheckedChange = {
+                    onCheckedChange(it)
+                    if (it) onSwitchOn?.invoke()
+                }
             )
         }
 
@@ -409,253 +413,95 @@ fun DropdownButton(
     }
 }
 
-@Composable
-fun DropdownMenuBox(
-    expanded: Boolean,
-    onDismissRequest: () -> Unit,
-    options: List<String>,
-    onOptionSelected: (String) -> Unit,
-    width: Dp,
-    maxHeight: Dp = 150.dp
-) {
-    Box(
-        modifier = Modifier
-            .width(width)
-            .wrapContentHeight()
-    ) {
-        if (expanded) {
-            // 뒤 배경 클릭 시 닫기
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable(
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { onDismissRequest() }
-            )
-        }
-
-        AnimatedVisibility(
-            visible = expanded,
-            enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
-        ) {
-            Surface(
-                color = Color.White,
-                shape = RoundedCornerShape(14.dp),
-                shadowElevation = 4.dp,
-                modifier = Modifier
-                    .width(width)
-                    .heightIn(max = maxHeight)
-            ) {
-                val scrollState = rememberScrollState()
-
-                Box {
-                    Column(
-                        modifier = Modifier
-                            .heightIn(max = maxHeight)
-                            .verticalScroll(scrollState)
-                    ) {
-                        options.forEachIndexed { index, label ->
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(30.dp)
-                                    .clickable {
-                                        onOptionSelected(label)
-                                        onDismissRequest()
-                                    }
-                                    .padding(horizontal = 12.dp, vertical = 3.dp),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                Text(
-                                    text = label,
-                                    fontSize = 14.sp,
-                                    color = Color(0xFF8E8E8E)
-                                )
-                            }
-                            if (index != options.lastIndex) {
-                                Spacer(modifier = Modifier.height(3.dp))
-                            }
-                        }
-                    }
-
-                    // 아래 Fade
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(20.dp)
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(Color.Transparent, Color.White)
-                                )
-                            )
-                            .align(Alignment.BottomCenter)
-                    )
-                }
-            }
-
-        }
-    }
-}
-
-@Composable
-fun NDropdownMenuBox(
-    expanded: Boolean,
-    onDismissRequest: () -> Unit,
-    options: List<String>,
-    onOptionSelected: (String) -> Unit,
-    width: Dp,
-    maxHeight: Dp = 200.dp
-) {
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = onDismissRequest,
-        modifier = Modifier
-            .width(width)
-            .background(Color.White, shape = RoundedCornerShape(14.dp))
-    ) {
-        Column(
-            modifier = Modifier
-                .heightIn(max = maxHeight)
-                .verticalScroll(rememberScrollState())
-        ) {
-            options.forEach { label ->
-                DropdownMenuItem(
-                    onClick = {
-                        onOptionSelected(label)
-                        onDismissRequest()
-                    },
-                    text = {
-                        Text(
-                            text = label,
-                            fontSize = 14.sp,
-                            color = Color(0xFF4B4B4B),
-                            modifier = Modifier.padding(vertical = 3.dp)
-                        )
-                    }
-                )
-            }
-        }
-    }
-}
-
-
 //@Composable
-//fun TimePickerRow(
-//    amPm: String?,
-//    hour: String?,
-//    minute: String?,
-//    onAmPmSelected: (String) -> Unit,
-//    onHourSelected: (String) -> Unit,
-//    onMinuteSelected: (String) -> Unit
-//) {
-//    val isTimeSelected = hour != null && minute != null && amPm != null
-//    val backgroundColor = if (isTimeSelected) Color(0xFFFFEFE4) else Color(0xFFE1E1E1)
-//
-//    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-//        // AM/PM 선택 버튼
-//        DropdownSelector(
-//            options = listOf("오전", "오후"),
-//            selectedOption = amPm,
-//            onOptionSelected = onAmPmSelected,
-//            width = 72.dp
-//        )
-//
-//        // 시간:분 선택 버튼
-//        DropdownSelector(
-//            options = (1..12).map { it.toString().padStart(2, '0') }
-//                .flatMap { hour -> listOf(hour, ":") } +
-//                    (0..59).map { it.toString().padStart(2, '0') },
-//            selectedOption = "$hour:$minute",
-//            onOptionSelected = { time ->
-//                val parts = time.split(":")
-//                if (parts.size == 2) {
-//                    onHourSelected(parts[0])
-//                    onMinuteSelected(parts[1])
-//                }
-//            },
-//            width = 130.dp
-//        )
-//    }
-//}
-//@Composable
-//fun DropdownSelector(
+//fun DropdownMenuBox(
+//    expanded: Boolean,
+//    onDismissRequest: () -> Unit,
 //    options: List<String>,
-//    selectedOption: String?,
 //    onOptionSelected: (String) -> Unit,
-//    width: Dp
+//    width: Dp,
+//    maxHeight: Dp = 150.dp
 //) {
-//    var expanded by remember { mutableStateOf(false) }
-//
-//    Column { // ✅ Column으로 감싸 버튼 아래로 드롭다운 배치 고정
-//        Box(
-//            modifier = Modifier
-//                .width(width)
-//                .height(36.dp)
-//                .clip(RoundedCornerShape(14.dp))
-//                .background(if (selectedOption == null) Color(0xFFE1E1E1) else Color(0xFFFFEFE4))
-//                .clickable { expanded = !expanded }
-//                .padding(start = 15.dp, end = 13.dp),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Row(
-//                horizontalArrangement = Arrangement.SpaceBetween,
-//                verticalAlignment = Alignment.CenterVertically,
-//                modifier = Modifier.fillMaxWidth()
-//            ) {
-//                Text(
-//                    text = selectedOption ?: options.first(),
-//                    color = if (selectedOption == null) Color.Gray else Color(0xFFFF9888),
-//                    fontSize = 13.sp,
-//                    fontWeight = FontWeight.W700
-//                )
-//                Icon(
-//                    imageVector = Icons.Default.ArrowDropDown,
-//                    contentDescription = "선택",
-//                    tint = if (selectedOption == null) Color.Gray else Color(0xFFFF9888)
-//                )
-//            }
-//        }
-//
+//    Box(
+//        modifier = Modifier
+//            .width(width)
+//            .wrapContentHeight()
+//    ) {
 //        if (expanded) {
+//            // 뒤 배경 클릭 시 닫기
 //            Box(
 //                modifier = Modifier
+//                    .fillMaxSize()
+//                    .clickable(
+//                        indication = null,
+//                        interactionSource = remember { MutableInteractionSource() }
+//                    ) { onDismissRequest() }
+//            )
+//        }
+//
+//        AnimatedVisibility(
+//            visible = expanded,
+//            enter = fadeIn() + expandVertically(),
+//            exit = fadeOut() + shrinkVertically()
+//        ) {
+//            Surface(
+//                color = Color.White,
+//                shape = RoundedCornerShape(14.dp),
+//                shadowElevation = 4.dp,
+//                modifier = Modifier
 //                    .width(width)
-//                    .shadow(
-//                        elevation = 4.dp,
-//                        shape = RoundedCornerShape(14.dp),
-//                        clip = false // ✅ 그림자만 적용하고 clip은 직접 해줌
-//                    )
-//                    .clip(RoundedCornerShape(14.dp)) // ✅ radius 유지
-//                    .background(Color.White)         // ✅ 배경 흰색
+//                    .heightIn(max = maxHeight)
 //            ) {
-//                Column {
-//                    options.forEach { label ->
-//                        Box(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .clickable {
-//                                    onOptionSelected(label)
-//                                    expanded = false
-//                                }
-//                                .padding(vertical = 12.dp, horizontal = 16.dp),
-//                            contentAlignment = Alignment.CenterStart
-//                        ) {
-//                            Text(
-//                                text = label,
-//                                fontSize = 14.sp,
-//                                color = if (label == selectedOption) Color(0xFFFF9888) else Color(0xFF4B4B4B)
-//                            )
+//                val scrollState = rememberScrollState()
+//
+//                Box {
+//                    Column(
+//                        modifier = Modifier
+//                            .heightIn(max = maxHeight)
+//                            .verticalScroll(scrollState)
+//                    ) {
+//                        options.forEachIndexed { index, label ->
+//                            Box(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .height(30.dp)
+//                                    .clickable {
+//                                        onOptionSelected(label)
+//                                        onDismissRequest()
+//                                    }
+//                                    .padding(horizontal = 12.dp, vertical = 3.dp),
+//                                contentAlignment = Alignment.CenterStart
+//                            ) {
+//                                Text(
+//                                    text = label,
+//                                    fontSize = 14.sp,
+//                                    color = Color(0xFF8E8E8E)
+//                                )
+//                            }
+//                            if (index != options.lastIndex) {
+//                                Spacer(modifier = Modifier.height(3.dp))
+//                            }
 //                        }
 //                    }
+//
+//                    // 아래 Fade
+//                    Box(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .height(20.dp)
+//                            .background(
+//                                brush = Brush.verticalGradient(
+//                                    colors = listOf(Color.Transparent, Color.White)
+//                                )
+//                            )
+//                            .align(Alignment.BottomCenter)
+//                    )
 //                }
 //            }
+//
 //        }
 //    }
 //}
-
-
 
 @Preview(showBackground = true)
 @Composable

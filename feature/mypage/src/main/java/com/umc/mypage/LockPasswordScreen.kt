@@ -52,7 +52,7 @@ fun LockPasswordScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(maxHeightDp)
-                .padding(horizontal = 22.dp),
+                .padding(horizontal = 19.5.dp),
             //verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -73,8 +73,8 @@ fun LockPasswordScreen(
                         contentDescription = "뒤로가기",
                         modifier = Modifier
                             .clickable { /* 뒤로가기 로직 */ }
-                            .height(18.dp)
-                            .width(14.dp)
+                            .height(16.dp)
+                            .width(10.dp)
                     )
                 }
 
@@ -96,7 +96,7 @@ fun LockPasswordScreen(
                     modifier = Modifier
                         .height(maxHeightDp * 0.4f) // 하단 50%를 차지
                         .width(maxHeightDp * 0.8f)
-                        .padding(bottom = 20.dp),
+                        .padding(bottom = 45.dp),
                     onDigitClick = {
                         if (input.length < 4) input += it
                         if (input.length == 4) {
@@ -119,7 +119,6 @@ fun LockPasswordScreen(
                     onCancel = { input = "" }
                 )
             }
-
         }
     }
 }

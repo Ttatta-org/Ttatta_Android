@@ -50,6 +50,7 @@ fun MyPageScreen(
     isLoading: Boolean,
     errorMessage: String?,
     onNavigateToNotifications: () -> Unit,
+    onNavigateToLockSetting: () -> Unit,
     onLogout: () -> Unit,
     onLeaveUser: () -> Unit,
     onFabClick: () -> Unit,
@@ -106,6 +107,7 @@ fun MyPageScreen(
                                 onNotificationToggle = {  },
                                 onNavigateToNotifications = onNavigateToNotifications,
                                 onPasswordLockToggle = {  },
+                                onNavigateToLockSetting = onNavigateToLockSetting,
                                 onLeaveUser = onLeaveUser,
                                 showLogoutDialog = showLogoutDialog,
                                 setShowLogoutDialog = { showLogoutDialog = it },
@@ -276,6 +278,7 @@ fun AppSettingsSection(
     onNotificationToggle: (Boolean) -> Unit, // ✅ 알림 설정 변경 이벤트 추가
     onNavigateToNotifications: () -> Unit,
     onPasswordLockToggle: (Boolean) -> Unit, // ✅ 암호 잠금 설정 변경 이벤트 추가
+    onNavigateToLockSetting: () -> Unit,
     onLeaveUser: () -> Unit, // ✅ 탈퇴하기 이벤트 추가
     showLogoutDialog: Boolean,
     setShowLogoutDialog: (Boolean) -> Unit,
@@ -358,7 +361,7 @@ fun AppSettingsSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onPasswordLockToggle(true) }
+                        .clickable { onNavigateToLockSetting() }
                         .padding(start = 10.dp, bottom = 7.dp),
                     //verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -550,31 +553,4 @@ fun DashedDivider() {
             currentX += dashWidth + gapWidth // Move to the next dash position
         }
     }
-}
-
-@Preview(showBackground = true, name = "MyPageScreen Preview")
-@Composable
-fun PreviewMyPageScreen() {
-    // ✅ 가짜 사용자 데이터 생성
-    val mockUserInfo = UserInfo(
-        id = 1L,
-        name = "서연",
-        loginType = LoginType.REGULAR, // ✅ 이메일 로그인
-        email = "seoyeon@example.com",
-        profileImageUrl = null, // ✅ 프로필 이미지 없음 (기본 이미지 표시)
-        point = 1300L,
-        status = UserStatus.ACTIVE, // ✅ 활성 상태
-        totalDiaryCount = 129
-    )
-
-    // ✅ Preview에서 사용할 기본 상태
-    MyPageScreen(
-        userInfo = mockUserInfo,
-        isLoading = false,
-        errorMessage = null,
-        onNavigateToNotifications = {},
-        onLogout = { /* 로그아웃 테스트 */ },
-        onLeaveUser = { /* 탈퇴 테스트 */ },
-        onFabClick = {}
-    )
 }

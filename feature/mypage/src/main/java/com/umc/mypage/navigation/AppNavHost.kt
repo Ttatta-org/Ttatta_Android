@@ -10,6 +10,8 @@ import com.umc.mypage.MyPageScreen
 import com.umc.mypage.MyPageViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.umc.mypage.LockPasswordScreen
+import com.umc.mypage.LockSettingsScreen
 import com.umc.mypage.NotificationSettingsScreen
 import com.umc.mypage.SignOutScreen
 
@@ -34,6 +36,9 @@ fun AppNavHost(
                 errorMessage = errorMessage,
                 onNavigateToNotifications = {
                     navController.navigate("notification")
+                },
+                onNavigateToLockSetting = {
+                    navController.navigate("lock")
                 },
                 onLogout = {
                     viewModel.logout(
@@ -69,6 +74,22 @@ fun AppNavHost(
         composable("notification") {
             NotificationSettingsScreen(
 
+            )
+        }
+
+        composable("lock") {
+            LockSettingsScreen(
+                onLockPassword = {
+                    navController.navigate("lockpassword")
+                },
+            )
+        }
+        composable("lockpassword") {
+            LockPasswordScreen(
+                step = com.umc.mypage.PasswordStep.INPUT,
+                onComplete = {
+                    navController.navigate("lockpasswordconfirm")
+                }
             )
         }
     }
