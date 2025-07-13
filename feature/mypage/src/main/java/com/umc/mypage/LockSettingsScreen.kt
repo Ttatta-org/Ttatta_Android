@@ -38,6 +38,8 @@ import com.umc.mypage.components.TopBarComponent
 fun LockSettingsScreen(
     onLockPassword: () -> Unit,
     onChangePassword: () -> Unit,
+    isPinSet: Boolean,
+    clearPin: () -> Unit,
     onFabClick: () -> Unit = {}
 ){
     val systemUiController = rememberSystemUiController()
@@ -71,11 +73,17 @@ fun LockSettingsScreen(
                     item {
                         NotificationSettingItem(
                             title = "잠금 설정",
-                            checked = lockSetting,
-                            onCheckedChange = { lockSetting = it },
-                            onSwitchOn = { onLockPassword() },
+                            checked = isPinSet,
+                            onCheckedChange = { checked ->
+                                if (checked) {
+                                    onLockPassword()
+                                } else {
+                                    clearPin()
+                                }
+                            },
+                            //onSwitchOn = { onLockPassword() },
                             bottomContent = {
-                                if (lockSetting) {
+                                if (isPinSet) {
                                     Spacer(modifier = Modifier.height(22.dp))
 
                                     Row(

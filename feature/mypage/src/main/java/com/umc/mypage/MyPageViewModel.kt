@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.umc.core.model.UserInfo
 import com.umc.core.repository.UserRepository
+import com.umc.core.setting.SettingRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val settingRepository: SettingRepository
 ) : ViewModel() {
 
     // ✅ 유저 정보를 저장할 StateFlow
@@ -28,6 +30,9 @@ class MyPageViewModel @Inject constructor(
     // ✅ API 에러 메시지 저장
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
+
+    private val _isPinEnabled = MutableStateFlow(false)
+    val isPinEnabled: StateFlow<Boolean> = _isPinEnabled
 
     /**
      * ✅ 유저 정보 불러오기 (백엔드 API 호출)
@@ -86,21 +91,33 @@ class MyPageViewModel @Inject constructor(
             }
         }
     }
-}
 
-//data class MyPageUiState(
-//    val name: String = "서연",
-//    val profileImage: Int = R.drawable.default_profile,
-//    val diaryCount: Int = 129,
-//    val points: Int = 1300,
-//    val notificationsEnabled: Boolean = false,
-//    val passwordLockEnabled: Boolean = true
-//) {
-//    val displayName: String
-//        get() = if (name.endsWith("님")) name else "$name 님"
-//}
-//
-//open class MyPageViewModel: ViewModel() {
-//    private val _uiState = MutableStateFlow(MyPageUiState())
-//    open val uiState: StateFlow<MyPageUiState> = _uiState
-//}
+    fun refreshPinStatus() {
+        viewModelScope.launch {
+            _isPinEnabled.value = settingRepository.getIsPinSet()
+        }
+    }
+
+    fun savePin(pin: Int) {
+        viewModelScope.launch {
+            settingRepository.setPin(pin)
+            _isPinEnabled.value = true
+        }
+    }
+
+    fun clearPin() {
+        viewModelScope.launch {
+            settingRepository.clearPin()
+            _isPinEnabled.value = false
+        }
+    }
+
+
+    suspend fun isPinCorrect(input: Int): Boolean {
+        return settingRepository.getIsPinCorrect(input)
+    }
+
+    suspend fun isPinSet(): Boolean {
+        return settingRepository.getIsPinSet()
+    }
+}

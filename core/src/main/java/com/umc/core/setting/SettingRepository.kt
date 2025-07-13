@@ -12,6 +12,7 @@ interface SettingRepository {
 
     // 핀코드 관련
     suspend fun setPin(pin: Int)
+    suspend fun clearPin()
     suspend fun getIsPinSet(): Boolean
     suspend fun getIsPinCorrect(pin: Int): Boolean
 

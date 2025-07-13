@@ -66,6 +66,13 @@ class SettingRepositoryImpl(
             .apply()
     }
 
+    override suspend fun clearPin() {
+        prefs.edit()
+            .remove("user_pin")
+            .putBoolean("is_pin_set", false)
+            .apply()
+    }
+
     override suspend fun getIsPinSet(): Boolean {
         return prefs.getBoolean("is_pin_set", false)
     }

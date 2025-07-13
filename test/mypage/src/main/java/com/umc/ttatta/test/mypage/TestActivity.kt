@@ -67,7 +67,6 @@ class TestActivity : ComponentActivity() {
 
                 } catch (e: Exception) {
                     Log.e("MyPageActivity", "❌ 유저 정보 불러오기 실패: ${e.message}")
-                    return@launch // 실패 시 테스트 중단
                 }
                 Log.d("MyPageActivity", "✅ 유저 정보: $userInfo")
 
