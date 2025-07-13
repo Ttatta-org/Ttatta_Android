@@ -2,6 +2,7 @@ package com.umc.footprint.component
 
 import android.graphics.BitmapFactory
 import androidx.compose.animation.core.animate
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -23,7 +24,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -76,6 +79,16 @@ fun TopBar(
             Box(
                 modifier = Modifier.padding(vertical = 16.dp, horizontal = 32.dp)
             ) {
+                Canvas(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .blur(radius = 20.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
+                ) {
+                    drawCircle(
+                        color = Color.White,
+                        radius = 16.dp.toPx(),
+                    )
+                }
                 Image(
                     painter = painterResource(id = R.drawable.ic_logo),
                     contentScale = ContentScale.Fit,
@@ -119,6 +132,6 @@ fun TopBar(
 @Composable
 fun PreviewTopBar() {
     TopBar(
-        showBackground = true
+        showBackground = false
     )
 }

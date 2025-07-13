@@ -10,7 +10,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -25,6 +27,7 @@ import com.umc.footprint.FootprintViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -32,11 +35,10 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class TestActivity : ComponentActivity() {
-    @Inject
-    lateinit var userRepository: UserRepository
-    @Inject
-    lateinit var diaryRepository: DiaryRepository
+class TestActivity: ComponentActivity() {
+    @Inject lateinit var userRepository: UserRepository
+    @Inject lateinit var diaryRepository: DiaryRepository
+    private val isLoginSuccessState = MutableStateFlow(false)
 
     private val viewModel: FootprintViewModel by viewModels()
 
@@ -47,26 +49,27 @@ class TestActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val navigator = rememberNavController()
+            val isLoginSuccess by isLoginSuccessState.collectAsStateWithLifecycle()
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White)
+                    .background(Color.White),
             ) {
                 NavHost(
                     navController = navigator,
                     startDestination = "footprint",
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     composable(
                         route = "footprint"
                     ) {
-                        FootprintApp(
+                        if (isLoginSuccess) FootprintApp(
                             viewModel = viewModel,
                             isMapBlurApplied = false,
                             onNavigateToCategoryApp = {
                                 navigator.navigate("category")
-                            }
+                            },
                         )
                     }
 
@@ -82,7 +85,7 @@ class TestActivity : ComponentActivity() {
                 BottomNavigationBar(
                     selectedTab = NavigationItem.FOOTPRINT,
                     onTabSelected = {},
-                    onFabClick = {}
+                    onFabClick = {},
                 )
             }
         }
@@ -101,7 +104,7 @@ class TestActivity : ComponentActivity() {
 
                 userRepository.login(
                     id = TestValues.ID,
-                    password = TestValues.PASSWORD
+                    password = TestValues.PASSWORD,
                 )
 
                 diaryRepository.createCategory(
@@ -113,7 +116,7 @@ class TestActivity : ComponentActivity() {
                     name = "test category 2",
                     color = CategoryColor.GREEN,
                 )
-                
+
                 diaryRepository.getAllCategoryInfo().forEach { category ->
                     repeat(3) { index ->
                         val place = TestValues.PLACE[index]
@@ -122,8 +125,7 @@ class TestActivity : ComponentActivity() {
                             date = LocalDateTime.now().minusMonths(index.toLong()),
                             content = "test content $index",
                             image = File(
-                                cacheDir,
-                                "test_image_${place.name}.jpg"
+                                cacheDir, "test_image_${place.name}.jpg"
                             ).apply {
                                 FileOutputStream(this).use {
                                     resources.openRawResource(place.imageId).copyTo(it)
@@ -131,7 +133,7 @@ class TestActivity : ComponentActivity() {
                             },
                             latitude = place.latitude,
                             longitude = place.longitude,
-                            locationName = place.name
+                            locationName = place.name,
                         )
                     }
                 }
@@ -141,8 +143,10 @@ class TestActivity : ComponentActivity() {
 
             userRepository.login(
                 id = TestValues.ID,
-                password = TestValues.PASSWORD
+                password = TestValues.PASSWORD,
             )
+
+            isLoginSuccessState.value = true
         }
     }
 }

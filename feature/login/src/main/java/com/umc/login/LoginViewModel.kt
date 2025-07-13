@@ -1,6 +1,5 @@
 package com.umc.login
 
-import androidx.annotation.MainThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.umc.core.repository.UserRepository

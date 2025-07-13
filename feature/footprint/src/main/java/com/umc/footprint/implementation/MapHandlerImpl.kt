@@ -1,0 +1,379 @@
+package com.umc.footprint.implementation
+
+import android.content.Context
+import android.graphics.PointF
+import android.location.Location
+import android.view.View
+import android.view.ViewGroup
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.viewinterop.AndroidView
+import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.CameraAnimation
+import com.naver.maps.map.CameraUpdate
+import com.naver.maps.map.LocationSource
+import com.naver.maps.map.LocationTrackingMode
+import com.naver.maps.map.MapView
+import com.naver.maps.map.NaverMap
+import com.naver.maps.map.clustering.Clusterer
+import com.naver.maps.map.overlay.Marker
+import com.naver.maps.map.overlay.OverlayImage
+import com.umc.design.CategoryColor
+import com.umc.footprint.R
+import com.umc.footprint.core.DesignConstant
+import com.umc.footprint.core.LocationHandler
+import com.umc.footprint.core.MapHandler
+import com.umc.footprint.core.MapMarker
+import com.umc.footprint.util.calculateClusteredMarkerSize
+import com.umc.footprint.util.loadRawImageAsBitmap
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+import kotlin.math.roundToInt
+
+class MapHandlerImpl @Inject constructor(
+    private val context: Context,
+    private val locationHandler: LocationHandler,
+): MapHandler {
+
+    private val locatorImage: OverlayImage = OverlayImage.fromBitmap(
+        loadRawImageAsBitmap(
+            context = context,
+            rawResourceId = R.raw.ic_locator,
+            size = DesignConstant.LocatorSize,
+        )
+    )
+
+    private val clusterImage: OverlayImage = OverlayImage.fromBitmap(
+        loadRawImageAsBitmap(
+            context = context,
+            rawResourceId = R.raw.ic_clustered_marker,
+            size = DesignConstant.ClusterMarkerMaxSize,
+        )
+    )
+
+    private val footMarkerImages: Map<CategoryColor, OverlayImage> = mapOf(
+        CategoryColor.RED to R.raw.ic_foot_red,
+        CategoryColor.ORANGE to R.raw.ic_foot_orange,
+        CategoryColor.YELLOW to R.raw.ic_foot_yellow,
+        CategoryColor.GREEN to R.raw.ic_foot_green,
+        CategoryColor.TURQUOISE to R.raw.ic_foot_turquoise,
+        CategoryColor.BLUE to R.raw.ic_foot_blue,
+        CategoryColor.NAVY to R.raw.ic_foot_navy,
+        CategoryColor.PURPLE to R.raw.ic_foot_purple,
+        CategoryColor.BROWN to R.raw.ic_foot_brown,
+        CategoryColor.PINK to R.raw.ic_foot_pink,
+        CategoryColor.WHITE to R.raw.ic_foot_white,
+        CategoryColor.BLACK to R.raw.ic_foot_black,
+    ).mapValues { (_, value) ->
+        OverlayImage.fromBitmap(
+            loadRawImageAsBitmap(
+                context = context,
+                rawResourceId = value,
+                size = DesignConstant.MarkerSize,
+            )
+        )
+    }
+
+    private val bookMarkerImages: Map<CategoryColor, OverlayImage> = mapOf(
+        CategoryColor.RED to R.raw.ic_book_red,
+        CategoryColor.ORANGE to R.raw.ic_book_orange,
+        CategoryColor.YELLOW to R.raw.ic_book_yellow,
+        CategoryColor.GREEN to R.raw.ic_book_green,
+        CategoryColor.TURQUOISE to R.raw.ic_book_turquoise,
+        CategoryColor.BLUE to R.raw.ic_book_blue,
+        CategoryColor.NAVY to R.raw.ic_book_navy,
+        CategoryColor.PURPLE to R.raw.ic_book_purple,
+        CategoryColor.BROWN to R.raw.ic_book_brown,
+        CategoryColor.PINK to R.raw.ic_book_pink,
+        CategoryColor.WHITE to R.raw.ic_book_white,
+        CategoryColor.BLACK to R.raw.ic_book_black,
+    ).mapValues { (_, value) ->
+        OverlayImage.fromBitmap(
+            loadRawImageAsBitmap(
+                context = context,
+                rawResourceId = value,
+                size = DesignConstant.MarkerSize,
+            )
+        )
+    }
+
+    private val mapView: MapView
+    private val clusterManager: Clusterer<MarkerKey>
+
+    private val mapFlow = MutableStateFlow<NaverMap?>(null)
+    private val isNonClusteringZoomLevelReached = MutableStateFlow(false)
+    private val markers = mutableSetOf<Marker>()
+    private var onMoveAnimationEnded: (() -> Unit)? = null
+    private var onPreviousMarkerDismissed: (() -> Unit)? = null
+
+    private suspend fun getMap(): NaverMap {
+        return mapFlow.first { map -> map != null }!!
+    }
+
+    init {
+        // 클러스터 매니저 설정
+        clusterManager = Clusterer.Builder<MarkerKey>()
+            .maxZoom(14)
+            .screenDistance(DesignConstant.ClusteringDistance.value.toDouble())
+            .clusterMarkerUpdater { info, marker ->
+                marker.toClusterMarker(clusterSize = info.size)
+            }
+            .leafMarkerUpdater { info, marker ->
+                val mapMarker = (info.key as MarkerKey).mapMarker
+                marker.tag = mapMarker
+                markers.add(marker)
+
+                if (isNonClusteringZoomLevelReached.value) marker.toNormalMarker(marker = mapMarker)
+                else marker.toClusterMarker(clusterSize = 1)
+            }
+            .build()
+
+        // 네이버 SDK를 사용한 지도 초기 설정
+        mapView = MapView(context).apply {
+            id = View.generateViewId()
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            )
+
+            getMapAsync { map ->
+                map.apply {
+                    // 이벤트 리스너 설정
+                    addOnCameraChangeListener { reason, _ ->
+                        if (reason == CameraUpdate.REASON_GESTURE) CoroutineScope(Dispatchers.Main).launch {
+                            dismissMarkerEvent()
+                        }
+                    }
+
+                    setOnMapClickListener { _, _ ->
+                        CoroutineScope(Dispatchers.Main).launch {
+                            dismissMarkerEvent()
+                        }
+                    }
+
+                    addOnCameraIdleListener {
+                        isNonClusteringZoomLevelReached.value = map.cameraPosition.zoom > 15
+                    }
+
+                    // UI 설정
+                    uiSettings.apply {
+                        isCompassEnabled = false
+                        isScaleBarEnabled = false
+                        isZoomControlEnabled = false
+                        isIndoorLevelPickerEnabled = false
+                        isLocationButtonEnabled = false
+                    }
+
+                    isIndoorEnabled = false
+                    locationOverlay.icon = locatorImage
+
+                    // 위치 추적 기능 설정
+                    locationSource = object: LocationSource {
+                        private var locationChangeListener: (Location) -> Unit = {}
+
+                        override fun activate(listener: LocationSource.OnLocationChangedListener) {
+                            try {
+                                { location: Location ->
+                                    listener.onLocationChanged(location)
+                                }.let { lambda ->
+                                    locationHandler.addLocationChangeListener(lambda)
+                                    locationChangeListener = lambda
+                                }
+                            } catch (e: Exception) {
+                                // TODO
+                            }
+                        }
+
+                        override fun deactivate() {
+                            try {
+                                locationHandler.removeLocationChangeListener(locationChangeListener)
+                            } catch (e: Exception) {
+                                // TODO
+                            }
+                        }
+                    }
+                }
+
+                mapFlow.value = map
+                clusterManager.map = map
+            }
+        }
+
+        // 최대 비클러스터링 확대 레벨 감지
+        CoroutineScope(Dispatchers.Main).launch {
+            isNonClusteringZoomLevelReached.collect { isReached ->
+                markers.filter { it.isAdded }.forEach {
+                    if (isReached) it.toNormalMarker(marker = it.tag as MapMarker)
+                    else it.toClusterMarker(clusterSize = 1)
+                }
+            }
+        }
+    }
+
+    @Composable
+    override fun MapView(
+        isBlurApplied: Boolean,
+        isLocationMarkingEnabled: Boolean,
+    ) {
+        var capturedMap by remember { mutableStateOf<ImageBitmap?>(null) }
+
+        LaunchedEffect(key1 = isBlurApplied) {
+            if (isBlurApplied) {
+                getMap().takeSnapshot { capturedMap = it.asImageBitmap() }
+            } else {
+                capturedMap = null
+            }
+        }
+
+        LaunchedEffect(key1 = isLocationMarkingEnabled) {
+            if (isLocationMarkingEnabled) {
+                getMap().locationTrackingMode = LocationTrackingMode.Follow
+            } else {
+                getMap().locationTrackingMode = LocationTrackingMode.None
+            }
+        }
+
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            AndroidView(
+                factory = {
+                    mapView.apply {
+                        parent?.let { (it as ViewGroup).removeView(mapView) }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .alpha(if (capturedMap != null) 0f else 1f),
+            )
+            capturedMap?.let { bitmap ->
+                Image(
+                    bitmap = bitmap,
+                    contentScale = ContentScale.Fit,
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize()
+                )
+            }
+        }
+    }
+
+    override suspend fun moveTo(
+        latitude: Double,
+        longitude: Double,
+        offset: Offset,
+        animationTime: Long,
+        onAnimationEnded: () -> Unit,
+    ) {
+        val pivot = getMap().contentRect.let { mapSize ->
+            PointF(
+                0.5f + offset.x / mapSize.width(),
+                0.5f + offset.y / mapSize.height(),
+            )
+        }
+
+        val target = LatLng(latitude, longitude)
+        onMoveAnimationEnded = onAnimationEnded
+        val cameraUpdate = CameraUpdate.scrollTo(target)
+            .pivot(pivot)
+            .animate(CameraAnimation.Easing, animationTime)
+            .finishCallback { onMoveAnimationEnded?.invoke() }
+
+        getMap().moveCamera(cameraUpdate)
+    }
+
+    override suspend fun moveToCurrentPosition() {
+        val location = locationHandler.getCurrentLocation()
+        moveTo(location.latitude, location.longitude)
+    }
+
+    override suspend fun getViewingPosition(): Pair<Double, Double> {
+        val position = getMap().cameraPosition.target
+        return position.latitude to position.longitude
+    }
+
+    override suspend fun addMarker(marker: MapMarker) {
+        val key = MarkerKey(marker)
+        clusterManager.add(key, null)
+    }
+
+    override suspend fun removeAllMarkers() {
+        onPreviousMarkerDismissed?.invoke()
+        onPreviousMarkerDismissed = null
+        clusterManager.clear()
+        markers.clear()
+    }
+
+    override suspend fun addOnDismissListener(listener: () -> Unit) {
+        getMap().apply {
+            setOnMapClickListener { _, _ ->
+                CoroutineScope(Dispatchers.Main).launch {
+                    dismissMarkerEvent()
+                    listener()
+                }
+            }
+
+            addOnCameraChangeListener { reason, _ ->
+                if (reason == CameraUpdate.REASON_GESTURE) CoroutineScope(Dispatchers.Main).launch {
+                    listener()
+                }
+            }
+        }
+    }
+
+    override suspend fun dismissMarkerEvent() {
+        onMoveAnimationEnded = null
+        onPreviousMarkerDismissed?.invoke()
+        onPreviousMarkerDismissed = null
+    }
+
+    private fun Marker.toClusterMarker(clusterSize: Int) {
+        val (clusterWidth, clusterHeight) = calculateClusteredMarkerSize(
+            density = context.resources.displayMetrics.density,
+            count = clusterSize,
+        )
+
+        width = clusterWidth.roundToInt()
+        height = clusterHeight.roundToInt()
+        anchor = PointF(0.5f, 0.5f)
+        icon = clusterImage
+        setOnClickListener { true }
+    }
+
+    private fun Marker.toNormalMarker(marker: MapMarker) {
+        val density = context.resources.displayMetrics.density
+        val color = marker.color
+        val zIndex = marker.zIndex
+        val isOverlapping = marker.isOverlapping
+        val onClicked = marker.onClicked
+
+        width = (DesignConstant.MarkerSize.width.value * density).roundToInt()
+        height = (DesignConstant.MarkerSize.height.value * density).roundToInt()
+        anchor = PointF(0.5f, 0.5f)
+        (if (isOverlapping) bookMarkerImages[color] else footMarkerImages[color])?.let { icon = it }
+        this.zIndex = zIndex
+        setOnClickListener {
+            onPreviousMarkerDismissed?.invoke()
+            map?.projection?.toScreenLocation(this.position)?.apply {
+                onPreviousMarkerDismissed = onClicked?.invoke(Offset(x, y))
+            }
+            true
+        }
+    }
+}

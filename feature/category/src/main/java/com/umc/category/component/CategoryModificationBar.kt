@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +35,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,9 +50,12 @@ import androidx.compose.ui.unit.sp
 import com.umc.category.R
 import com.umc.design.CategoryColor
 import com.umc.design.Grey300
+import com.umc.design.Grey500
 import com.umc.design.Primary200
 import com.umc.design.Primary300
 import com.umc.design.Primary500
+import com.umc.design.theme.LocalFontTheme
+import com.umc.design.theme.ThemeProvider
 import com.umc.design.R as Res
 
 data class CategoryModificationBarProp(
@@ -65,14 +68,13 @@ data class CategoryModificationBarProp(
     val onDoneButtonClicked: () -> Unit,
 )
 
-private val categoryModificationBarShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+private val categoryModificationBarShape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryModificationBar(
     prop: CategoryModificationBarProp
 ) {
-    val density = LocalDensity.current
     val keyboard = LocalSoftwareKeyboardController.current
     val bottom = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
 
@@ -120,19 +122,23 @@ fun CategoryModificationBar(
                     ) {
                         Text(
                             text = stringResource(id = R.string.modify),
-                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W600,
+                            color = Color.Grey500,
                         )
                         Column(
                             verticalArrangement = Arrangement.spacedBy(space = 24.dp)
                         ) {
                             // 이름 입력 창
                             Column(
-                                verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+                                verticalArrangement = Arrangement.spacedBy(space = 8.dp)
                             ) {
                                 Text(
                                     text = stringResource(id = R.string.modify_footprint),
-                                    fontWeight = FontWeight.Bold,
                                     color = Color.Primary300,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.W600,
                                     modifier = Modifier.padding(horizontal = 16.dp)
                                 )
                                 BasicTextField(
@@ -141,6 +147,7 @@ fun CategoryModificationBar(
                                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                                     keyboardActions = KeyboardActions(onDone = { keyboard?.hide() }),
                                     textStyle = TextStyle(
+                                        fontFamily = LocalFontTheme.current.font,
                                         fontSize = 12.sp
                                     )
                                 ) { innerTextField ->
@@ -156,7 +163,7 @@ fun CategoryModificationBar(
                                                 color = Color.White,
                                                 shape = RoundedCornerShape(percent = 50)
                                             )
-                                            .padding(vertical = 16.dp, horizontal = 24.dp)
+                                            .padding(vertical = 13.dp, horizontal = 28.dp)
                                     ) {
                                         Row(
                                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -165,13 +172,13 @@ fun CategoryModificationBar(
                                         ) {
                                             Box(
                                                 contentAlignment = Alignment.CenterStart,
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .height(with(density) { 16.sp.toDp() })
+                                                modifier = Modifier.weight(1f),
                                             ) {
                                                 if (prop.categoryNameInputFieldValue.isBlank()) Text(
                                                     text = stringResource(id = R.string.footprint_placeholder),
-                                                    fontSize = 12.sp,
+                                                    fontSize = 13.sp,
+                                                    lineHeight = 20.sp,
+                                                    fontWeight = FontWeight.W400,
                                                     color = Color.Grey300,
                                                 )
                                                 innerTextField()
@@ -207,8 +214,10 @@ fun CategoryModificationBar(
                                     )
                                     Text(
                                         text = stringResource(id = R.string.color_choice),
-                                        fontWeight = FontWeight.Bold,
-                                        color = Color.Primary300
+                                        fontSize = 14.sp,
+                                        lineHeight = 20.sp,
+                                        fontWeight = FontWeight.W600,
+                                        color = Color.Primary300,
                                     )
                                 }
                                 Row(
@@ -231,10 +240,10 @@ fun CategoryModificationBar(
                                                 contentScale = ContentScale.Fit,
                                                 modifier = Modifier.size(28.dp)
                                             )
-                                            if (color == prop.selectedColor) Image(
+                                            if (color == prop.selectedColor) Icon(
                                                 painter = painterResource(id = R.drawable.ic_check),
                                                 contentDescription = null,
-                                                contentScale = ContentScale.Fit,
+                                                tint = if (color == CategoryColor.WHITE) Color.Black else Color.White,
                                                 modifier = Modifier.size(12.dp)
                                             )
                                         }
@@ -270,7 +279,7 @@ fun CategoryModificationBar(
 
 val previewCategoryModificationBarProp = CategoryModificationBarProp(
     maxCategoryNameLength = 20,
-    categoryNameInputFieldValue = "test",
+    categoryNameInputFieldValue = "",
     selectedColor = CategoryColor.ORANGE,
     onDismissed = {},
     onCategoryNameInputFieldValueChanged = {},
@@ -281,5 +290,7 @@ val previewCategoryModificationBarProp = CategoryModificationBarProp(
 @Preview
 @Composable
 fun PreviewCategoryModificationBar() {
-    CategoryModificationBar(prop = previewCategoryModificationBarProp)
+    ThemeProvider {
+        CategoryModificationBar(prop = previewCategoryModificationBarProp)
+    }
 }

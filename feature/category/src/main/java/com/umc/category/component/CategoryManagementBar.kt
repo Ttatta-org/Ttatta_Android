@@ -29,9 +29,13 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.umc.category.R
+import com.umc.design.Grey500
+import com.umc.design.theme.ThemeProvider
 import com.umc.design.R as Res
 
 data class CategoryManagementBarProp(
@@ -41,7 +45,7 @@ data class CategoryManagementBarProp(
     val onDeleteCategoryAndAllIncludedDiariesOptionClicked: () -> Unit,
 )
 
-private val categoryManagementBarShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
+private val categoryManagementBarShape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,38 +95,26 @@ fun CategoryManagementBar(
                             modifier = Modifier.size(32.dp)
                         )
                     }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(percent = 50))
-                            .clickable { prop.onModifyOptionClicked() }
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.modify),
-                            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(percent = 50))
-                            .clickable { prop.onDeleteCategoryOptionClicked() }
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.delete),
-                            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
-                        )
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(percent = 50))
-                            .clickable { prop.onDeleteCategoryAndAllIncludedDiariesOptionClicked() }
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.delete_all),
-                            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
-                        )
+                    listOf(
+                        prop.onModifyOptionClicked to stringResource(id = R.string.modify),
+                        prop.onDeleteCategoryOptionClicked to stringResource(id = R.string.delete_category),
+                        prop.onDeleteCategoryAndAllIncludedDiariesOptionClicked to stringResource(id = R.string.delete_all),
+                    ).forEach { (onClick, text) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(percent = 50))
+                                .clickable { onClick() }
+                        ) {
+                            Text(
+                                text = text,
+                                fontSize = 15.sp,
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight.W600,
+                                color = Color.Grey500,
+                                modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(bottom))
@@ -141,5 +133,7 @@ val previewCategoryManagementBarProp = CategoryManagementBarProp(
 @Preview
 @Composable
 fun PreviewCategoryManagementBar() {
-    CategoryManagementBar(prop = previewCategoryManagementBarProp)
+    ThemeProvider {
+        CategoryManagementBar(prop = previewCategoryManagementBarProp)
+    }
 }

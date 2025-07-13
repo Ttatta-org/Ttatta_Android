@@ -5,6 +5,7 @@ import com.umc.data.api.dto.server.CheckVerificationCodeRequestDTO
 import com.umc.data.api.dto.server.EditRequestDTO
 import com.umc.data.api.dto.server.FindIdResultDTO
 import com.umc.data.api.dto.server.FindPwRequestDTO
+import com.umc.data.api.dto.server.KaKaoFinalSignUpResultDTO
 import com.umc.data.api.dto.server.RefreshResultDTO
 import com.umc.data.api.dto.server.SendVerificationMailFindIdRequestDTO
 import com.umc.data.api.dto.server.SendVerificationMailFindPwRequestDTO
@@ -12,9 +13,9 @@ import com.umc.data.api.dto.server.SendVerificationMailSignUpRequestDTO
 import com.umc.data.api.dto.server.SignInRequestDTO
 import com.umc.data.api.dto.server.SignUpKakaoRequestDTO
 import com.umc.data.api.dto.server.SignUpRequestDTO
-import com.umc.data.api.dto.server.TokenValidationResultDTO
 import com.umc.data.api.dto.server.UserInfoEditResultDTO
 import com.umc.data.api.dto.server.UserInfoResultDTO
+import com.umc.data.api.dto.server.UserKaKaoOpenIdResultDTO
 import com.umc.data.api.dto.server.UserSignInResultDTO
 import com.umc.data.api.dto.server.UserSignUpResultDTO
 import com.umc.data.api.dto.server.VerifyUsernameOverlapResultDTO
@@ -27,11 +28,11 @@ import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface UserApi {
-    // 카카오 토큰 검증
-    @POST("/users/verificate/kakao")
-    suspend fun validKakaoToken(
+    // 카카오 로그인
+    @POST("/users/signup/kakao")
+    suspend fun loginWithKakao(
         @Header("OpenId") idToken: String
-    ): BaseResponse<TokenValidationResultDTO>
+    ): BaseResponse<UserKaKaoOpenIdResultDTO>
 
     // 회원가입
     @POST("/users/signup")
@@ -52,11 +53,10 @@ interface UserApi {
     ): BaseResponse<Any?>
 
     // 카카오 회원가입
-    @POST("/users/signup/kakao")
+    @POST("/users/kakao/signup/nickname")
     suspend fun signUpKakao(
-        @Header("OpenId") idToken: String,
         @Body body: SignUpKakaoRequestDTO
-    ): BaseResponse<UserSignUpResultDTO>
+    ): BaseResponse<KaKaoFinalSignUpResultDTO>
 
     // 로그인
     @POST("/users/signin")

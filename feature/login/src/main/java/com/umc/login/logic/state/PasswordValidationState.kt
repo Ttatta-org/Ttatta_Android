@@ -80,7 +80,7 @@ fun isPasswordValid(password: String, confirmPassword: String? = null): Password
     val hasUpperCase = password.any { it.isUpperCase() }
     val hasLowerCase = password.any { it.isLowerCase() }
     val hasDigit = password.any { it.isDigit() }
-    val hasSpecialChar = password.any { it in "!@#\$%^&*()_+=<>?" }
+    val hasSpecialChar = password.any { it in "!@#$%^&*()_+=<>?" }
 
     if (!hasSpecialChar || !hasDigit || !hasLowerCase && !hasUpperCase) return PasswordValidationState.TOO_SIMPLE
 

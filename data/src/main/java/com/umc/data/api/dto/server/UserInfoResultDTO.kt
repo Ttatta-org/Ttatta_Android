@@ -78,12 +78,13 @@ data class UserInfoResultDTO (
     /**
      * 
      *
-     * Values: ACTIVE,INACTIVE
+     * Values: ACTIVE,INACTIVE,PENDING
      */
     @JsonClass(generateAdapter = false)
     enum class Status(val value: kotlin.String) {
         @Json(name = "ACTIVE") ACTIVE("ACTIVE"),
-        @Json(name = "INACTIVE") INACTIVE("INACTIVE");
+        @Json(name = "INACTIVE") INACTIVE("INACTIVE"),
+        @Json(name = "PENDING") PENDING("PENDING");
     }
     /**
      * 

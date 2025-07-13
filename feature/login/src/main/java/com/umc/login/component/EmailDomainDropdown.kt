@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.Grey300
 import com.umc.design.Secondary100
+import com.umc.design.theme.ThemeProvider
 
 data class EmailDomainDropdownItemProp(
     val onClicked: () -> Unit,
@@ -92,7 +93,9 @@ val previewEmailDomainDropdownItemProps = listOf(
 @Preview
 @Composable
 fun PreviewEmailDomainDropdown() {
-    EmailDomainDropdown(
-        props = previewEmailDomainDropdownItemProps,
-    )
+    ThemeProvider {
+        EmailDomainDropdown(
+            props = previewEmailDomainDropdownItemProps,
+        )
+    }
 }

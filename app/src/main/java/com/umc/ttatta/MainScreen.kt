@@ -1,5 +1,6 @@
 package com.umc.ttatta
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -29,10 +30,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
+import com.google.firebase.messaging.FirebaseMessaging
+import com.umc.data.util.createChallengeNotificationChannel
+import com.umc.design.character.Accessory
+import com.umc.design.character.AccessorySet
+import com.umc.design.theme.ThemeProvider
 import com.umc.ttatta.component.NavigationBar
 import com.umc.ttatta.component.NavigationItem
 import com.umc.ttatta.component.RecordOptionPicker
@@ -66,6 +73,23 @@ fun MainScreen(
 
     var residualCenterButtonProp by remember { mutableStateOf(centerButtonProp) }
 
+    val context = LocalContext.current
+    // FCM 토큰 요청 (side-effect로 한 번만 실행)
+    LaunchedEffect(Unit) {
+        // 채널 생성
+        createChallengeNotificationChannel(context)
+
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                Log.d("FCM", "Token: $token")
+                // 여기서 서버에 토큰 저장도 가능
+            } else {
+                Log.e("FCM", "Token fetch failed", task.exception)
+            }
+        }
+    }
+
     LaunchedEffect(key1 = centerButtonProp) {
         centerButtonProp?.let { residualCenterButtonProp = it }
     }
@@ -76,9 +100,8 @@ fun MainScreen(
             .background(color = Color.White)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .let { if (centerButtonProp != null) it.blur(16.dp) else it }
+            modifier = Modifier.fillMaxSize()
+                .let { if (centerButtonProp != null) it.blur(16.dp) else it },
         ) {
             // 화면
             Box(
@@ -96,7 +119,7 @@ fun MainScreen(
                             y = offset.y + centerButtonTopOffsetFromNavBarTopCenter.toPx()
                         )
                     }
-                }
+                },
             ) {
                 NavigationBar(
                     currentNavigationItem = navigationBarProp.currentNavigationItem,
@@ -111,17 +134,15 @@ fun MainScreen(
                     x = centerButtonCenter.x - centerButtonSize.width.toPx() / 2,
                     y = centerButtonCenter.y - centerButtonSize.height.toPx() / 2
                 ).round()
-            }
+            },
         ) {
             IconButton(
                 onClick = centerButtonProp?.onDismissed ?: navigationBarProp.onCenterButtonClicked,
                 modifier = Modifier.size(centerButtonSize)
             ) {
                 ShadowedImage(
-                    id = if (centerButtonProp == null)
-                        R.drawable.btn_record
-                    else
-                        R.drawable.btn_cancel_record,
+                    id = if (centerButtonProp == null) R.drawable.btn_record
+                    else R.drawable.btn_cancel_record,
                     contentDescription = null,
                     width = centerButtonSize.width,
                     height = centerButtonSize.height,
@@ -133,15 +154,13 @@ fun MainScreen(
         }
         // 중앙 버튼 클릭 시 표시되는 다이얼로그 버튼
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .let {
-                    if (centerButtonProp != null) it.clickable(
-                        indication = null,
-                        interactionSource = null,
-                        onClick = centerButtonProp.onDismissed
-                    ) else it
-                }
+            modifier = Modifier.fillMaxSize().let {
+                if (centerButtonProp != null) it.clickable(
+                    indication = null,
+                    interactionSource = null,
+                    onClick = centerButtonProp.onDismissed
+                ) else it
+            },
         ) {
             AnimatedVisibility(
                 visible = centerButtonProp != null,
@@ -150,11 +169,9 @@ fun MainScreen(
                 modifier = Modifier.offset {
                     Offset(
                         x = 0f,
-                        y = centerButtonCenter.y
-                                - centerButtonSize.height.toPx() / 2
-                                - recordOptionPickerHeight
+                        y = centerButtonCenter.y - centerButtonSize.height.toPx() / 2 - recordOptionPickerHeight
                     ).round()
-                }
+                },
             ) {
                 residualCenterButtonProp?.let { prop ->
                     Box(
@@ -163,7 +180,7 @@ fun MainScreen(
                             .fillMaxWidth()
                             .onGloballyPositioned {
                                 recordOptionPickerHeight = it.size.height
-                            }
+                            },
                     ) {
                         RecordOptionPicker(prop = prop.recordOptionPickerProp)
                         BackHandler { prop.onDismissed() }
@@ -174,32 +191,39 @@ fun MainScreen(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(showBackground = true)
 @Composable
-fun PreviewNavigationBarScreen() {
+fun PreviewMainScreen() {
     var currentNavigationItem by remember { mutableStateOf(NavigationItem.DIARY) }
     var isCenterButtonActivated by remember { mutableStateOf(false) }
 
-    MainScreen(
-        navigationBarProp = NavigationBarProp(
-            currentNavigationItem = currentNavigationItem,
-            onNavigate = { currentNavigationItem = it },
-            onCenterButtonClicked = { isCenterButtonActivated = true },
-        ),
-        centerButtonProp = if (isCenterButtonActivated) CenterButtonProp(
-            recordOptionPickerProp = RecordOptionPickerProp(
-                userName = "test",
-                onCameraOptionClicked = {},
-                onGalleryOptionClicked = {},
+    ThemeProvider {
+        MainScreen(
+            navigationBarProp = NavigationBarProp(
+                currentNavigationItem = currentNavigationItem,
+                onNavigate = { currentNavigationItem = it },
+                onCenterButtonClicked = { isCenterButtonActivated = true },
             ),
-            onDismissed = { isCenterButtonActivated = false }
-        ) else null,
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
+            centerButtonProp = if (isCenterButtonActivated) CenterButtonProp(
+                recordOptionPickerProp = RecordOptionPickerProp(
+                    userName = "test",
+                    accessories = AccessorySet.create(
+                        Accessory.TTOTTO_BAG,
+                        Accessory.TTOTTO_HAT,
+                        Accessory.TTUTTU_BAG,
+                        Accessory.TTUTTU_HAT,
+                    ),
+                    onCameraOptionClicked = {},
+                    onGalleryOptionClicked = {},
+                ),
+                onDismissed = { isCenterButtonActivated = false },
+            ) else null,
         ) {
-            Text(text = "테스트")
+            Box(
+                contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()
+            ) {
+                Text(text = "테스트")
+            }
         }
     }
 }
