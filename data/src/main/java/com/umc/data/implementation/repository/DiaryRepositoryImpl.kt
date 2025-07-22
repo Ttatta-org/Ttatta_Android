@@ -3,6 +3,7 @@ package com.umc.data.implementation.repository
 import com.umc.core.model.CategoryInfo
 import com.umc.core.model.Diary
 import com.umc.core.model.DiaryForCard
+import com.umc.core.model.DiaryForRemind
 import com.umc.core.model.Footprint
 import com.umc.core.repository.DiaryRepository
 import com.umc.data.api.ServerApi
@@ -88,6 +89,10 @@ class DiaryRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun getDiaryForRemind(id: Long): DiaryForRemind {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getAllRecordedDates(): List<LocalDate> {
         val response = serverApi.withAuth(authPreference) { getDiariesDate() }
         return response.diaryDateList?.mapNotNull { it.date } ?: listOf()
@@ -102,6 +107,7 @@ class DiaryRepositoryImpl @Inject constructor(
                 diaryId = it.diaryId!!,
                 categoryId = it.diaryCategoryId!!,
                 clusterId = it.clusterId!!,
+                isClustered = false,  // TODO: 백엔드 지원 시 교체
                 color = when (it.categoryColor!!) {
                     "RED" -> CategoryColor.RED
                     "ORANGE" -> CategoryColor.ORANGE
