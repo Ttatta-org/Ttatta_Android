@@ -30,7 +30,7 @@ import com.umc.footprint.core.DesignConstant
 import com.umc.footprint.model.event.DiaryModificationBarOpenEvent
 import com.umc.footprint.model.event.ModifiedMapMarkerClickedEvent
 import com.umc.footprint.model.event.RemindEvent
-import com.umc.footprint.model.event.RemindMapMovedEvent
+import com.umc.footprint.model.event.RemindLoadedEvent
 import com.umc.footprint.model.prop.CategoryItemProp
 import com.umc.footprint.model.prop.CategorySelectionBarProp
 import com.umc.footprint.model.prop.DiaryCardLoadedProp
@@ -73,7 +73,7 @@ fun FootprintApp(
 
     var barOpenEvent: DiaryModificationBarOpenEvent? by remember { mutableStateOf(null) }
     var markerEvent: ModifiedMapMarkerClickedEvent? by remember { mutableStateOf(null) }
-    var remindMapMovedEvent: RemindMapMovedEvent? by remember { mutableStateOf(null) }
+    var remindLoadedEvent: RemindLoadedEvent? by remember { mutableStateOf(null) }
 
     val diaryCardLoadedPropMap = remember { mutableStateMapOf<Long, DiaryCardLoadedProp>() }
 
@@ -111,7 +111,7 @@ fun FootprintApp(
             } ?: run {
                 // 일기가 처음 로드되었을 때
                 diaryCardLoadedPropMap[diary.id] = DiaryCardLoadedProp(
-                    id = diary.id,
+                    key = diary.id,
                     date = diary.date,
                     categoryColor = diary.color,
                     imageUrl = diary.imageUrl,
@@ -192,7 +192,7 @@ fun FootprintApp(
                 longitude = diary.longitude,
                 pivot = centralFootprintOffset,
             )
-            remindMapMovedEvent = RemindMapMovedEvent(
+            remindLoadedEvent = RemindLoadedEvent(
                 description = remindEvent.description,
                 date = diary.date,
                 isBook = diary.isClustered,
@@ -221,17 +221,43 @@ fun FootprintApp(
                 modifier = Modifier.onGloballyPositioned { mapViewSize = it.size.toSize() },
             ) {
                 viewModel.MapView(
-                    isBlurApplied = isMapBlurApplied,
+                    isBlurApplied = remindLoadedEvent != null || isMapBlurApplied,
                     isLocationMarkingEnabled = isLocationMarkingEnabled
                 )
             }
         },
         isCategorySelected = viewModel.selectedCategoryId != null,
-        diaryCardProp = markerEvent?.let { event ->
+        diaryCardProp = remindLoadedEvent?.let { event ->
+            // 리마인드 이벤트에 의해서 카드가 띄워지는 경우
+            PositionedDiaryCardProp(
+                offset = mapViewSize.center + centralFootprintOffset,
+                prop = DiaryCardProp(
+                    key = -1L,
+                    description = remindLoadedEvent?.description,
+                    defaultCategoryColor = event.color,
+                    diaryCardLoadedPropMap = mapOf(
+                        0 to DiaryCardLoadedProp(
+                            key = -1L,
+                            date = event.date,
+                            categoryColor = event.color,
+                            imageUrl = event.imageUrl,
+                            content = event.content,
+                            isFlipped = false,  // TODO
+                            diaryModificationModeProp = null,
+                            onCardClicked = { /* TODO */ },
+                            onModifyButtonClicked = null,
+                        ),
+                    ),
+                    onNewDiaryRequested = { /* DO NOTHING */ }
+                ),
+            )
+        } ?: markerEvent?.let { event ->
+            // 발자국 마커 클릭에 의해서 카드가 띄워지는 경우
             PositionedDiaryCardProp(
                 offset = event.offset,
                 prop = DiaryCardProp(
-                    clusterId = event.clusterId,
+                    key = event.clusterId,
+                    description = null,
                     defaultCategoryColor = event.color,
                     diaryCardLoadedPropMap = viewModel.diaryMap.mapValues { (_, value) ->
                         diaryCardLoadedPropMap[value.id]
@@ -242,18 +268,18 @@ fun FootprintApp(
                 ),
             )
         },
-        diaryModificationBarProp = barOpenEvent?.let { info ->
+        diaryModificationBarProp = barOpenEvent?.let { event ->
             DiaryModificationBarProp(
                 onModifyOptionClicked = {
-                    diaryCardLoadedPropMap[info.targetDiaryId]?.apply {
-                        diaryCardLoadedPropMap[id] = copy(
+                    diaryCardLoadedPropMap[event.targetDiaryId]?.apply {
+                        diaryCardLoadedPropMap[key] = copy(
                             isFlipped = true,
                             diaryModificationModeProp = DiaryModificationModeProp(
                                 contentValue = content,
                                 onContentValueChanged = {
-                                    diaryCardLoadedPropMap[id]?.apply {
+                                    diaryCardLoadedPropMap[key]?.apply {
                                         if (diaryModificationModeProp != null) {
-                                            diaryCardLoadedPropMap[id] = copy(
+                                            diaryCardLoadedPropMap[key] = copy(
                                                 diaryModificationModeProp = diaryModificationModeProp.copy(
                                                     contentValue = it
                                                 )
@@ -262,10 +288,10 @@ fun FootprintApp(
                                     }
                                 },
                                 onModificationDone = {
-                                    diaryCardLoadedPropMap[id]?.apply {
+                                    diaryCardLoadedPropMap[key]?.apply {
                                         viewModel.runWithScope {
                                             if (diaryModificationModeProp != null) modifyDiary(
-                                                diaryId = id,
+                                                diaryId = key,
                                                 content = diaryModificationModeProp.contentValue,
                                             )
                                         }
@@ -279,7 +305,7 @@ fun FootprintApp(
                 },
                 onDeleteOptionClicked = {
                     viewModel.runWithScope {
-                        runCatching { deleteDiary(diaryId = info.targetDiaryId) }
+                        runCatching { deleteDiary(diaryId = event.targetDiaryId) }
                         barOpenEvent = null
                     }
                 },

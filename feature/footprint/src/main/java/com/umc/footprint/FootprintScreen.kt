@@ -85,9 +85,7 @@ fun FootprintScreen(
             }
         }
         // 탑 바
-        TopBar(
-            showBackground = categorySelectionBarProp.isVisible
-        )
+        TopBar(showBackground = categorySelectionBarProp.isVisible)
 
         Column(
             modifier = Modifier
