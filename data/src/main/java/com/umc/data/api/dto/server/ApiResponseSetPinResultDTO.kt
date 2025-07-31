@@ -27,7 +27,7 @@ import com.squareup.moshi.Json
  */
 
 
-data class ApiResponseItemBuyResultDTO (
+data class ApiResponseSetPinResultDTO (
 
     @Json(name = "isSuccess")
     val isSuccess: kotlin.Boolean? = null,
@@ -39,7 +39,7 @@ data class ApiResponseItemBuyResultDTO (
     val message: kotlin.String? = null,
 
     @Json(name = "result")
-    val result: ItemBuyResultDTO? = null
+    val result: SetPinResultDTO? = null
 
 )
 

@@ -1,15 +1,21 @@
 package com.umc.data.api
 
 import com.umc.data.api.dto.BaseResponse
+import com.umc.data.api.dto.server.ChangePinRequestDTO
+import com.umc.data.api.dto.server.ChangePinResultDTO
 import com.umc.data.api.dto.server.CheckVerificationCodeRequestDTO
 import com.umc.data.api.dto.server.EditRequestDTO
 import com.umc.data.api.dto.server.FindIdResultDTO
 import com.umc.data.api.dto.server.FindPwRequestDTO
+import com.umc.data.api.dto.server.GetPinResultDTO
+import com.umc.data.api.dto.server.IsPendingResultDTO
 import com.umc.data.api.dto.server.KaKaoFinalSignUpResultDTO
 import com.umc.data.api.dto.server.RefreshResultDTO
 import com.umc.data.api.dto.server.SendVerificationMailFindIdRequestDTO
 import com.umc.data.api.dto.server.SendVerificationMailFindPwRequestDTO
 import com.umc.data.api.dto.server.SendVerificationMailSignUpRequestDTO
+import com.umc.data.api.dto.server.SetPinRequestDTO
+import com.umc.data.api.dto.server.SetPinResultDTO
 import com.umc.data.api.dto.server.SignInRequestDTO
 import com.umc.data.api.dto.server.SignUpKakaoRequestDTO
 import com.umc.data.api.dto.server.SignUpRequestDTO
@@ -70,6 +76,22 @@ interface UserApi {
         @Header("RefreshToken") refreshToken: String
     ): BaseResponse<RefreshResultDTO>
 
+    // 핀번호 불러오기
+    @GET("/users/pin")
+    suspend fun getPin(): BaseResponse<GetPinResultDTO>
+
+    // 핀번호 설정하기
+    @POST("/users/pin")
+    suspend fun setPin(
+        @Body body: SetPinRequestDTO
+    ): BaseResponse<SetPinResultDTO>
+
+    // 핀번호 변경하기
+    @PATCH("/users/pin")
+    suspend fun changePin(
+        @Body body: ChangePinRequestDTO
+    ): BaseResponse<ChangePinResultDTO>
+
     // PW 찾기용 인증메일 발송
     @POST("/users/find/send-pw")
     suspend fun sendVerificationMailForFindingPassword(
@@ -103,6 +125,10 @@ interface UserApi {
     suspend fun updateUserInfo(
         @Body body: EditRequestDTO
     ): BaseResponse<UserInfoEditResultDTO>
+
+    // 사용자 상태 검증
+    @GET("/users/status")
+    suspend fun getUserStatus(): BaseResponse<IsPendingResultDTO>
 
     // 아이디 중복 확인
     @GET("/users/signup/verify/overlap")

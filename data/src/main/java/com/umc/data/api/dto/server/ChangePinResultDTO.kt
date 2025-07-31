@@ -15,19 +15,21 @@
 
 package com.umc.data.api.dto.server
 
+
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
  *
- * @param diaryDateList 
+ * @param newPinHash 
  */
 
 
-data class DairyDateListResultDTO (
+data class ChangePinResultDTO (
 
-    @Json(name = "diaryDateList")
-    val diaryDateList: kotlin.collections.List<DiaryDateDTO>? = null
+    @Json(name = "newPinHash")
+    val newPinHash: kotlin.String? = null
 
 )
 

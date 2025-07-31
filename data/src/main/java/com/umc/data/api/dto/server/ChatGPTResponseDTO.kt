@@ -20,14 +20,14 @@ import com.squareup.moshi.Json
 /**
  * 
  *
- * @param diaryDateList 
+ * @param choices 
  */
 
 
-data class DairyDateListResultDTO (
+data class ChatGPTResponseDTO (
 
-    @Json(name = "diaryDateList")
-    val diaryDateList: kotlin.collections.List<DiaryDateDTO>? = null
+    @Json(name = "choices")
+    val choices: kotlin.collections.List<Choice>? = null
 
 )
 

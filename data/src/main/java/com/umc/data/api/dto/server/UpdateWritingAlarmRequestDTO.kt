@@ -15,19 +15,22 @@
 
 package com.umc.data.api.dto.server
 
+
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
  *
- * @param diaryDateList 
+ * @param alarmTime 시:분:초 형식
  */
 
 
-data class DairyDateListResultDTO (
+data class UpdateWritingAlarmRequestDTO (
 
-    @Json(name = "diaryDateList")
-    val diaryDateList: kotlin.collections.List<DiaryDateDTO>? = null
+    /* 시:분:초 형식 */
+    @Json(name = "alarmTime")
+    val alarmTime: kotlin.String? = null
 
 )
 

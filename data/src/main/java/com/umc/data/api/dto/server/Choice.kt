@@ -20,14 +20,18 @@ import com.squareup.moshi.Json
 /**
  * 
  *
- * @param diaryDateList 
+ * @param index 
+ * @param message 
  */
 
 
-data class DairyDateListResultDTO (
+data class Choice (
 
-    @Json(name = "diaryDateList")
-    val diaryDateList: kotlin.collections.List<DiaryDateDTO>? = null
+    @Json(name = "index")
+    val index: kotlin.Int? = null,
+
+    @Json(name = "message")
+    val message: Message? = null
 
 )
 

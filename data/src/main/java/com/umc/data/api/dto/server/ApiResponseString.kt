@@ -15,7 +15,9 @@
 
 package com.umc.data.api.dto.server
 
+
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
@@ -27,7 +29,7 @@ import com.squareup.moshi.Json
  */
 
 
-data class ApiResponseItemBuyResultDTO (
+data class ApiResponseString (
 
     @Json(name = "isSuccess")
     val isSuccess: kotlin.Boolean? = null,
@@ -39,7 +41,7 @@ data class ApiResponseItemBuyResultDTO (
     val message: kotlin.String? = null,
 
     @Json(name = "result")
-    val result: ItemBuyResultDTO? = null
+    val result: kotlin.String? = null
 
 )
 

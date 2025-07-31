@@ -15,19 +15,20 @@
 
 package com.umc.data.api.dto.server
 
+
 import com.squareup.moshi.Json
 
 /**
  * 
  *
- * @param diaryDateList 
+ * @param date 
  */
 
 
-data class DairyDateListResultDTO (
+data class GetDiarySummaryDTO (
 
-    @Json(name = "diaryDateList")
-    val diaryDateList: kotlin.collections.List<DiaryDateDTO>? = null
+    @Json(name = "date")
+    val date: java.time.LocalDate? = null
 
 )
 

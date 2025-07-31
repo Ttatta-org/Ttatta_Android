@@ -15,19 +15,21 @@
 
 package com.umc.data.api.dto.server
 
+
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
  *
- * @param diaryDateList 
+ * @param presignedUrl 
  */
 
 
-data class DairyDateListResultDTO (
+data class EditPresignedResultDTO (
 
-    @Json(name = "diaryDateList")
-    val diaryDateList: kotlin.collections.List<DiaryDateDTO>? = null
+    @Json(name = "presignedUrl")
+    val presignedUrl: kotlin.String? = null
 
 )
 

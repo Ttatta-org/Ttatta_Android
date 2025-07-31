@@ -3,12 +3,14 @@ package com.umc.data.api
 import com.umc.data.api.dto.BaseResponse
 import com.umc.data.api.dto.server.DairyDateListResultDTO
 import com.umc.data.api.dto.server.EditDTO
+import com.umc.data.api.dto.server.EditPresignedResultDTO
 import com.umc.data.api.dto.server.EditResultDTO
 import com.umc.data.api.dto.server.FootprintDiaryListDTO
 import com.umc.data.api.dto.server.KeepDiaryListDTO
 import com.umc.data.api.dto.server.MapResultDTO
 import com.umc.data.api.dto.server.PostDTO
 import com.umc.data.api.dto.server.PostResultDTO
+import com.umc.data.api.dto.server.PresignedResultDTO
 import com.umc.data.api.dto.server.SearchDiaryListDTO
 import okhttp3.MultipartBody
 import retrofit2.http.DELETE
@@ -46,6 +48,12 @@ interface DiaryApi {
         @Query("searchContent") searchContent: String
     ): BaseResponse<SearchDiaryListDTO>
 
+    // 일기 사진 업로드 링크 발급
+    @GET("/diaries/post/presignedUrl")
+    suspend fun getPresignedUrl(
+        @Query("imageType") imageType: String
+    ): BaseResponse<PresignedResultDTO>
+
     // 일기 지도
     @GET("/diaries/map/{requestNum}")
     suspend fun getMapDiary(
@@ -66,6 +74,13 @@ interface DiaryApi {
     suspend fun getFootprintDiaryList(
         @Query("diaryCategoryId") diaryCategoryId: Long?
     ): BaseResponse<FootprintDiaryListDTO>
+
+    // 일기 이미지 수정용 링크 발급
+    @GET("/diaries/edit/presignedUrl/{diaryId}")
+    suspend fun getEditPresignedUrl(
+        @Path("diaryId") diaryId: Long,
+        @Query("imageType") imageType: String,
+    ): BaseResponse<EditPresignedResultDTO>
 
     // 전체 일기 날짜 조회
     @GET("/diaries/date")
