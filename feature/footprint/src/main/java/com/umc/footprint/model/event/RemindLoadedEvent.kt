@@ -13,4 +13,5 @@ data class RemindLoadedEvent(
     val color: CategoryColor,
     val imageUrl: String,
     val content: String,
+    val onDismissed: () -> Unit,
 )

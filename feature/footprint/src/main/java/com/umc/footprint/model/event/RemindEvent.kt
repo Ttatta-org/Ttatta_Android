@@ -6,4 +6,5 @@ package com.umc.footprint.model.event
 data class RemindEvent(
     val diaryId: Long,
     val description: String,
+    val onDismissed: () -> Unit,
 )

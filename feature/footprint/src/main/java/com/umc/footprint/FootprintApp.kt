@@ -70,6 +70,7 @@ fun FootprintApp(
 
     var isLocationMarkingEnabled by remember { mutableStateOf(false) }
     var isCategorySelectionBarVisible by remember { mutableStateOf(false) }
+    var isRemindDiaryCardFlipped by remember { mutableStateOf(false) }
 
     var barOpenEvent: DiaryModificationBarOpenEvent? by remember { mutableStateOf(null) }
     var markerEvent: ModifiedMapMarkerClickedEvent? by remember { mutableStateOf(null) }
@@ -199,6 +200,11 @@ fun FootprintApp(
                 color = diary.color ?: CategoryColor.RED,  // TODO: 카테고리 컬러는 추후 Nullable 특성을 잃음
                 imageUrl = diary.imageUrl,
                 content = remindEvent.description,
+                onDismissed = {
+                    remindEvent.onDismissed()
+                    remindLoadedEvent = null
+                    isRemindDiaryCardFlipped = false
+                }
             )
         }
     }
@@ -213,6 +219,12 @@ fun FootprintApp(
     BackHandler(
         enabled = isCategorySelectionBarVisible,
         onBack = { isCategorySelectionBarVisible = false },
+    )
+
+    // 리마인드 이벤트가 있는 경우에는 리마인드 이벤트를 취소
+    BackHandler(
+        enabled = remindLoadedEvent != null,
+        onBack = { remindLoadedEvent?.onDismissed?.invoke() },
     )
 
     FootprintScreen(
@@ -242,9 +254,9 @@ fun FootprintApp(
                             categoryColor = event.color,
                             imageUrl = event.imageUrl,
                             content = event.content,
-                            isFlipped = false,  // TODO
+                            isFlipped = isRemindDiaryCardFlipped,
                             diaryModificationModeProp = null,
-                            onCardClicked = { /* TODO */ },
+                            onCardClicked = { isRemindDiaryCardFlipped != isRemindDiaryCardFlipped },
                             onModifyButtonClicked = null,
                         ),
                     ),
