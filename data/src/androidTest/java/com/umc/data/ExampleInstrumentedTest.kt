@@ -10,6 +10,7 @@ import com.umc.data.di.preference.AuthPreferenceModule
 import com.umc.data.di.repository.DiaryRepositoryModule
 import com.umc.data.di.GsonModule
 import com.umc.data.di.MoshiModule
+import com.umc.data.di.api.ImageUploadApiModule
 import com.umc.data.di.api.ServerApiModule
 import com.umc.data.di.repository.UserRepositoryModule
 import com.umc.design.CategoryColor
@@ -44,8 +45,9 @@ class ExampleInstrumentedTest {
         val moshi = MoshiModule.provideMoshi()
         val authPreference = AuthPreferenceModule.provideAuthPreference(context)
         val serverApi = ServerApiModule.provideServerApi(authPreference, moshi)
+        val imageUploadApi = ImageUploadApiModule.provideImageUploadApi()
         userRepository = UserRepositoryModule.provideUserRepository(serverApi, authPreference)
-        diaryRepository = DiaryRepositoryModule.provideDiaryRepository(serverApi, authPreference)
+        diaryRepository = DiaryRepositoryModule.provideDiaryRepository(serverApi, imageUploadApi, authPreference)
     }
 
     @Test

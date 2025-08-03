@@ -12,33 +12,27 @@ import com.umc.data.api.dto.server.PostDTO
 import com.umc.data.api.dto.server.PostResultDTO
 import com.umc.data.api.dto.server.PresignedResultDTO
 import com.umc.data.api.dto.server.SearchDiaryListDTO
-import okhttp3.MultipartBody
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
-import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
-import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 import java.time.LocalDateTime
 
 interface DiaryApi {
     // 일기 작성
-    @Multipart
     @POST("/diaries/post")
     suspend fun createDiary(
-        @Part("request") request: PostDTO,
-        @Part image: MultipartBody.Part
+        @Body body: PostDTO,
     ): BaseResponse<PostResultDTO>
 
     // 일기 수정
-    @Multipart
     @PATCH("/diaries/edit/{diaryId}")
     suspend fun updateDiary(
         @Path("diaryId") diaryId: Long,
-        @Part("request") request: EditDTO,
-        @Part editPhoto: MultipartBody.Part?
+        @Body body: EditDTO,
     ): BaseResponse<EditResultDTO>
 
     // 일기 검색
