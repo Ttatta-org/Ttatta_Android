@@ -6,12 +6,15 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.google.gson.Gson
 import com.umc.core.repository.DiaryRepository
 import com.umc.core.repository.UserRepository
+import com.umc.core.setting.SettingRepository
 import com.umc.data.di.preference.AuthPreferenceModule
 import com.umc.data.di.repository.DiaryRepositoryModule
 import com.umc.data.di.GsonModule
 import com.umc.data.di.MoshiModule
 import com.umc.data.di.api.ImageUploadApiModule
 import com.umc.data.di.api.ServerApiModule
+import com.umc.data.di.preference.SettingPreferenceModule
+import com.umc.data.di.repository.SettingRepositoryModule
 import com.umc.data.di.repository.UserRepositoryModule
 import com.umc.design.CategoryColor
 import kotlinx.coroutines.test.runTest
@@ -38,16 +41,19 @@ class ExampleInstrumentedTest {
     private lateinit var context: Context
     private lateinit var userRepository: UserRepository
     private lateinit var diaryRepository: DiaryRepository
+    private lateinit var settingRepository: SettingRepository
 
     @Before
     fun prepareTest() {
         context = InstrumentationRegistry.getInstrumentation().targetContext
         val moshi = MoshiModule.provideMoshi()
         val authPreference = AuthPreferenceModule.provideAuthPreference(context)
+        val settingPreference = SettingPreferenceModule.provideSettingPreference(context)
         val serverApi = ServerApiModule.provideServerApi(authPreference, moshi)
         val imageUploadApi = ImageUploadApiModule.provideImageUploadApi()
         userRepository = UserRepositoryModule.provideUserRepository(serverApi, authPreference)
         diaryRepository = DiaryRepositoryModule.provideDiaryRepository(serverApi, imageUploadApi, authPreference)
+        settingRepository = SettingRepositoryModule.provideSettingRepository(authPreference, settingPreference, serverApi)
     }
 
     @Test
@@ -210,7 +216,26 @@ class ExampleInstrumentedTest {
     }
 
     @Test
-    fun test07_Quit() = runTest {
+    fun test07_Pin() = runTest {
+        login()
+
+        // PIN 설정
+        settingRepository.setPin(pin = 1234)
+        assert(settingRepository.getIsPinSet())
+
+        // 서버로부터 PIN 받아오기
+        settingRepository.syncPin()
+        assert(settingRepository.getIsPinCorrect(pin = 1234))
+
+        // PIN 변경
+        settingRepository.setPin(pin = 4321)
+        assert(settingRepository.getIsPinCorrect(pin = 4321))
+
+        logout()
+    }
+
+    @Test
+    fun test08_Quit() = runTest {
         login()
         val myInfo = userRepository.getUserInfo()
         userRepository.leaveUser()

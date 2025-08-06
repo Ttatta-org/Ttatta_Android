@@ -7,6 +7,9 @@ interface SettingRepository {
     // 알림 설정 저장
     suspend fun setNotification(notification: Notification)
 
+    // FCM 토큰 전달
+    suspend fun sendFcmToken(token: String)
+
     // 모든 알림 설정 조회
     suspend fun getNotificationSettings(): List<Notification>
 
@@ -14,6 +17,7 @@ interface SettingRepository {
     suspend fun setPin(pin: Int)
     suspend fun getIsPinSet(): Boolean
     suspend fun getIsPinCorrect(pin: Int): Boolean
+    suspend fun syncPin()
 
     // 챌린지 알림 설정
     suspend fun isChallengeNotificationEnabled(): Boolean
