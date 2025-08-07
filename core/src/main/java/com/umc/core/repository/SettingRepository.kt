@@ -9,7 +9,7 @@ interface SettingRepository {
 
     // 알림 설정 저장
     suspend fun setNotification(notificationSetting: NotificationSetting)
-    suspend fun getNotificationSetting(notificationSetting: Class<out NotificationSetting>): NotificationSetting
+    suspend fun <T : NotificationSetting> getNotificationSetting(notificationSetting: Class<T>): T
     suspend fun syncNotificationSettingsWithServer()
 
     // FCM 토큰 전달

@@ -48,8 +48,9 @@ class SettingRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getNotificationSetting(notificationSetting: Class<out NotificationSetting>): NotificationSetting {
-        return settingPreference.notificationSettings.find { it::class == notificationSetting }!!
+    override suspend fun <T : NotificationSetting> getNotificationSetting(notificationSetting: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
+        return settingPreference.notificationSettings.find { it::class == notificationSetting }!! as T
     }
 
     override suspend fun syncNotificationSettingsWithServer() {
