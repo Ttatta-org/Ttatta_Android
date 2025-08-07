@@ -2,9 +2,10 @@ package com.umc.data.implementation.preference
 
 import android.content.Context
 import androidx.core.content.edit
-import com.umc.core.setting.Notification
-import com.umc.core.setting.Theme
+import com.umc.core.model.NotificationSetting
+import com.umc.core.model.Theme
 import com.umc.data.preference.SettingPreference
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
@@ -27,7 +28,7 @@ class SettingPreferenceImpl @Inject constructor(
             prefs.edit { putString(THEME_KEY, value.name) }
         }
 
-    override var notificationSettings: List<Notification>
+    override var notificationSettings: List<NotificationSetting>
         get() = prefs.getString(NOTIFICATION_SETTINGS_KEY, "")!!.deserializeToNotificationList()
         set(value) {
             prefs.edit { putString(NOTIFICATION_SETTINGS_KEY, value.serialize()) }
@@ -39,17 +40,17 @@ class SettingPreferenceImpl @Inject constructor(
             prefs.edit { putString(PIN_HASH_KEY, value) }
         }
 
-    override fun setNotificationSetting(notification: Notification) {
+    override fun setNotificationSetting(notificationSetting: NotificationSetting) {
         notificationSettings = notificationSettings.map {
-            if (it::class == notification::class) notification else it
+            if (it::class == notificationSetting::class) notificationSetting else it
         }
     }
 
-    private fun List<Notification>.serialize(): String {
+    private fun List<NotificationSetting>.serialize(): String {
         return joinToString(separator = ",") { Json.encodeToString(it) }
     }
 
-    private fun String.deserializeToNotificationList(): List<Notification> {
+    private fun String.deserializeToNotificationList(): List<NotificationSetting> {
         return split(",").map { Json.decodeFromString(it) }
     }
 }

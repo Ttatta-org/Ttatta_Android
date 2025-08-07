@@ -1,12 +1,12 @@
 package com.umc.data.preference
 
-import com.umc.core.setting.Notification
-import com.umc.core.setting.Theme
+import com.umc.core.model.NotificationSetting
+import com.umc.core.model.Theme
 
 interface SettingPreference {
     var theme: Theme
-    var notificationSettings: List<Notification>
+    var notificationSettings: List<NotificationSetting>
     var pinHash: String?
 
-    fun setNotificationSetting(notification: Notification)
+    fun setNotificationSetting(notificationSetting: NotificationSetting)
 }

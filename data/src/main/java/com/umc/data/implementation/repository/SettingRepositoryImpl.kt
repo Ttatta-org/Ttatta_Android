@@ -1,11 +1,12 @@
 package com.umc.data.implementation.repository
 
-import com.umc.core.setting.Notification
-import com.umc.core.setting.SettingRepository
-import com.umc.core.setting.Theme
+import com.umc.core.model.NotificationSetting
+import com.umc.core.repository.SettingRepository
+import com.umc.core.model.Theme
 import com.umc.data.api.ServerApi
 import com.umc.data.api.dto.server.GetFcmTokenRequestDTO
 import com.umc.data.api.dto.server.SetPinRequestDTO
+import com.umc.data.api.dto.server.UpdateWritingAlarmRequestDTO
 import com.umc.data.api.withAuth
 import com.umc.data.preference.AuthPreference
 import com.umc.data.preference.SettingPreference
@@ -22,12 +23,37 @@ class SettingRepositoryImpl @Inject constructor(
         settingPreference.theme = theme
     }
 
-    override suspend fun setNotification(notification: Notification) {
-        // TODO
+    override suspend fun setNotification(notificationSetting: NotificationSetting) {
+        when (notificationSetting) {
+            is NotificationSetting.DiaryWriting -> {
+                if (notificationSetting.isOn) {
+                    val body = UpdateWritingAlarmRequestDTO(
+                        alarmTime = "%02d:%02d:00".format(notificationSetting.hour, notificationSetting.minute)
+                    )
+
+                    serverApi.withAuth(authPreference) { turnOnDiaryWriteAlarm() }
+                    serverApi.withAuth(authPreference) { changeTimeOfDiaryWriteAlarm(body = body) }
+                } else {
+                    serverApi.withAuth(authPreference) { turnOffDiaryWriteAlarm() }
+                }
+            }
+
+            else -> Unit  // TODO
+        }
+
+        settingPreference.apply {
+            notificationSettings = notificationSettings.map {
+                if (it::class == notificationSetting::class) notificationSetting else it
+            }
+        }
     }
 
-    override suspend fun getNotificationSettings(): List<Notification> {
-        return settingPreference.notificationSettings
+    override suspend fun getNotificationSetting(notificationSetting: Class<out NotificationSetting>): NotificationSetting {
+        return settingPreference.notificationSettings.find { it::class == notificationSetting }!!
+    }
+
+    override suspend fun syncNotificationSettingsWithServer() {
+        // TODO
     }
 
     override suspend fun sendFcmToken(token: String) {
@@ -49,23 +75,13 @@ class SettingRepositoryImpl @Inject constructor(
         return BCrypt.checkpw(pin.toString(), settingPreference.pinHash)
     }
 
-    override suspend fun syncPin() {
+    override suspend fun syncPinWithServer() {
         val response = serverApi.withAuth(authPreference) { getPin() }
         settingPreference.pinHash = response.pinHash
     }
 
-    override suspend fun isChallengeNotificationEnabled(): Boolean {
-        // TODO
-        return true
-    }
-
-    override suspend fun getChallengeReminderHour(): Int {
-        // TODO
-        return 12
-    }
-
+    @Deprecated("Use `getNotificationSetting` instead.")
     override suspend fun isMemoryNotificationEnabled(): Boolean {
-        // TODO
         return true
     }
 }

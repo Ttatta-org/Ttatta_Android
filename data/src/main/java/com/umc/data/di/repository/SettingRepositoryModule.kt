@@ -1,6 +1,6 @@
 package com.umc.data.di.repository
 
-import com.umc.core.setting.SettingRepository
+import com.umc.core.repository.SettingRepository
 import com.umc.data.api.ServerApi
 import com.umc.data.implementation.repository.SettingRepositoryImpl
 import com.umc.data.preference.AuthPreference
