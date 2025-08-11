@@ -12,6 +12,7 @@ import com.umc.data.preference.AuthPreference
 import com.umc.data.preference.SettingPreference
 import org.mindrot.jbcrypt.BCrypt
 import javax.inject.Inject
+import kotlin.reflect.KClass
 
 class SettingRepositoryImpl @Inject constructor(
     private val authPreference: AuthPreference,
@@ -28,7 +29,10 @@ class SettingRepositoryImpl @Inject constructor(
             is NotificationSetting.DiaryWriting -> {
                 if (notificationSetting.isOn) {
                     val body = UpdateWritingAlarmRequestDTO(
-                        alarmTime = "%02d:%02d:00".format(notificationSetting.hour, notificationSetting.minute)
+                        alarmTime = "%02d:%02d:00".format(
+                            notificationSetting.hour,
+                            notificationSetting.minute
+                        )
                     )
 
                     serverApi.withAuth(authPreference) { turnOnDiaryWriteAlarm() }
@@ -48,9 +52,36 @@ class SettingRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun <T : NotificationSetting> getNotificationSetting(notificationSetting: Class<T>): T {
-        @Suppress("UNCHECKED_CAST")
-        return settingPreference.notificationSettings.find { it::class == notificationSetting }!! as T
+    @Suppress("UNCHECKED_CAST")
+    override suspend fun <T : NotificationSetting> getNotificationSetting(notificationSetting: KClass<T>): T {
+        val setting = settingPreference.notificationSettings.find { it::class == notificationSetting } as? T
+        if (setting != null) return setting
+
+        val default =  when (notificationSetting) {
+            NotificationSetting.DiaryWriting::class -> NotificationSetting.DiaryWriting(
+                isOn = true,
+                hour = 20,
+                minute = 30
+            )
+
+            NotificationSetting.LocationBasedRemind::class -> NotificationSetting.LocationBasedRemind(
+                isOn = true,
+            )
+
+            NotificationSetting.ChallengeRemind::class -> NotificationSetting.ChallengeRemind(
+                isOn = true,
+                remainingHours = 1
+            )
+
+            NotificationSetting.DailySummary::class -> NotificationSetting.DailySummary(
+                isOn = true,
+                hour = 13,
+            )
+
+            else -> throw IllegalArgumentException("Unknown notification setting class: ${notificationSetting.java.name}")
+        }
+
+        return default as T
     }
 
     override suspend fun syncNotificationSettingsWithServer() {

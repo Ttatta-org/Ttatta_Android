@@ -2,6 +2,7 @@ package com.umc.core.repository
 
 import com.umc.core.model.NotificationSetting
 import com.umc.core.model.Theme
+import kotlin.reflect.KClass
 
 interface SettingRepository {
     // 테마 설정
@@ -9,7 +10,7 @@ interface SettingRepository {
 
     // 알림 설정 저장
     suspend fun setNotification(notificationSetting: NotificationSetting)
-    suspend fun <T : NotificationSetting> getNotificationSetting(notificationSetting: Class<T>): T
+    suspend fun <T : NotificationSetting> getNotificationSetting(notificationSetting: KClass<T>): T
     suspend fun syncNotificationSettingsWithServer()
 
     // FCM 토큰 전달
