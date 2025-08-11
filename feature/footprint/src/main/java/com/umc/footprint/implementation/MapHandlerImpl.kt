@@ -174,6 +174,7 @@ class MapHandlerImpl @Inject constructor(
 
                     // UI 설정
                     uiSettings.apply {
+                        isLogoClickEnabled = false
                         isCompassEnabled = false
                         isScaleBarEnabled = false
                         isZoomControlEnabled = false

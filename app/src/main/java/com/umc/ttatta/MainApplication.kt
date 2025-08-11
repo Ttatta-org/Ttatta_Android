@@ -12,7 +12,7 @@ class MainApplication: Application() {
         super.onCreate()
 
         NaverMapSdk.getInstance(this).client =
-            NaverMapSdk.NaverCloudPlatformClient(BuildConfig.NAVER_SDK_CLIENT_ID)
+            NaverMapSdk.NcpKeyClient(BuildConfig.NAVER_SDK_CLIENT_ID)
 
         KakaoSdk.init(this, BuildConfig.KAKAO_NATIVE_APP_KEY)
         Log.d("MainApplication", "Kakao SDK hash Key: ${KakaoSdk.keyHash}")
