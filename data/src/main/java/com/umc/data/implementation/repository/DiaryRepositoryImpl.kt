@@ -1,6 +1,7 @@
 package com.umc.data.implementation.repository
 
 import com.umc.core.model.CategoryInfo
+import com.umc.core.model.DailySummary
 import com.umc.core.model.Diary
 import com.umc.core.model.DiaryForCard
 import com.umc.core.model.Footprint
@@ -12,6 +13,7 @@ import com.umc.data.api.dto.server.CreateCategoryDTO
 import com.umc.data.api.dto.server.EditDTO
 import com.umc.data.api.dto.server.ModifyCategoryDTO
 import com.umc.data.api.dto.server.PostDTO
+import com.umc.data.api.dto.server.SummarizeDTO
 import com.umc.data.api.withAuth
 import com.umc.data.preference.AuthPreference
 import com.umc.data.util.getMimeTypeFromExtension
@@ -25,6 +27,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class DiaryRepositoryImpl @Inject constructor(
@@ -63,6 +66,39 @@ class DiaryRepositoryImpl @Inject constructor(
                 categoryId = it.diaryCategoryId!!,
             )
         } ?: listOf()
+    }
+
+    override suspend fun getDailySummary(date: LocalDate): DailySummary? {
+        val request = "{\"date\":\"${date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}\"}"
+        val response = try {
+            serverApi.withAuth(authPreference) { getDailySummary(request = request) }
+        } catch (_: Exception) {
+            null
+        }
+
+        return response?.let {
+            DailySummary(
+                summary = response.summaryDiary!!,
+                createdTime = response.createdAt!!.toLocalDateTime()
+            )
+        }
+    }
+
+    override suspend fun generateDailySummary(date: LocalDate) {
+        val request = "{\"date\":\"${date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}\"}"
+        val response = try {
+            serverApi.withAuth(authPreference) { getDailySummary(request = request) }
+        } catch (_: Exception) {
+            null
+        }
+
+        if (response != null) serverApi.withAuth(authPreference) {
+            val body = SummarizeDTO(date = date)
+            regenerateDailySummary(body = body)
+        } else serverApi.withAuth(authPreference) {
+            val body = SummarizeDTO(date = date)
+            generateDailySummary(body = body)
+        }
     }
 
     override suspend fun getDiaries(page: Int, clusterId: Long, categoryId: Long?): DiaryForCard {
