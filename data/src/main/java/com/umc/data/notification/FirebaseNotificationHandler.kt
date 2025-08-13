@@ -1,97 +1,47 @@
 package com.umc.data.notification
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
+import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.umc.core.notification.Notification
 import com.umc.core.notification.NotificationHandler
 import com.umc.data.R
-import android.Manifest
-import android.app.PendingIntent
-import android.content.Intent
-import android.content.pm.PackageManager
 
 class FirebaseNotificationHandler(
     private val context: Context
 ) : NotificationHandler {
 
-    override fun sendNotification(title: String, message: String) {
-        if (!hasNotificationPermission()) return
+    companion object {
+        private const val CHANNEL_ID = "TTATTA_NOTIFICATION"
+    }
 
-        val intent = Intent(context, Class.forName("com.umc.feature.challenge.ChallengeActivity")).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
+    override fun sendNotification(notification: Notification) {
+        if (!hasNotificationPermission) return
 
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        val builder = NotificationCompat.Builder(context, "challenge_channel")
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
+        val builder =
+            NotificationCompat.Builder(context, CHANNEL_ID).setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(notification.title).setContentText(notification.message)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(notification.pendingIntent).setAutoCancel(true)
 
         with(NotificationManagerCompat.from(context)) {
             try {
                 notify(System.currentTimeMillis().toInt(), builder.build())
             } catch (e: SecurityException) {
-                e.printStackTrace()
+                Log.e("FirebaseNotificationHandler", "Failed to send notification: ${e.message}")
             }
         }
     }
 
-    fun sendMemoryNotification(
-        title: String,
-        message: String,
-        diaryId: Int,
-        latitude: Double?,
-        longitude: Double?
-    ) {
-        if (!hasNotificationPermission()) return
-
-        val intent = Intent(context, Class.forName("com.umc.feature.memory.MemoryDetailActivity")).apply {
-            putExtra("diaryId", diaryId)
-            putExtra("latitude", latitude)
-            putExtra("longitude", longitude)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-
-        val pendingIntent = PendingIntent.getActivity(
-            context,
-            diaryId, // 고유한 알림 ID
-            intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        val builder = NotificationCompat.Builder(context, "memory_channel")
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setContentIntent(pendingIntent)
-            .setAutoCancel(true)
-
-        with(NotificationManagerCompat.from(context)) {
-            try {
-                notify(System.currentTimeMillis().toInt(), builder.build())
-            } catch (e: SecurityException) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private fun hasNotificationPermission(): Boolean {
-        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED
-    }
+    private val hasNotificationPermission: Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || ContextCompat.checkSelfPermission(
+            context, Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
 }
