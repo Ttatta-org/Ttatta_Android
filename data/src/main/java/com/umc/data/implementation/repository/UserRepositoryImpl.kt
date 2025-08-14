@@ -142,8 +142,8 @@ class UserRepositoryImpl @Inject constructor(
             email = response.email ?: "", // TODO: 예외 처리 필수
             profileImageUrl = response.profileImg,
             point = response.point!!,
-            status = when (response.status!!) {
-                UserInfoResultDTO.Status.ACTIVE -> UserStatus.ACTIVE
+            status = when (response.status) {  // TODO: 이 필드는 사라지는 것이 옳아 보임
+                UserInfoResultDTO.Status.ACTIVE, null -> UserStatus.ACTIVE
                 UserInfoResultDTO.Status.INACTIVE -> UserStatus.INACTIVE
                 UserInfoResultDTO.Status.PENDING -> UserStatus.PENDING
             },

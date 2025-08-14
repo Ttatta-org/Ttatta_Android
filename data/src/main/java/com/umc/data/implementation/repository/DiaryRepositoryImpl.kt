@@ -1,11 +1,13 @@
 package com.umc.data.implementation.repository
 
 import com.umc.core.model.CategoryInfo
+import com.umc.core.model.DailySummary
 import com.umc.core.model.Diary
 import com.umc.core.model.DiaryForCard
 import com.umc.core.model.DiaryForRemind
 import com.umc.core.model.Footprint
 import com.umc.core.repository.DiaryRepository
+import com.umc.data.api.ImageUploadApi
 import com.umc.data.api.ServerApi
 import com.umc.data.api.dto.server.CategoryDetailDTO
 import com.umc.data.api.dto.server.CreateCategoryDTO
@@ -13,20 +15,26 @@ import com.umc.data.api.dto.server.EditDTO
 import com.umc.data.api.dto.server.MapResultDTO
 import com.umc.data.api.dto.server.ModifyCategoryDTO
 import com.umc.data.api.dto.server.PostDTO
+import com.umc.data.api.dto.server.SummarizeDTO
 import com.umc.data.api.withAuth
 import com.umc.data.preference.AuthPreference
+import com.umc.data.util.getMimeTypeFromExtension
 import com.umc.data.util.toOffsetDateTimeInKorea
 import com.umc.design.CategoryColor
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class DiaryRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
+    private val imageUploadApi: ImageUploadApi,
     private val authPreference: AuthPreference,
 ) : DiaryRepository {
 
@@ -60,6 +68,39 @@ class DiaryRepositoryImpl @Inject constructor(
                 categoryId = it.diaryCategoryId!!,
             )
         } ?: listOf()
+    }
+
+    override suspend fun getDailySummary(date: LocalDate): DailySummary? {
+        val request = "{\"date\":\"${date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}\"}"
+        val response = try {
+            serverApi.withAuth(authPreference) { getDailySummary(request = request) }
+        } catch (_: Exception) {
+            null
+        }
+
+        return response?.let {
+            DailySummary(
+                summary = response.summaryDiary!!,
+                createdTime = response.createdAt!!.toLocalDateTime()
+            )
+        }
+    }
+
+    override suspend fun generateDailySummary(date: LocalDate) {
+        val request = "{\"date\":\"${date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}\"}"
+        val response = try {
+            serverApi.withAuth(authPreference) { getDailySummary(request = request) }
+        } catch (_: Exception) {
+            null
+        }
+
+        if (response != null) serverApi.withAuth(authPreference) {
+            val body = SummarizeDTO(date = date)
+            regenerateDailySummary(body = body)
+        } else serverApi.withAuth(authPreference) {
+            val body = SummarizeDTO(date = date)
+            generateDailySummary(body = body)
+        }
     }
 
     override suspend fun getDiaries(page: Int, clusterId: Long, categoryId: Long?): DiaryForCard {
@@ -138,6 +179,17 @@ class DiaryRepositoryImpl @Inject constructor(
         longitude: Double,
         locationName: String
     ) {
+        val mime = getMimeTypeFromExtension(image.extension)
+            ?: throw IllegalArgumentException("Invalid image extension")
+
+        val presignedUrl = serverApi.withAuth(authPreference) { getPresignedUrl(imageType = mime) }
+
+        imageUploadApi.uploadImage(
+            url = presignedUrl.presignedUrl!!,
+            contentType = mime,
+            image = image.asRequestBody(contentType = mime.toMediaTypeOrNull())
+        )
+
         val request = PostDTO(
             diaryCategoryId = categoryId,
             content = content,
@@ -145,17 +197,10 @@ class DiaryRepositoryImpl @Inject constructor(
             latitude = latitude,
             longitude = longitude,
             locationName = locationName,
+            objectKey = presignedUrl.objectKey!!
         )
-        serverApi.withAuth(authPreference) {
-            createDiary(
-                request = request,
-                image = MultipartBody.Part.createFormData(
-                    "image",
-                    image.name,
-                    image.readBytes().toRequestBody("image/${image.extension}".toMediaType())
-                )
-            )
-        }
+
+        serverApi.withAuth(authPreference) { createDiary(body = request) }
     }
 
     override suspend fun modifyDiary(
@@ -164,20 +209,22 @@ class DiaryRepositoryImpl @Inject constructor(
         content: String?,
         image: File?,
     ) {
-        val request = EditDTO(content = content, diaryCategoryId = categoryId)
-        serverApi.withAuth(authPreference) {
-            updateDiary(
-                diaryId = diaryId,
-                request = request,
-                editPhoto = image?.let {
-                    MultipartBody.Part.createFormData(
-                        "editPhoto",
-                        image.name,
-                        image.readBytes().toRequestBody("image/${image.extension}".toMediaType())
-                    )
-                }
+        image?.let {
+            val mime = getMimeTypeFromExtension(image.extension)
+                ?: throw IllegalArgumentException("Invalid image extension")
+
+            val presignedUrl =
+                serverApi.withAuth(authPreference) { getEditPresignedUrl(diaryId, mime) }
+
+            imageUploadApi.uploadImage(
+                url = presignedUrl.presignedUrl!!,
+                contentType = mime,
+                image = image.asRequestBody(contentType = mime.toMediaTypeOrNull())
             )
         }
+
+        val request = EditDTO(content = content, diaryCategoryId = categoryId)
+        serverApi.withAuth(authPreference) { updateDiary(diaryId = diaryId, body = request) }
     }
 
     override suspend fun deleteDiary(diaryId: Long) {
