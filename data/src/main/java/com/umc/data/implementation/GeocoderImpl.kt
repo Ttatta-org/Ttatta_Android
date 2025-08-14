@@ -17,7 +17,7 @@ class GeocoderImpl: Geocoder {
 
     private val naverCloudClient by lazy {
         Retrofit.Builder()
-            .baseUrl("https://naveropenapi.apigw.ntruss.com")
+            .baseUrl("https://maps.apigw.ntruss.com")
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
             .create(GeocodingApi::class.java)

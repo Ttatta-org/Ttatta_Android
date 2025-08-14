@@ -2,6 +2,7 @@ package com.umc.data.implementation.preference
 
 import android.content.Context
 import com.umc.data.preference.AuthPreference
+import androidx.core.content.edit
 
 class AuthPreferenceImpl(context: Context) : AuthPreference {
     companion object {
@@ -15,13 +16,13 @@ class AuthPreferenceImpl(context: Context) : AuthPreference {
 
     override var accessToken: String?
         get() = pref.getString(ACCESS_TOKEN_KEY, null)
-        set(value) { pref.edit().putString(ACCESS_TOKEN_KEY, value).apply() }
+        set(value) { pref.edit { putString(ACCESS_TOKEN_KEY, value) } }
 
     override var refreshToken: String?
         get() = pref.getString(REFRESH_TOKEN_KEY, null)
-        set(value) { pref.edit().putString(REFRESH_TOKEN_KEY, value).apply() }
+        set(value) { pref.edit { putString(REFRESH_TOKEN_KEY, value) } }
 
     override var userId: Long?
         get() = pref.getLong(USER_ID_KEY, -1L)
-        set(value) { pref.edit().putLong(USER_ID_KEY, value ?: -1L).apply() }
+        set(value) { pref.edit { putLong(USER_ID_KEY, value ?: -1L) } }
 }

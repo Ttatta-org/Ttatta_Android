@@ -28,6 +28,7 @@ import com.squareup.moshi.JsonClass
  * @param latitude 
  * @param longitude 
  * @param locationName 
+ * @param objectKey 
  */
 
 
@@ -49,7 +50,10 @@ data class PostDTO (
     val longitude: kotlin.Double? = null,
 
     @Json(name = "locationName")
-    val locationName: kotlin.String? = null
+    val locationName: kotlin.String? = null,
+
+    @Json(name = "objectKey")
+    val objectKey: kotlin.String? = null
 
 )
 
