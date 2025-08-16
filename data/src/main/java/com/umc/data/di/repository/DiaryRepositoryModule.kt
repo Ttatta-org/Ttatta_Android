@@ -1,6 +1,7 @@
 package com.umc.data.di.repository
 
 import com.umc.core.repository.DiaryRepository
+import com.umc.data.api.ImageUploadApi
 import com.umc.data.api.ServerApi
 import com.umc.data.implementation.repository.DiaryRepositoryImpl
 import com.umc.data.preference.AuthPreference
@@ -17,10 +18,12 @@ object DiaryRepositoryModule {
     @Singleton
     fun provideDiaryRepository(
         serverApi: ServerApi,
+        imageUploadApi: ImageUploadApi,
         authPreference: AuthPreference,
     ): DiaryRepository {
         return DiaryRepositoryImpl(
             serverApi = serverApi,
+            imageUploadApi = imageUploadApi,
             authPreference = authPreference,
         )
     }

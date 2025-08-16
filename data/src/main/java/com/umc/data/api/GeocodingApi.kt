@@ -8,7 +8,7 @@ import retrofit2.http.Header
 import retrofit2.http.Query
 
 interface GeocodingApi {
-    @GET("map-geocode/v2/geocode")
+    @GET("/map-geocode/v2/geocode")
     suspend fun getCoordinates(
         @Query(value = "query") address: String,
         @Header(value = "x-ncp-apigw-api-key-id") keyId: String = BuildConfig.NAVER_SDK_CLIENT_ID,
@@ -16,7 +16,7 @@ interface GeocodingApi {
         @Header(value = "Accept") accept: String = "application/json",
     ): GeocodingResponse
 
-    @GET("map-reversegeocode/v2/gc")
+    @GET("/map-reversegeocode/v2/gc")
     suspend fun getAddress(
         @Query(value = "coords") coordinates: String,
         @Header(value = "x-ncp-apigw-api-key-id") keyId: String = BuildConfig.NAVER_SDK_CLIENT_ID,

@@ -50,7 +50,7 @@
 
         <!-- FCM 메시지 수신 서비스 등록 -->
         <service
-            android:name=".notification.ChallengeReminderService"
+            android:name=".notification.NotificationService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />

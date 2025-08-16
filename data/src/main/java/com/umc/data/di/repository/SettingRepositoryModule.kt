@@ -1,24 +1,30 @@
 package com.umc.data.di.repository
 
-import android.content.Context
-import com.umc.core.setting.SettingRepository
-import com.umc.data.setting.SettingRepositoryImpl
+import com.umc.core.repository.SettingRepository
+import com.umc.data.api.ServerApi
+import com.umc.data.implementation.repository.SettingRepositoryImpl
+import com.umc.data.preference.AuthPreference
+import com.umc.data.preference.SettingPreference
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object SettingRepositoryModule {
-
     @Provides
     @Singleton
     fun provideSettingRepository(
-        @ApplicationContext context: Context
+        authPreference: AuthPreference,
+        settingPreference: SettingPreference,
+        serverApi: ServerApi,
     ): SettingRepository {
-        return SettingRepositoryImpl(context)
+        return SettingRepositoryImpl(
+            authPreference = authPreference,
+            settingPreference = settingPreference,
+            serverApi = serverApi,
+        )
     }
 }

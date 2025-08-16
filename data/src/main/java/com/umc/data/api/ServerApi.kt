@@ -3,7 +3,7 @@ package com.umc.data.api
 import com.umc.data.api.dto.BaseResponse
 import com.umc.data.preference.AuthPreference
 
-interface ServerApi: UserApi, DiaryApi, CategoryApi, ChallengeApi, ItemApi
+interface ServerApi: UserApi, DiaryApi, CategoryApi, ChallengeApi, ItemApi, AlarmApi, DailySummaryApi
 
 suspend fun <T> ServerApi.withCheck(
     getter: suspend ServerApi.() -> BaseResponse<T>

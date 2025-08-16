@@ -15,8 +15,6 @@
 
 package com.umc.data.api.dto.server
 
-import com.umc.data.api.dto.server.PostResultDTO
-
 import com.squareup.moshi.Json
 
 /**

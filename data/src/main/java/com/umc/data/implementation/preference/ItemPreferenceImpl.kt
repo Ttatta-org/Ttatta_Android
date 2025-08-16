@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.umc.core.model.EquippedItem
 import com.umc.data.preference.ItemPreference
+import androidx.core.content.edit
 
 class ItemPreferenceImpl(context: Context) : ItemPreference {
     companion object {
@@ -18,5 +19,5 @@ class ItemPreferenceImpl(context: Context) : ItemPreference {
 
     override var itemList: List<EquippedItem>
         get() = gson.fromJson(pref.getString(ITEM_LIST_KET, null), type)
-        set(value) { pref.edit().putString(ITEM_LIST_KET, gson.toJson(value)).apply() }
+        set(value) { pref.edit { putString(ITEM_LIST_KET, gson.toJson(value)) } }
 }
