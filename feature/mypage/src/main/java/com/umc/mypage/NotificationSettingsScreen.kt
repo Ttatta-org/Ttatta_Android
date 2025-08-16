@@ -372,6 +372,17 @@ fun DropdownButtonWithMenu(
                     .width(width)
                     .heightIn(max = maxHeight)
                     .background(Color.White, shape = RoundedCornerShape(14.dp))
+                    .drawWithContent {
+                        drawContent()
+                        val fade = Brush.verticalGradient(
+                            0f to Color.White,
+                            0.15f to Color.White.copy(alpha = 0.6f),
+                            0.5f to Color.Transparent,
+                            0.85f to Color.White.copy(alpha = 0.6f),
+                            1f to Color.White
+                        )
+                        drawRect(fade)
+                    }
             ) {
                 options.forEach { label ->
                     Box(
