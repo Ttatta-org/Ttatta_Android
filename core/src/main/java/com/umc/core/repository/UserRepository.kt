@@ -36,5 +36,7 @@ interface UserRepository {
         name: String? = null,
         email: String? = null,
     )
-    suspend fun leaveUser()
+    suspend fun leaveUser(
+        reason: String? = null
+    )
 }

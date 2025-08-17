@@ -45,6 +45,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -323,7 +324,7 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
                     painter = painterResource(id = R.drawable.ic_point),
                     contentDescription = "Point Icon",
                     modifier = Modifier
-                        .width(39.dp)
+                        .width(39.18.dp)
                         .height(16.dp)
                 )
 
@@ -331,9 +332,11 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
 
                 Text(
                     text = diary.date.formatToKorean(), // 날짜 텍스트
-                    style = MaterialTheme.typography.bodyMedium.copy(
+                    style = TextStyle(
                         color = Color(0xFFFF9681), // 텍스트 색상
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.W600,
+                        lineHeight = 20.sp
                     )
                 )
             }
@@ -348,18 +351,18 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
 //                        .padding(start = 40.dp, end = 40.dp)
 //                )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(13.dp))
 
             AsyncImage(
                 model = diary.imageUrl,
                 contentDescription = "Diary Image",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(280.dp)
-                    .clip(RoundedCornerShape(18.dp)),
+                    .heightIn(max = 320.dp)
+                    .clip(RoundedCornerShape(15.dp)),
                 contentScale = ContentScale.Crop,
                 // 필요 시 placeholder나 error 설정도 할 수 있음
-                error = painterResource(id = R.drawable.pudding)
+                error = painterResource(id = R.drawable.if_image_error)
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -368,45 +371,47 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
             Row(
                 modifier = Modifier
                     .wrapContentWidth()
-                    .border(1.dp, Color(0xFFFDE9D9), RoundedCornerShape(20.dp))
-                    .background(Color.White, RoundedCornerShape(20.dp))
-                    .padding(horizontal = 12.dp),
+                    .border(1.dp, Color(0xFFFDE9D9), RoundedCornerShape(15.dp))
+                    .background(Color.White, RoundedCornerShape(15.dp))
+                    .padding(horizontal = 14.dp, vertical = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_location), // 위치 아이콘 리소스 사용
                     contentDescription = "위치 아이콘",
                     modifier = Modifier
-                        .width(7.5.dp)
-                        .height(10.dp),
+                        .width(7.6.dp)
+                        .height(9.98.dp),
                 )
 
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(9.4.dp))
 
                 Text(
                     text = diary.locationName,
-                    style = MaterialTheme.typography.bodyMedium.copy(
+                    style = TextStyle(
                         color = Color(0xFFFF9681), // 텍스트 색상
-                        fontSize = 12.sp
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.W600,
                     )
                 )
             }
 
-            Spacer(modifier = Modifier.height(6.5.dp))
+            Spacer(modifier = Modifier.height(6.57.dp))
 
             // 내용 텍스트
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(17.dp))
+                    .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(15.dp))
                     .padding(vertical = 10.dp, horizontal = 12.dp)
             ) {
                 Text(
                     text = diary.content,
-                    style = MaterialTheme.typography.bodyLarge.copy(
+                    style = TextStyle(
                         color = Color(0xFF4B4B4B), // 텍스트 색상
-                        fontSize = 14.sp,
-                        lineHeight = 16.sp
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp,
+                        fontWeight = FontWeight.W400,
                     )
                 )
             }
@@ -416,7 +421,7 @@ fun FillteredDiaryByDate(diary: Diary, onDetailClick: () -> Unit) {
             onClick = onDetailClick,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 15.dp, end = 25.dp)
+                .padding(top = 18.dp, end = 25.dp)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.ic_detail),

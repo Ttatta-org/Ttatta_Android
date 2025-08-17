@@ -166,7 +166,7 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun leaveUser() {
+    override suspend fun leaveUser(reason: String?) {
         serverApi.withAuth(authPreference = authPreference) {
             deleteUser()
         }
