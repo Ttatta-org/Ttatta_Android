@@ -9,6 +9,14 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,6 +53,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.snapshotFlow
 
 import androidx.compose.ui.Modifier
@@ -83,15 +92,40 @@ import kotlin.math.roundToInt
 
 @Composable
 fun NotificationSettingsScreen(
-
+    state: MyPageViewModel.NotificationSettingsUiState,
+    onDailyToggle: (Boolean) -> Unit,
+    onDailyTimeChange: (isPm: Boolean, hour12: Int, minute: Int) -> Unit,
+    onSummaryToggle: (Boolean) -> Unit,
+    onSummaryHourChange: (hour12: Int) -> Unit,
+    onChallengeToggle: (Boolean) -> Unit,
+    onChallengeHoursChange: (Int) -> Unit,
+    onLocationToggle: (Boolean) -> Unit,
 ){
     val systemUiController = rememberSystemUiController()
     val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
 
-    var dailyReminder by remember { mutableStateOf(false) }
-    var locationReminder by remember { mutableStateOf(false) }
-    var challengeReminder by remember { mutableStateOf(false) }
-    var summaryReminder by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    // 스위치 ON 시, 권한이 없으면 요청 후 다시 켤 수 있게 보류 플래그
+    val pendingDailyTurnOn = remember { mutableStateOf(false) }
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            if (pendingDailyTurnOn.value) onDailyToggle(true)
+        } else {
+            Toast.makeText(context, "알림 권한이 거부되어 알림을 표시할 수 없어요.", Toast.LENGTH_SHORT).show()
+        }
+        pendingDailyTurnOn.value = false
+    }
+
+    fun hasPostNotificationsPermission(): Boolean {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+                ContextCompat.checkSelfPermission(
+                    context, Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+    }
 
     SideEffect {
         systemUiController.setStatusBarColor(
@@ -119,32 +153,50 @@ fun NotificationSettingsScreen(
                         NotificationSettingItem(
                             title = "일기 작성 알림",
                             description = "매일 일정한 시각에 일기 작성을 알리는 알림을 보내요!",
-                            checked = dailyReminder,
-                            onCheckedChange = { dailyReminder = it },
+                            checked = state.dailyOn,
+                            onCheckedChange = { isOn ->
+                                if (!isOn) {
+                                    // 끄기는 바로 반영
+                                    onDailyToggle(false)
+                                } else {
+                                    // 켜기는 권한 확인 후
+                                    if (hasPostNotificationsPermission()) {
+                                        onDailyToggle(true)
+                                    } else {
+                                        pendingDailyTurnOn.value = true
+                                        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                    }
+                                }
+                            },
                             bottomContent = {
-                                if (dailyReminder) {
+                                if (state.dailyOn) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                     ) {
+                                        // 화면에서 파생 상태
+                                        val dailyIsPm = state.dailyHour24 >= 12
+                                        val dailyHour12 = ((state.dailyHour24 % 12).let { if (it == 0) 12 else it })
+                                        val dailyMinute = state.dailyMinute
+
+                                        // 오전/오후 드롭다운
                                         DropdownButtonWithMenu(
                                             options = listOf("오전", "오후"),
-                                            initialSelectedText = "오전",
-                                            onSelected = { selected ->
-                                                // ✅ 선택된 값에 따른 처리
-                                                Log.d("NotificationSetting", "선택된 시간: $selected")
+                                            initialSelectedText = if (dailyIsPm) "오후" else "오전",
+                                            onSelected = { ampm ->
+                                                val isPm = ampm == "오후"
+                                                onDailyTimeChange(isPm, dailyHour12, dailyMinute) // ← 이름 제거!
                                             }
                                         )
 
+                                        // 시/분 휠
                                         TimeWheelDropdown(
                                             width = 130.dp,
-                                            initialIsPm = false,
-                                            initialHour12 = 8,
-                                            initialMinute = 30
+                                            initialIsPm = dailyIsPm,
+                                            initialHour12 = dailyHour12,
+                                            initialMinute = dailyMinute
                                         ) { isPm, hour12, minute ->
-                                            Log.d("NotificationSetting", "선택된 시간 = ${if (isPm) "오후" else "오전"} $hour12:$minute")
-                                            // TODO: ViewModel에 반영하고 서버 동기화 트리거
-                                            // viewModel.setDiaryWriteAlarm(isPm, hour12, minute)
+                                            onDailyTimeChange(isPm, hour12, minute) // ← 위치 인자
                                         }
                                     }
 
@@ -157,8 +209,8 @@ fun NotificationSettingsScreen(
                         NotificationSettingItem(
                             title = "위치 기반 추억 회상 알림",
                             description = "현재 위치와 가까운 과거 기록을 찾으면 알림을 보내요!",
-                            checked = locationReminder,
-                            onCheckedChange = { locationReminder = it }
+                            checked = state.locationOn,
+                            onCheckedChange = onLocationToggle
                         )
                     }
                     item { Spacer(modifier = Modifier.height(22.dp)) }
@@ -166,20 +218,19 @@ fun NotificationSettingsScreen(
                         NotificationSettingItem(
                             title = "챌린지 리마인드 알림",
                             description = "챌린지 달성 마감 전 리마인드 알림을 보내요!",
-                            checked = challengeReminder,
-                            onCheckedChange = { challengeReminder = it },
+                            checked = state.challengeOn,
+                            onCheckedChange = onChallengeToggle,
                             bottomContent = {
-                                if (challengeReminder) {
+                                if (state.challengeOn) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                     ) {
                                         DropdownButtonWithMenu(
                                             options = (1..11).map { it.toString().padStart(2, '0') },
-                                            initialSelectedText = "01",
-                                            onSelected = { selected ->
-                                                // ✅ 선택된 값에 따른 처리
-                                                Log.d("NotificationSetting", "선택된 시간: $selected")
+                                            initialSelectedText = state.challengeRemainingHours.toString().padStart(2, '0'),
+                                            onSelected = { sel ->
+                                                onChallengeHoursChange(sel.toInt())
                                             }
                                         )
                                         Text(
@@ -187,6 +238,7 @@ fun NotificationSettingsScreen(
                                             fontSize = 14.sp,
                                             color = Color(0xFF8E8E8E)
                                         )
+
                                     }
                                 }
                             }
@@ -197,28 +249,34 @@ fun NotificationSettingsScreen(
                         NotificationSettingItem(
                             title = "하루 요약 알림",
                             description = "매일 일정한 시각에 오늘의 일기 요약 알림을 보내요!",
-                            checked = summaryReminder,
-                            onCheckedChange = { summaryReminder = it },
+                            checked = state.summaryOn,
+                            onCheckedChange = onSummaryToggle,
                             bottomContent = {
-                                if (summaryReminder) {
+                                if (state.summaryOn) {
+                                    val summaryHour12 = when {
+                                        state.summaryHour24 == 0 -> 12
+                                        state.summaryHour24 > 12 -> state.summaryHour24 - 12
+                                        else -> state.summaryHour24
+                                    }
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                     ) {
+                                        // PM 고정 표시
                                         Text(
                                             text = "오후",
                                             fontSize = 14.sp,
                                             color = Color(0xFF8E8E8E)
                                         )
+                                        // 시간만 선택 (1..12)
+                                        androidx.compose.runtime.key(summaryHour12) {
+                                            DropdownButtonWithMenu(
+                                                options = (1..12).map { it.toString().padStart(2, '0') },
+                                                initialSelectedText = summaryHour12.toString().padStart(2, '0'),
+                                                onSelected = { sel -> onSummaryHourChange(sel.toInt()) } // isPm 제거!
+                                            )
 
-                                        DropdownButtonWithMenu(
-                                            options = (1..12).map { it.toString().padStart(2, '0') },
-                                            initialSelectedText = "01",
-                                            onSelected = { selected ->
-                                                // ✅ 선택된 값에 따른 처리
-                                                Log.d("NotificationSetting", "선택된 시간: $selected")
-                                            }
-                                        )
+                                        }
 
                                         Text(
                                             text = "시",
@@ -826,10 +884,3 @@ fun DropdownChevronIcon(
 //    }
 //}
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewNotification() {
-    NotificationSettingsScreen(
-
-    )
-}

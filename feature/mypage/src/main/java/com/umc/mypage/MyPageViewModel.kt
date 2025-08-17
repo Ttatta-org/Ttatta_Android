@@ -2,6 +2,8 @@ package com.umc.mypage
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
 import com.umc.core.model.UserInfo
 import com.umc.core.repository.SettingRepository
@@ -92,6 +94,8 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
+    // ----- Pin/유저 메서드 유지 -----
+
     fun refreshPinStatus() {
         viewModelScope.launch {
             _isPinEnabled.value = settingRepository.getIsPinSet()
@@ -120,4 +124,156 @@ class MyPageViewModel @Inject constructor(
     suspend fun isPinSet(): Boolean {
         return settingRepository.getIsPinSet()
     }
+
+    // ===== 알림 설정 UI 상태 =====
+    data class NotificationSettingsUiState(
+        val isLoading: Boolean = true,
+        val error: String? = null,
+
+        val dailyOn: Boolean = false,
+        val dailyHour24: Int = 20,
+        val dailyMinute: Int = 30,
+
+        val summaryOn: Boolean = true,
+        val summaryHour24: Int = 13,
+
+        val challengeOn: Boolean = true,
+        val challengeRemainingHours: Int = 1,
+
+        val locationOn: Boolean = true
+    )
+
+    suspend fun ensureFcmRegistered() {
+        if (!userRepository.isAlreadyLogin()) return
+
+        FirebaseMessaging.getInstance().token
+            .addOnSuccessListener { token ->
+                viewModelScope.launch {
+                    try {
+                        settingRepository.sendFcmToken(token)
+                    } catch (e: Exception) {
+                        Log.e("MyPageViewModel", "FCM 토큰 전송 실패: ${e.message}")
+                    }
+                }
+            }
+            .addOnFailureListener { e ->
+                Log.e("MyPageViewModel", "FCM 토큰 획득 실패: ${e.message}")
+            }
+    }
+
+    private val _notificationUi = MutableStateFlow(NotificationSettingsUiState())
+    val notificationUi: StateFlow<NotificationSettingsUiState> = _notificationUi
+
+    init {
+        // 필요 시 진입 시점에 알림 설정도 미리 로드
+        loadNotificationSettings()
+    }
+
+    fun loadNotificationSettings() = viewModelScope.launch {
+        _notificationUi.value = _notificationUi.value.copy(isLoading = true, error = null)
+        runCatching {
+            val diary = settingRepository.getNotificationSetting(com.umc.core.model.NotificationSetting.DiaryWriting::class)
+            val summary = settingRepository.getNotificationSetting(com.umc.core.model.NotificationSetting.DailySummary::class)
+            val chall = settingRepository.getNotificationSetting(com.umc.core.model.NotificationSetting.ChallengeRemind::class)
+            val loc = settingRepository.getNotificationSetting(com.umc.core.model.NotificationSetting.LocationBasedRemind::class)
+
+            _notificationUi.value = NotificationSettingsUiState(
+                isLoading = false,
+                dailyOn = diary.isOn,
+                dailyHour24 = diary.hour,
+                dailyMinute = diary.minute,
+                summaryOn = summary.isOn,
+                summaryHour24 = summary.hour,
+                challengeOn = chall.isOn,
+                challengeRemainingHours = chall.remainingHours,
+                locationOn = loc.isOn
+            )
+        }.onFailure { e ->
+            _notificationUi.value = _notificationUi.value.copy(isLoading = false, error = e.message)
+        }
+    }
+
+    // ===== 액션: UI → 저장소 반영 =====
+    fun onDailyToggle(isOn: Boolean) = viewModelScope.launch {
+        _notificationUi.value = _notificationUi.value.copy(dailyOn = isOn)
+        settingRepository.setNotification(
+            com.umc.core.model.NotificationSetting.DiaryWriting(
+                isOn = isOn,
+                hour = _notificationUi.value.dailyHour24,
+                minute = _notificationUi.value.dailyMinute
+            )
+        )
+    }
+
+    fun onDailyTimeChange(isPm: Boolean, hour12: Int, minute: Int) = viewModelScope.launch {
+        val h24 = to24h(isPm, hour12)
+        _notificationUi.value = _notificationUi.value.copy(dailyHour24 = h24, dailyMinute = minute)
+        settingRepository.setNotification(
+            com.umc.core.model.NotificationSetting.DiaryWriting(
+                isOn = _notificationUi.value.dailyOn,
+                hour = h24,
+                minute = minute
+            )
+        )
+    }
+
+    fun onSummaryToggle(isOn: Boolean) = viewModelScope.launch {
+        _notificationUi.value = _notificationUi.value.copy(summaryOn = isOn)
+        settingRepository.setNotification(
+            com.umc.core.model.NotificationSetting.DailySummary(
+                isOn = isOn,
+                hour = _notificationUi.value.summaryHour24
+            )
+        )
+    }
+
+    fun onSummaryHourChange(hour12: Int) = viewModelScope.launch {
+        val h24 = to24hPm(hour12)          // 오후 고정 변환
+        _notificationUi.value = _notificationUi.value.copy(summaryHour24 = h24)
+        settingRepository.setNotification(
+            com.umc.core.model.NotificationSetting.DailySummary(
+                isOn = _notificationUi.value.summaryOn,
+                hour = h24
+            )
+        )
+    }
+
+    fun onChallengeToggle(isOn: Boolean) = viewModelScope.launch {
+        _notificationUi.value = _notificationUi.value.copy(challengeOn = isOn)
+        settingRepository.setNotification(
+            com.umc.core.model.NotificationSetting.ChallengeRemind(
+                isOn = isOn,
+                remainingHours = _notificationUi.value.challengeRemainingHours
+            )
+        )
+    }
+
+    fun onChallengeHoursChange(hours: Int) = viewModelScope.launch {
+        _notificationUi.value = _notificationUi.value.copy(challengeRemainingHours = hours)
+        settingRepository.setNotification(
+            com.umc.core.model.NotificationSetting.ChallengeRemind(
+                isOn = _notificationUi.value.challengeOn,
+                remainingHours = hours
+            )
+        )
+    }
+
+    fun onLocationToggle(isOn: Boolean) = viewModelScope.launch {
+        _notificationUi.value = _notificationUi.value.copy(locationOn = isOn)
+        settingRepository.setNotification(
+            com.umc.core.model.NotificationSetting.LocationBasedRemind(
+                isOn = isOn
+            )
+        )
+    }
+
+    // ===== 12/24시간 변환 유틸 =====
+    private fun to24h(isPm: Boolean, hour12: Int): Int {
+        val base = if (hour12 == 12) 0 else hour12
+        return if (isPm) base + 12 else base
+    }
+    // 오후(PM) 고정: 12 -> 12, 1..11 -> 13..23
+    private fun to24hPm(hour12: Int): Int =
+        if (hour12 == 12) 12 else hour12 + 12
+
 }
