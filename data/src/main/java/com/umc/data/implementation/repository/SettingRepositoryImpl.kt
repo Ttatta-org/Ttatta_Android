@@ -25,30 +25,39 @@ class SettingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setNotification(notificationSetting: NotificationSetting) {
-        when (notificationSetting) {
-            is NotificationSetting.DiaryWriting -> {
-                if (notificationSetting.isOn) {
-                    val body = UpdateWritingAlarmRequestDTO(
-                        alarmTime = "%02d:%02d:00".format(
-                            notificationSetting.hour,
-                            notificationSetting.minute
-                        )
-                    )
-
-                    serverApi.withAuth(authPreference) { turnOnDiaryWriteAlarm() }
-                    serverApi.withAuth(authPreference) { changeTimeOfDiaryWriteAlarm(body = body) }
-                } else {
-                    serverApi.withAuth(authPreference) { turnOffDiaryWriteAlarm() }
-                }
-            }
-
-            else -> Unit  // TODO
-        }
-
+        // 1) 로컬 먼저 갱신 (항상 성공)
         settingPreference.apply {
             notificationSettings = notificationSettings.map {
                 if (it::class == notificationSetting::class) notificationSetting else it
             }
+        }
+        // 2) 서버 동기화 (실패해도 예외 삼켜서 크래시 방지)
+        when (notificationSetting) {
+            is NotificationSetting.DiaryWriting -> {
+                val body = UpdateWritingAlarmRequestDTO(
+                    alarmTime = "%02d:%02d:00".format(
+                        notificationSetting.hour,
+                        notificationSetting.minute
+                    )
+                )
+
+                runCatching {
+                    if (notificationSetting.isOn) {
+                        // 서버 제약: 시간 먼저 → ON
+                        serverApi.withAuth(authPreference) { changeTimeOfDiaryWriteAlarm(body = body) }
+                        serverApi.withAuth(authPreference) { turnOnDiaryWriteAlarm() }
+                    } else {
+                        serverApi.withAuth(authPreference) { turnOffDiaryWriteAlarm() }
+                    }
+                }.onFailure {
+                    android.util.Log.e("SettingRepositoryImpl", "Diary alarm sync failed", it)
+                }
+            }
+
+            // 아직 백엔드 미구현 → 로컬만 유지
+            is NotificationSetting.DailySummary, // Todo
+            is NotificationSetting.ChallengeRemind, // Todo
+            is NotificationSetting.LocationBasedRemind -> Unit // Todo
         }
     }
 
@@ -59,22 +68,22 @@ class SettingRepositoryImpl @Inject constructor(
 
         val default =  when (notificationSetting) {
             NotificationSetting.DiaryWriting::class -> NotificationSetting.DiaryWriting(
-                isOn = true,
+                isOn = false,   // ← 기본 OFF
                 hour = 20,
                 minute = 30
             )
 
             NotificationSetting.LocationBasedRemind::class -> NotificationSetting.LocationBasedRemind(
-                isOn = true,
+                isOn = false,   // ← 기본 OFF
             )
 
             NotificationSetting.ChallengeRemind::class -> NotificationSetting.ChallengeRemind(
-                isOn = true,
+                isOn = false,   // ← 기본 OFF
                 remainingHours = 1
             )
 
             NotificationSetting.DailySummary::class -> NotificationSetting.DailySummary(
-                isOn = true,
+                isOn = false,   // ← 기본 OFF
                 hour = 13,
             )
 
