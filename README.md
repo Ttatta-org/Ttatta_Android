@@ -1,12 +1,18 @@
 # 따따 Android
-따따 프로젝트의 안드로이드 리포지토리입니다.
+
+🐾 **따따(Ttatta)**: **따**라가**다**  
+어디서든 기록 가능한 위치 기반 추억 기록 서비스
+
+> **사진**과 **위치**로 _"나만의 추억과 발자취를 기록할 수 있는 서비스"_ 이며,  
+> 다른 사람의 시선을 신경 쓰지 않고 간편하게 하루하루를 남길 수 있는 경험을 제공합니다.
 
 <br/>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/b89b4fc6-2b46-4f65-a456-50e2645d177c" width="800" height="600">
+  <img src="https://github.com/user-attachments/assets/43578374-80ec-40c3-99eb-55514025d8f8" width="800" height="600">
 </p>
 <br/>
+
 
 **📌 진행 사항 확인**
 
