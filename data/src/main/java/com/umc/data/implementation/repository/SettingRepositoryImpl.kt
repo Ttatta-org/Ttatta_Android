@@ -99,6 +99,12 @@ class SettingRepositoryImpl @Inject constructor(
         settingPreference.pinHash = BCrypt.hashpw(pin.toString(), BCrypt.gensalt())
     }
 
+    override suspend fun clearPin() {
+        // TODO: 서버 API clearPin() 구현되면 아래 호출 활성화할 것
+        // serverApi.withAuth(authPreference) { clearPin() }
+        settingPreference.pinHash = null
+    }
+
     override suspend fun getIsPinSet(): Boolean {
         return settingPreference.pinHash != null
     }
