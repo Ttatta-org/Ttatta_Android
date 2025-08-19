@@ -50,6 +50,7 @@ fun FootprintScreen(
     categorySelectionBarProp: VisibleCategorySelectionBarProp,
     diaryCardProp: PositionedDiaryCardProp?,
     diaryModificationBarProp: DiaryModificationBarProp?,
+    onBackScreenClicked: (() -> Unit)?,
     onCategoryButtonClicked: () -> Unit,
     onLocationButtonClicked: () -> Unit,
 ) {
@@ -67,7 +68,8 @@ fun FootprintScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .onGloballyPositioned { screenHeight = with(density) { it.size.height.toDp() } },
+            .onGloballyPositioned { screenHeight = with(density) { it.size.height.toDp() } }
+            .let { if (onBackScreenClicked != null) it.clickable { onBackScreenClicked() } else it },
     ) {
         // 지도
         mapView.invoke()
@@ -177,6 +179,7 @@ fun PreviewFootprintScreen() {
                 prop = previewCategorySelectionBarProp,
                 onDismissed = {},
             ),
+            onBackScreenClicked = null,
             onCategoryButtonClicked = {},
             onLocationButtonClicked = {},
         )

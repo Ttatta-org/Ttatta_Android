@@ -343,6 +343,7 @@ fun FootprintApp(
             ),
             onDismissed = { isCategorySelectionBarVisible = false },
         ),
+        onBackScreenClicked = remindLoadedEvent?.onDismissed,
         onCategoryButtonClicked = {
             viewModel.runWithScope {
                 if (viewModel.selectedCategoryId != null) selectShowingCategory(categoryId = null)
