@@ -1,4 +1,4 @@
-package com.umc.ttatta
+package com.umc.ttatta.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.umc.ttatta.R
 
 @Composable
 fun Splash() {
