@@ -94,12 +94,7 @@ class FootprintViewModel @Inject constructor(
                     longitude = it.longitude,
                     clusterId = it.clusterId,
                     zIndex = it.diaryId.toInt(),
-                    isOverlapping = try {
-                        diaryRepository.getDiaries(page = 1, clusterId = it.clusterId)
-                        true
-                    } catch (_: Exception) {
-                        false
-                    },
+                    isOverlapping = it.isClustered,
                     color = it.color,
                 )
             }

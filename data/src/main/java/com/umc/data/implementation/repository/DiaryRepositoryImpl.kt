@@ -111,7 +111,7 @@ class DiaryRepositoryImpl @Inject constructor(
         return DiaryForCard(
             id = response.diaryId!!,
             date = response.date!!.toLocalDate(),
-            color = when (response.color!!) {
+            color = when (response.color) {
                 MapResultDTO.Color.RED -> CategoryColor.RED
                 MapResultDTO.Color.ORANGE -> CategoryColor.ORANGE
                 MapResultDTO.Color.YELLOW -> CategoryColor.YELLOW
@@ -124,6 +124,7 @@ class DiaryRepositoryImpl @Inject constructor(
                 MapResultDTO.Color.PINK -> CategoryColor.PINK
                 MapResultDTO.Color.WHITE -> CategoryColor.WHITE
                 MapResultDTO.Color.BLACK -> CategoryColor.BLACK
+                null -> null
             },
             content = response.content!!,
             imageUrl = response.image!!,
@@ -141,14 +142,25 @@ class DiaryRepositoryImpl @Inject constructor(
 
     override suspend fun getAllFootprints(categoryId: Long?): List<Footprint> {
         val response = serverApi.withAuth(authPreference) {
-            getFootprintDiaryList(diaryCategoryId = categoryId)
+            getFootprintDiaryList(
+                diaryCategoryId = categoryId,
+                lat1 = 40.0,
+                lng1 = 140.0,
+                lat2 = 30.0,
+                lng2 = 140.0,
+                lat3 = 30.0,
+                lng3 = 120.0,
+                lat4 = 40.0,
+                lng4 = 120.0,
+            )
         }
+
         return response.footprintList?.map {
             Footprint(
                 diaryId = it.diaryId!!,
                 categoryId = it.diaryCategoryId!!,
                 clusterId = it.clusterId!!,
-                isClustered = false,  // TODO: 백엔드 지원 시 교체
+                isClustered = !it.isSingle!!,
                 color = when (it.categoryColor!!) {
                     "RED" -> CategoryColor.RED
                     "ORANGE" -> CategoryColor.ORANGE
