@@ -66,7 +66,15 @@ interface DiaryApi {
     // 발자국 전체 조회
     @GET("/diaries/footprint")
     suspend fun getFootprintDiaryList(
-        @Query("diaryCategoryId") diaryCategoryId: Long?
+        @Query("diaryCategoryId") diaryCategoryId: Long?,
+        @Query("lat1") lat1: Double,
+        @Query("lng1") lng1: Double,
+        @Query("lat2") lat2: Double,
+        @Query("lng2") lng2: Double,
+        @Query("lat3") lat3: Double,
+        @Query("lng3") lng3: Double,
+        @Query("lat4") lat4: Double,
+        @Query("lng4") lng4: Double,
     ): BaseResponse<FootprintDiaryListDTO>
 
     // 일기 이미지 수정용 링크 발급

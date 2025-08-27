@@ -49,7 +49,9 @@ data class FootprintDiaryDTO (
     val longitude: kotlin.Double? = null,
 
     @Json(name = "clusterId")
-    val clusterId: kotlin.Long? = null
+    val clusterId: kotlin.Long? = null,
 
+    @Json(name = "isSingle")
+    val isSingle: kotlin.Boolean? = null
 )
 

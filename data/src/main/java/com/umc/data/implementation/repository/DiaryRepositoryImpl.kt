@@ -4,6 +4,7 @@ import com.umc.core.model.CategoryInfo
 import com.umc.core.model.DailySummary
 import com.umc.core.model.Diary
 import com.umc.core.model.DiaryForCard
+import com.umc.core.model.DiaryForRemind
 import com.umc.core.model.Footprint
 import com.umc.core.repository.DiaryRepository
 import com.umc.data.api.ImageUploadApi
@@ -11,6 +12,7 @@ import com.umc.data.api.ServerApi
 import com.umc.data.api.dto.server.CategoryDetailDTO
 import com.umc.data.api.dto.server.CreateCategoryDTO
 import com.umc.data.api.dto.server.EditDTO
+import com.umc.data.api.dto.server.MapResultDTO
 import com.umc.data.api.dto.server.ModifyCategoryDTO
 import com.umc.data.api.dto.server.PostDTO
 import com.umc.data.api.dto.server.SummarizeDTO
@@ -106,16 +108,31 @@ class DiaryRepositoryImpl @Inject constructor(
             getMapDiary(requestNum = page, clusterId = clusterId, diaryCategoryId = categoryId)
         }
 
-        val categories = getAllCategoryInfo()
-        val targetCategory = categories.find { it.id == response.diaryCategoryId }
-
         return DiaryForCard(
             id = response.diaryId!!,
             date = response.date!!.toLocalDate(),
-            color = targetCategory?.color,
+            color = when (response.color) {
+                MapResultDTO.Color.RED -> CategoryColor.RED
+                MapResultDTO.Color.ORANGE -> CategoryColor.ORANGE
+                MapResultDTO.Color.YELLOW -> CategoryColor.YELLOW
+                MapResultDTO.Color.GREEN -> CategoryColor.GREEN
+                MapResultDTO.Color.SKYBLUE -> CategoryColor.TURQUOISE
+                MapResultDTO.Color.BLUE -> CategoryColor.BLUE
+                MapResultDTO.Color.INDIGO -> CategoryColor.NAVY
+                MapResultDTO.Color.VIOLET -> CategoryColor.PURPLE
+                MapResultDTO.Color.BROWN -> CategoryColor.BROWN
+                MapResultDTO.Color.PINK -> CategoryColor.PINK
+                MapResultDTO.Color.WHITE -> CategoryColor.WHITE
+                MapResultDTO.Color.BLACK -> CategoryColor.BLACK
+                null -> null
+            },
             content = response.content!!,
             imageUrl = response.image!!,
         )
+    }
+
+    override suspend fun getDiaryForRemind(id: Long): DiaryForRemind {
+        TODO("Not yet implemented")
     }
 
     override suspend fun getAllRecordedDates(): List<LocalDate> {
@@ -125,13 +142,25 @@ class DiaryRepositoryImpl @Inject constructor(
 
     override suspend fun getAllFootprints(categoryId: Long?): List<Footprint> {
         val response = serverApi.withAuth(authPreference) {
-            getFootprintDiaryList(diaryCategoryId = categoryId)
+            getFootprintDiaryList(
+                diaryCategoryId = categoryId,
+                lat1 = 40.0,
+                lng1 = 140.0,
+                lat2 = 30.0,
+                lng2 = 140.0,
+                lat3 = 30.0,
+                lng3 = 120.0,
+                lat4 = 40.0,
+                lng4 = 120.0,
+            )
         }
+
         return response.footprintList?.map {
             Footprint(
                 diaryId = it.diaryId!!,
                 categoryId = it.diaryCategoryId!!,
                 clusterId = it.clusterId!!,
+                isClustered = !it.isSingle!!,
                 color = when (it.categoryColor!!) {
                     "RED" -> CategoryColor.RED
                     "ORANGE" -> CategoryColor.ORANGE

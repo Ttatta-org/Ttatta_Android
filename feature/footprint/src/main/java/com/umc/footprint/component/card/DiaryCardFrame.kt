@@ -190,7 +190,7 @@ private val previewDiaryCardFrameProp = DiaryCardFrameProp(
     borderColor = Color(0xFF000000),
     backgroundColor = Color(0xFFEEEEEE),
     contentContainerColor = Color(0xFF555555),
-    onModifyButtonClicked = {},
+    onModifyButtonClicked = null,
     content = {
         Box(
             contentAlignment = Alignment.Center,

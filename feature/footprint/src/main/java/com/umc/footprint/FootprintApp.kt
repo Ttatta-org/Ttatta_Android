@@ -25,9 +25,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.toSize
+import com.umc.design.CategoryColor
 import com.umc.footprint.core.DesignConstant
 import com.umc.footprint.model.event.DiaryModificationBarOpenEvent
 import com.umc.footprint.model.event.ModifiedMapMarkerClickedEvent
+import com.umc.footprint.model.event.RemindEvent
+import com.umc.footprint.model.event.RemindLoadedEvent
 import com.umc.footprint.model.prop.CategoryItemProp
 import com.umc.footprint.model.prop.CategorySelectionBarProp
 import com.umc.footprint.model.prop.DiaryCardLoadedProp
@@ -39,28 +42,39 @@ import com.umc.footprint.model.prop.VisibleCategorySelectionBarProp
 import com.umc.footprint.util.calculateInclusion
 import com.umc.footprint.util.checkLocationPermission
 import com.umc.footprint.util.getDiaryCardTopLeftOffset
+import com.umc.footprint.util.runWithScope
 
 @Composable
 fun FootprintApp(
     viewModel: FootprintViewModel,
     isMapBlurApplied: Boolean,
+    remindEvent: RemindEvent? = null,
     onNavigateToCategoryApp: () -> Unit,
 ) {
     val context = LocalContext.current as Activity
     val density = LocalDensity.current
     val keyboard = LocalSoftwareKeyboardController.current
+
     val topPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
+    val centralFootprintOffset = remember {
+        Offset(
+            x = 0f,
+            y = with(density) {
+                (DesignConstant.DiaryCardSize.height.toPx() / 2).plus(DesignConstant.MarkerSize.height.toPx() / 4)
+                    .plus(topPadding.toPx() / 2)
+            },
+        )
+    }
 
     var mapViewSize by remember { mutableStateOf(Size.Zero) }
 
     var isLocationMarkingEnabled by remember { mutableStateOf(false) }
     var isCategorySelectionBarVisible by remember { mutableStateOf(false) }
-    var diaryModificationBarOpenEvent by remember {
-        mutableStateOf<DiaryModificationBarOpenEvent?>(
-            null
-        )
-    }
-    var markerEvent by remember { mutableStateOf<ModifiedMapMarkerClickedEvent?>(null) }
+    var isRemindDiaryCardFlipped by remember { mutableStateOf(false) }
+
+    var barOpenEvent: DiaryModificationBarOpenEvent? by remember { mutableStateOf(null) }
+    var markerEvent: ModifiedMapMarkerClickedEvent? by remember { mutableStateOf(null) }
+    var remindLoadedEvent: RemindLoadedEvent? by remember { mutableStateOf(null) }
 
     val diaryCardLoadedPropMap = remember { mutableStateMapOf<Long, DiaryCardLoadedProp>() }
 
@@ -73,10 +87,7 @@ fun FootprintApp(
 
     LaunchedEffect(key1 = Unit) {
         // 뷰모델 정보 초기화
-        viewModel.getAllCategoryInfoFromServer()
-        viewModel.moveMapToCurrentPosition()
-        viewModel.getUserNameFromServer()
-        viewModel.selectShowingCategory(categoryId = null)
+        viewModel.runWithScope { loadInitialData() }
         // 위치 권한 확인
         isLocationMarkingEnabled = permissionRequester.checkLocationPermission(context = context)
     }
@@ -101,7 +112,7 @@ fun FootprintApp(
             } ?: run {
                 // 일기가 처음 로드되었을 때
                 diaryCardLoadedPropMap[diary.id] = DiaryCardLoadedProp(
-                    id = diary.id,
+                    key = diary.id,
                     date = diary.date,
                     categoryColor = diary.color,
                     imageUrl = diary.imageUrl,
@@ -114,7 +125,7 @@ fun FootprintApp(
                         }
                     },
                     onModifyButtonClicked = {
-                        diaryModificationBarOpenEvent = DiaryModificationBarOpenEvent(
+                        barOpenEvent = DiaryModificationBarOpenEvent(
                             targetDiaryId = diary.id
                         )
                     },
@@ -127,60 +138,81 @@ fun FootprintApp(
     LaunchedEffect(key1 = viewModel.footprintMarkerClickedEvent) {
         markerEvent = null
 
-        viewModel.footprintMarkerClickedEvent?.let { event ->
-            val diaryCardTopLeft = getDiaryCardTopLeftOffset(
-                density = density,
-                markerOffset = event.offset,
-                includeArrowArea = event.isBook,
+        val event = viewModel.footprintMarkerClickedEvent ?: return@LaunchedEffect
+
+        val diaryCardTopLeft = getDiaryCardTopLeftOffset(
+            density = density,
+            markerOffset = event.offset,
+            includeArrowArea = event.isBook,
+        )
+
+        val isIncluded = calculateInclusion(
+            innerOffset = diaryCardTopLeft,
+            innerSize = with(density) {
+                (if (event.isBook) DesignConstant.DiaryCardSizeWithArrowArea
+                else DesignConstant.DiaryCardSizeWithShadowArea).toSize()
+            },
+            outerOffset = Offset.Zero,
+            outerSize = mapViewSize,
+        )
+
+        // 카드를 띄울 공간이 화면을 벗어났는지를 확인
+        if (isIncluded) {
+            markerEvent = ModifiedMapMarkerClickedEvent(
+                offset = event.offset,
+                clusterId = event.clusterId,
+                color = event.color,
             )
-
-            val isIncluded = calculateInclusion(
-                innerOffset = diaryCardTopLeft,
-                innerSize = with(density) {
-                    (if (event.isBook) DesignConstant.DiaryCardSizeWithArrowArea
-                    else DesignConstant.DiaryCardSizeWithShadowArea).toSize()
-                },
-                outerOffset = Offset.Zero,
-                outerSize = mapViewSize,
-            )
-
-            // 카드를 띄울 공간이 화면을 벗어났는지를 확인
-            if (isIncluded) {
-                markerEvent = ModifiedMapMarkerClickedEvent(
-                    offset = event.offset,
-                    clusterId = event.clusterId,
-                    color = event.color,
-                )
-            } else {
-                val offsetFromCenter = Offset(
-                    x = 0f,
-                    y = with(density) {
-                        (DesignConstant.DiaryCardSize.height.toPx() / 2).plus(DesignConstant.MarkerSize.height.toPx() / 4)
-                            .plus(topPadding.toPx() / 2)
-                    },
-                )
-
-                // 화면을 벗어난 경우 지도를 옮긴 후 카드를 띄움
+        } else {
+            // 화면을 벗어난 경우 지도를 옮긴 후 카드를 띄움
+            runCatching {
                 viewModel.moveMapToPosition(
                     latitude = event.latitude,
                     longitude = event.longitude,
-                    pivot = offsetFromCenter,
-                    onSucceed = {
-                        markerEvent = ModifiedMapMarkerClickedEvent(
-                            offset = mapViewSize.center + offsetFromCenter,
-                            clusterId = event.clusterId,
-                            color = event.color,
-                        )
-                    },
+                    pivot = centralFootprintOffset,
+                )
+            }.onSuccess {
+                markerEvent = ModifiedMapMarkerClickedEvent(
+                    offset = mapViewSize.center + centralFootprintOffset,
+                    clusterId = event.clusterId,
+                    color = event.color,
                 )
             }
+        }
+    }
+
+    // 리마인드 이벤트 발생 시 실행
+    LaunchedEffect(key1 = remindEvent) {
+        if (remindEvent == null) return@LaunchedEffect
+
+        runCatching {
+            viewModel.getDiaryForRemindFromServer(id = remindEvent.diaryId)
+        }.onSuccess { diary ->
+            viewModel.moveMapToPosition(
+                latitude = diary.latitude,
+                longitude = diary.longitude,
+                pivot = centralFootprintOffset,
+            )
+            remindLoadedEvent = RemindLoadedEvent(
+                description = remindEvent.description,
+                date = diary.date,
+                isBook = diary.isClustered,
+                color = diary.color ?: CategoryColor.RED,  // TODO: 카테고리 컬러는 추후 Nullable 특성을 잃음
+                imageUrl = diary.imageUrl,
+                content = remindEvent.description,
+                onDismissed = {
+                    remindEvent.onDismissed()
+                    remindLoadedEvent = null
+                    isRemindDiaryCardFlipped = false
+                }
+            )
         }
     }
 
     // 선택한 카테고리가 있을 경우에는 뒤로가기 버튼으로 카테고리 선택 해제
     BackHandler(
         enabled = viewModel.selectedCategoryId != null,
-        onBack = { viewModel.selectShowingCategory(categoryId = null) },
+        onBack = { viewModel.runWithScope { selectShowingCategory(categoryId = null) } },
     )
 
     // 카테고리 선택 바텀시트가 올라온 경우에는 뒤로가기 버튼으로 바텀시트 닫기
@@ -189,46 +221,77 @@ fun FootprintApp(
         onBack = { isCategorySelectionBarVisible = false },
     )
 
+    // 리마인드 이벤트가 있는 경우에는 리마인드 이벤트를 취소
+    BackHandler(
+        enabled = remindLoadedEvent != null,
+        onBack = { remindLoadedEvent?.onDismissed?.invoke() },
+    )
+
     FootprintScreen(
         mapView = {
             Box(
                 modifier = Modifier.onGloballyPositioned { mapViewSize = it.size.toSize() },
             ) {
                 viewModel.MapView(
-                    isBlurApplied = isMapBlurApplied,
+                    isBlurApplied = remindLoadedEvent != null || isMapBlurApplied,
                     isLocationMarkingEnabled = isLocationMarkingEnabled
                 )
             }
         },
         isCategorySelected = viewModel.selectedCategoryId != null,
-        diaryCardProp = markerEvent?.let { event ->
+        diaryCardProp = remindLoadedEvent?.let { event ->
+            // 리마인드 이벤트에 의해서 카드가 띄워지는 경우
+            PositionedDiaryCardProp(
+                offset = mapViewSize.center + centralFootprintOffset,
+                prop = DiaryCardProp(
+                    key = -1L,
+                    description = remindLoadedEvent?.description,
+                    defaultCategoryColor = event.color,
+                    diaryCardLoadedPropMap = mapOf(
+                        0 to DiaryCardLoadedProp(
+                            key = -1L,
+                            date = event.date,
+                            categoryColor = event.color,
+                            imageUrl = event.imageUrl,
+                            content = event.content,
+                            isFlipped = isRemindDiaryCardFlipped,
+                            diaryModificationModeProp = null,
+                            onCardClicked = { isRemindDiaryCardFlipped != isRemindDiaryCardFlipped },
+                            onModifyButtonClicked = null,
+                        ),
+                    ),
+                    onNewDiaryRequested = { /* DO NOTHING */ }
+                ),
+            )
+        } ?: markerEvent?.let { event ->
+            // 발자국 마커 클릭에 의해서 카드가 띄워지는 경우
             PositionedDiaryCardProp(
                 offset = event.offset,
                 prop = DiaryCardProp(
-                    clusterId = event.clusterId,
+                    key = event.clusterId,
+                    description = null,
                     defaultCategoryColor = event.color,
                     diaryCardLoadedPropMap = viewModel.diaryMap.mapValues { (_, value) ->
                         diaryCardLoadedPropMap[value.id]
                     },
                     onNewDiaryRequested = { page ->
-                        viewModel.getDiaryFromServer(
-                            page = page,
-                        )
+                        viewModel.runWithScope { getDiaryFromServer(page = page) }
                     },
                 ),
             )
         },
-        diaryModificationBarProp = diaryModificationBarOpenEvent?.let { info ->
+        diaryModificationBarProp = barOpenEvent?.let { event ->
             DiaryModificationBarProp(
                 onModifyOptionClicked = {
-                    diaryCardLoadedPropMap[info.targetDiaryId]?.apply {
-                        diaryCardLoadedPropMap[id] = copy(
-                            isFlipped = true, diaryModificationModeProp = DiaryModificationModeProp(
+                    diaryCardLoadedPropMap[event.targetDiaryId]?.apply {
+                        diaryCardLoadedPropMap[key] = copy(
+                            isFlipped = true,
+                            diaryModificationModeProp = DiaryModificationModeProp(
                                 contentValue = content,
                                 onContentValueChanged = {
-                                    diaryCardLoadedPropMap[id]?.apply {
+                                    diaryCardLoadedPropMap[key]?.apply {
                                         if (diaryModificationModeProp != null) {
-                                            diaryCardLoadedPropMap[id] = copy(
+                                            diaryCardLoadedPropMap[key] = copy(
                                                 diaryModificationModeProp = diaryModificationModeProp.copy(
                                                     contentValue = it
                                                 )
@@ -237,26 +300,28 @@ fun FootprintApp(
                                     }
                                 },
                                 onModificationDone = {
-                                    diaryCardLoadedPropMap[id]?.apply {
-                                        if (diaryModificationModeProp != null) viewModel.modifyDiary(
-                                            diaryId = id,
-                                            content = diaryModificationModeProp.contentValue,
-                                        )
+                                    diaryCardLoadedPropMap[key]?.apply {
+                                        viewModel.runWithScope {
+                                            if (diaryModificationModeProp != null) modifyDiary(
+                                                diaryId = key,
+                                                content = diaryModificationModeProp.contentValue,
+                                            )
+                                        }
                                         keyboard?.hide()
                                     }
                                 },
-                            )
+                            ),
                         )
                     }
-                    diaryModificationBarOpenEvent = null
+                    barOpenEvent = null
                 },
                 onDeleteOptionClicked = {
-                    viewModel.deleteDiary(
-                        diaryId = info.targetDiaryId,
-                        onSucceed = { diaryModificationBarOpenEvent = null },
-                        onFailed = { diaryModificationBarOpenEvent = null })
+                    viewModel.runWithScope {
+                        runCatching { deleteDiary(diaryId = event.targetDiaryId) }
+                        barOpenEvent = null
+                    }
                 },
-                onDismissed = { diaryModificationBarOpenEvent = null },
+                onDismissed = { barOpenEvent = null },
             )
         },
         categorySelectionBarProp = VisibleCategorySelectionBarProp(
@@ -269,7 +334,7 @@ fun FootprintApp(
                         color = categoryInfo.color,
                         count = categoryInfo.count,
                         onClicked = {
-                            viewModel.selectShowingCategory(categoryId = categoryInfo.id)
+                            viewModel.runWithScope { selectShowingCategory(categoryId = categoryInfo.id) }
                             isCategorySelectionBarVisible = false
                         },
                     )
@@ -278,19 +343,24 @@ fun FootprintApp(
             ),
             onDismissed = { isCategorySelectionBarVisible = false },
         ),
+        onBackScreenClicked = remindLoadedEvent?.onDismissed,
         onCategoryButtonClicked = {
-            if (viewModel.selectedCategoryId != null) viewModel.selectShowingCategory(categoryId = null)
-            else isCategorySelectionBarVisible = !isCategorySelectionBarVisible
+            viewModel.runWithScope {
+                if (viewModel.selectedCategoryId != null) selectShowingCategory(categoryId = null)
+                else isCategorySelectionBarVisible = !isCategorySelectionBarVisible
+            }
         },
         onLocationButtonClicked = {
-            viewModel.moveMapToCurrentPosition(
-                onFailed = {
+            viewModel.runWithScope {
+                runCatching {
+                    moveMapToCurrentPosition()
+                }.onFailure {
                     permissionRequester.checkLocationPermission(
                         context = context,
                         requestOnNotGranted = true,
                     )
-                },
-            )
+                }
+            }
         },
     )
 }

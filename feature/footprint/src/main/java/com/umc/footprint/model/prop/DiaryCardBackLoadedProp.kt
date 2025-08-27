@@ -8,5 +8,5 @@ data class DiaryCardBackLoadedProp(
     val categoryColor: CategoryColor? = null,
     val content: String,
     val diaryModificationModeProp: DiaryModificationModeProp?,
-    val onModifyButtonClicked: () -> Unit
+    val onModifyButtonClicked: (() -> Unit)?,
 )

@@ -5,6 +5,7 @@ import com.umc.core.model.CategoryInfo
 import com.umc.core.model.DailySummary
 import com.umc.core.model.Diary
 import com.umc.core.model.DiaryForCard
+import com.umc.core.model.DiaryForRemind
 import com.umc.core.model.Footprint
 import java.io.File
 import java.time.LocalDate
@@ -24,6 +25,7 @@ interface DiaryRepository {
     // "나의 발자국" 화면에서 쓰이는 일기 정보를 가져옵니다.
     suspend fun getAllFootprints(categoryId: Long? = null): List<Footprint>
     suspend fun getDiaries(page: Int, clusterId: Long, categoryId: Long? = null): DiaryForCard
+    suspend fun getDiaryForRemind(id: Long): DiaryForRemind
 
     suspend fun createDiary(
         categoryId: Long,

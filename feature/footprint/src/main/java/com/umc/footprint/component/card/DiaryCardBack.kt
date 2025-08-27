@@ -1,7 +1,6 @@
 package com.umc.footprint.component.card
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -30,7 +29,6 @@ import com.umc.footprint.model.prop.DiaryCardBackProp
 import com.umc.footprint.model.prop.DiaryCardFrameProp
 import java.time.LocalDate
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DiaryCardBack(
     prop: DiaryCardBackProp,

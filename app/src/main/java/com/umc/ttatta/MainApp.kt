@@ -1,8 +1,5 @@
 package com.umc.ttatta
 
-import android.app.Activity
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.Column
@@ -16,12 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -29,19 +24,29 @@ import com.umc.category.CategoryApp
 import com.umc.challenge.ChallengeApp
 import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.FootprintApp
+import com.umc.footprint.model.event.RemindEvent
 import com.umc.home.HomeApp
 import com.umc.home.HomeViewModel
 import com.umc.login.LoginApp
 import com.umc.mypage.MyPageApp
 import com.umc.record.RecordApp
+import com.umc.ttatta.component.FinishHandler
 import com.umc.ttatta.component.NavigationItem
 import com.umc.ttatta.component.RecordOptionPickerProp
+import com.umc.ttatta.component.Splash
+import com.umc.ttatta.model.CategoryRoutingInfo
+import com.umc.ttatta.model.ChallengeRoutingInfo
+import com.umc.ttatta.model.NavigationRoute
+import com.umc.ttatta.model.RecordEntryInfo
+import com.umc.ttatta.model.RecordRoutingInfo
+import com.umc.ttatta.model.RecordRoutingOption
 import java.io.File
 
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
     imageFile: File?,
+    remindEvent: RemindEvent?,
     onPermissionRequiredInitially: () -> Unit,
     onImagePickerCalled: () -> Unit,
     onCameraCalled: () -> Unit,
@@ -147,13 +152,15 @@ fun MainApp(
                         accessories = viewModel.equippedAccessories,
                         onCameraOptionClicked = {
                             recordEntryInfo = RecordEntryInfo(
-                                mode = RecordRoutingOption.CAMERA, challengeId = null
+                                mode = RecordRoutingOption.CAMERA,
+                                challengeId = null,
                             )
                             isCenterButtonActivated = false
                         },
                         onGalleryOptionClicked = {
                             recordEntryInfo = RecordEntryInfo(
-                                mode = RecordRoutingOption.GALLERY, challengeId = null
+                                mode = RecordRoutingOption.GALLERY,
+                                challengeId = null,
                             )
                             isCenterButtonActivated = false
                         },
@@ -186,7 +193,8 @@ fun MainApp(
 
                         LoginApp(
                             viewModel = hiltViewModel(),
-                            onNavigatingToHome = { viewModel.checkLogin() })
+                            onNavigatingToHome = { viewModel.checkLogin() },
+                        )
                     }
                 }
 
@@ -220,6 +228,7 @@ fun MainApp(
                         FootprintApp(
                             viewModel = hiltViewModel(),
                             isMapBlurApplied = isCenterButtonActivated,
+                            remindEvent = remindEvent,
                             onNavigateToCategoryApp = {
                                 categoryRoutingInfo = CategoryRoutingInfo(
                                     showTopBar = true
@@ -232,9 +241,7 @@ fun MainApp(
                 with(NavigationRoute.Challenge) {
                     setNavGraph {
                         val routingInfo = remember { challengeRoutingInfo!! }
-
                         LaunchedEffect(Unit) { showNavBar = true }
-
                         FinishHandler()
 
                         ChallengeApp(
@@ -301,7 +308,8 @@ fun MainApp(
                                         challengeId = challengeId,
                                         onSucceed = {
                                             challengeRoutingInfo = ChallengeRoutingInfo(
-                                                isPointGranted = true, isPoppedFromRecord = true
+                                                isPointGranted = true,
+                                                isPoppedFromRecord = true,
                                             )
                                         },
                                         onFailed = { /* TODO */ },
@@ -342,18 +350,5 @@ fun MainApp(
                 inclusive = false,
             )
         }
-    }
-}
-
-@Composable
-private fun FinishHandler() {
-    val context = LocalContext.current as Activity
-    var backPressedTime by remember { mutableLongStateOf(0L) }
-
-    BackHandler {
-        val currentTime = System.currentTimeMillis()
-        if (currentTime - backPressedTime < 2000L) context.finish()
-        else Toast.makeText(context, "뒤로 버튼을 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
-        backPressedTime = currentTime
     }
 }

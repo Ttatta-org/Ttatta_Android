@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.umc.core.model.CategoryInfo
 import com.umc.core.model.DiaryForCard
+import com.umc.core.model.DiaryForRemind
 import com.umc.core.repository.DiaryRepository
 import com.umc.core.repository.UserRepository
 import com.umc.design.CategoryColor
@@ -16,6 +17,7 @@ import com.umc.footprint.model.event.MapMarkerClickedEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -52,200 +54,107 @@ class FootprintViewModel @Inject constructor(
         isLocationMarkingEnabled: Boolean,
     ) {
         mapHandler.MapView(
-            isBlurApplied = isBlurApplied,
-            isLocationMarkingEnabled = isLocationMarkingEnabled
+            isBlurApplied = isBlurApplied, isLocationMarkingEnabled = isLocationMarkingEnabled,
         )
     }
 
-    fun moveMapToCurrentPosition(
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        viewModelScope.launch {
-            try {
-                dismissSelectedMarker()
-                mapHandler.moveToCurrentPosition()
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            }
+    suspend fun loadInitialData() {
+        coroutineScope {
+            launch { getAllCategoryInfoFromServer() }
+            launch { moveMapToCurrentPosition() }
+            launch { getUserNameFromServer() }
+            launch { selectShowingCategory(categoryId = null) }
         }
     }
 
-    fun moveMapToPosition(
+    suspend fun moveMapToCurrentPosition() {
+        mapHandler.dismissMarkerEvent()
+        mapHandler.moveToCurrentPosition()
+    }
+
+    suspend fun moveMapToPosition(
         latitude: Double,
         longitude: Double,
         pivot: Offset,
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
     ) {
-        viewModelScope.launch {
-            try {
-                mapHandler.moveTo(
-                    latitude = latitude,
-                    longitude = longitude,
-                    offset = pivot,
-                    animationTime = 200,
-                    onAnimationEnded = onSucceed
+        mapHandler.moveTo(
+            latitude = latitude,
+            longitude = longitude,
+            offset = pivot,
+            animationTime = 200,
+        )
+    }
+
+    suspend fun selectShowingCategory(categoryId: Long?) {
+        mapHandler.removeAllMarkers()
+        diaryRepository.getAllFootprints(categoryId = categoryId).forEach {
+            CoroutineScope(Dispatchers.IO).launch {
+                markMap(
+                    latitude = it.latitude,
+                    longitude = it.longitude,
+                    clusterId = it.clusterId,
+                    zIndex = it.diaryId.toInt(),
+                    isOverlapping = it.isClustered,
+                    color = it.color,
                 )
-            } catch (e: Exception) {
-                onFailed(e)
             }
+        }
+        selectedCategoryIdState.value = categoryId
+    }
+
+    suspend fun getDiaryFromServer(page: Int) {
+        runCatching {
+            val diary = diaryRepository.getDiaries(
+                page = page,
+                clusterId = footprintMarkerClickedEvent!!.clusterId,
+                categoryId = selectedCategoryId,
+            )
+            diaryMapState.value += (page to diary)
+        }.onFailure {
+            diaryMapState.value -= page
         }
     }
 
-    private fun dismissSelectedMarker(
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        viewModelScope.launch {
-            try {
-                mapHandler.dismissMarkerEvent()
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
+    suspend fun modifyDiary(diaryId: Long, content: String) {
+        diaryRepository.modifyDiary(diaryId = diaryId, content = content)
+        getDiaryFromServer(
+            page = diaryMap.firstNotNullOf { (page, diary) ->
+                if (diary.id == diaryId) page else null
+            },
+        )
     }
 
-    fun selectShowingCategory(
-        categoryId: Long?,
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        viewModelScope.launch {
-            try {
-                mapHandler.removeAllMarkers()
-                diaryRepository.getAllFootprints(categoryId = categoryId).forEach {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        markMap(
-                            latitude = it.latitude,
-                            longitude = it.longitude,
-                            clusterId = it.clusterId,
-                            zIndex = it.diaryId.toInt(),
-                            isOverlapping = try {
-                                diaryRepository.getDiaries(page = 1, clusterId = it.clusterId)
-                                true
-                            } catch (_: Exception) {
-                                false
-                            },
-                            color = it.color,
-                        )
-                    }
+    suspend fun deleteDiary(diaryId: Long) {
+        diaryRepository.deleteDiary(diaryId = diaryId)
+        getAllCategoryInfoFromServer()
+
+        val startPage = diaryMap.firstNotNullOf { (page, diary) ->
+            if (diary.id == diaryId) page else null
+        }
+        val endPage = diaryMap.keys.max()
+
+        (startPage..endPage).forEach { page ->
+            runCatching {
+                getDiaryFromServer(page = page)
+            }.onFailure {
+                if (page == 0) {
+                    mapHandler.dismissMarkerEvent()
+                    selectShowingCategory(categoryId = null)
                 }
-                selectedCategoryIdState.value = categoryId
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
             }
         }
     }
 
-    fun getDiaryFromServer(
-        page: Int,
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        viewModelScope.launch {
-            try {
-                val diary = diaryRepository.getDiaries(
-                    page = page,
-                    clusterId = footprintMarkerClickedEvent!!.clusterId,
-                    categoryId = selectedCategoryId,
-                )
-                diaryMapState.value += (page to diary)
-                onSucceed()
-            } catch (e: Exception) {
-                diaryMapState.value -= page
-                onFailed(e)
-            }
-        }
+    suspend fun getDiaryForRemindFromServer(id: Long): DiaryForRemind {
+        return diaryRepository.getDiaryForRemind(id = id)
     }
 
-    fun modifyDiary(
-        diaryId: Long,
-        content: String,
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        viewModelScope.launch {
-            try {
-                diaryRepository.modifyDiary(
-                    diaryId = diaryId,
-                    content = content,
-                )
-                getDiaryFromServer(
-                    page = diaryMap.firstNotNullOf { (page, diary) ->
-                        if (diary.id == diaryId) page else null
-                    },
-                    onSucceed = onSucceed,
-                    onFailed = onFailed,
-                )
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
+    private suspend fun getAllCategoryInfoFromServer() {
+        categoryListState.value = diaryRepository.getAllCategoryInfo()
     }
 
-    fun deleteDiary(
-        diaryId: Long,
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        viewModelScope.launch {
-            try {
-                diaryRepository.deleteDiary(diaryId = diaryId)
-                getAllCategoryInfoFromServer()
-
-                val startPage = diaryMap.firstNotNullOf { (page, diary) ->
-                    if (diary.id == diaryId) page else null
-                }
-                val endPage = diaryMap.keys.max()
-
-                (startPage .. endPage).forEach { page ->
-                    getDiaryFromServer(
-                        page = page,
-                        onFailed = {
-                            if (page == 0) {
-                                dismissSelectedMarker()
-                                selectShowingCategory(categoryId = null)
-                            }
-                        }
-                    )
-                }
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
-    }
-
-    fun getAllCategoryInfoFromServer(
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        viewModelScope.launch {
-            try {
-                categoryListState.value = diaryRepository.getAllCategoryInfo()
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
-    }
-
-    fun getUserNameFromServer(
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        viewModelScope.launch {
-            try {
-                userNameState.value = userRepository.getUserInfo().name
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
+    private suspend fun getUserNameFromServer() {
+        userNameState.value = userRepository.getUserInfo().name
     }
 
     private suspend fun markMap(
@@ -262,7 +171,7 @@ class FootprintViewModel @Inject constructor(
             zIndex = zIndex,
             color = color,
             isOverlapping = isOverlapping,
-            onClicked = onClicked@ { offset ->
+            onClicked = onClicked@{ offset ->
                 if (previousClickedClusterId != clusterId) {
                     mapMarkerClickedEventState.value = MapMarkerClickedEvent(
                         offset = offset,
@@ -281,7 +190,7 @@ class FootprintViewModel @Inject constructor(
                     mapMarkerClickedEventState.value = null
                     diaryMapState.value = emptyMap()
                 }
-            }
+            },
         )
 
         mapHandler.addMarker(marker)

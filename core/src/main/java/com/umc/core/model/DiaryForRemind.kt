@@ -1,13 +1,16 @@
 package com.umc.core.model
 
 import com.umc.design.CategoryColor
+import java.time.LocalDate
 
-data class Footprint(
-    val diaryId: Long,
-    val categoryId: Long,
-    val clusterId: Long,
+data class DiaryForRemind(
+    val id: Long,
     val isClustered: Boolean,
+    val date: LocalDate,
     val color: CategoryColor?,
+    val content: String,
+    val imageUrl: String,
     val latitude: Double,
     val longitude: Double,
 )
+

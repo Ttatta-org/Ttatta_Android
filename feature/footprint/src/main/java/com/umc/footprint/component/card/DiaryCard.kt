@@ -9,12 +9,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,8 +31,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.umc.design.CategoryColor
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
@@ -60,7 +65,7 @@ fun DiaryCard(prop: DiaryCardProp) {
         it.diaryModificationModeProp == null
     } != false
 
-    LaunchedEffect(key1 = prop.clusterId) {
+    LaunchedEffect(key1 = prop.key) {
         prop.onNewDiaryRequested(0)
     }
 
@@ -70,6 +75,27 @@ fun DiaryCard(prop: DiaryCardProp) {
             .height(DesignConstant.DiaryCardSizeWithShadowArea.height + diaryCardVerticalPadding * 2)
             .offset(y = -diaryCardVerticalPadding)
     ) {
+        // 일게 설명 텍스트
+        prop.description?.let {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .offset(y = -diaryCardVerticalPadding)
+            ) {
+                Text(
+                    text = it,
+                    color = colors.primary[600],
+                    fontWeight = FontWeight.W800,
+                    fontSize = 24.sp,
+                    lineHeight = 28.sp,
+                    letterSpacing = (-0.4).sp,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+
+        // 일기 카드
         HorizontalPager(
             state = pagerState,
             userScrollEnabled = isScrollEnabled,
@@ -79,9 +105,9 @@ fun DiaryCard(prop: DiaryCardProp) {
             beyondViewportPageCount = 2,
         ) { page ->
             val diary = prop.diaryCardLoadedPropMap[page]
-            val rotateAngle = cardRotationAngles[diary?.id] ?: 0f
+            val rotateAngle = cardRotationAngles[diary?.key] ?: 0f
 
-            LaunchedEffect(key1 = prop.clusterId) {
+            LaunchedEffect(key1 = prop.key) {
                 prop.onNewDiaryRequested(page + 1)
             }
 
@@ -92,7 +118,7 @@ fun DiaryCard(prop: DiaryCardProp) {
                         targetValue = if (diary.isFlipped) 180f else 0f,
                         animationSpec = tween(durationMillis = 200),
                     ) { value, _ ->
-                        cardRotationAngles[diary.id] = value
+                        cardRotationAngles[diary.key] = value
                     }
                 }
             }
@@ -219,7 +245,7 @@ fun DiaryCard(prop: DiaryCardProp) {
 }
 
 val previewDiaryCardLoadedProp = DiaryCardLoadedProp(
-    id = 1L,
+    key = 1L,
     date = LocalDate.now(),
     categoryColor = CategoryColor.RED,
     imageUrl = "",
@@ -231,7 +257,8 @@ val previewDiaryCardLoadedProp = DiaryCardLoadedProp(
 )
 
 val previewDiaryCardProp = DiaryCardProp(
-    clusterId = 1L,
+    key = 1L,
+    description = "일주일 전 이곳을 방문해,\n기록을 남겼어요",
     defaultCategoryColor = CategoryColor.BLUE,
     diaryCardLoadedPropMap = List(10) { index ->
         index to previewDiaryCardLoadedProp
@@ -250,7 +277,7 @@ fun PreviewDiaryCard() {
             val page = diaryCardLoadedPropMap.size
             val id = diaryCardLoadedPropMap.size.toLong()
             diaryCardLoadedPropMap[page] = previewDiaryCardLoadedProp.copy(
-                id = id,
+                key = id,
                 categoryColor = CategoryColor.entries.random(),
                 onCardClicked = {
                     diaryCardLoadedPropMap[page]?.let { diary ->
@@ -298,7 +325,8 @@ fun PreviewDiaryCard() {
         ) {
             DiaryCard(
                 prop = DiaryCardProp(
-                    clusterId = 1L,
+                    key = 1L,
+                    description = "일주일 전 이곳을 방문해,\n기록을 남겼어요",
                     defaultCategoryColor = CategoryColor.BLUE,
                     diaryCardLoadedPropMap = diaryCardLoadedPropMap,
                     onNewDiaryRequested = onNewDiaryRequested@{ page ->
