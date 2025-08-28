@@ -16,11 +16,11 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: '17'
-          distribution: 'temurin'
           cache: gradle
 
-      - name: Show Java version (debug)
+      - name: Show Java (debug)
         run: |
           echo "JAVA_HOME=$JAVA_HOME"
           java -version
@@ -28,5 +28,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle (force JDK 17)
-        run: ./gradlew build -Dorg.gradle.java.home="$JAVA_HOME" --no-daemon
+      # JDK 17을 강제로 지정 (전역 설정을 덮어씀)
+      - name: Gradle version with JDK17
+        env:
+          GRADLE_OPTS: -Dorg.gradle.java.home=$JAVA_HOME
+        run: ./gradlew --version --no-daemon
+
+      - name: Build with Gradle (force JDK17)
+        env:
+          GRADLE_OPTS: -Dorg.gradle.java.home=$JAVA_HOME
+        run: ./gradlew build --no-daemon
