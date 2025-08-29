@@ -251,7 +251,11 @@ fun RecordScreen(
                         modifier = Modifier
                             .onGloballyPositioned { dropdownWidth = it.size.width }
                     ) {
-                        CategoryDropdown(prop = prop)
+                        CategoryDropdown(
+                            prop = prop,
+                            selectedCategoryForDashes = selectedCategoryColor,
+                            selectedCategoryForBackground = selectedCategoryColor,
+                        )
                     }
                 }
             }

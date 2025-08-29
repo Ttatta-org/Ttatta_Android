@@ -48,18 +48,63 @@ data class CategoryDropdownItemProp(
 )
 
 private val categoryDropdownWidth = 212.dp
-private val categoryDropdownMaxHeight = 230.dp
+private val categoryDropdownMaxHeight = 212.dp
 private val categoryDropdownColor = Color(0xFFFEF6F2).copy(alpha = 0.9f)
+
+// ✅ 점선 색상 매핑
+private val categoryDashColorMap: Map<CategoryColor, Color> = mapOf(
+    CategoryColor.RED to Color(0xFFFF5252),
+    CategoryColor.ORANGE to Color(0xFFFF6A2B),
+    CategoryColor.YELLOW to Color(0xFFFFC832),
+    CategoryColor.GREEN to Color(0xFF6DD219),
+    CategoryColor.TURQUOISE to Color(0xFF51CCBD),
+    CategoryColor.BLUE to Color(0xFF2AB1F4),
+    CategoryColor.NAVY to Color(0xFF4C7AF8),
+    CategoryColor.PURPLE to Color(0xFFB767EF),
+    CategoryColor.BROWN to Color(0xFFA5643F),
+    CategoryColor.WHITE to Color(0xFF999999),
+    CategoryColor.PINK to Color(0xFFFF459C),
+    CategoryColor.BLACK to Color(0xFF606060),
+)
+
+// 기본 점선 색
+private val defaultDashColor = Color(0xFFFCAD98)
+
+// ✅ 드롭다운 배경 색상 매핑
+private val categoryBgColorMap: Map<CategoryColor, Color> = mapOf(
+    CategoryColor.RED to Color(0xE5FFC0C0),
+    CategoryColor.ORANGE to Color(0xE5FFE0D3),
+    CategoryColor.YELLOW to Color(0xE5FFF4D4),
+    CategoryColor.GREEN to Color(0xE5E3FFCC),
+    CategoryColor.TURQUOISE to Color(0xE5D6FAF6),
+    CategoryColor.BLUE to Color(0xE5D4EFFF),
+    CategoryColor.NAVY to Color(0xE5D1DDFF),
+    CategoryColor.PURPLE to Color(0xE5EFD9FF),
+    CategoryColor.BROWN to Color(0xE5EBD9CF),
+    CategoryColor.WHITE to Color(0xE5FFFFFF),
+    CategoryColor.PINK to Color(0xE5FFC5E0),
+    CategoryColor.BLACK to Color(0xE5ACACAC),
+)
+
+// 기존 기본 배경(선택값이 없을 때)
+private val defaultDropdownBgColor = Color(0xFFFEF6F2).copy(alpha = 0.9f)
 
 @Composable
 fun CategoryDropdown(
     prop: CategoryDropdownProp,
+    selectedCategoryForDashes: CategoryColor? = null,
+    selectedCategoryForBackground: CategoryColor? = selectedCategoryForDashes,
 ) {
+    // 선택값에 따라 동적으로 배경색 결정
+    val dynamicDropdownBgColor = selectedCategoryForBackground
+        ?.let { categoryBgColorMap[it] }
+        ?: defaultDropdownBgColor
+
     Column(
         modifier = Modifier
             .width(categoryDropdownWidth)
             .background(
-                color = categoryDropdownColor,
+                color = dynamicDropdownBgColor,
                 shape = RoundedCornerShape(16.dp)
             )
     ) {
@@ -98,14 +143,18 @@ fun CategoryDropdown(
                 ) {
                     val dotSize = 5f // 점선 길이
                     val spaceSize = 5f // 점선 간 간격
-                    val strokeWidth = 3f // 점선 두께
+                    val strokeWidth = 0.5f // 점선 두께
                     val startX = 0f
                     val endX = size.width
+                    val dashColor =
+                        selectedCategoryForDashes
+                            ?.let { categoryDashColorMap[it] }  // 전체 점선을 선택 카테고리 색으로 통일
+                            ?: defaultDashColor
 
                     var currentX = startX
                     while (currentX < endX) {
                         drawLine(
-                            color = Color(0xFFFCAD98), // 점선 색상
+                            color = dashColor, // 점선 색상
                             start = Offset(currentX, size.height / 2),
                             end = Offset(currentX + dotSize, size.height / 2),
                             strokeWidth = strokeWidth
@@ -156,5 +205,9 @@ val previewCategoryDropdownProp = CategoryDropdownProp(
 @Preview
 @Composable
 fun PreviewCategoryDropdown() {
-    CategoryDropdown(prop = previewCategoryDropdownProp)
+    CategoryDropdown(
+        prop = previewCategoryDropdownProp,
+        selectedCategoryForDashes = CategoryColor.NAVY,
+        selectedCategoryForBackground = CategoryColor.NAVY,
+    )
 }
