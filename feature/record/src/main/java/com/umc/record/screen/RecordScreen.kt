@@ -35,6 +35,7 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -151,6 +152,7 @@ fun RecordScreen(
                             text = date.toLocalDate().toString(),
                             textAlign = TextAlign.Center,
                             fontSize = 14.sp,
+                            fontWeight = FontWeight.ExtraBold,
                             color = Color.Primary300,
                             modifier = Modifier.padding(horizontal = 13.dp, vertical = 8.dp)
                         )
@@ -189,6 +191,7 @@ fun RecordScreen(
                             Text(
                                 text = location,
                                 fontSize = 14.sp,
+                                fontWeight = FontWeight.Black,
                                 color = Color.Primary300,
 //                                modifier = Modifier.padding(end = 4.dp),
                                 maxLines = 1,
