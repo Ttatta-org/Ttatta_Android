@@ -120,19 +120,19 @@ fun CategoryDropdown(
                             .clickable { itemProp.onClicked() }
                     ) {
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(top = 2.dp, bottom = 2.dp, start = 16.dp)
                         ) {
                             Image(
-                                painter = painterResource(id = itemProp.color?.footIconId ?: R.drawable.ic_foot_default),
+                                painter = painterResource(id = itemProp.color?.footIconId ?: R.drawable.ic_foot_default),  // TODO: 머지 후 아이콘이 바뀌지 않았다면 변경할 것
                                 contentDescription = null,
                                 contentScale = ContentScale.Fit,
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(20.dp)
                             )
                             Text(
                                 text = itemProp.name,
-                                fontSize = 12.sp,
+                                fontSize = 13.sp,
                             )
                         }
                     }
