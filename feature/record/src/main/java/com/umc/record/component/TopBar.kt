@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -84,18 +85,18 @@ fun TopBar(
         ) {
             Spacer(modifier = Modifier.height(statusBarHeight))
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(13.4.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(top = 45.dp, end = 20.dp, bottom = 5.dp)
             ) {
                 Box(
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(start = 30.dp)
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_logo),
                         contentScale = ContentScale.Fit,
                         contentDescription = null,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(34.dp)
                     )
                 }
                 Row(
@@ -109,7 +110,7 @@ fun TopBar(
                         contentAlignment = Alignment.CenterStart,
                         modifier = Modifier
                             .weight(1f)
-                            .height(32.dp)
+                            .height(34.dp)
                             .border(
                                 width = 1.dp,
                                 color = Color(0xFFFF9681),
@@ -124,15 +125,17 @@ fun TopBar(
                             value = prop.searchWord,
                             onValueChange = prop.onSearchWordChanged,
                             textStyle = TextStyle(
-                                fontSize = 12.sp,
-                                color = Color.Black
+                                fontSize = 13.sp,
+                                color = Color.Black,
+                                fontWeight = FontWeight.Medium
                             ),
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp)
                         ) { innerTextField ->
                             if (prop.searchWord.isEmpty()) Text(
                                 text = stringResource(id = R.string.search_placeholder), // 힌트 텍스트
-                                color = Color(0xFFCACACA),
-                                fontSize = 12.sp
+                                color = Color(0xFF8E8E8E),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
                             )
                             innerTextField()
                         }
