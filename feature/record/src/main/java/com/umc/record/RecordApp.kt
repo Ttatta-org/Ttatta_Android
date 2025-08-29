@@ -158,6 +158,17 @@ fun RecordApp(
                         onSucceed = { /* TODO */ },
                         onFailed = { /* TODO */ }
                     )
+                },
+                searchResults = viewModel.searchResults,  // 패널에 표시할 검색 결과 전달
+                onSelectSearchResult = { result ->  // 검색 결과 선택 시 핀 이동
+                    viewModel.selectSearchResult(
+                        result = result,
+                        onSucceed = { /* 필요 시 패널 닫기 동작은 EditLocationScreen에서 처리됨 */ },
+                        onFailed = { /* TODO */ }
+                    )
+                },
+                onClickMoreResults = {  // '더보기' 클릭 처리 (필요 시 구현)
+                    // TODO: 전체 목록 보여주기
                 }
             )
 

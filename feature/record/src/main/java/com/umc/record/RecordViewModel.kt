@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.umc.core.Geocoder
 import com.umc.core.model.CategoryInfo
+import com.umc.core.model.LocationSearchResult
 import com.umc.core.repository.DiaryRepository
 import com.umc.core.repository.UserRepository
 import com.umc.record.core.LocationHandler
@@ -41,14 +42,18 @@ class RecordViewModel @Inject constructor(
     private val categoryInfosState = mutableStateOf(listOf<CategoryInfo>())
     private val selectedCategoryState = mutableStateOf<CategoryInfo?>(null)
     private val currentPinnedLocationInfoState = mutableStateOf<CurrentPinnedLocationInfo?>(null)
+    private val searchResultsState = mutableStateOf<List<LocationSearchResult>>(emptyList())
 
     val userName get() = userNameState.value
     val categoryInfos get() = categoryInfosState.value
     val currentPinnedLocationInfo get() = currentPinnedLocationInfoState.value
     val selectedCategory get() = selectedCategoryState.value
+    val searchResults: List<LocationSearchResult> get() = searchResultsState.value
 
     private val isSavingState = mutableStateOf(false)
     val isSaving get() = isSavingState.value
+
+
 
 
     init {
@@ -191,21 +196,67 @@ class RecordViewModel @Inject constructor(
         onSucceed: () -> Unit = {},
         onFailed: (e: Exception) -> Unit = {},
     ) {
+//        viewModelScope.launch {
+//            try {
+//                val location = geocoder.searchLocationByKeyword(searchWord).first()
+//                mapHandler.movePin(location.latitude, location.longitude)
+//                onSucceed()
+//            } catch (e: Exception) {
+//                try {
+//                    val (lat, lng) = geocoder.convertAddressToCoordinate(searchWord)
+//                    mapHandler.movePin(lat, lng)
+//                    onSucceed()
+//                } catch (e: Exception) {
+//                    onFailed(e)
+//                }
+//            }
+//        }
         viewModelScope.launch {
             try {
-                val location = geocoder.searchLocationByKeyword(searchWord).first()
-                mapHandler.movePin(location.latitude, location.longitude)
+                val list = geocoder.searchLocationByKeyword(searchWord)
+                if (list.isNotEmpty()) {
+                    searchResultsState.value = list
+                    onSucceed()
+                    return@launch
+                }
+
+                // 키워드 검색이 비었으면 주소 해석으로 단일 결과 구성 시도
+                val (lat, lng) = geocoder.convertAddressToCoordinate(searchWord)
+                searchResultsState.value = listOf(
+                    LocationSearchResult(
+                        title = searchWord,
+                        description = searchWord,
+                        category = "주소",
+                        address = searchWord,
+                        latitude = lat,
+                        longitude = lng
+                    )
+                )
                 onSucceed()
             } catch (e: Exception) {
-                try {
-                    val (lat, lng) = geocoder.convertAddressToCoordinate(searchWord)
-                    mapHandler.movePin(lat, lng)
-                    onSucceed()
-                } catch (e: Exception) {
-                    onFailed(e)
-                }
+                onFailed(e)
             }
         }
+    }
+
+    fun clearSearchResults() {
+        searchResultsState.value = emptyList()
+    }
+
+    // 검색 결과에서 하나를 선택했을 때 핀 이동
+    fun selectSearchResult(
+        result: LocationSearchResult,
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
+    ) {
+        movePin(
+            latitude = result.latitude,
+            longitude = result.longitude,
+            onSucceed = {
+                onSucceed()
+            },
+            onFailed = onFailed
+        )
     }
 
     fun movePin(

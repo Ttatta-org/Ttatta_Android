@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -31,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
@@ -58,6 +58,10 @@ data class TopBarProp(
     val onSearchWordChanged: (String) -> Unit,
     val onHeightChanged: (Dp) -> Unit,
     val onSearchButtonClicked: () -> Unit,
+    val isSearchMode: Boolean,
+    val searchPanelHeight: Dp,
+    val onSearchModeChanged: (Boolean) -> Unit = {},
+    val panelContent: @Composable () -> Unit = {},
 )
 
 private const val topBarResourceWidthRatio = 390f
@@ -75,19 +79,19 @@ fun TopBar(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .onGloballyPositioned { with(density) { prop.onHeightChanged(it.size.height.toDp()) } }
             .onGloballyPositioned { with(density) { screenWidth = it.size.width.toDp() } }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(color = Color.White.copy(alpha = 0.7f))
-                .onGloballyPositioned { with(density) { prop.onHeightChanged(it.size.height.toDp()) } }
         ) {
             Spacer(modifier = Modifier.height(statusBarHeight))
             Row(
                 horizontalArrangement = Arrangement.spacedBy(13.4.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 45.dp, end = 20.dp, bottom = 5.dp)
+                modifier = Modifier.padding(top = 38.dp, end = 20.dp, bottom = 5.dp)
             ) {
                 Box(
                     modifier = Modifier.padding(start = 30.dp)
@@ -123,13 +127,18 @@ fun TopBar(
                     ) {
                         BasicTextField(
                             value = prop.searchWord,
-                            onValueChange = prop.onSearchWordChanged,
+                            onValueChange = {
+                                prop.onSearchWordChanged(it)
+                                if (!prop.isSearchMode) prop.onSearchModeChanged(true)
+                            },
                             textStyle = TextStyle(
                                 fontSize = 13.sp,
                                 color = Color.Black,
                                 fontWeight = FontWeight.Medium
                             ),
-                            modifier = Modifier.padding(horizontal = 15.dp, vertical = 5.dp)
+                            modifier = Modifier
+                                .padding(start = 15.dp, end = 32.dp, top = 5.dp, bottom = 5.dp)
+                                .onFocusChanged { prop.onSearchModeChanged(it.isFocused) }
                         ) { innerTextField ->
                             if (prop.searchWord.isEmpty()) Text(
                                 text = stringResource(id = R.string.search_placeholder), // 힌트 텍스트
@@ -138,6 +147,26 @@ fun TopBar(
                                 fontWeight = FontWeight.Medium
                             )
                             innerTextField()
+                        }
+
+
+                        // 삭제 아이콘 (텍스트가 있을 때만 표시)
+                        if (prop.searchWord.isNotEmpty()) {
+                            IconButton(
+                                onClick = {
+                                    prop.onSearchWordChanged("")
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .size(24.dp)
+                                    .padding(end = 11.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_delete),
+                                    contentDescription = "Clear",
+                                    tint = Color.Unspecified
+                                )
+                            }
                         }
                     }
                     IconButton(
@@ -150,6 +179,18 @@ fun TopBar(
                             tint = Color.Unspecified,
                         )
                     }
+                }
+            }
+
+            // 확장 영역 (= 검색 결과 들어갈 빈 영역)
+            if (prop.searchPanelHeight > 0.dp) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(prop.searchPanelHeight)
+                        .padding(horizontal = 24.dp) // 디자인 여백(원하면 조절)
+                ) {
+                    prop.panelContent()  // 여기서 결과를 렌더
                 }
             }
         }
@@ -187,7 +228,10 @@ val previewTopBarProp = TopBarProp(
     searchWord = "",
     onHeightChanged = {},
     onSearchWordChanged = {},
-    onSearchButtonClicked = {}
+    onSearchButtonClicked = {},
+    isSearchMode = true,
+    searchPanelHeight = 185.dp, // 프리뷰에서 펼친 상태 확인
+    onSearchModeChanged = {}
 )
 
 @Preview
