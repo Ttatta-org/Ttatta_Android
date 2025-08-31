@@ -306,15 +306,15 @@ fun HomeScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(
-                        modifier = Modifier.size(42.dp, 14.dp),
+                        modifier = Modifier.size(50.dp, 16.dp),
                         onClick = { onCalendarToggle() }
                     ) {
                         Image(
                             painter = painterResource(id = dragIcon), // 드래그 아이콘 변경
                             contentDescription = null,
                             modifier = Modifier
-                                .width(42.dp)
-                                .height(13.5.dp)
+                                .width(50.dp)
+                                .height(16.dp)
                         )
                     }
                 }
@@ -648,10 +648,10 @@ fun DiaryCard(
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 25.dp)
             .shadow(
-                elevation = 4.dp, // 그림자의 높이 조정
+                elevation = 2.dp, // 그림자의 높이 조정
                 shape = RoundedCornerShape(28.dp), // 카드의 모서리 둥글기
-                spotColor = Color(0xDE806E38),
-                ambientColor = Color(0xDE806E38),
+                spotColor = Color(0xFFDE806E),
+                ambientColor = Color(0xFFDE806E),
                 clip = true // 모서리가 잘리도록 설정
             ),
         shape = RoundedCornerShape(28.dp),
@@ -684,9 +684,9 @@ fun DiaryCard(
                     Text(
                         text = diary.date.formatToKorean(), // 날짜 텍스트
                         style = TextStyle(
-                            color = Color(0xFFFF9681), // 텍스트 색상
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.W400,
+                            color = Color(0xFFFF9888), // 텍스트 색상
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.W700,
                             fontFamily = FontFamily.Default,
                             letterSpacing = -0.4.sp,
                             lineHeight = 20.sp
@@ -694,29 +694,8 @@ fun DiaryCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 구분선
-                Divider(
-                    color = Color(0xFFFF9681),
-                    thickness = 0.5.dp,
-                    modifier = Modifier
-                        .padding(start = 40.dp, end = 40.dp)
-                )
-
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 상단 이미지
-//                Image(
-//                    painter = painterResource(id = diary.imageUrl),
-//                    contentDescription = "Diary Image",
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(280.dp) // 이미지 높이 설정
-//                        .width(280.dp)
-//                        .clip(RoundedCornerShape(18.dp)),
-//                    contentScale = ContentScale.Crop // 이미지 크롭 설정
-//                )
                 AsyncImage(
                     model = diary.imageUrl,
                     contentDescription = "Diary Image",
@@ -726,54 +705,53 @@ fun DiaryCard(
                         //.height(280.dp)
                         .clip(RoundedCornerShape(15.dp)),
                     contentScale = ContentScale.Crop,
-                    // 필요 시 placeholder나 error 설정도 할 수 있음
+
                     error = painterResource(id = R.drawable.if_image_error)
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-                // 위치 텍스트 (지금 viewmodel 잘못돼서 위치가 안보이는데 dto에 맞게 바꿔야함)
                 Row(
                     modifier = Modifier
                         .wrapContentWidth()
                         .background(Color(0xFFFEF6F2), RoundedCornerShape(15.dp)) // 배경색 및 모양 설정
-                        .padding(horizontal = 11.dp),
+                        .padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_location), // 위치 아이콘 리소스 사용
                         contentDescription = "위치 아이콘",
                         modifier = Modifier
-                            .width(7.6.dp)
-                            .height(9.98.dp),
+                            .width(9.4.dp)
+                            .height(12.dp),
                     )
 
-                    Spacer(modifier = Modifier.width(5.4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
 
                     Text(
                         text = diary.locationName, // locationName 위치 가져오기
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color(0xFFFF9681), // 텍스트 색상
-                            fontSize = 10.sp
+                            color = Color(0xFFFF9888), // 텍스트 색상
+                            fontSize = 12.sp
                         )
                     )
                 }
 
-                Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 // 내용 텍스트
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(15.dp))
-                        .padding(vertical = 10.dp, horizontal = 12.dp)
+                        .background(Color(0xFFFFEFE4).copy(alpha = 0.5f), RoundedCornerShape(18.dp))
+                        .padding(14.dp)
                 ) {
                     Text(
                         text = diary.content,
                         style = TextStyle(
                             color = Color(0xFF4B4B4B), // 텍스트 색상
-                            fontSize = 12.sp,
-                            lineHeight = 16.sp,
+                            fontSize = 13.sp,
+                            lineHeight = 17.sp,
                             fontWeight = FontWeight.W400,
                             fontFamily = FontFamily.Default,
                             letterSpacing = -0.4.sp
