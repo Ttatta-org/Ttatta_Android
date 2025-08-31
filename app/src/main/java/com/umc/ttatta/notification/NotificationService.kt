@@ -1,15 +1,20 @@
 package com.umc.ttatta.notification
 
+import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.umc.core.notification.Notification
-import com.umc.core.notification.NotificationHandler
 import com.umc.core.repository.SettingRepository
 import com.umc.core.repository.UserRepository
-import com.umc.ttatta.MainActivity
+import com.umc.data.R
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,32 +30,27 @@ class NotificationService : FirebaseMessagingService() {
     @Inject
     lateinit var userRepository: UserRepository
 
-    @Inject
-    lateinit var notificationHandler: NotificationHandler
+    private val notificationManager
+        get() = this.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-    enum class NotificationType(
-        val rawValue: String,
-        val requestCode: Int,
-    ) {
-        MEMORY_LOCATION(
-            rawValue = "MEMORY_LOCATION",
-            requestCode = 50,
-        ),
-        DAILY_SUMMARY(
-            rawValue = "DAILY_SUMMARY",
-            requestCode = 60,
-        ),
-        CHALLENGE_REMINDER(
-            rawValue = "CHALLENGE_REMINDER",
-            requestCode = 70,
-        ),
-        DIARY_REMINDER(
-            rawValue = "DIARY_REMINDER",
-            requestCode = 80,
-        );
-    }
+    private val notificationMangerCompat
+        get() = NotificationManagerCompat.from(this)
+
+    private val hasNotificationPermission: Boolean
+        get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || ContextCompat.checkSelfPermission(
+            this, Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        Log.d("NotificationService", "Message received: $remoteMessage")
+
+        // 알림 권한 검사
+        if (!hasNotificationPermission) {
+            Log.d("NotificationService", "Has no notification permission.")
+            return
+        }
+
+        // 일림의 타입 검사
         val type = remoteMessage.data["type"]?.let { raw ->
             NotificationType.entries.find { it.rawValue == raw }
         } ?: run {
@@ -58,31 +58,43 @@ class NotificationService : FirebaseMessagingService() {
             return
         }
 
-        val notification: Notification = when (type) {
-            NotificationType.MEMORY_LOCATION -> {
-                TODO()
+        // 알림 채널이 없으면 새로 생성
+        if (notificationManager.notificationChannels.find { it.id == type.channelId } == null) {
+            val channel = NotificationChannel(
+                type.channelId,
+                type.channelTitle,
+                type.channelImportance,
+            ).apply {
+                this.description = type.channelDescription
             }
 
-            NotificationType.DIARY_REMINDER -> {
-                Notification(
-                    title = remoteMessage.notification?.title ?: "일기 작성",
-                    message = remoteMessage.notification?.tag ?: "따따와 함께 오늘의 일기를 작성해보세요!",
-                    type = Notification.NotificationType.DiaryWritingReminder,
-                    pendingIntent = getActivityPendingIntent(type)
-                )
-            }
-
-            NotificationType.CHALLENGE_REMINDER -> {
-                TODO()
-            }
-
-            NotificationType.DAILY_SUMMARY -> {
-                TODO()
-            }
+            notificationManager.createNotificationChannel(channel)
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
-            notificationHandler.sendNotification(notification)
+        // 알림 타입에 따라 PendingIntent 생성
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            type.requestCode,
+            type.getIntent(this, remoteMessage),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        // 알림 빌더 설정
+        val builder = NotificationCompat.Builder(this, type.channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(remoteMessage.notification?.title ?: "")
+            .setContentText(remoteMessage.notification?.body ?: "")
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+
+        // 알림 표시
+        with(notificationMangerCompat) {
+            try {
+                notify(System.currentTimeMillis().toInt(), builder.build())
+            } catch (e: SecurityException) {
+                Log.e("NotificationService", "Failed to send notification: ${e.message}")
+            }
         }
     }
 
@@ -94,6 +106,7 @@ class NotificationService : FirebaseMessagingService() {
             repeat(5) { index ->
                 try {
                     settingRepository.sendFcmToken(token)
+                    return@repeat
                 } catch (e: Exception) {
                     Log.e(
                         "NotificationService",
@@ -103,21 +116,5 @@ class NotificationService : FirebaseMessagingService() {
                 }
             }
         }
-    }
-
-    private fun getActivityPendingIntent(type: NotificationType): PendingIntent {
-        return Intent(
-            this,
-            MainActivity::class.java,
-        ).getActivityPendingIntent(type)
-    }
-
-    private fun Intent.getActivityPendingIntent(type: NotificationType): PendingIntent {
-        return PendingIntent.getActivity(
-            applicationContext,
-            type.requestCode,
-            this,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-        )
     }
 }

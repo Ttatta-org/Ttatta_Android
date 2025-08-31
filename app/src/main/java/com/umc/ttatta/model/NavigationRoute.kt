@@ -19,6 +19,7 @@ sealed class NavigationRoute(
     }
 
     data object Splash : NavigationRoute("splash")
+    data object Lock : NavigationRoute("lock")
     data object Login : NavigationRoute("login")
     data object Home : NavigationRoute("home")
     data object Footprint : NavigationRoute("footprint")

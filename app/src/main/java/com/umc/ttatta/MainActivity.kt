@@ -1,5 +1,6 @@
 package com.umc.ttatta
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -13,6 +14,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.umc.footprint.model.event.RemindEvent
+import com.umc.ttatta.intent.IntentManager
 import com.umc.ttatta.util.createImageUri
 import com.umc.ttatta.util.isCameraPermissionGranted
 import com.umc.ttatta.util.isLocationPermissionGranted
@@ -53,11 +55,12 @@ class MainActivity : ComponentActivity() {
                 remindEvent = remindEvent,
                 onPermissionRequiredInitially = {
                     if (!isLocationPermissionGranted) locationPermissionRequester.launch(
-                        android.Manifest.permission.ACCESS_FINE_LOCATION
+                        Manifest.permission.ACCESS_FINE_LOCATION
                     )
                 },
                 onImagePickerCalled = {
-                    val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    val intent =
+                        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                     imageFileState.value = null
                     imagePickerLauncher.launch(intent)
                 },
@@ -67,13 +70,13 @@ class MainActivity : ComponentActivity() {
                         imageFileState.value = null
                         cameraLauncher.launch(uri)
                     } else cameraPermissionRequester.launch(
-                        android.Manifest.permission.CAMERA
+                        Manifest.permission.CAMERA
                     )
                 },
             )
         }
 
-        resolveIntent(intent = intent)
+        resolveIntent()
     }
 
     private fun setLaunchers() {
@@ -110,7 +113,7 @@ class MainActivity : ComponentActivity() {
         ) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 if (!isMediaPermissionGranted) mediaPermissionRequester.launch(
-                    android.Manifest.permission.ACCESS_MEDIA_LOCATION
+                    Manifest.permission.ACCESS_MEDIA_LOCATION
                 )
             }
         }
@@ -122,7 +125,29 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun resolveIntent(intent: Intent) {
-        // TODO: 여기에 알림 인텐트 처리 로직 추가
+    private fun resolveIntent() {
+        val intentType = IntentManager.getIntentType(intent) ?: return
+
+        when (intentType) {
+            is IntentManager.IntentType.DiaryWritingReminder -> {
+                // TODO
+            }
+
+            is IntentManager.IntentType.ChallengeReminder -> {
+                // TODO
+            }
+
+            is IntentManager.IntentType.DailySummary -> {
+                // TODO
+            }
+
+            is IntentManager.IntentType.LocationMemory -> {
+                remindEventState.value = RemindEvent(
+                    diaryId = intentType.diaryId,
+                    description = "오래전에 이곳을 방문했어요!",
+                    onDismissed = { remindEventState.value = null }
+                )
+            }
+        }
     }
 }
