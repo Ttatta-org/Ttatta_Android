@@ -1,0 +1,40 @@
+name: Android CI
+
+on:
+  push:
+    branches: [ "release" ]
+  pull_request:
+    branches: [ "release" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Show Java (debug)
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME"
+          java -version
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # JDK 17을 강제로 지정 (전역 설정을 덮어씀)
+      - name: Gradle version with JDK17
+        env:
+          GRADLE_OPTS: -Dorg.gradle.java.home=$JAVA_HOME
+        run: ./gradlew --version --no-daemon
+
+      - name: Build with Gradle (force JDK17)
+        env:
+          GRADLE_OPTS: -Dorg.gradle.java.home=$JAVA_HOME
+        run: ./gradlew build --no-daemon
