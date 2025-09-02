@@ -51,17 +51,17 @@ fun EditLocationScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .padding(16.dp),
+                    .padding(17.dp),
             ) {
                 IconButton(
                     onClick = onLocationButtonClicked,
-                    modifier = Modifier.size(72.dp)
+                    modifier = Modifier.size(60.dp)
                 ) {
                     ShadowedIcon(
                         id = R.drawable.btn_location,
                         contentDescription = null,
-                        width = 72.dp,
-                        height = 72.dp,
+                        width = 59.04.dp,
+                        height = 55.dp,
                     )
                 }
             }

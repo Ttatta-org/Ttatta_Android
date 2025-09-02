@@ -53,7 +53,7 @@ data class DiaryBottomSheetProp(
     val isButtonEnabled: Boolean
 )
 
-private val bottomSheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+private val bottomSheetShape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
 
 @Composable
 fun DiaryBottomSheet(
@@ -93,7 +93,7 @@ fun DiaryBottomSheet(
             Text(
                 text = prop.userName + stringResource(id = R.string.record_here),
                 fontSize = 15.sp,
-                color = Color(0xFFFF9681),
+                color = Color(0xFFFF8072),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(8.dp)
             )

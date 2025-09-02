@@ -51,7 +51,7 @@ data class LocationBottomSheetProp(
     val onConfirm: (confirmedLocationName: String) -> Unit
 )
 
-private val bottomSheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+private val bottomSheetShape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
 
 @Composable
 fun LocationBottomSheet(
@@ -101,7 +101,7 @@ fun LocationBottomSheet(
                             + (if (prop.location.hasFinalConsonant()) "으로 " else "로 ")
                             + stringResource(id = R.string.modify_location),
                     style = TextStyle(
-                        fontSize = 16.sp,
+                        fontSize = 15.sp,
                         color = Color(0xFFFF9681),
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
