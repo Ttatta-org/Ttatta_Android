@@ -132,7 +132,21 @@ class DiaryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getDiaryForRemind(id: Long): DiaryForRemind {
-        TODO("Not yet implemented")
+        // FIXME: 실제 ID 값으로 일기를 조회할 것
+        val footprints = getAllFootprints()
+        val footprint = footprints.first()
+        val diary = getDiaries(page = 0, clusterId = footprint.clusterId, categoryId = footprint.categoryId)
+
+        return DiaryForRemind(
+            id = diary.id,
+            isClustered = footprint.isClustered,
+            date = diary.date,
+            color = diary.color,
+            content = diary.content,
+            imageUrl = diary.imageUrl,
+            latitude = footprint.latitude,
+            longitude = footprint.longitude,
+        )
     }
 
     override suspend fun getAllRecordedDates(): List<LocalDate> {

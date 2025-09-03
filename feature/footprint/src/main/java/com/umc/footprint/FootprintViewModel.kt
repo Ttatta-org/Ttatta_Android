@@ -15,6 +15,7 @@ import com.umc.footprint.core.MapHandler
 import com.umc.footprint.core.MapMarker
 import com.umc.footprint.model.event.MapMarkerClickedEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -54,16 +55,15 @@ class FootprintViewModel @Inject constructor(
         isLocationMarkingEnabled: Boolean,
     ) {
         mapHandler.MapView(
-            isBlurApplied = isBlurApplied, isLocationMarkingEnabled = isLocationMarkingEnabled,
+            isBlurApplied = isBlurApplied,
+            isLocationMarkingEnabled = isLocationMarkingEnabled,
         )
     }
 
     suspend fun loadInitialData() {
         coroutineScope {
             launch { getAllCategoryInfoFromServer() }
-            launch { moveMapToCurrentPosition() }
             launch { getUserNameFromServer() }
-            launch { selectShowingCategory(categoryId = null) }
         }
     }
 
@@ -88,16 +88,14 @@ class FootprintViewModel @Inject constructor(
     suspend fun selectShowingCategory(categoryId: Long?) {
         mapHandler.removeAllMarkers()
         diaryRepository.getAllFootprints(categoryId = categoryId).forEach {
-            CoroutineScope(Dispatchers.IO).launch {
-                markMap(
-                    latitude = it.latitude,
-                    longitude = it.longitude,
-                    clusterId = it.clusterId,
-                    zIndex = it.diaryId.toInt(),
-                    isOverlapping = it.isClustered,
-                    color = it.color,
-                )
-            }
+            markMap(
+                latitude = it.latitude,
+                longitude = it.longitude,
+                clusterId = it.clusterId,
+                zIndex = it.diaryId.toInt(),
+                isOverlapping = it.isClustered,
+                color = it.color,
+            )
         }
         selectedCategoryIdState.value = categoryId
     }
