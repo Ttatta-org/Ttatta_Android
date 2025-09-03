@@ -13,8 +13,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import com.umc.footprint.model.event.RemindEvent
+import androidx.compose.runtime.remember
 import com.umc.ttatta.intent.IntentManager
+import com.umc.ttatta.intent.IntentType
+import com.umc.ttatta.model.event.IntentEvent
 import com.umc.ttatta.util.createImageUri
 import com.umc.ttatta.util.isCameraPermissionGranted
 import com.umc.ttatta.util.isLocationPermissionGranted
@@ -38,7 +40,7 @@ class MainActivity : ComponentActivity() {
 
     private var imageUri: Uri? = null
     private val imageFileState = MutableStateFlow<File?>(null)
-    private val remindEventState = MutableStateFlow<RemindEvent?>(null)
+    private val intentTypeState = MutableStateFlow<IntentType?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,12 +49,19 @@ class MainActivity : ComponentActivity() {
         setStatusBarTransparent()
         setContent {
             val imageFile by imageFileState.collectAsState()
-            val remindEvent by remindEventState.collectAsState()
+            val intentType by intentTypeState.collectAsState()
 
             MainApp(
                 viewModel = viewModel,
                 imageFile = imageFile,
-                remindEvent = remindEvent,
+                intentEvent = remember(intentType) {
+                    intentType?.let { intentType ->
+                        IntentEvent(
+                            intentType = intentType,
+                            onDismissed = { intentTypeState.value = null }
+                        )
+                    }
+                },
                 onPermissionRequiredInitially = {
                     if (!isLocationPermissionGranted) locationPermissionRequester.launch(
                         Manifest.permission.ACCESS_FINE_LOCATION
@@ -127,27 +136,6 @@ class MainActivity : ComponentActivity() {
 
     private fun resolveIntent() {
         val intentType = IntentManager.getIntentType(intent) ?: return
-
-        when (intentType) {
-            is IntentManager.IntentType.DiaryWritingReminder -> {
-                // TODO
-            }
-
-            is IntentManager.IntentType.ChallengeReminder -> {
-                // TODO
-            }
-
-            is IntentManager.IntentType.DailySummary -> {
-                // TODO
-            }
-
-            is IntentManager.IntentType.LocationMemory -> {
-                remindEventState.value = RemindEvent(
-                    diaryId = intentType.diaryId,
-                    description = "오래전에 이곳을 방문했어요!",
-                    onDismissed = { remindEventState.value = null }
-                )
-            }
-        }
+        this.intentTypeState.value = intentType
     }
 }
