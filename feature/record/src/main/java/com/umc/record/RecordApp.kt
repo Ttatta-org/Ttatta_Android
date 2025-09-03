@@ -133,7 +133,11 @@ fun RecordApp(
                 },
                 topBarProp = EditLocationScreenTopBarProp(
                     searchWord = searchWord,
-                    onSearchWordChanged = { searchWord = it },
+                    onSearchWordChanged = { new ->
+                        searchWord = new
+                        // 타이핑할 때마다 ViewModel 쪽 실시간 검색 트리거
+                        viewModel.onSearchWordChangedRealtime(new)
+                    },
                     onSearchButtonClicked = {
                         viewModel.searchLocation(
                             searchWord = searchWord,

@@ -12,6 +12,9 @@ import com.umc.core.repository.UserRepository
 import com.umc.record.core.LocationHandler
 import com.umc.record.core.MapHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.io.File
 import java.time.LocalDateTime
@@ -49,11 +52,16 @@ class RecordViewModel @Inject constructor(
     val currentPinnedLocationInfo get() = currentPinnedLocationInfoState.value
     val selectedCategory get() = selectedCategoryState.value
     val searchResults: List<LocationSearchResult> get() = searchResultsState.value
+    private val searchQueryFlow = MutableStateFlow("")
 
     private val isSavingState = mutableStateOf(false)
     val isSaving get() = isSavingState.value
 
-
+    fun onSearchWordChangedRealtime(query: String) {
+        if (searchQueryFlow.value != query) {
+            searchQueryFlow.value = query
+        }
+    }
 
 
     init {
@@ -64,6 +72,19 @@ class RecordViewModel @Inject constructor(
                 selectedCategoryState.value = categoryInfosState.value.find { it.name == "일상" }
             }
         )
+
+        viewModelScope.launch {
+            searchQueryFlow
+//                .debounce(350)                // 타이핑 멈춘 뒤 350ms 후 검색
+                .collectLatest { q ->
+                    val trimmed = q.trim()
+                    if (trimmed.isEmpty()) {
+                        clearSearchResults()
+                    } else {
+                        searchLocation(trimmed)   // 기존 함수 그대로 사용
+                    }
+                }
+        }
     }
 
     private fun getUserName(
