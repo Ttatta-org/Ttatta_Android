@@ -2,13 +2,27 @@ package com.umc.record.screen
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,9 +30,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
 import com.umc.core.model.LocationSearchResult
+import com.umc.design.Secondary100
 import com.umc.record.R
 import com.umc.record.component.LocationBottomSheet
 import com.umc.record.component.LocationBottomSheetProp
@@ -46,8 +70,9 @@ fun EditLocationScreen(
 ) {
     var topBarHeight by remember { mutableStateOf(0.dp) }
     var isSearchMode by remember { mutableStateOf(false) }
+    var isExpanded by remember { mutableStateOf(false) }
 
-    // 결과 개수 기반 패널 높이 계산
+        // 결과 개수 기반 패널 높이 계산
     // LazyColumn의 상하 contentPadding 합 16.dp,
     // '더보기' 버튼이 있을 때 32.dp 정도로 가정
     val visibleCount = remember(searchResults) { minOf(searchResults.size, 3) }
@@ -73,7 +98,18 @@ fun EditLocationScreen(
 //    val calculatedPanel = (itemsHeight + spacingHeight + contentPadding + moreBtnHeight + safetyBuffer)
 //        .coerceAtLeast(0.dp)
 
-    val panelTarget = if (isSearchMode) calculatedPanel else 0.dp
+    val density = LocalDensity.current
+    val expandedPanel = with(density) {
+        // 화면 전체 높이 - TopBar 높이 - 여유
+        val screenH = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
+        (screenH - topBarHeight - 16.dp).coerceAtLeast(calculatedPanel)
+    }
+
+    val panelTarget = when {
+        !isSearchMode -> 0.dp
+        isExpanded    -> 0.dp  // 펼침
+        else          -> calculatedPanel  // 접힘
+    }
     val searchPanelHeight by animateDpAsState(
         targetValue = panelTarget,
         animationSpec = tween(240),
@@ -115,26 +151,223 @@ fun EditLocationScreen(
                 searchWord = topBarProp.searchWord,
                 onSearchWordChanged = {
                     topBarProp.onSearchWordChanged(it)
-                    if (!isSearchMode) isSearchMode = true
+                    if (!isSearchMode) {
+                        isSearchMode = true
+                        isExpanded = false  // 새 검색 시작 시 항상 접힘으로
+                    }
                 },
-                onSearchButtonClicked = topBarProp.onSearchButtonClicked,
+                onSearchButtonClicked = {
+                    isSearchMode = true
+                    isExpanded = false  // 검색 버튼 눌러도 접힘으로
+                    topBarProp.onSearchButtonClicked()
+                },
                 onHeightChanged = { topBarHeight = it },
                 isSearchMode = isSearchMode,
                 searchPanelHeight = searchPanelHeight,
-                onSearchModeChanged = { isSearchMode = it },
+                onSearchModeChanged = { opened ->
+                    isSearchMode = opened
+                    if (!opened) isExpanded = false  // 닫힐 때 상태 초기화
+                },
+//                panelContent = {
+//                    LocationSearchResults(
+//                        results = searchResults,
+//                        keyword = topBarProp.searchWord,
+//                        onSelect = { result ->
+//                            onSelectSearchResult(result)
+//                            isSearchMode = false  // 선택 시 패널 접기
+//                            isExpanded = false
+//                        },
+//                        onClickMore = {
+//                            isExpanded = true  // 더보기 → 펼침
+//                            onClickMoreResults()
+//                        },
+//                        showAll = isExpanded,  // 접힘/펼침에 따라 노출 개수
+//                        scrollEnabled = isExpanded
+//                    )
+//                }
                 panelContent = {
-                    LocationSearchResults(
-                        results = searchResults,
-                        keyword = topBarProp.searchWord,
-                        onSelect = { result ->
-                            onSelectSearchResult(result)
-                            isSearchMode = false  // 선택 시 패널 접기
-                        },
-                        onClickMore = onClickMoreResults
-                    )
+                    if (!isExpanded && isSearchMode && searchPanelHeight > 0.dp) {
+                        CollapsedResultsPanel(
+                            results = searchResults,
+                            keyword = topBarProp.searchWord,
+                            onSelect = { result ->
+                                onSelectSearchResult(result)
+                                isSearchMode = false
+                                isExpanded = false
+                            },
+                            onClickMore = {
+                                isExpanded = true      // 여기서 확장 화면으로 전환
+                                onClickMoreResults()
+                            },
+                            panelHeight = calculatedPanel
+                        )
+                    }
                 }
+
             )
         )
+
+        // 확장 화면: 완전히 별도 렌더(흰 배경 + 스크롤)
+        if (isExpanded) {
+            ExpandedResultsScreen(
+                results = searchResults,
+                keyword = topBarProp.searchWord,
+                onSelect = { result ->
+                    onSelectSearchResult(result)
+                    isExpanded = false
+                    isSearchMode = false
+                },
+                onBack = {
+                    // 뒤로/닫기 -> 접힘 상태로 복귀(검색 패널 다시 보이게)
+                    isExpanded = false
+                    isSearchMode = true
+                },
+                onClearKeyword = { topBarProp.onSearchWordChanged("") },
+                onClickSearch = topBarProp.onSearchButtonClicked
+            )
+        }
+
+    }
+}
+
+// 더보기 전: TopBar 안에 들어가는 작은 패널
+@Composable
+private fun CollapsedResultsPanel(
+    results: List<LocationSearchResult>,
+    keyword: String,
+    onSelect: (LocationSearchResult) -> Unit,
+    onClickMore: () -> Unit,
+    panelHeight: Dp
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(panelHeight)          // 3개 + 더보기 높이 기준
+            .padding(horizontal = 24.dp)
+    ) {
+        LocationSearchResults(
+            results = results,
+            keyword = keyword,
+            onSelect = onSelect,
+            onClickMore = onClickMore,
+            showAll = false,              // 3개만
+            scrollEnabled = false         // 스크롤 금지
+        )
+    }
+}
+
+// 더보기 후: 전용 풀스크린 결과 화면(흰 배경 + 스크롤 가능)
+@Composable
+private fun ExpandedResultsScreen(
+    results: List<LocationSearchResult>,
+    keyword: String,
+    onSelect: (LocationSearchResult) -> Unit,
+    onBack: () -> Unit,
+    onClearKeyword: () -> Unit,
+    onClickSearch: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFFFFFF))
+    ) {
+        // 상단 바(뒤로)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(start = 20.dp, end = 22.dp, top = 39.dp, bottom = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(22.dp)
+        ) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.size(24.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_back),
+                    contentDescription = "Back",
+                    tint = Color.Unspecified
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    contentAlignment = Alignment.CenterStart,
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(34.dp)
+                        .border(
+                            width = 1.dp,
+                            color = Color(0xFFFF9681),
+                            shape = RoundedCornerShape(percent = 50)
+                        )
+                        .background(
+                            color = Color.Secondary100,
+                            shape = RoundedCornerShape(percent = 50)
+                        )
+                ) {
+                    // keyword 표시
+                    Text(
+                        text = if (keyword.isEmpty())
+                            stringResource(id = R.string.search_placeholder)
+                        else keyword,
+                        fontSize = 13.sp,
+                        color = if (keyword.isEmpty()) Color(0xFF8E8E8E) else Color.Black,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(start = 15.dp, end = 32.dp)
+                    )
+
+                    // 삭제 버튼
+                    if (keyword.isNotEmpty()) {
+                        IconButton(
+                            onClick = onClearKeyword,
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .size(24.dp)
+                                .padding(end = 11.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_delete),
+                                contentDescription = "Clear",
+                                tint = Color.Unspecified
+                            )
+                        }
+                    }
+                }
+
+                IconButton(
+                    onClick = onClickSearch,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_search),
+                        contentDescription = "Search",
+                        tint = Color.Unspecified,
+                    )
+                }
+            }
+        }
+
+        // 전체 리스트 (좌우 24dp 패딩)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 24.dp, end = 24.dp)
+        ) {
+            LocationSearchResults(
+                results = results,
+                keyword = keyword,
+                onSelect = onSelect,
+                onClickMore = {},     // 확장 화면에서는 더보기 없음
+                showAll = true,       // 전체
+                scrollEnabled = true  // 스크롤 허용
+            )
+        }
     }
 }
 

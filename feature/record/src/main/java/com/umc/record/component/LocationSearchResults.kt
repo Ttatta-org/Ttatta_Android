@@ -24,8 +24,12 @@ fun LocationSearchResults(
     results: List<LocationSearchResult>,
     keyword: String,
     onSelect: (LocationSearchResult) -> Unit,
-    onClickMore: () -> Unit = {}
+    onClickMore: () -> Unit = {},
+    showAll: Boolean,
+    scrollEnabled: Boolean
 ) {
+    val visible = if (showAll) results else results.take(3)
+
     if (results.isEmpty()) {
         // 빈 결과 메시지
         Column(
@@ -58,10 +62,10 @@ fun LocationSearchResults(
         contentPadding = PaddingValues(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        userScrollEnabled = false, // 스크롤 막기
+        userScrollEnabled = scrollEnabled, // 스크롤 막기
         modifier = Modifier.fillMaxWidth()
     ) {
-        items(results.take(3)) { item ->
+        items(visible) { item ->
             Row(
                 horizontalArrangement = Arrangement.spacedBy(13.dp),
                 modifier = Modifier
@@ -98,7 +102,7 @@ fun LocationSearchResults(
             }
         }
         // 더보기 버튼 (결과가 4개 이상일 때만)
-        if (results.size > 3) {
+        if (!showAll && results.size > 3) {
             item {
                 Box(
                     modifier = Modifier
@@ -143,7 +147,9 @@ fun PreviewLocationSearchResults_List() {
     LocationSearchResults(
         results = sample,
         keyword = "고려대",
-        onSelect = { /* no-op for preview */ }
+        onSelect = { /* no-op for preview */ },
+        showAll = false,
+        scrollEnabled = false
     )
 }
 
@@ -153,7 +159,9 @@ fun PreviewLocationSearchResults_Empty() {
     LocationSearchResults(
         results = emptyList(),
         keyword = "아메리카또또",
-        onSelect = { /* no-op for preview */ }
+        onSelect = { /* no-op for preview */ },
+        showAll = false,
+        scrollEnabled = false
     )
 }
 
@@ -194,6 +202,8 @@ fun PreviewLocationSearchResults_Goraewa() {
     LocationSearchResults(
         results = sample,
         keyword = "고래와",
-        onSelect = { /* no-op for preview */ }
+        onSelect = { /* no-op for preview */ },
+        showAll = true,
+        scrollEnabled = true
     )
 }
