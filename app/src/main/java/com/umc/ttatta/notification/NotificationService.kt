@@ -4,12 +4,14 @@ import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import com.google.firebase.messaging.Constants.MessageNotificationKeys
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.umc.core.repository.SettingRepository
@@ -22,6 +24,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 @AndroidEntryPoint
 class NotificationService : FirebaseMessagingService() {
     @Inject
@@ -33,13 +36,37 @@ class NotificationService : FirebaseMessagingService() {
     private val notificationManager
         get() = this.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
-    private val notificationMangerCompat
+    private val notificationManagerCompat
         get() = NotificationManagerCompat.from(this)
 
     private val hasNotificationPermission: Boolean
         get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || ContextCompat.checkSelfPermission(
             this, Manifest.permission.POST_NOTIFICATIONS
         ) == PackageManager.PERMISSION_GRANTED
+
+    override fun handleIntent(intent: Intent?) {
+        val newIntent = intent?.apply {
+            val (title, body) = listOf(
+                MessageNotificationKeys.TITLE,
+                MessageNotificationKeys.BODY,
+            ).map { key ->
+                getStringExtra(key) ?: getStringExtra(getKeyWithOldPrefix(key))
+            }
+
+            putExtra("title", title)
+            putExtra("body", body)
+
+            extras?.apply {
+                remove(MessageNotificationKeys.ENABLE_NOTIFICATION)
+                remove(getKeyWithOldPrefix(MessageNotificationKeys.ENABLE_NOTIFICATION))
+            }.let { extras ->
+                replaceExtras(extras)
+            }
+        }
+
+        super.handleIntent(newIntent)
+    }
+
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         Log.d("NotificationService", "Message received: $remoteMessage")
@@ -72,24 +99,29 @@ class NotificationService : FirebaseMessagingService() {
         }
 
         // 알림 타입에 따라 PendingIntent 생성
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            type.requestCode,
-            type.getIntent(this, remoteMessage),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
+        val pendingIntent = try {
+            PendingIntent.getActivity(
+                this,
+                type.requestCode,
+                type.getIntent(this, remoteMessage),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
+        } catch (e: Exception) {
+            Log.e("NotificationService", "Failed to create PendingIntent: ${e.message}")
+            return
+        }
 
         // 알림 빌더 설정
         val builder = NotificationCompat.Builder(this, type.channelId)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(remoteMessage.notification?.title ?: "")
-            .setContentText(remoteMessage.notification?.body ?: "")
+            .setContentTitle(remoteMessage.data["title"] ?: "")
+            .setContentText(remoteMessage.data["body"] ?: "")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
 
         // 알림 표시
-        with(notificationMangerCompat) {
+        with(notificationManagerCompat) {
             try {
                 notify(System.currentTimeMillis().toInt(), builder.build())
             } catch (e: SecurityException) {
@@ -115,6 +147,16 @@ class NotificationService : FirebaseMessagingService() {
                     delay(timeMillis = (index + 1).let { it * it } * 1000L)
                 }
             }
+        }
+    }
+
+    private fun getKeyWithOldPrefix(key: String): String {
+        val prefix = MessageNotificationKeys.NOTIFICATION_PREFIX
+
+        return if (!key.startsWith(prefix)) {
+            key
+        } else {
+            key.replace(prefix, MessageNotificationKeys.NOTIFICATION_PREFIX_OLD)
         }
     }
 }

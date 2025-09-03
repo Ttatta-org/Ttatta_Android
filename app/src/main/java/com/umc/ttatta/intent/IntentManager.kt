@@ -7,22 +7,12 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 object IntentManager {
-    sealed class IntentType(
-        open val code: Long,
-    ) {
-        object DiaryWritingReminder : IntentType(code = 1)
-        object ChallengeReminder : IntentType(code = 2)
-        data class DailySummary(val date: LocalDate) : IntentType(code = 3)
-        data class LocationMemory(val diaryId: Long) : IntentType(code = 4)
-    }
-
     fun getNewIntent(context: Context, intentType: IntentType) =
         Intent(context, MainActivity::class.java).putExtra("code", intentType.code).let {
             when (intentType) {
                 is IntentType.DailySummary -> it.putExtra(
-                    "date", intentType.date.format(
-                        DateTimeFormatter.ISO_LOCAL_DATE
-                    )
+                    "date",
+                    intentType.date.format(DateTimeFormatter.ISO_LOCAL_DATE),
                 )
 
                 is IntentType.LocationMemory -> it.putExtra("diaryId", intentType.diaryId)

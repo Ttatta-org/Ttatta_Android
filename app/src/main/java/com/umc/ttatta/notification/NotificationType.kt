@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.google.firebase.messaging.RemoteMessage
 import com.umc.ttatta.intent.IntentManager
+import com.umc.ttatta.intent.IntentType
 import java.time.LocalDate
 
 enum class NotificationType(
@@ -26,7 +27,7 @@ enum class NotificationType(
         getIntent = { context, remoteMessage ->
             IntentManager.getNewIntent(
                 context = context,
-                intentType = IntentManager.IntentType.LocationMemory(
+                intentType = IntentType.LocationMemory(
                     diaryId = remoteMessage.data["diaryId"]!!.toLong()
                 ),
             )
@@ -42,7 +43,7 @@ enum class NotificationType(
         getIntent = { context, remoteMessage ->
             IntentManager.getNewIntent(
                 context = context,
-                intentType = IntentManager.IntentType.DailySummary(
+                intentType = IntentType.DailySummary(
                     date = remoteMessage.data["date"]!!.let { LocalDate.parse(it) },
                 ),
             )
@@ -58,7 +59,7 @@ enum class NotificationType(
         getIntent = { context, remoteMessage ->
             IntentManager.getNewIntent(
                 context = context,
-                intentType = IntentManager.IntentType.ChallengeReminder,
+                intentType = IntentType.ChallengeReminder,
             )
         },
     ),
@@ -72,7 +73,7 @@ enum class NotificationType(
         getIntent = { context, remoteMessage ->
             IntentManager.getNewIntent(
                 context = context,
-                intentType = IntentManager.IntentType.DiaryWritingReminder,
+                intentType = IntentType.DiaryWritingReminder,
             )
         },
     );
