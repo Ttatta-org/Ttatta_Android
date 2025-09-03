@@ -12,11 +12,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.core.model.LocationSearchResult
+import com.umc.design.theme.LocalColorTheme
 import com.umc.record.R
 
 @Composable
@@ -84,12 +88,9 @@ fun LocationSearchResults(
                     verticalArrangement = Arrangement.spacedBy(2.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = item.title,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black,
-                        maxLines = 1
+                    HighlightedText(
+                        fullText = item.title,
+                        keyword = keyword
                     )
                     Text(
                         text = item.address.ifBlank { item.description },
@@ -122,6 +123,54 @@ fun LocationSearchResults(
             }
         }
     }
+}
+
+@Composable
+private fun HighlightedText(
+    fullText: String,
+    keyword: String,
+    normalColor: Color = Color.Black,
+    highlightColor: Color = LocalColorTheme.current.primary[600],
+    fontSize: Int = 14
+) {
+    val annotated = buildAnnotatedString {
+        if (keyword.isBlank()) {
+            append(fullText)
+            return@buildAnnotatedString
+        }
+
+        var startIndex = 0
+        val lowerFull = fullText.lowercase()
+        val lowerKeyword = keyword.lowercase()
+
+        while (true) {
+            val index = lowerFull.indexOf(lowerKeyword, startIndex)
+            if (index == -1) {
+                // 나머지 텍스트는 일반 스타일
+                withStyle(SpanStyle(color = normalColor, fontWeight = FontWeight.Bold)) {
+                    append(fullText.substring(startIndex))
+                }
+                break
+            }
+            // 키워드 앞 부분
+            if (index > startIndex) {
+                withStyle(SpanStyle(color = normalColor, fontWeight = FontWeight.Bold)) {
+                    append(fullText.substring(startIndex, index))
+                }
+            }
+            // 키워드 부분
+            withStyle(SpanStyle(color = highlightColor, fontWeight = FontWeight.Bold)) {
+                append(fullText.substring(index, index + keyword.length))
+            }
+            startIndex = index + keyword.length
+        }
+    }
+
+    Text(
+        text = annotated,
+        fontSize = fontSize.sp,
+        maxLines = 1
+    )
 }
 
 @Preview(showBackground = true)
