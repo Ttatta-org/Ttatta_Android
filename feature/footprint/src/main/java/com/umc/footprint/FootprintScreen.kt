@@ -69,10 +69,18 @@ fun FootprintScreen(
         modifier = Modifier
             .fillMaxSize()
             .onGloballyPositioned { screenHeight = with(density) { it.size.height.toDp() } }
-            .let { if (onBackScreenClicked != null) it.clickable { onBackScreenClicked() } else it },
     ) {
         // 지도
         mapView.invoke()
+        // 클릭 이벤트 하이재커
+        if (onBackScreenClicked != null) Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(
+                    indication = null,
+                    interactionSource = null,
+                ) { onBackScreenClicked() }
+        )
         // 일기 팝업
         diaryCardProp?.let { (offset, prop) ->
             Box(

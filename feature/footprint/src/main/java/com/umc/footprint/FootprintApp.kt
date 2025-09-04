@@ -43,6 +43,7 @@ import com.umc.footprint.util.calculateInclusion
 import com.umc.footprint.util.checkLocationPermission
 import com.umc.footprint.util.getDiaryCardTopLeftOffset
 import com.umc.footprint.util.runWithScope
+import kotlinx.coroutines.delay
 
 @Composable
 fun FootprintApp(
@@ -86,8 +87,14 @@ fun FootprintApp(
     }
 
     LaunchedEffect(key1 = Unit) {
-        // 뷰모델 정보 초기화
-        viewModel.runWithScope { loadInitialData() }
+        viewModel.runWithScope {
+            // 뷰모델 정보 초기화
+            loadInitialData()
+            // 보여질 발자국 카테고리 초기화
+            viewModel.runWithScope { selectShowingCategory(categoryId = null) }
+            // 지도를 내 위치로 이동
+            if (remindEvent == null) viewModel.runWithScope { moveMapToCurrentPosition() }
+        }
         // 위치 권한 확인
         isLocationMarkingEnabled = permissionRequester.checkLocationPermission(context = context)
     }
@@ -193,6 +200,9 @@ fun FootprintApp(
                 longitude = diary.longitude,
                 pivot = centralFootprintOffset,
             )
+
+            delay(300L)
+
             remindLoadedEvent = RemindLoadedEvent(
                 description = remindEvent.description,
                 date = diary.date,
@@ -233,7 +243,7 @@ fun FootprintApp(
                 modifier = Modifier.onGloballyPositioned { mapViewSize = it.size.toSize() },
             ) {
                 viewModel.MapView(
-                    isBlurApplied = remindLoadedEvent != null || isMapBlurApplied,
+                    isBlurApplied = isMapBlurApplied,
                     isLocationMarkingEnabled = isLocationMarkingEnabled
                 )
             }
@@ -256,7 +266,7 @@ fun FootprintApp(
                             content = event.content,
                             isFlipped = isRemindDiaryCardFlipped,
                             diaryModificationModeProp = null,
-                            onCardClicked = { isRemindDiaryCardFlipped != isRemindDiaryCardFlipped },
+                            onCardClicked = { isRemindDiaryCardFlipped = !isRemindDiaryCardFlipped },
                             onModifyButtonClicked = null,
                         ),
                     ),
