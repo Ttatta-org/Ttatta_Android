@@ -27,6 +27,7 @@ testng = "6.9.6"
 media3CommonKtx = "1.5.1"
 runtimeAndroid = "1.7.7"
 firebaseMessagingKtx = "24.1.1"
+benchmarkTraceprocessorAndroid = "1.4.0"
 
 [libraries]
 androidx-ui-test-android = { module = "androidx.test:core", version.ref = "androidx-test" }
@@ -67,6 +68,7 @@ androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime
 firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
+androidx-benchmark-traceprocessor-android = { group = "androidx.benchmark", name = "benchmark-traceprocessor-android", version.ref = "benchmarkTraceprocessorAndroid" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
