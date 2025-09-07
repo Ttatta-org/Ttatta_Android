@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 object NavigationManager {
     val initialRoute get() = NavigationRoute.SPLASH.name
@@ -21,12 +23,16 @@ object NavigationManager {
     }
 
     fun NavController.push(route: NavigationRoute) {
-        navigate(route.name)
+        MainScope().launch {
+            navigate(route.name)
+        }
     }
 
     fun NavController.go(route: NavigationRoute) {
-        navigate(route.name) {
-            popUpTo(id = graph.startDestinationId) { inclusive = false }
+        MainScope().launch {
+            navigate(route.name) {
+                popUpTo(id = graph.startDestinationId) { inclusive = false }
+            }
         }
     }
 

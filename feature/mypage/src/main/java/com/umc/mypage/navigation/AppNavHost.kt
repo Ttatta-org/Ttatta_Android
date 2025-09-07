@@ -5,14 +5,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
-import com.umc.mypage.MyPageScreen
-import com.umc.mypage.MyPageViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.umc.mypage.LockPasswordScreen
 import com.umc.mypage.LockSettingsScreen
+import com.umc.mypage.MyPageScreen
+import com.umc.mypage.MyPageViewModel
 import com.umc.mypage.NotificationSettingsScreen
 import com.umc.mypage.SignOutScreen
 
@@ -44,7 +43,7 @@ fun AppNavHost(
                 },
                 onLogout = {
                     viewModel.logout(
-                        onSuccess = { /* 로그아웃 후 동작 */ },
+                        onSuccess = onLoginCanceled,
                         onError = { /* 에러 처리 */ }
                     )
                 },

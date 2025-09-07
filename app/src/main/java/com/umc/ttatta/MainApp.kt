@@ -29,6 +29,7 @@ import com.umc.footprint.model.event.RemindEvent
 import com.umc.home.HomeApp
 import com.umc.home.HomeViewModel
 import com.umc.login.LoginApp
+import com.umc.mypage.LockApp
 import com.umc.mypage.MyPageApp
 import com.umc.record.RecordApp
 import com.umc.ttatta.component.FinishHandler
@@ -235,22 +236,10 @@ fun MainApp(
                     LaunchedEffect(Unit) { showNavBar = false }
                     FinishHandler()
 
-                    // FIXME: 잠금화면 연결 시 제거
-                    LaunchedEffect(Unit) {
-                        onNavigateInitiallyToMain()
-                    }
-
-                    // TODO: 잠금하면 구현 시 연결
-                    // LockPasswordScreen(
-                    //     isChangingPassword = false,
-                    //     isCheckingMode = true,
-                    //     onComplete = { pinString ->
-                    //         viewModel.runWithScope {
-                    //             val isCorrect = checkIsPinCorrect(pin = pinString.toInt())
-                    //             if (isCorrect) onNavigateInitiallyToMain()
-                    //         }
-                    //     },
-                    // )
+                    LockApp(
+                        viewModel = hiltViewModel(),
+                        onPinCorrect = onNavigateInitiallyToMain,
+                    )
                 }
 
                 setNavGraph(NavigationRoute.LOGIN) {
