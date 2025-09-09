@@ -1,26 +1,37 @@
 package com.umc.core.model
 
-sealed class NotificationSetting(
-    open val isOn: Boolean,
-) {
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable as KxSerializable
 
+@KxSerializable
+sealed class NotificationSetting {
+    abstract val isOn: Boolean
+
+    @KxSerializable
+    @SerialName("DailySummary")
     data class DailySummary(
         override val isOn: Boolean,
         val hour: Int,
-    ) : NotificationSetting(isOn = isOn)
+    ) : NotificationSetting()
 
+    @KxSerializable
+    @SerialName("ChallengeRemind")
     data class ChallengeRemind(
         override val isOn: Boolean,
         val remainingHours: Int,
-    ) : NotificationSetting(isOn = isOn)
+    ) : NotificationSetting()
 
+    @KxSerializable
+    @SerialName("DiaryWriting")
     data class DiaryWriting(
         override val isOn: Boolean,
         val hour: Int,
         val minute: Int,
-    ): NotificationSetting(isOn = isOn)
+    ) : NotificationSetting()
 
+    @KxSerializable
+    @SerialName("LocationBasedRemind")
     data class LocationBasedRemind(
         override val isOn: Boolean,
-    ): NotificationSetting(isOn = isOn)
+    ) : NotificationSetting()
 }

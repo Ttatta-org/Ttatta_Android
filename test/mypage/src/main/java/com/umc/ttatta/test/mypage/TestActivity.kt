@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.tasks.Tasks
 import com.umc.core.repository.UserRepository
 import com.umc.mypage.MyPageApp
 import com.umc.mypage.MyPageScreen
@@ -15,12 +16,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import com.google.firebase.messaging.FirebaseMessaging
 
 @AndroidEntryPoint
 class TestActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var userRepository: UserRepository  // ✅ UserRepository 주입
+    @Inject lateinit var userRepository: UserRepository  // ✅ UserRepository 주입
+    @Inject lateinit var settingRepository: com.umc.core.repository.SettingRepository
 
     private val viewModel: MyPageViewModel by viewModels()  // ✅ ViewModel 주입
 
@@ -38,6 +40,9 @@ class TestActivity : ComponentActivity() {
         // ✅ 테스트 실행
         prepareTest()
     }
+
+    private suspend fun getFcmToken(): String =
+        withContext(Dispatchers.IO) { Tasks.await(FirebaseMessaging.getInstance().token) }
 
     private fun prepareTest() {
         lifecycleScope.launch(Dispatchers.IO) {
@@ -59,6 +64,13 @@ class TestActivity : ComponentActivity() {
 //                // ✅ 유저 정보 불러오기 테스트
 //                val userInfo = userRepository.getUserInfo()
 //                Log.d("MyPageActivity", "✅ 유저 정보: $userInfo")
+                // 🔴 로그인 직후 FCM 토큰 등록
+                runCatching {
+                    val token = getFcmToken()
+                    settingRepository.sendFcmToken(token)
+                }.onFailure { e ->
+                    Log.e("MyPageActivity", "❌ sendFcmToken failed: ${e.message}")
+                }
 
                 // ✅ 유저 정보 불러오기 테스트
                 val userInfo = try {

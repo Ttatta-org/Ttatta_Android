@@ -9,4 +9,5 @@ interface SettingPreference {
     var pinHash: String?
 
     fun setNotificationSetting(notificationSetting: NotificationSetting)
+    var lastSentFcmToken: String?
 }

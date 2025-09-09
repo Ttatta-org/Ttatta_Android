@@ -9,6 +9,14 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,6 +53,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.snapshotFlow
 
 import androidx.compose.ui.Modifier
@@ -83,15 +92,57 @@ import kotlin.math.roundToInt
 
 @Composable
 fun NotificationSettingsScreen(
-
+    state: MyPageViewModel.NotificationSettingsUiState,
+    onDailyToggle: (Boolean) -> Unit,
+    onDailyTimeChange: (isPm: Boolean, hour12: Int, minute: Int) -> Unit,
+    onSummaryToggle: (Boolean) -> Unit,
+    onSummaryHourChange: (hour12: Int) -> Unit,
+    onChallengeToggle: (Boolean) -> Unit,
+    onChallengeHoursChange: (Int) -> Unit,
+    onLocationToggle: (Boolean) -> Unit,
 ){
     val systemUiController = rememberSystemUiController()
     val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
 
-    var dailyReminder by remember { mutableStateOf(false) }
-    var locationReminder by remember { mutableStateOf(false) }
-    var challengeReminder by remember { mutableStateOf(false) }
-    var summaryReminder by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    // 권한 요청 후 실행할 보류 액션
+    val pendingAction = remember { mutableStateOf<(() -> Unit)?>(null) }
+
+    // 멀티 권한 런처 (POST_NOTIFICATIONS/LOCATION 등 한 번에 처리)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { grants ->
+        val granted = grants.entries.all { (perm, ok) ->
+            // TIRAMISU 미만에서는 POST_NOTIFICATIONS가 필요없으므로 ok로 간주
+            if (perm == Manifest.permission.POST_NOTIFICATIONS &&
+                Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+            ) true else ok
+        }
+        if (granted) {
+            pendingAction.value?.invoke()
+        } else {
+            Toast.makeText(context, "필수 권한이 없어 기능을 사용할 수 없어요.", Toast.LENGTH_SHORT).show()
+        }
+        pendingAction.value = null
+    }
+
+    // 단일 권한 체크
+    fun hasPermission(perm: String): Boolean =
+        if (perm == Manifest.permission.POST_NOTIFICATIONS &&
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
+        ) true
+        else ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED
+
+    // 공통 보장 함수: 모든 권한이 있으면 onGranted, 아니면 요청
+    fun ensurePermissions(perms: Array<String>, onGranted: () -> Unit) {
+        val allGranted = perms.all { hasPermission(it) }
+        if (allGranted) onGranted()
+        else {
+            pendingAction.value = onGranted
+            permissionLauncher.launch(perms)
+        }
+    }
 
     SideEffect {
         systemUiController.setStatusBarColor(
@@ -119,32 +170,44 @@ fun NotificationSettingsScreen(
                         NotificationSettingItem(
                             title = "일기 작성 알림",
                             description = "매일 일정한 시각에 일기 작성을 알리는 알림을 보내요!",
-                            checked = dailyReminder,
-                            onCheckedChange = { dailyReminder = it },
+                            checked = state.dailyOn,
+                            onCheckedChange = { isOn ->
+                                if (!isOn) onDailyToggle(false) else {
+                                    ensurePermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS)) {
+                                        onDailyToggle(true)
+                                    }
+                                }
+                            }
+                            ,
                             bottomContent = {
-                                if (dailyReminder) {
+                                if (state.dailyOn) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                     ) {
+                                        // 화면에서 파생 상태
+                                        val dailyIsPm = state.dailyHour24 >= 12
+                                        val dailyHour12 = ((state.dailyHour24 % 12).let { if (it == 0) 12 else it })
+                                        val dailyMinute = state.dailyMinute
+
+                                        // 오전/오후 드롭다운
                                         DropdownButtonWithMenu(
                                             options = listOf("오전", "오후"),
-                                            initialSelectedText = "오전",
-                                            onSelected = { selected ->
-                                                // ✅ 선택된 값에 따른 처리
-                                                Log.d("NotificationSetting", "선택된 시간: $selected")
+                                            initialSelectedText = if (dailyIsPm) "오후" else "오전",
+                                            onSelected = { ampm ->
+                                                val isPm = ampm == "오후"
+                                                onDailyTimeChange(isPm, dailyHour12, dailyMinute) // ← 이름 제거!
                                             }
                                         )
 
+                                        // 시/분 휠
                                         TimeWheelDropdown(
                                             width = 130.dp,
-                                            initialIsPm = false,
-                                            initialHour12 = 8,
-                                            initialMinute = 30
+                                            initialIsPm = dailyIsPm,
+                                            initialHour12 = dailyHour12,
+                                            initialMinute = dailyMinute
                                         ) { isPm, hour12, minute ->
-                                            Log.d("NotificationSetting", "선택된 시간 = ${if (isPm) "오후" else "오전"} $hour12:$minute")
-                                            // TODO: ViewModel에 반영하고 서버 동기화 트리거
-                                            // viewModel.setDiaryWriteAlarm(isPm, hour12, minute)
+                                            onDailyTimeChange(isPm, hour12, minute) // ← 위치 인자
                                         }
                                     }
 
@@ -157,8 +220,19 @@ fun NotificationSettingsScreen(
                         NotificationSettingItem(
                             title = "위치 기반 추억 회상 알림",
                             description = "현재 위치와 가까운 과거 기록을 찾으면 알림을 보내요!",
-                            checked = locationReminder,
-                            onCheckedChange = { locationReminder = it }
+                            checked = state.locationOn,
+                            onCheckedChange = { isOn ->
+                                if (!isOn) onLocationToggle(false) else {
+                                    ensurePermissions(
+                                        arrayOf(
+                                            Manifest.permission.POST_NOTIFICATIONS,
+                                            Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION
+                                        )
+                                    ) { onLocationToggle(true) }
+                                }
+                            }
+
                         )
                     }
                     item { Spacer(modifier = Modifier.height(22.dp)) }
@@ -166,20 +240,25 @@ fun NotificationSettingsScreen(
                         NotificationSettingItem(
                             title = "챌린지 리마인드 알림",
                             description = "챌린지 달성 마감 전 리마인드 알림을 보내요!",
-                            checked = challengeReminder,
-                            onCheckedChange = { challengeReminder = it },
+                            checked = state.challengeOn,
+                            onCheckedChange = { isOn ->
+                                if (!isOn) onChallengeToggle(false) else {
+                                    ensurePermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS)) {
+                                        onChallengeToggle(true)
+                                    }
+                                }
+                            },
                             bottomContent = {
-                                if (challengeReminder) {
+                                if (state.challengeOn) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                     ) {
                                         DropdownButtonWithMenu(
-                                            options = (1..11).map { it.toString().padStart(2, '0') },
-                                            initialSelectedText = "01",
-                                            onSelected = { selected ->
-                                                // ✅ 선택된 값에 따른 처리
-                                                Log.d("NotificationSetting", "선택된 시간: $selected")
+                                            options = (0..48).map { it.toString().padStart(2, '0') }, // 🔧 범위 확대
+                                            initialSelectedText = state.challengeRemainingHours.toString().padStart(2, '0'),
+                                            onSelected = { sel ->
+                                                onChallengeHoursChange(sel.toInt())
                                             }
                                         )
                                         Text(
@@ -197,29 +276,39 @@ fun NotificationSettingsScreen(
                         NotificationSettingItem(
                             title = "하루 요약 알림",
                             description = "매일 일정한 시각에 오늘의 일기 요약 알림을 보내요!",
-                            checked = summaryReminder,
-                            onCheckedChange = { summaryReminder = it },
+                            checked = state.summaryOn,
+                            onCheckedChange = { isOn ->
+                                if (!isOn) onSummaryToggle(false) else {
+                                    ensurePermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS)) {
+                                        onSummaryToggle(true)
+                                    }
+                                }
+                            },
                             bottomContent = {
-                                if (summaryReminder) {
+                                if (state.summaryOn) {
+                                    val summaryHour12 = when {
+                                        state.summaryHour24 == 0 -> 12
+                                        state.summaryHour24 > 12 -> state.summaryHour24 - 12
+                                        else -> state.summaryHour24
+                                    }
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                     ) {
+                                        // PM 고정 표시
                                         Text(
                                             text = "오후",
                                             fontSize = 14.sp,
                                             color = Color(0xFF8E8E8E)
                                         )
-
-                                        DropdownButtonWithMenu(
-                                            options = (1..12).map { it.toString().padStart(2, '0') },
-                                            initialSelectedText = "01",
-                                            onSelected = { selected ->
-                                                // ✅ 선택된 값에 따른 처리
-                                                Log.d("NotificationSetting", "선택된 시간: $selected")
-                                            }
-                                        )
-
+                                        // 시간만 선택 (1..12)
+                                        androidx.compose.runtime.key(summaryHour12) {
+                                            DropdownButtonWithMenu(
+                                                options = (1..12).map { it.toString().padStart(2, '0') },
+                                                initialSelectedText = summaryHour12.toString().padStart(2, '0'),
+                                                onSelected = { sel -> onSummaryHourChange(sel.toInt()) }
+                                            )
+                                        }
                                         Text(
                                             text = "시",
                                             fontSize = 14.sp,
@@ -336,7 +425,7 @@ fun DropdownButtonWithMenu(
     onSelected: (String) -> Unit = {}
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedText by remember { mutableStateOf(initialSelectedText) }
+    var selectedText by remember(initialSelectedText) { mutableStateOf(initialSelectedText) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val isResumed = remember { mutableStateOf(true) }
 
@@ -546,9 +635,11 @@ fun TimeWheelDropdown(
     onChanged: (isPm: Boolean, hour12: Int, minute: Int) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    var isPm by remember { mutableStateOf(initialIsPm) }
-    var hourIdx by remember { mutableStateOf((initialHour12 - 1).coerceIn(0, 11)) }
-    var minuteIdx by remember { mutableStateOf(initialMinute.coerceIn(0, 59)) }
+    // TimeWheelDropdown 내부
+    var isPm by remember(initialIsPm) { mutableStateOf(initialIsPm) }
+    var hourIdx by remember(initialHour12) { mutableStateOf((initialHour12 - 1).coerceIn(0, 11)) }
+    var minuteIdx by remember(initialMinute) { mutableStateOf(initialMinute.coerceIn(0, 59)) }
+
 
     val hourItems = remember { (1..12).map { it.toString().padStart(2, '0') } }
     val minuteItems = remember { (0..59).map { it.toString().padStart(2, '0') } }
@@ -826,10 +917,3 @@ fun DropdownChevronIcon(
 //    }
 //}
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewNotification() {
-    NotificationSettingsScreen(
-
-    )
-}
