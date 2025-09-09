@@ -27,17 +27,11 @@ import com.umc.design.character.AccessorySet
 import com.umc.design.character.CharacterView
 import com.umc.design.theme.ThemeProvider
 import com.umc.ttatta.R
+import com.umc.ttatta.model.prop.RecordOptionPickerProp
 
 private val cameraButtonSize = Size(141f, 40f)
 private val galleryButtonSize = Size(141f, 51f)
 private val buttonActualWidth = 160.dp
-
-data class RecordOptionPickerProp(
-    val userName: String,
-    val accessories: AccessorySet,
-    val onCameraOptionClicked: () -> Unit,
-    val onGalleryOptionClicked: () -> Unit,
-)
 
 @Composable
 fun RecordOptionPicker(

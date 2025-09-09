@@ -41,6 +41,7 @@ import com.umc.footprint.util.calculateClusteredMarkerSize
 import com.umc.footprint.util.loadRawImageAsBitmap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -311,14 +312,18 @@ class MapHandlerImpl @Inject constructor(
 
     override suspend fun addMarker(marker: MapMarker) {
         val key = MarkerKey(marker)
-        clusterManager.add(key, null)
+        MainScope().launch {
+            clusterManager.add(key, null)
+        }
     }
 
     override suspend fun removeAllMarkers() {
         onPreviousMarkerDismissed?.invoke()
         onPreviousMarkerDismissed = null
-        clusterManager.clear()
-        markers.clear()
+        MainScope().launch {
+            clusterManager.clear()
+            markers.clear()
+        }
     }
 
     override suspend fun addOnDismissListener(listener: () -> Unit) {

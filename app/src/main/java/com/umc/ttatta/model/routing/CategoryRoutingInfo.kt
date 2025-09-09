@@ -1,4 +1,4 @@
-package com.umc.ttatta.model
+package com.umc.ttatta.model.routing
 
 class CategoryRoutingInfo(
     val showTopBar: Boolean,

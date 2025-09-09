@@ -35,6 +35,7 @@ import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -74,18 +75,18 @@ fun RecordScreen(
 
     // ✅ 카테고리 이름과 배경색 매핑
     val categoryBackgroundColors = mapOf(
-        "RED" to Color(0xE6FFD7D7),
-        "ORANGE" to Color(0xE6FFE0D3),
-        "YELLOW" to Color(0xE6FFF0D2),
-        "GREEN" to Color(0xE6E4F5D6),
-        "TURQUOISE" to Color(0xE6E4F4F2),
-        "BLUE" to Color(0xE6E0EFF8),
-        "NAVY" to Color(0xE6D7DFF5),
-        "PURPLE" to Color(0xE6F2E1FF),
-        "BROWN" to Color(0xE6EACFC0),
-        "WHITE" to Color(0xE6FFFFFF),
-        "PINK" to Color(0xE6FFA6C3),
-        "BLACK" to Color(0xE69D9D9D)
+        "RED" to Color(0xE5FFC0C0),
+        "ORANGE" to Color(0xE5FFE0D3),
+        "YELLOW" to Color(0xE5FFF4D4),
+        "GREEN" to Color(0xE5E3FFCC),
+        "TURQUOISE" to Color(0xE5D6FAF6),
+        "BLUE" to Color(0xE5D4EFFF),
+        "NAVY" to Color(0xE5D1DDFF),
+        "PURPLE" to Color(0xE5EFD9FF),
+        "BROWN" to Color(0xE5EBD9CF),
+        "WHITE" to Color(0xE5FFFFFF),
+        "PINK" to Color(0xE5FFC5E0),
+        "BLACK" to Color(0xE5ACACAC)
     )
     // ✅ 기본 배경색
     val defaultBackgroundColor = Color(0xE6FDDDC1)
@@ -132,7 +133,7 @@ fun RecordScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .background(
-                                color = Color(0xFEF6F2E5),
+                                color = Color(0xE5FEF6F2),
                                 shape = RoundedCornerShape(percent = 50)
                             )
                             .clip(RoundedCornerShape(percent = 50))
@@ -150,9 +151,10 @@ fun RecordScreen(
                         Text(
                             text = date.toLocalDate().toString(),
                             textAlign = TextAlign.Center,
-                            fontSize = 15.sp,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.ExtraBold,
                             color = Color.Primary300,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 13.dp, vertical = 8.dp)
                         )
                     }
                     // 위치
@@ -178,7 +180,7 @@ fun RecordScreen(
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_location),
@@ -188,9 +190,10 @@ fun RecordScreen(
                             )
                             Text(
                                 text = location,
-                                fontSize = 15.sp,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Black,
                                 color = Color.Primary300,
-                                modifier = Modifier.padding(end = 4.dp),
+//                                modifier = Modifier.padding(end = 4.dp),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
@@ -229,7 +232,7 @@ fun RecordScreen(
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
                         ) {
                             Image(
                                 painter = painterResource(
@@ -238,7 +241,7 @@ fun RecordScreen(
                                 ),
                                 contentDescription = null,
                                 contentScale = ContentScale.Fit,
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(22.dp)
                             )
                         }
                     }
@@ -251,7 +254,11 @@ fun RecordScreen(
                         modifier = Modifier
                             .onGloballyPositioned { dropdownWidth = it.size.width }
                     ) {
-                        CategoryDropdown(prop = prop)
+                        CategoryDropdown(
+                            prop = prop,
+                            selectedCategoryForDashes = selectedCategoryColor,
+                            selectedCategoryForBackground = selectedCategoryColor,
+                        )
                     }
                 }
             }

@@ -1,6 +1,5 @@
 package com.umc.ttatta
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -30,33 +29,21 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
-import com.google.firebase.messaging.FirebaseMessaging
-import com.umc.data.util.createChallengeNotificationChannel
 import com.umc.design.character.Accessory
 import com.umc.design.character.AccessorySet
 import com.umc.design.theme.ThemeProvider
 import com.umc.ttatta.component.NavigationBar
 import com.umc.ttatta.component.NavigationItem
 import com.umc.ttatta.component.RecordOptionPicker
-import com.umc.ttatta.component.RecordOptionPickerProp
+import com.umc.ttatta.model.prop.RecordOptionPickerProp
 import com.umc.ttatta.component.ShadowedImage
 import com.umc.ttatta.component.centerButtonSize
-
-data class NavigationBarProp(
-    val currentNavigationItem: NavigationItem?,
-    val onNavigate: (NavigationItem) -> Unit,
-    val onCenterButtonClicked: () -> Unit,
-)
-
-data class CenterButtonProp(
-    val recordOptionPickerProp: RecordOptionPickerProp,
-    val onDismissed: () -> Unit,
-)
+import com.umc.ttatta.model.prop.CenterButtonProp
+import com.umc.ttatta.model.prop.NavigationBarProp
 
 private val centerButtonTopOffsetFromNavBarTopCenter = 12.dp
 
@@ -68,27 +55,9 @@ fun MainScreen(
 ) {
     val density = LocalDensity.current
 
-    var centerButtonCenter by remember { mutableStateOf(Offset.Zero) }
+    var centerButtonCenter by remember { mutableStateOf<Offset?>(null) }
     var recordOptionPickerHeight by remember { mutableIntStateOf(0) }
-
     var residualCenterButtonProp by remember { mutableStateOf(centerButtonProp) }
-
-    val context = LocalContext.current
-    // FCM 토큰 요청 (side-effect로 한 번만 실행)
-    LaunchedEffect(Unit) {
-        // 채널 생성
-        createChallengeNotificationChannel(context)
-
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val token = task.result
-                Log.d("FCM", "Token: $token")
-                // 여기서 서버에 토큰 저장도 가능
-            } else {
-                Log.e("FCM", "Token fetch failed", task.exception)
-            }
-        }
-    }
 
     LaunchedEffect(key1 = centerButtonProp) {
         centerButtonProp?.let { residualCenterButtonProp = it }
@@ -128,28 +97,30 @@ fun MainScreen(
             }
         }
         // 중앙 버튼
-        if (navigationBarProp != null) Box(
-            modifier = Modifier.offset {
-                Offset(
-                    x = centerButtonCenter.x - centerButtonSize.width.toPx() / 2,
-                    y = centerButtonCenter.y - centerButtonSize.height.toPx() / 2
-                ).round()
-            },
-        ) {
-            IconButton(
-                onClick = centerButtonProp?.onDismissed ?: navigationBarProp.onCenterButtonClicked,
-                modifier = Modifier.size(centerButtonSize)
+        if (navigationBarProp != null) centerButtonCenter?.let { (x, y) ->
+            Box(
+                modifier = Modifier.offset {
+                    Offset(
+                        x = x - centerButtonSize.width.toPx() / 2,
+                        y = y - centerButtonSize.height.toPx() / 2
+                    ).round()
+                },
             ) {
-                ShadowedImage(
-                    id = if (centerButtonProp == null) R.drawable.btn_record
-                    else R.drawable.btn_cancel_record,
-                    contentDescription = null,
-                    width = centerButtonSize.width,
-                    height = centerButtonSize.height,
-                    shadowColor = Color.Black.copy(alpha = 0.5f),
-                    shadowBlur = 8.dp,
-                    offsetY = 4.dp
-                )
+                IconButton(
+                    onClick = centerButtonProp?.onDismissed ?: navigationBarProp.onCenterButtonClicked,
+                    modifier = Modifier.size(centerButtonSize)
+                ) {
+                    ShadowedImage(
+                        id = if (centerButtonProp == null) R.drawable.btn_record
+                        else R.drawable.btn_cancel_record,
+                        contentDescription = null,
+                        width = centerButtonSize.width,
+                        height = centerButtonSize.height,
+                        shadowColor = Color.Black.copy(alpha = 0.5f),
+                        shadowBlur = 8.dp,
+                        offsetY = 4.dp
+                    )
+                }
             }
         }
         // 중앙 버튼 클릭 시 표시되는 다이얼로그 버튼
@@ -167,10 +138,12 @@ fun MainScreen(
                 enter = fadeIn(animationSpec = tween(durationMillis = 200)),
                 exit = fadeOut(animationSpec = tween(durationMillis = 200)),
                 modifier = Modifier.offset {
-                    Offset(
-                        x = 0f,
-                        y = centerButtonCenter.y - centerButtonSize.height.toPx() / 2 - recordOptionPickerHeight
-                    ).round()
+                    centerButtonCenter?.let { (_, y) ->
+                        Offset(
+                            x = 0f,
+                            y = y - centerButtonSize.height.toPx() / 2 - recordOptionPickerHeight
+                        ).round()
+                    } ?: Offset.Zero.round()
                 },
             ) {
                 residualCenterButtonProp?.let { prop ->
@@ -220,7 +193,8 @@ fun PreviewMainScreen() {
             ) else null,
         ) {
             Box(
-                contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.fillMaxSize(),
             ) {
                 Text(text = "테스트")
             }

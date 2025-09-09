@@ -1,50 +1,72 @@
 package com.umc.mypage
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 enum class PasswordStep {
     SET_INPUT, SET_CONFIRM, SET_MISMATCH,
-    CHANGE_INPUT, CHANGE_CONFIRM, CHANGE_MISMATCH
+    CHANGE_INPUT, CHANGE_CONFIRM, CHANGE_MISMATCH,
+    CHECK_INPUT, CHECK_MISMATCH,
 }
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun LockPasswordScreen(
     isChangingPassword: Boolean = false,
-    onComplete: (String) -> Unit
+    isCheckingMode: Boolean = false,
+    onComplete: suspend (String) -> Unit
 ) {
     var step by remember {
         mutableStateOf(
-            if (isChangingPassword) PasswordStep.CHANGE_INPUT else PasswordStep.SET_INPUT
+            if (isChangingPassword)
+                PasswordStep.CHANGE_INPUT
+            else if (isCheckingMode)
+                PasswordStep.CHECK_INPUT
+            else
+                PasswordStep.SET_INPUT
         )
     }
     var input by remember { mutableStateOf("") }
     var firstInput by remember { mutableStateOf("") }
 
     val title = when (step) {
-        PasswordStep.SET_INPUT, PasswordStep.SET_CONFIRM -> "암호 입력"
-        PasswordStep.SET_MISMATCH -> "암호 입력"
+        PasswordStep.SET_INPUT, PasswordStep.SET_CONFIRM, PasswordStep.CHECK_INPUT -> "암호 입력"
+        PasswordStep.SET_MISMATCH, PasswordStep.CHECK_MISMATCH -> "암호 입력"
         PasswordStep.CHANGE_INPUT, PasswordStep.CHANGE_CONFIRM -> "암호 변경"
         PasswordStep.CHANGE_MISMATCH -> "암호 변경"
     }
 
     val subtitle = when (step) {
-        PasswordStep.SET_INPUT, PasswordStep.CHANGE_INPUT -> "암호를 입력해주세요."
+        PasswordStep.SET_INPUT, PasswordStep.CHANGE_INPUT, PasswordStep.CHECK_INPUT, PasswordStep.CHECK_MISMATCH -> "암호를 입력해주세요."
         else -> "확인을 위해 한 번 더 입력해 주세요."
     }
 
@@ -96,7 +118,7 @@ fun LockPasswordScreen(
 
                     PasswordDots(input.length)
 
-                    if (step == PasswordStep.SET_MISMATCH || step == PasswordStep.CHANGE_MISMATCH) {
+                    if (step == PasswordStep.SET_MISMATCH || step == PasswordStep.CHANGE_MISMATCH || step == PasswordStep.CHECK_MISMATCH) {
                         Spacer(modifier = Modifier.height(20.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -138,7 +160,9 @@ fun LockPasswordScreen(
 
                                 PasswordStep.SET_CONFIRM, PasswordStep.SET_MISMATCH -> {
                                     if (input == firstInput) {
-                                        onComplete(input)
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            onComplete(input)
+                                        }
                                     } else {
                                         input = ""
                                         step = PasswordStep.SET_MISMATCH
@@ -147,10 +171,21 @@ fun LockPasswordScreen(
 
                                 PasswordStep.CHANGE_CONFIRM, PasswordStep.CHANGE_MISMATCH -> {
                                     if (input == firstInput) {
-                                        onComplete(input)
+                                        CoroutineScope(Dispatchers.IO).launch {
+                                            onComplete(input)
+                                        }
                                     } else {
                                         input = ""
                                         step = PasswordStep.CHANGE_MISMATCH
+                                    }
+                                }
+
+                                PasswordStep.CHECK_INPUT, PasswordStep.CHECK_MISMATCH -> {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        onComplete(input)
+                                        delay(100L)  // UI 단차 해소를 위한 딜레이
+                                        input = ""
+                                        step = PasswordStep.CHECK_MISMATCH
                                     }
                                 }
 

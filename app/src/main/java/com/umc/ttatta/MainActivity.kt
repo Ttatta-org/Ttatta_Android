@@ -1,5 +1,6 @@
 package com.umc.ttatta
 
+import android.Manifest
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -12,7 +13,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import com.umc.footprint.model.event.RemindEvent
+import androidx.compose.runtime.remember
+import com.umc.ttatta.intent.IntentManager
+import com.umc.ttatta.intent.IntentType
+import com.umc.ttatta.model.event.IntentEvent
 import com.umc.ttatta.util.createImageUri
 import com.umc.ttatta.util.isCameraPermissionGranted
 import com.umc.ttatta.util.isLocationPermissionGranted
@@ -36,7 +40,7 @@ class MainActivity : ComponentActivity() {
 
     private var imageUri: Uri? = null
     private val imageFileState = MutableStateFlow<File?>(null)
-    private val remindEventState = MutableStateFlow<RemindEvent?>(null)
+    private val intentTypeState = MutableStateFlow<IntentType?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,19 +49,27 @@ class MainActivity : ComponentActivity() {
         setStatusBarTransparent()
         setContent {
             val imageFile by imageFileState.collectAsState()
-            val remindEvent by remindEventState.collectAsState()
+            val intentType by intentTypeState.collectAsState()
 
             MainApp(
                 viewModel = viewModel,
                 imageFile = imageFile,
-                remindEvent = remindEvent,
+                intentEvent = remember(intentType) {
+                    intentType?.let { intentType ->
+                        IntentEvent(
+                            intentType = intentType,
+                            onDismissed = { intentTypeState.value = null }
+                        )
+                    }
+                },
                 onPermissionRequiredInitially = {
                     if (!isLocationPermissionGranted) locationPermissionRequester.launch(
-                        android.Manifest.permission.ACCESS_FINE_LOCATION
+                        Manifest.permission.ACCESS_FINE_LOCATION
                     )
                 },
                 onImagePickerCalled = {
-                    val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                    val intent =
+                        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
                     imageFileState.value = null
                     imagePickerLauncher.launch(intent)
                 },
@@ -67,13 +79,13 @@ class MainActivity : ComponentActivity() {
                         imageFileState.value = null
                         cameraLauncher.launch(uri)
                     } else cameraPermissionRequester.launch(
-                        android.Manifest.permission.CAMERA
+                        Manifest.permission.CAMERA
                     )
                 },
             )
         }
 
-        resolveIntent(intent = intent)
+        resolveIntent()
     }
 
     private fun setLaunchers() {
@@ -110,7 +122,7 @@ class MainActivity : ComponentActivity() {
         ) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 if (!isMediaPermissionGranted) mediaPermissionRequester.launch(
-                    android.Manifest.permission.ACCESS_MEDIA_LOCATION
+                    Manifest.permission.ACCESS_MEDIA_LOCATION
                 )
             }
         }
@@ -122,7 +134,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun resolveIntent(intent: Intent) {
-        // TODO: 여기에 알림 인텐트 처리 로직 추가
+    private fun resolveIntent() {
+        val intentType = IntentManager.getIntentType(intent) ?: return
+        this.intentTypeState.value = intentType
     }
 }
