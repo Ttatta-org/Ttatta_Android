@@ -114,8 +114,12 @@ class SettingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun syncPinWithServer() {
-        val response = serverApi.withAuth(authPreference) { getPin() }
-        settingPreference.pinHash = response.pinHash
+        try {
+            val response = serverApi.withAuth(authPreference) { getPin() }
+            settingPreference.pinHash = response.pinHash
+        } catch (_: Exception) {
+            return
+        }
     }
 
     @Deprecated("Use `getNotificationSetting` instead.")
