@@ -203,11 +203,10 @@ fun NotificationSettingsScreen(
                                         // 시/분 휠
                                         TimeWheelDropdown(
                                             width = 130.dp,
-                                            initialIsPm = dailyIsPm,
                                             initialHour12 = dailyHour12,
                                             initialMinute = dailyMinute
-                                        ) { isPm, hour12, minute ->
-                                            onDailyTimeChange(isPm, hour12, minute) // ← 위치 인자
+                                        ) { hour12, minute ->
+                                            onDailyTimeChange(dailyIsPm, hour12, minute)
                                         }
                                     }
 
@@ -629,35 +628,27 @@ fun WheelPicker(
 fun TimeWheelDropdown(
     modifier: Modifier = Modifier,
     width: Dp,
-    initialIsPm: Boolean = false,
     initialHour12: Int = 8,
     initialMinute: Int = 30,
-    onChanged: (isPm: Boolean, hour12: Int, minute: Int) -> Unit
+    onChanged: (hour12: Int, minute: Int) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    // TimeWheelDropdown 내부
-    var isPm by remember(initialIsPm) { mutableStateOf(initialIsPm) }
     var hourIdx by remember(initialHour12) { mutableStateOf((initialHour12 - 1).coerceIn(0, 11)) }
     var minuteIdx by remember(initialMinute) { mutableStateOf(initialMinute.coerceIn(0, 59)) }
-
 
     val hourItems = remember { (1..12).map { it.toString().padStart(2, '0') } }
     val minuteItems = remember { (0..59).map { it.toString().padStart(2, '0') } }
 
-    val headerHeight = 30.dp  // 헤더 높이 (디자인 값)
+    val headerHeight = 30.dp
+    val hPadding = 10.dp
+    val iconWidth = 12.dp
+    val gap = 15.dp
 
     Box(modifier = modifier.width(width)) {
+        val innerWidth = width - hPadding * 2
+        val textBlockWidth = (innerWidth - iconWidth - gap).coerceAtLeast(0.dp)
 
-        // ── 헤더 ──
-        val headerWidth = width                 // TimeWheelDropdown에 넘긴 width (ex. 130.dp)
-        val hPadding = 10.dp                    // 헤더 좌우 패딩(지금 코드 기준)
-        val iconwidth = 12.dp                    // 아이콘 크기
-        val gap = 15.dp                          // 텍스트와 아이콘 사이 간격
-
-        // ✅ 텍스트 블록이 차지할 수 있는 최대 폭 = 내부폭 - (아이콘 + 간격)
-        val innerWidth = headerWidth - hPadding * 2
-        val textBlockWidth = (innerWidth - iconwidth - gap).coerceAtLeast(0.dp)
-
+        // 헤더
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -669,13 +660,10 @@ fun TimeWheelDropdown(
                 .padding(horizontal = hPadding),
             contentAlignment = Alignment.Center
         ) {
-            // 그룹(텍스트+아이콘)을 통째로 가운데에
             Row(
-                modifier = Modifier
-                    .width(textBlockWidth + gap + iconwidth),
+                modifier = Modifier.width(textBlockWidth + gap + iconWidth),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // ⬇️ 텍스트 블록: 내부를 3등분(시 / : / 분)
                 Row(
                     modifier = Modifier.width(textBlockWidth),
                     verticalAlignment = Alignment.CenterVertically
@@ -707,7 +695,6 @@ fun TimeWheelDropdown(
                 }
 
                 Spacer(Modifier.width(gap))
-
                 DropdownChevronIcon(
                     expanded = expanded,
                     tint = if (expanded) Color(0xFFFF8072) else Color(0xFF8E8E8E)
@@ -715,10 +702,10 @@ fun TimeWheelDropdown(
             }
         }
 
-        // ── 드롭다운 바디: Popup 기반, 외부 클릭 시 자동 닫힘 ──
+        // 바디
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },   // 바깥 클릭/뒤로가기로 닫힘
+            onDismissRequest = { expanded = false },
             properties = PopupProperties(
                 focusable = true,
                 dismissOnClickOutside = true,
@@ -729,16 +716,13 @@ fun TimeWheelDropdown(
                 .zIndex(10f)
                 .width(width)
                 .background(Color.White, shape = RoundedCornerShape(14.dp))
-
         ) {
             Surface(
                 modifier = Modifier.width(width),
                 shape = RoundedCornerShape(14.dp),
                 color = Color.White
             ) {
-                Column(Modifier
-                    .padding(end = 30.dp)
-                ) {
+                Column(Modifier.padding(end = 30.dp)) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -751,7 +735,7 @@ fun TimeWheelDropdown(
                             modifier = Modifier.weight(1f)
                         ) { idx ->
                             hourIdx = idx
-                            onChanged(isPm, hourIdx + 1, minuteIdx)
+                            onChanged(hourIdx + 1, minuteIdx)
                         }
 
                         Text(text = ":", color = Color(0xFF8E8E8E), fontSize = 16.sp)
@@ -764,7 +748,7 @@ fun TimeWheelDropdown(
                             modifier = Modifier.weight(1f)
                         ) { idx ->
                             minuteIdx = idx
-                            onChanged(isPm, hourIdx + 1, minuteIdx)
+                            onChanged(hourIdx + 1, minuteIdx)
                         }
                     }
                 }

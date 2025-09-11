@@ -7,8 +7,10 @@ import com.umc.data.api.dto.server.WrittingDiaryAlarmOnResponseDTO
 import com.umc.data.api.dto.server.ChallengeRemindAlarmOnResponseDTO
 import com.umc.data.api.dto.server.UpdateChallengeRemindAlarmRequestDTO
 import com.umc.data.api.dto.server.DailySummaryAlarmOnResponseDTO
+import com.umc.data.api.dto.server.GetAllAlarmsResponseDTO
 import com.umc.data.api.dto.server.UpdateDailySummaryAlarmRequestDTO
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Query
@@ -65,6 +67,9 @@ interface AlarmApi {
 
     @PATCH("/alarms/summary/diary/off")
     suspend fun turnOffDailySummaryAlarm(): BaseResponse<Any?>
+
+    @GET("/alarms")
+    suspend fun getAllAlarms(): BaseResponse<GetAllAlarmsResponseDTO>
 }
 
 enum class MemoryDiaryAlarmStatus { ON, OFF }
