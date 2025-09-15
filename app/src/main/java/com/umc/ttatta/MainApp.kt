@@ -98,7 +98,6 @@ fun MainApp(
             }
 
             onPermissionRequiredInitially()  // 권한 획득 요청
-            viewModel.runWithScope { enableLock() }  // 핀 번호 잠금 화면 활성화
         }
     }
 

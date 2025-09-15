@@ -92,6 +92,10 @@ interface UserApi {
         @Body body: ChangePinRequestDTO
     ): BaseResponse<ChangePinResultDTO>
 
+    // 핀번호 삭제하기
+    @DELETE("/users/pin")
+    suspend fun clearPin(): BaseResponse<Any?>
+
     // PW 찾기용 인증메일 발송
     @POST("/users/find/send-pw")
     suspend fun sendVerificationMailForFindingPassword(

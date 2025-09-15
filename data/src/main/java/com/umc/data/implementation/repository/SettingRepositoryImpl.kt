@@ -45,8 +45,7 @@ class SettingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun clearPin() {
-        // 서버 API 준비되면:
-        // serverApi.withAuth(authPreference) { clearPin() }
+        runCatching { serverApi.withAuth(authPreference) { clearPin() } }
         settingPreference.pinHash = null
     }
 
@@ -56,11 +55,11 @@ class SettingRepositoryImpl @Inject constructor(
         BCrypt.checkpw(pin.toString(), settingPreference.pinHash)
 
     override suspend fun syncPinWithServer() {
-        try {
+        runCatching {
             val response = serverApi.withAuth(authPreference) { getPin() }
-            settingPreference.pinHash = response.pinHash
-        } catch (_: Exception) {
-            return
+            response.pinHash
+        }.onSuccess { pinHash ->
+            settingPreference.pinHash = pinHash
         }
     }
 

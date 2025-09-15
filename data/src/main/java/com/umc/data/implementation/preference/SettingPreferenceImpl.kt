@@ -49,7 +49,10 @@ class SettingPreferenceImpl @Inject constructor(
 
     override var pinHash: String?
         get() = prefs.getString(PIN_HASH_KEY, null)
-        set(value) { prefs.edit { putString(PIN_HASH_KEY, value) } }
+        set(value) {
+            if (value == null) prefs.edit { remove(PIN_HASH_KEY) }
+            else prefs.edit { putString(PIN_HASH_KEY, value) }
+        }
 
     override fun setNotificationSetting(notificationSetting: NotificationSetting) {
         // 같은 타입은 교체, 없으면 추가
@@ -57,7 +60,11 @@ class SettingPreferenceImpl @Inject constructor(
             .filterNot { it::class == notificationSetting::class } + notificationSetting
         notificationSettings = updated
     }
+
     override var lastSentFcmToken: String?
         get() = prefs.getString(LAST_SENT_FCM_TOKEN_KEY, null)
-        set(value) { prefs.edit { putString(LAST_SENT_FCM_TOKEN_KEY, value) } }
+        set(value) {
+            if (value == null) prefs.edit { remove(LAST_SENT_FCM_TOKEN_KEY) }
+            else prefs.edit { putString(LAST_SENT_FCM_TOKEN_KEY, value) }
+        }
 }

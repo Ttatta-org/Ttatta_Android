@@ -14,6 +14,8 @@ import com.umc.mypage.MyPageScreen
 import com.umc.mypage.MyPageViewModel
 import com.umc.mypage.NotificationSettingsScreen
 import com.umc.mypage.SignOutScreen
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppNavHost(
@@ -116,7 +118,7 @@ fun AppNavHost(
                 isChangingPassword = false,
                 onComplete = { pin ->
                     viewModel.savePin(pin.toInt())
-                    navController.popBackStack()
+                    MainScope().launch { navController.popBackStack() }
                 }
             )
         }
@@ -125,7 +127,7 @@ fun AppNavHost(
                 isChangingPassword = true,
                 onComplete = { pin ->
                     viewModel.savePin(pin.toInt())
-                    navController.popBackStack()
+                    MainScope().launch { navController.popBackStack() }
                 }
             )
         }
