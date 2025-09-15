@@ -4,6 +4,7 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.umc.data.serializer.LocalDateSerializer
 import com.umc.data.serializer.LocalDateTimeSerializer
+import com.umc.data.serializer.LocalTimeSerializer
 import com.umc.data.serializer.OffsetDateTimeSerializer
 import dagger.Module
 import dagger.Provides
@@ -22,6 +23,7 @@ object MoshiModule {
             .add(OffsetDateTimeSerializer())
             .add(LocalDateSerializer())
             .add(LocalDateTimeSerializer())
+            .add(LocalTimeSerializer())
             .build()
     }
 }

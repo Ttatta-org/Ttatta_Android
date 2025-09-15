@@ -25,6 +25,7 @@ fun AppNavHost(
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val isPinSet by viewModel.isPinEnabled.collectAsState()
+    val notiState by viewModel.notificationUi.collectAsState()
 
     NavHost(
         navController = navController,
@@ -73,8 +74,21 @@ fun AppNavHost(
         }
 
         composable("notification") {
+            LaunchedEffect(Unit) {
+                viewModel.loadNotificationSettings()
+            }
             NotificationSettingsScreen(
-
+                // ⬇️ 화면이 stateful이라면 이 파트만 먼저 적용:
+                // 1) 스위치 상태/초깃값들을 notiState로 치환
+                // 2) onCheckedChange / 시간 변경 콜백에서 viewModel 메서드 호출
+                state = notiState,                                // ⬅️ (아래 3번 참고: 화면 시그니처 바꾸는안)
+                onDailyToggle = viewModel::onDailyToggle,
+                onDailyTimeChange = viewModel::onDailyTimeChange,
+                onSummaryToggle = viewModel::onSummaryToggle,
+                onSummaryHourChange = viewModel::onSummaryHourChange,
+                onChallengeToggle = viewModel::onChallengeToggle,
+                onChallengeHoursChange = viewModel::onChallengeHoursChange,
+                onLocationToggle = viewModel::onLocationToggle
             )
         }
 

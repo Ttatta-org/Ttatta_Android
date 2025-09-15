@@ -129,8 +129,8 @@ fun TopBarComponent(
                         painter = painterResource(id = R.drawable.ic_ttatta_logo),
                         contentDescription = "로고",
                         modifier = Modifier
-                            .width(30.dp)
-                            .height(26.dp)
+                            .width(34.6.dp)
+                            .height(30.dp)
                     )
 
                     // 검색창과 아이콘 모두를 포함하는 Row
@@ -158,13 +158,13 @@ fun TopBarComponent(
                                     painter = painterResource(id = R.drawable.ic_location_pin),
                                     contentDescription = "위치 핀",
                                     modifier = Modifier
-                                        .width(16.dp)
-                                        .height(22.dp)
+                                        .width(19.21.dp)
+                                        .height(26.dp)
                                 )
                             }
                         }
 
-                        Spacer(modifier = Modifier.width(16.dp)) // 검색창과 검색 아이콘 간격
+                        Spacer(modifier = Modifier.width(20.dp)) // 검색창과 검색 아이콘 간격
 
                         // 검색 아이콘 (항상 동일한 위치에 유지)
                         IconButton(
@@ -186,7 +186,9 @@ fun TopBarComponent(
                             Image(
                                 painter = painterResource(id = R.drawable.ic_search),
                                 contentDescription = "검색",
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier
+                                    .width(22.dp)
+                                    .height(24.dp)
                             )
                         }
                     }
@@ -198,7 +200,7 @@ fun TopBarComponent(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 40.dp),
+                        .padding(horizontal = 22.dp),
                     contentAlignment = Alignment.Center
                 ) {
 

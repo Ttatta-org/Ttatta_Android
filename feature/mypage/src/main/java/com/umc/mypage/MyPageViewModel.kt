@@ -2,6 +2,7 @@ package com.umc.mypage
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
 import com.umc.core.model.UserInfo
 import com.umc.core.repository.SettingRepository
@@ -10,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 import javax.inject.Inject
 
 
@@ -92,6 +94,8 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
+    // ----- Pin/유저 메서드 유지 -----
+
     fun refreshPinStatus() {
         viewModelScope.launch {
             _isPinEnabled.value = settingRepository.getIsPinSet()
@@ -120,4 +124,171 @@ class MyPageViewModel @Inject constructor(
     suspend fun isPinSet(): Boolean {
         return settingRepository.getIsPinSet()
     }
+
+    // ===== 알림 설정 UI 상태 =====
+    data class NotificationSettingsUiState(
+        val isLoading: Boolean = true,
+        val error: String? = null,
+
+        val dailyOn: Boolean = false,
+        val dailyHour24: Int = 20,
+        val dailyMinute: Int = 30,
+
+        val summaryOn: Boolean = false,
+        val summaryHour24: Int = 13,
+
+        val challengeOn: Boolean = false,
+        val challengeRemainingHours: Int = 1,
+
+        val locationOn: Boolean = false
+    )
+
+    private val _notificationUi = MutableStateFlow(NotificationSettingsUiState())
+    val notificationUi: StateFlow<NotificationSettingsUiState> = _notificationUi
+
+    init {
+        loadNotificationSettings()
+    }
+
+    /** 화면 진입 시 서버 요약 한 방에 로드 */
+    fun loadNotificationSettings() = viewModelScope.launch {
+        _notificationUi.value = _notificationUi.value.copy(isLoading = true, error = null)
+        runCatching {
+            val s = settingRepository.getAlarmSummary()
+            _notificationUi.value = NotificationSettingsUiState(
+                isLoading = false,
+                dailyOn = s.writingActive,
+                dailyHour24 = s.writingTime?.hour ?: 20,
+                dailyMinute = s.writingTime?.minute ?: 30,
+                summaryOn = s.dailyActive,
+                summaryHour24 = s.dailyTime?.hour ?: 13,
+                challengeOn = s.challengeActive,
+                challengeRemainingHours = s.challengeHoursAgo ?: 1,
+                locationOn = s.memoryActive
+            )
+        }.onFailure { e ->
+            _notificationUi.value = _notificationUi.value.copy(isLoading = false, error = e.message)
+        }
+    }
+
+    // ===== 일기 작성 알림 =====
+    fun onDailyToggle(isOn: Boolean) = viewModelScope.launch {
+        val prev = _notificationUi.value
+        if (isOn) {
+            // 서버가 내려주는 기본 시간으로 세팅
+            runCatching {
+                val r = settingRepository.turnOnWritingDiary()
+                val t = r.time ?: LocalTime.of(prev.dailyHour24, prev.dailyMinute)
+                _notificationUi.value = prev.copy(
+                    dailyOn = true,
+                    dailyHour24 = t.hour,
+                    dailyMinute = t.minute
+                )
+            }.onFailure {
+                _notificationUi.value = prev.copy(dailyOn = false)
+            }
+        } else {
+            runCatching { settingRepository.turnOffWritingDiary() }
+                .onSuccess { _notificationUi.value = prev.copy(dailyOn = false) }
+                .onFailure { _notificationUi.value = prev } // 롤백
+        }
+    }
+
+    fun onDailyTimeChange(isPm: Boolean, hour12: Int, minute: Int) = viewModelScope.launch {
+        val h24 = to24h(isPm, hour12)
+        val prev = _notificationUi.value
+        // 낙관적 반영
+        _notificationUi.value = prev.copy(dailyHour24 = h24, dailyMinute = minute)
+        runCatching {
+            settingRepository.updateWritingDiaryTime(LocalTime.of(h24, minute))
+        }.onFailure {
+            // 실패 시 롤백
+            _notificationUi.value = prev
+        }
+    }
+
+    // ===== 하루 요약 알림 (오후 고정) =====
+    fun onSummaryToggle(isOn: Boolean) = viewModelScope.launch {
+        val prev = _notificationUi.value
+        if (isOn) {
+            runCatching {
+                val r = settingRepository.turnOnDailySummary()
+                val t = r.time ?: LocalTime.of(prev.summaryHour24, 0)
+                _notificationUi.value = prev.copy(
+                    summaryOn = true,
+                    summaryHour24 = t.hour
+                )
+            }.onFailure {
+                _notificationUi.value = prev.copy(summaryOn = false)
+            }
+        } else {
+            runCatching { settingRepository.turnOffDailySummary() }
+                .onSuccess { _notificationUi.value = prev.copy(summaryOn = false) }
+                .onFailure { _notificationUi.value = prev }
+        }
+    }
+
+    fun onSummaryHourChange(hour12: Int) = viewModelScope.launch {
+        val h24 = to24hPm(hour12) // 오후 고정
+        val prev = _notificationUi.value
+        _notificationUi.value = prev.copy(summaryHour24 = h24)
+        runCatching {
+            settingRepository.updateDailySummaryTime(LocalTime.of(h24, 0))
+        }.onFailure {
+            _notificationUi.value = prev
+        }
+    }
+
+    // ===== 챌린지 리마인드 =====
+    fun onChallengeToggle(isOn: Boolean) = viewModelScope.launch {
+        val prev = _notificationUi.value
+        if (isOn) {
+            runCatching {
+                val r = settingRepository.turnOnChallengeRemind()
+                val hours = r.hoursAgo ?: prev.challengeRemainingHours
+                _notificationUi.value = prev.copy(
+                    challengeOn = true,
+                    challengeRemainingHours = hours
+                )
+            }.onFailure {
+                _notificationUi.value = prev.copy(challengeOn = false)
+            }
+        } else {
+            runCatching { settingRepository.turnOffChallengeRemind() }
+                .onSuccess { _notificationUi.value = prev.copy(challengeOn = false) }
+                .onFailure { _notificationUi.value = prev }
+        }
+    }
+
+    fun onChallengeHoursChange(hours: Int) = viewModelScope.launch {
+        val prev = _notificationUi.value
+        _notificationUi.value = prev.copy(challengeRemainingHours = hours)
+        runCatching {
+            settingRepository.updateChallengeHoursAgo(hours)
+        }.onFailure {
+            _notificationUi.value = prev
+        }
+    }
+
+    // ===== 위치 기반(토글형) =====
+    fun onLocationToggle(isOn: Boolean) = viewModelScope.launch {
+        val prev = _notificationUi.value
+        _notificationUi.value = prev.copy(locationOn = isOn)
+        runCatching {
+            settingRepository.setMemoryDiaryActive(isOn)
+        }.onFailure {
+            _notificationUi.value = prev // 실패 시 롤백
+        }
+    }
+
+    // ===== 12/24시간 변환 유틸 =====
+    private fun to24h(isPm: Boolean, hour12: Int): Int {
+        val base = if (hour12 == 12) 0 else hour12
+        return if (isPm) base + 12 else base
+    }
+
+    // 오후(PM) 고정: 12 -> 12, 1..11 -> 13..23
+    private fun to24hPm(hour12: Int): Int =
+        if (hour12 == 12) 12 else hour12 + 12
+
 }

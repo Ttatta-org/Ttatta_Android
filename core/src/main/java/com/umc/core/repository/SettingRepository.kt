@@ -2,16 +2,12 @@ package com.umc.core.repository
 
 import com.umc.core.model.NotificationSetting
 import com.umc.core.model.Theme
+import java.time.LocalTime
 import kotlin.reflect.KClass
 
 interface SettingRepository {
     // 테마 설정
     suspend fun switchTheme(theme: Theme)
-
-    // 알림 설정 저장
-    suspend fun setNotification(notificationSetting: NotificationSetting)
-    suspend fun <T : NotificationSetting> getNotificationSetting(notificationSetting: KClass<T>): T
-    suspend fun syncNotificationSettingsWithServer()
 
     // FCM 토큰 전달
     suspend fun sendFcmToken(token: String)
@@ -23,6 +19,42 @@ interface SettingRepository {
     suspend fun getIsPinCorrect(pin: Int): Boolean
     suspend fun syncPinWithServer()
 
-    @Deprecated("Use `getNotificationSetting` instead.")
-    suspend fun isMemoryNotificationEnabled(): Boolean
+    // 알림: 화면 진입 요약
+    suspend fun getAlarmSummary(): AlarmSummary
+
+    // 일기 작성
+    suspend fun turnOnWritingDiary(): AlarmResult
+    suspend fun updateWritingDiaryTime(time: LocalTime): AlarmResult
+    suspend fun turnOffWritingDiary()
+
+    // 위치 기반(토글형)
+    suspend fun setMemoryDiaryActive(active: Boolean)
+
+    // 챌린지 리마인드
+    suspend fun turnOnChallengeRemind(): AlarmResult
+    suspend fun updateChallengeHoursAgo(hoursAgo: Int): AlarmResult
+    suspend fun turnOffChallengeRemind()
+
+    // 하루 요약
+    suspend fun turnOnDailySummary(): AlarmResult
+    suspend fun updateDailySummaryTime(time: LocalTime): AlarmResult
+    suspend fun turnOffDailySummary()
 }
+
+// 화면 초기화용 도메인 모델
+data class AlarmSummary(
+    val writingActive: Boolean,
+    val writingTime: LocalTime?,
+    val memoryActive: Boolean,
+    val challengeActive: Boolean,
+    val challengeHoursAgo: Int?,
+    val dailyActive: Boolean,
+    val dailyTime: LocalTime?
+)
+
+// 개별 동작 결과(ON/변경 공통)
+data class AlarmResult(
+    val active: Boolean,
+    val time: LocalTime? = null,
+    val hoursAgo: Int? = null
+)

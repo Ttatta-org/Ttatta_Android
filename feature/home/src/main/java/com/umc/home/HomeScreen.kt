@@ -306,15 +306,15 @@ fun HomeScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(
-                        modifier = Modifier.size(42.dp, 14.dp),
+                        modifier = Modifier.size(50.dp, 16.dp),
                         onClick = { onCalendarToggle() }
                     ) {
                         Image(
                             painter = painterResource(id = dragIcon), // 드래그 아이콘 변경
                             contentDescription = null,
                             modifier = Modifier
-                                .width(42.dp)
-                                .height(13.5.dp)
+                                .width(50.dp)
+                                .height(16.dp)
                         )
                     }
                 }
@@ -444,188 +444,149 @@ fun CalendarView(
     onDateSelected: (LocalDate) -> Unit,
     diaryDates: List<LocalDate> // 다이어리를 작성한 날짜 리스트
 ) {
-    // 상태 관리
+    // 상태
     val today = LocalDate.now()
     var currentYear by remember { mutableStateOf(today.year) }
     var currentMonth by remember { mutableStateOf(today.monthValue) }
 
-    val daysInMonth = YearMonth.of(currentYear, currentMonth).lengthOfMonth()
-    val firstDayOfWeek = YearMonth.of(currentYear, currentMonth).atDay(1).dayOfWeek.value % 7
+    // ✅ 내부 선택 상태(선택된 날짜 텍스트를 흰색으로)
+    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
 
-    var dragTotalX by remember { mutableStateOf(0f) }
-    var currentMonthOffset by remember { mutableStateOf(0) } // 월 이동 애니메이션용 오프셋
+    val yearMonth = remember(currentYear, currentMonth) { YearMonth.of(currentYear, currentMonth) }
+    val daysInMonth = yearMonth.lengthOfMonth()
+    val firstDayOfWeek = (yearMonth.atDay(1).dayOfWeek.value % 7)
 
+    // UI 사이즈(조정 포인트)
+    val cellSize = 50.dp            // ⬆️ 기존 40dp → 50dp로 확대
+    val dayFontSize = 15.sp         // ⬆️ 14sp → 15sp
+    val weekFontSize = 14.sp
+    val flowerWidth = 38.5.dp         // ⬆️ 35dp → 42dp
+    val flowerHeight = 35.86.dp        // ⬆️ 32.5dp → 39dp
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = {
-                        dragTotalX = 0f
-                    },
-                    onDragEnd = {
-                        if (dragTotalX > 100f) {
-                            // 👉 오른쪽 스와이프
-                            if (currentMonth == 1) {
-                                currentMonth = 12
-                                currentYear -= 1
-                            } else {
-                                currentMonth -= 1
-                            }
-                            currentMonthOffset = -1
-                        } else if (dragTotalX < -100f) {
-                            // 👉 왼쪽 스와이프
-                            if (currentMonth == 12) {
-                                currentMonth = 1
-                                currentYear += 1
-                            } else {
-                                currentMonth += 1
-                            }
-                            currentMonthOffset = 1
-                        }
-                    },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        dragTotalX += dragAmount.x
-                    }
-                )
-            }
-
     ) {
-        // 상단 월/연도와 이동 버튼
+        // 상단 월/연도 + 네비게이션
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp), // 위아래 여백 조정
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center // 중앙 정렬
+            horizontalArrangement = Arrangement.Center
         ) {
-            // 이전 달 버튼
-            IconButton(
-                onClick = {
-                    if (currentMonth == 1) {
-                        currentMonth = 12
-                        currentYear -= 1
-                    } else {
-                        currentMonth -= 1
-                    }
-                },
-                modifier = Modifier.size(24.dp) // 버튼 크기 축소
+            Box(
+                modifier = Modifier              // 원하는 터치 영역
+                    .clickable {                  // 이전 달
+                        if (currentMonth == 1) { currentMonth = 12; currentYear -= 1 }
+                        else currentMonth -= 1
+                    },
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowLeft,
+                Image(
+                    painter = painterResource(id = R.drawable.ic_arrow_left),
                     contentDescription = "Previous Month",
-                    tint = Color.Gray, // 색상 변경
-                    modifier = Modifier
-                        .width(24.dp)
-                        .height(18.dp)
+                    modifier = Modifier.size(width = 9.dp, height = 16.dp) // 아이콘 자체 크기
                 )
             }
 
-            // 중앙 텍스트
             Text(
                 text = "${currentYear}년 ${currentMonth}월",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold // 강조 효과
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.W700,
+                    color = Color(0xFF4B4B4B),
+                    letterSpacing = (-0.4).sp,
+                    lineHeight = 20.sp
                 ),
-                color = Color.Black,
-                modifier = Modifier.padding(horizontal = 13.dp) // 텍스트 양옆 여백
+                modifier = Modifier.padding(horizontal = 14.dp)
             )
 
-            // 다음 달 버튼
-            IconButton(
-                onClick = {
-                    if (currentMonth == 12) {
-                        currentMonth = 1
-                        currentYear += 1
-                    } else {
-                        currentMonth += 1
-                    }
-                },
-                modifier = Modifier.size(24.dp) // 버튼 크기 축소
+            Box(
+                modifier = Modifier
+                    .clickable {
+                        if (currentMonth == 12) { currentMonth = 1; currentYear += 1 }
+                        else currentMonth += 1
+                    },
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowRight,
+                Image(
+                    painter = painterResource(id = R.drawable.ic_arrow_right),
                     contentDescription = "Next Month",
-                    tint = Color.Gray, // 색상 변경
-                    modifier = Modifier
-                        .width(24.dp)
-                        .height(18.dp)
+                    modifier = Modifier.size(width = 9.dp, height = 16.dp)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(Modifier.height(15.dp))
 
-        // 요일 표시
+        // 요일 표시 (일요일도 빨간색 없음)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            val daysOfWeek = listOf("일", "월", "화", "수", "목", "금", "토")
-            daysOfWeek.forEach { day ->
+            listOf("일", "월", "화", "수", "목", "금", "토").forEach { day ->
                 Text(
                     text = day,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 12.sp),
-                    color = Color(0xFFCACACA),
-                    modifier = Modifier.weight(1f, true), // 균등 배분
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = weekFontSize),
+                    color = Color(0xFFBDBDBD),
+                    modifier = Modifier.weight(1f, true),
                     textAlign = TextAlign.Center
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(Modifier.height(8.dp))
 
-        // 날짜 그리드 표시
+        // 날짜 그리드
         LazyVerticalGrid(
-            columns = GridCells.Fixed(7), // 7열 그리드
-            modifier = Modifier.fillMaxWidth()
+            columns = GridCells.Fixed(7),
+            modifier = Modifier.fillMaxWidth(),
+            userScrollEnabled = false // 달력 높이 고정 느낌 유지
         ) {
-            // 첫 주 빈칸 추가
-            items(firstDayOfWeek) {
-                Spacer(modifier = Modifier.size(40.dp))
-            }
+            // 첫 주 공백
+            items(firstDayOfWeek) { Spacer(modifier = Modifier.size(cellSize)) }
 
-            // 날짜 버튼 표시
-            items(daysInMonth) { day ->
-                val date = LocalDate.of(currentYear, currentMonth, day + 1)
-                val hasDiary = diaryDates.contains(date) // 해당 날짜에 일기 있는지 확인
+            // 날짜 렌더
+            items(daysInMonth) { index ->
+                val day = index + 1
+                val date = LocalDate.of(currentYear, currentMonth, day)
+                val hasDiary = diaryDates.contains(date)
+                val isSelected = selectedDate == date
 
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .padding(5.dp)
+                        .size(cellSize)
+                        .padding(4.dp)
                         .clickable {
-                            if (hasDiary) {  // 일기가 있는 경우만 실행
-                                Log.d("CalendarView", "📌 1. 날짜 선택됨: $date")
+                            if (hasDiary) {
+                                selectedDate = date // ✅ 내부 선택상태 갱신
                                 onDateSelected(date)
                             }
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    // 일기 날짜일 경우 배경 이미지
-                    if (diaryDates.contains(date)) {
+                    // 일기 있는 날 → 꽃 배경
+                    if (hasDiary) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_calender_point), // 꽃 이미지
+                            painter = painterResource(id = R.drawable.ic_calender_point),
                             contentDescription = null,
                             modifier = Modifier
-                                .width(35.dp)
-                                .height(32.5.dp)
+                                .width(flowerWidth)
+                                .height(flowerHeight)
                                 .align(Alignment.Center)
                         )
                     }
 
                     // 날짜 텍스트
                     Text(
-                        text = (day + 1).toString(),
+                        text = day.toString(),
+                        // ✅ 일요일 빨간색 제거, 선택 시 흰색
                         color = when {
-                            date == today -> Color.Red // 오늘 날짜는 빨간색
-                            diaryDates.contains(date) -> Color.Black // 일기 작성 날짜는 검정색
-                            else -> Color(0xFFCACACA) // 일반 날짜는 #CACACA
+                            isSelected -> Color.White
+                            hasDiary -> Color(0xFF333333)
+                            else -> Color(0xFFCACACA)
                         },
-                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = dayFontSize),
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -633,10 +594,6 @@ fun CalendarView(
         }
     }
 }
-
-
-
-
 
 @Composable
 fun DiaryCard(
@@ -648,10 +605,10 @@ fun DiaryCard(
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 25.dp)
             .shadow(
-                elevation = 4.dp, // 그림자의 높이 조정
+                elevation = 2.dp, // 그림자의 높이 조정
                 shape = RoundedCornerShape(28.dp), // 카드의 모서리 둥글기
-                spotColor = Color(0xDE806E38),
-                ambientColor = Color(0xDE806E38),
+                spotColor = Color(0xFFDE806E),
+                ambientColor = Color(0xFFDE806E),
                 clip = true // 모서리가 잘리도록 설정
             ),
         shape = RoundedCornerShape(28.dp),
@@ -662,7 +619,7 @@ fun DiaryCard(
         ) {
             Column(
                 modifier = Modifier
-                    .padding(top = 13.dp, bottom = 20.dp, start = 30.dp, end = 30.dp)
+                    .padding(top = 14.dp, bottom = 20.dp, start = 24.dp, end = 24.dp)
                     .fillMaxWidth()
                     .background(Color.White)
 
@@ -684,9 +641,9 @@ fun DiaryCard(
                     Text(
                         text = diary.date.formatToKorean(), // 날짜 텍스트
                         style = TextStyle(
-                            color = Color(0xFFFF9681), // 텍스트 색상
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.W400,
+                            color = Color(0xFFFF9888), // 텍스트 색상
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.W700,
                             fontFamily = FontFamily.Default,
                             letterSpacing = -0.4.sp,
                             lineHeight = 20.sp
@@ -694,29 +651,8 @@ fun DiaryCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // 구분선
-                Divider(
-                    color = Color(0xFFFF9681),
-                    thickness = 0.5.dp,
-                    modifier = Modifier
-                        .padding(start = 40.dp, end = 40.dp)
-                )
-
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // 상단 이미지
-//                Image(
-//                    painter = painterResource(id = diary.imageUrl),
-//                    contentDescription = "Diary Image",
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(280.dp) // 이미지 높이 설정
-//                        .width(280.dp)
-//                        .clip(RoundedCornerShape(18.dp)),
-//                    contentScale = ContentScale.Crop // 이미지 크롭 설정
-//                )
                 AsyncImage(
                     model = diary.imageUrl,
                     contentDescription = "Diary Image",
@@ -726,54 +662,53 @@ fun DiaryCard(
                         //.height(280.dp)
                         .clip(RoundedCornerShape(15.dp)),
                     contentScale = ContentScale.Crop,
-                    // 필요 시 placeholder나 error 설정도 할 수 있음
+
                     error = painterResource(id = R.drawable.if_image_error)
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
-                // 위치 텍스트 (지금 viewmodel 잘못돼서 위치가 안보이는데 dto에 맞게 바꿔야함)
                 Row(
                     modifier = Modifier
                         .wrapContentWidth()
                         .background(Color(0xFFFEF6F2), RoundedCornerShape(15.dp)) // 배경색 및 모양 설정
-                        .padding(horizontal = 11.dp),
+                        .padding(horizontal = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.ic_location), // 위치 아이콘 리소스 사용
                         contentDescription = "위치 아이콘",
                         modifier = Modifier
-                            .width(7.6.dp)
-                            .height(9.98.dp),
+                            .width(9.4.dp)
+                            .height(12.dp),
                     )
 
-                    Spacer(modifier = Modifier.width(5.4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
 
                     Text(
                         text = diary.locationName, // locationName 위치 가져오기
                         style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color(0xFFFF9681), // 텍스트 색상
-                            fontSize = 10.sp
+                            color = Color(0xFFFF9888), // 텍스트 색상
+                            fontSize = 12.sp
                         )
                     )
                 }
 
-                Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 // 내용 텍스트
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(15.dp))
-                        .padding(vertical = 10.dp, horizontal = 12.dp)
+                        .background(Color(0xFFFFEFE4).copy(alpha = 0.5f), RoundedCornerShape(18.dp))
+                        .padding(14.dp)
                 ) {
                     Text(
                         text = diary.content,
                         style = TextStyle(
                             color = Color(0xFF4B4B4B), // 텍스트 색상
-                            fontSize = 12.sp,
-                            lineHeight = 16.sp,
+                            fontSize = 13.sp,
+                            lineHeight = 17.sp,
                             fontWeight = FontWeight.W400,
                             fontFamily = FontFamily.Default,
                             letterSpacing = -0.4.sp
