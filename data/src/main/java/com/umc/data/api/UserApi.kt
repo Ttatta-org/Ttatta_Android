@@ -4,6 +4,7 @@ import com.umc.data.api.dto.BaseResponse
 import com.umc.data.api.dto.server.ChangePinRequestDTO
 import com.umc.data.api.dto.server.ChangePinResultDTO
 import com.umc.data.api.dto.server.CheckVerificationCodeRequestDTO
+import com.umc.data.api.dto.server.DeleteRequestDTO
 import com.umc.data.api.dto.server.EditRequestDTO
 import com.umc.data.api.dto.server.FindIdResultDTO
 import com.umc.data.api.dto.server.FindPwRequestDTO
@@ -19,6 +20,7 @@ import com.umc.data.api.dto.server.SetPinResultDTO
 import com.umc.data.api.dto.server.SignInRequestDTO
 import com.umc.data.api.dto.server.SignUpKakaoRequestDTO
 import com.umc.data.api.dto.server.SignUpRequestDTO
+import com.umc.data.api.dto.server.UserDeleteResultDTO
 import com.umc.data.api.dto.server.UserInfoEditResultDTO
 import com.umc.data.api.dto.server.UserInfoResultDTO
 import com.umc.data.api.dto.server.UserKaKaoOpenIdResultDTO
@@ -28,6 +30,7 @@ import com.umc.data.api.dto.server.VerifyUsernameOverlapResultDTO
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
@@ -143,8 +146,10 @@ interface UserApi {
     ): BaseResponse<Any?>
 
     // 회원 탈퇴
-    @DELETE("/users")
-    suspend fun deleteUser(): BaseResponse<Any?>
+    @HTTP(method = "DELETE", path = "/users", hasBody = true)
+    suspend fun deleteUser(
+        @Body body: DeleteRequestDTO
+    ): BaseResponse<UserDeleteResultDTO>
 
     // 로그아웃
     @DELETE("/users/logout")

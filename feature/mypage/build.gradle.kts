@@ -72,6 +72,8 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
 
+    implementation("androidx.compose.foundation:foundation")
+
 
     // 의존성 정의
     implementation(project(":core"))
