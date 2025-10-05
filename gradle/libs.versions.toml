@@ -30,6 +30,7 @@ runtimeAndroid = "1.7.7"
 firebaseMessagingKtx = "24.1.1"
 benchmarkTraceprocessorAndroid = "1.4.0"
 firebase-bom = "33.5.1"
+lifecycleViewmodelKtx = "2.9.4"
 
 [libraries]
 androidx-ui-test-android = { module = "androidx.test:core", version.ref = "androidx-test" }
@@ -73,6 +74,7 @@ kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
 androidx-benchmark-traceprocessor-android = { group = "androidx.benchmark", name = "benchmark-traceprocessor-android", version.ref = "benchmarkTraceprocessorAndroid" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase-bom" }
+androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
