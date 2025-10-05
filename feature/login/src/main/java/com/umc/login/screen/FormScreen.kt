@@ -1,43 +1,39 @@
 package com.umc.login.screen
 
-import android.app.Activity
-import android.os.Build
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.umc.design.Grey400
-import com.umc.design.Primary200
-import com.umc.design.Primary400
-import com.umc.design.Secondary300
+import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.LocalFontTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.AnimatedProgressBar
@@ -62,8 +58,6 @@ fun FormScreen(
     onBackButtonClicked: () -> Unit,
     form: @Composable () -> Unit
 ) {
-    Log.d("JoinScreen", "ime: ${WindowInsets.ime.asPaddingValues().calculateBottomPadding()}")
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -71,11 +65,10 @@ fun FormScreen(
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(32.dp)
+            modifier = Modifier.padding(horizontal = 22.dp, vertical = 32.dp)
         ) {
             Box(
-                contentAlignment = Alignment.CenterStart,
-                modifier = Modifier.fillMaxWidth()
+                contentAlignment = Alignment.CenterStart, modifier = Modifier.fillMaxWidth()
             ) {
                 // 뒤로가기 버튼
                 Icon(
@@ -83,19 +76,18 @@ fun FormScreen(
                     modifier = Modifier
                         .size(16.dp)
                         .clickable { onBackButtonClicked() },
-                    tint = Color.Primary400,
+                    tint = LocalColorTheme.current.primary[500],
                     contentDescription = null,
                 )
                 // 최상단 메시지
                 if (topLineMessage != null) Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = topLineMessage,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.W600,
-                        color = Color.Primary400,
+                        color = LocalColorTheme.current.primary[500],
                     )
                 }
             }
@@ -107,7 +99,6 @@ fun FormScreen(
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     // 로고
@@ -123,16 +114,22 @@ fun FormScreen(
                     }
                     // 진행도
                     animatedProgressBarProp?.let { AnimatedProgressBar(prop = it) }
+                    Spacer(modifier = Modifier.height(48.dp))
                     // 설명 메시지
                     formScreenDescriptionMessageProp?.let {
-                        Text(
-                            text = it.message,
-                            fontSize = 14.sp,
-                            lineHeight = 20.sp,
-                            fontWeight = FontWeight.W600,
-                            color = it.color,
-                        )
+                        Box (
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = it.message,
+                                fontSize = 18.sp,
+                                lineHeight = 28.sp,
+                                fontWeight = FontWeight.W800,
+                                color = it.color,
+                            )
+                        }
                     }
+                    Spacer(modifier = Modifier.height(18.dp))
                     form()
                 }
                 Column(
@@ -145,26 +142,30 @@ fun FormScreen(
                         text = nextButtonOverMessage,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.W400,
-                        color = Color.Primary400,
+                        color = LocalColorTheme.current.primary[600],
                     )
                     // 다음 버튼
                     ElevatedButton(
                         enabled = isNextButtonEnabled,
                         onClick = onNextButtonClicked,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
                         elevation = ButtonDefaults.elevatedButtonElevation(
                             defaultElevation = 2.dp,
                             disabledElevation = 2.dp,
                         ),
                         colors = ButtonDefaults.buttonColors(
                             contentColor = Color.White,
-                            containerColor = Color.Primary200,
+                            containerColor = LocalColorTheme.current.primary[400],
                             disabledContentColor = Color.White,
-                            disabledContainerColor = Color.Secondary300,
-                        )
+                            disabledContainerColor = LocalColorTheme.current.primary[200],
+                        ),
+                        shape = RoundedCornerShape(15.dp),
                     ) {
                         Text(
                             text = nextButtonLabel,
+                            fontFamily = LocalFontTheme.current.font,
                             fontSize = 15.sp,
                             lineHeight = 20.sp,
                             fontWeight = FontWeight.W600,
@@ -179,17 +180,6 @@ fun FormScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewFormScreen() {
-    val context = LocalContext.current
-
-    LaunchedEffect(key1 = Unit) {
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-                (context as Activity).window.setDecorFitsSystemWindows(false)
-        } catch (_: ClassCastException) {
-            // empty
-        }
-    }
-
     ThemeProvider {
         FormScreen(
             topLineMessage = "비밀번호 찾기",
@@ -197,11 +187,11 @@ fun PreviewFormScreen() {
             nextButtonOverMessage = "필수 입력 항목입니다",
             animatedProgressBarProp = AnimatedProgressBarProp(currentStep = 2, totalSteps = 6),
             formScreenDescriptionMessageProp = FormScreenDescriptionMessageProp(
-                message = "이메일을 입력해주세요",
-                color = Color.Grey400,
+                message = "이메일을 입력해주세요\n이메일을 입력해주세요",
+                color = LocalColorTheme.current.grey[700],
             ),
             isNextButtonEnabled = false,
-            isLogoVisible = true,
+            isLogoVisible = false,
             onNextButtonClicked = {},
             onBackButtonClicked = {},
         ) {

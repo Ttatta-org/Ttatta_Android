@@ -6,6 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import com.umc.core.util.runWithScope
 import com.umc.login.LoginViewModel
 import com.umc.login.screen.LoginScreen
 
@@ -34,12 +35,15 @@ fun NavGraphBuilder.addLoginNavGraph(
             onPasswordChanged = { password = it },
             onPasswordVisibilityChanged = { isPasswordVisible = it },
             onLoginButtonClicked = {
-                viewModel.login(
-                    id = id,
-                    password = password,
-                    onSucceed = onNavigatingToHome,
-                    onFailed = { isErrorOccurred = true }
-                )
+                viewModel.runWithScope {
+                    runCatching {
+                        login(id = id, password = password)
+                    }.onSuccess {
+                        onNavigatingToHome()
+                    }.onFailure {
+                        isErrorOccurred = true
+                    }
+                }
             },
             onKakaoLoginButtonClicked = onNavigatingToKakaoLogin,
             onFindIdButtonClicked = onNavigatingToFindingId,

@@ -1,5 +1,7 @@
 package com.umc.login.component
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -9,9 +11,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.HorizontalDivider
@@ -41,7 +45,9 @@ import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import com.umc.design.Grey300
 import com.umc.design.Positive
+import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.LocalFontTheme
+import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 
 enum class CustomTextFieldTextAlignment {
@@ -76,7 +82,7 @@ fun CustomTextField(
 
     val innerTextStyle = TextStyle(
         fontFamily = LocalFontTheme.current.font,
-        fontWeight = FontWeight.W600,
+        fontWeight = FontWeight.W700,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = (-0.4).sp,
@@ -101,11 +107,10 @@ fun CustomTextField(
         ) { innerTextField ->
             // 텍스트
             @Composable
-            fun customInnerTextField() {
-                val arrangement = if (prop.textAlignment == CustomTextFieldTextAlignment.START)
-                    Arrangement.Start
-                else
-                    Arrangement.Center
+            fun CustomInnerTextField() {
+                val arrangement =
+                    if (prop.textAlignment == CustomTextFieldTextAlignment.START) Arrangement.Start
+                    else Arrangement.Center
 
                 Box(
                     contentAlignment = Alignment.Center,
@@ -122,8 +127,8 @@ fun CustomTextField(
                                 text = prop.placeholder,
                                 fontSize = 14.sp,
                                 lineHeight = 20.sp,
-                                fontWeight = FontWeight.W600,
-                                color = Color.Grey300,
+                                fontWeight = FontWeight.W400,
+                                color = LocalColorTheme.current.grey[400],
                             )
                         }
                     }
@@ -131,7 +136,7 @@ fun CustomTextField(
                     Row(
                         horizontalArrangement = arrangement,
                         modifier = Modifier
-                            .padding(horizontal = 8.dp)
+                            .padding(horizontal = 16.dp)
                             .fillMaxWidth(),
                     ) {
                         Box(
@@ -157,31 +162,45 @@ fun CustomTextField(
                 }
             }
 
-            if (prop.textAlignment == CustomTextFieldTextAlignment.FLEX_CENTER) Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center, modifier = Modifier.weight(1f)
-                ) {
-                    customInnerTextField()
-                }
-                prop.tail.invoke()
-            } else Box(
+            Box(
                 contentAlignment = Alignment.Center,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .border(
+                        width = 1.dp,
+                        color = LocalColorTheme.current.primary[300],
+                        shape = RoundedCornerShape(15.dp),
+                    )
+                    .background(
+                        color = LocalColorTheme.current.primary[100].copy(alpha = 0.4f),
+                        shape = RoundedCornerShape(15.dp),
+                    )
+                    .heightIn(min = 46.dp)
             ) {
-                customInnerTextField()
-                Row(
-                    horizontalArrangement = Arrangement.End,
+                if (prop.textAlignment == CustomTextFieldTextAlignment.FLEX_CENTER) Row(
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        CustomInnerTextField()
+                    }
                     prop.tail.invoke()
+                } else Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    CustomInnerTextField()
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        prop.tail.invoke()
+                    }
                 }
             }
         }
-        // 밑줄
-        HorizontalDivider(color = Color.Grey300)
     }
 }
 
@@ -191,20 +210,22 @@ fun CustomTextFieldLabelScope(
     customTextField: @Composable () -> Unit,
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Start,
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         customTextField()
         // 하단 메시지
         underMessageProp?.let { prop ->
-            Text(
-                text = prop.value,
-                fontSize = 12.sp,
-                lineHeight = 20.sp,
-                letterSpacing = (-0.4).sp,
-                fontWeight = FontWeight.W400,
-                color = prop.color,
-            )
+            Row {
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = prop.value,
+                    fontSize = 13.sp,
+                    letterSpacing = (-0.4).sp,
+                    fontWeight = FontWeight.W700,
+                    color = prop.color,
+                )
+            }
         }
     }
 }
@@ -212,7 +233,7 @@ fun CustomTextFieldLabelScope(
 val previewCustomTextFieldProp = CustomTextFieldProp(
     value = "따따따따따따따",
     onValueChanged = {},
-    placeholder = "placeholder",
+    placeholder = "입력해주세요",
     textAlignment = CustomTextFieldTextAlignment.FLEX_CENTER,
     isVisible = true,
     tail = {
@@ -222,6 +243,7 @@ val previewCustomTextFieldProp = CustomTextFieldProp(
             Icon(
                 painter = painterResource(id = R.drawable.ic_visibility_off),
                 contentDescription = null,
+                tint = LocalColorTheme.current.grey[400],
             )
         }
     },
@@ -237,14 +259,17 @@ val previewCustomTextFieldUnderMessageProp = CustomTextFieldUnderMessageProp(
 fun PreviewCustomTextField() {
     var text by remember { mutableStateOf(previewCustomTextFieldProp.value) }
 
-    CustomTextFieldLabelScope(
-        underMessageProp = previewCustomTextFieldUnderMessageProp,
-        customTextField = {
-            CustomTextField(
-                prop = previewCustomTextFieldProp.copy(
-                    value = text, onValueChanged = { text = it },
+    ThemeProvider {
+        CustomTextFieldLabelScope(
+            underMessageProp = previewCustomTextFieldUnderMessageProp,
+            customTextField = {
+                CustomTextField(
+                    prop = previewCustomTextFieldProp.copy(
+                        value = text,
+                        onValueChanged = { text = it },
+                    )
                 )
-            )
-        },
-    )
+            },
+        )
+    }
 }

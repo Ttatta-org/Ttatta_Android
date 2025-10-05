@@ -1,19 +1,14 @@
 package com.umc.login.component.form
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,9 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toOffset
 import com.umc.design.Grey300
-import com.umc.design.Grey400
-import com.umc.design.Grey500
-import com.umc.design.Primary500
+import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
@@ -56,7 +49,6 @@ fun CertificationForm(
     domain: String,
     code: String,
     remainTime: Duration?,
-    isCertificateButtonEnabled: Boolean,
     isEditable: Boolean,
     onNameChanged: (String) -> Unit,
     onLocalChanged: (String) -> Unit,
@@ -64,8 +56,6 @@ fun CertificationForm(
     onDomainDropdownExpandedChanged: () -> Unit,
     onDomainDropdownButtonCenterOffsetCalculated: (Offset) -> Unit,
     onCodeChanged: (String) -> Unit,
-    onSendCodeButtonClicked: () -> Unit,
-    onCertificateButtonClicked: () -> Unit,
 ) {
     val density = LocalDensity.current
 
@@ -82,7 +72,7 @@ fun CertificationForm(
     }
 
     Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier.onGloballyPositioned { totalLayoutCoordinates = it },
     ) {
         CustomTextField(
@@ -121,7 +111,7 @@ fun CertificationForm(
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight.W600,
-                    color = Color.Grey500,
+                    color = LocalColorTheme.current.primary[600],
                 )
                 Box(
                     modifier = Modifier.weight(1f)
@@ -157,24 +147,6 @@ fun CertificationForm(
                     )
                 }
             }
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(percent = 50))
-                    .border(
-                        border = BorderStroke(color = Color.Primary500, width = 1.dp),
-                        shape = RoundedCornerShape(percent = 50),
-                    )
-                    .widthIn(min = 84.dp)
-                    .clickable { onSendCodeButtonClicked() }
-            ) {
-                Text(
-                    text = stringResource(id = R.string.send_email),
-                    color = Color.Primary500,
-                    fontSize = with(density) { 12.dp.toSp() },
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-            }
         }
         Row(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -199,47 +171,13 @@ fun CertificationForm(
                             ) {
                                 Text(
                                     text = "%02d:%02d".format(remainTime.seconds / 60, remainTime.seconds % 60),
-                                    fontSize = 12.sp,
-                                    lineHeight = 20.sp,
-                                    fontWeight = FontWeight.W400,
-                                    color = Color.Primary500,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.W700,
+                                    color = LocalColorTheme.current.primary[600],
                                 )
-                            } else Spacer(
-                                modifier = Modifier.height(32.dp)
-                            )
+                            }
                         }
                     )
-                )
-            }
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(percent = 50))
-                    .border(
-                        border = BorderStroke(
-                            color = if (isCertificateButtonEnabled)
-                                Color.Primary500
-                            else
-                                Color.Grey400,
-                            width = 1.dp
-                        ),
-                        shape = RoundedCornerShape(percent = 50),
-                    )
-                    .widthIn(min = 84.dp)
-                    .let {
-                        if (isCertificateButtonEnabled) it.clickable {
-                            onCertificateButtonClicked()
-                        } else it
-                    }
-            ) {
-                Text(
-                    text = stringResource(id = R.string.confirm),
-                    color = if (isCertificateButtonEnabled)
-                        Color.Primary500
-                    else
-                        Color.Grey400,
-                    fontSize = with(density) { 12.dp.toSp() },
-                    modifier = Modifier.padding(vertical = 4.dp)
                 )
             }
         }
@@ -256,7 +194,6 @@ fun PreviewCertificationForm() {
             domain = "",
             code = "",
             remainTime = Duration.parse("PT3M12S"),
-            isCertificateButtonEnabled = false,
             isEditable = true,
             onNameChanged = {},
             onLocalChanged = {},
@@ -264,8 +201,6 @@ fun PreviewCertificationForm() {
             onDomainDropdownExpandedChanged = {},
             onDomainDropdownButtonCenterOffsetCalculated = {},
             onCodeChanged = {},
-            onSendCodeButtonClicked = {},
-            onCertificateButtonClicked = {},
         )
     }
 }

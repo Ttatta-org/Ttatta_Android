@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
@@ -45,15 +47,16 @@ import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import com.umc.design.Grey500
-import com.umc.design.Primary200
 import com.umc.design.Primary400
-import com.umc.design.Secondary100
 import com.umc.design.Secondary300
 import com.umc.design.character.Accessory
 import com.umc.design.character.AccessorySet
 import com.umc.design.character.CharacterView
+import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.LocalFontTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
+import com.umc.login.model.event.RenderEvent
 
 @Composable
 fun JoinDoneScreen(
@@ -61,6 +64,7 @@ fun JoinDoneScreen(
     onBackToLoginButtonClicked: () -> Unit,
 ) {
     val density = LocalDensity.current
+    val color = LocalColorTheme.current
 
     var screenRenderEvent by remember { mutableStateOf<RenderEvent?>(null) }
     var layoutRenderEvent by remember { mutableStateOf<RenderEvent?>(null) }
@@ -70,7 +74,7 @@ fun JoinDoneScreen(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color.Secondary100)
+            .background(color = LocalColorTheme.current.secondary[100])
             .onGloballyPositioned {
                 screenRenderEvent = RenderEvent(
                     topLeft = it.positionInParent(),
@@ -95,7 +99,7 @@ fun JoinDoneScreen(
 
                         drawCircle(
                             brush = Brush.radialGradient(
-                                colors = listOf(Color.Secondary300, Color.Transparent),
+                                colors = listOf(color.secondary[300], Color.Transparent),
                                 center = center,
                                 radius = radius,
                             ),
@@ -187,7 +191,7 @@ fun JoinDoneScreen(
                     text = "${stringResource(id = R.string.welcome)} ${name}${stringResource(id = R.string.welcome_suffix)}",
                     fontWeight = FontWeight.W800,
                     fontSize = 28.sp,
-                    color = Color.Grey500,
+                    color = LocalColorTheme.current.grey[700],
                 )
                 Text(
                     text = buildAnnotatedString {
@@ -195,7 +199,7 @@ fun JoinDoneScreen(
                             style = SpanStyle(
                                 fontWeight = FontWeight.W600,
                                 fontSize = 16.sp,
-                                color = Color.Primary400,
+                                color = LocalColorTheme.current.primary[500],
                             )
                         ) {
                             appendLine(stringResource(id = R.string.welcome_line1))
@@ -234,14 +238,18 @@ fun JoinDoneScreen(
             // 버튼
             ElevatedButton(
                 onClick = onBackToLoginButtonClicked,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
                 colors = ButtonDefaults.buttonColors(
                     contentColor = Color.White,
-                    containerColor = Color.Primary200,
+                    containerColor = LocalColorTheme.current.primary[400],
                 ),
+                shape = RoundedCornerShape(15.dp),
             ) {
                 Text(
                     text = stringResource(id = R.string.go_to_login),
+                    fontFamily = LocalFontTheme.current.font,
                     fontSize = 15.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight.W600,

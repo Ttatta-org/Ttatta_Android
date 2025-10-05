@@ -26,7 +26,7 @@
     <string name="password_match">비밀번호가 일치해요!</string>
     <string name="password_available">사용 가능한 비밀번호에요!</string>
     <string name="nickname_too_long">닉네임은 8글자 이하로 작성해주세요!</string>
-    <string name="duplicate_check">중복확인</string>
+    <string name="duplicate_check">중복 확인</string>
     <string name="id_duplicated">이미 다른 사용자가 사용중인 아이디에요!</string>
     <string name="id_available">사용 가능한 아이디에요!</string>
     <string name="id_too_long_or_has_not_allowed_char">아이디는 영문으로 15자리 이하로 정해주세요!</string>
@@ -35,12 +35,12 @@
     <string name="certification_mail_did_not_arrived">메일이 오지 않았다면 아래 버튼을 클릭해주세요.</string>
     <string name="certification_not_correct">인증번호가 올바르지 않습니다. 다시 시도해 주세요.</string>
 
-    <string name="join_nickname_description">나만의 일기장 생성을 위해 이름을 입력해주세요</string>
-    <string name="join_id_description">사용하실 아이디를 입력해주세요</string>
-    <string name="join_password_description">사용하실 비밀번호를 입력해주세요</string>
-    <string name="join_name_description">본인인증을 위해 이름을 입력해주세요</string>
-    <string name="join_email_description">본인인증을 위해 이메일을 입력해주세요</string>
-    <string name="join_certification_description">이메일로 받은 인증번호 6자리를 입력해주세요</string>
+    <string name="join_nickname_description">나만의 일기장 생성을 위해\n이름을 입력해주세요!</string>
+    <string name="join_id_description">사용하실 아이디를\n입력해주세요!</string>
+    <string name="join_password_description">사용하실 비밀번호를\n입력해주세요!</string>
+    <string name="join_name_description">본인인증을 위한\n이름을 입력해주세요!</string>
+    <string name="join_email_description">본인인증을 위한\n이메일을 입력해주세요!</string>
+    <string name="join_certification_description">이메일로 받은\n인증번호 6자리를 입력해주세요!</string>
 
     <string name="welcome">환영해요</string>
     <string name="welcome_suffix">님!</string>
@@ -61,8 +61,8 @@
     <string name="email_placeholder">이메일 입력</string>
     <string name="enter_yourself">직접입력</string>
     <string name="confirm">확인</string>
-    <string name="send_email">인증메일 발송</string>
-    <string name="resend_email">인증메일 재발송</string>
+    <string name="send_email">인증번호 받기</string>
+    <string name="resend_email">인증번호 재전송</string>
     <string name="new_password_placeholder">새 비밀번호 입력</string>
     <string name="new_password_confirm_placeholder">새 비밀번호 확인</string>
     <string name="next_button">다음으로</string>

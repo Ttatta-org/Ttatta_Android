@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.umc.design.Grey300
+import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
@@ -60,12 +61,12 @@ fun PasswordForm(
                             Icon(
                                 painter = painterResource(
                                     id = if (isPasswordVisible)
-                                        R.drawable.ic_visibility
+                                        R.drawable.ic_visibility_on
                                     else
                                         R.drawable.ic_visibility_off
                                 ),
                                 contentDescription = null,
-                                tint = Color.Grey300,
+                                tint = LocalColorTheme.current.grey[400],
                                 modifier = Modifier
                                     .size(16.dp)
                                     .clickable { onPasswordVisibilityChanged(!isPasswordVisible) }
@@ -92,12 +93,12 @@ fun PasswordForm(
                             Icon(
                                 painter = painterResource(
                                     id = if (isPasswordVisible)
-                                        R.drawable.ic_visibility
+                                        R.drawable.ic_visibility_on
                                     else
                                         R.drawable.ic_visibility_off
                                 ),
                                 contentDescription = null,
-                                tint = Color.Grey300,
+                                tint = LocalColorTheme.current.grey[400],
                                 modifier = Modifier
                                     .size(16.dp)
                                     .clickable {
