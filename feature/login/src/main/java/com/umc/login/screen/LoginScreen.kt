@@ -27,6 +27,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.umc.design.component.CustomButton
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.LocalFontTheme
 import com.umc.design.theme.ThemeProvider
@@ -66,7 +68,11 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = WindowInsets.ime.asPaddingValues().calculateBottomPadding())
+            .padding(
+                bottom = WindowInsets.ime
+                    .asPaddingValues()
+                    .calculateBottomPadding()
+            )
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -158,34 +164,14 @@ fun LoginScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                 ) {
                     // 로그인 버튼
-                    ElevatedButton(
+                    CustomButton(
+                        text = stringResource(id = R.string.login),
+                        isEnabled = id.isNotEmpty() && password.isNotEmpty(),  // TODO: business logic
                         onClick = onLoginButtonClicked,
-                        enabled = id.isNotEmpty() && password.isNotEmpty(),  // TODO: business logic
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = ButtonDefaults.elevatedButtonElevation(
-                            defaultElevation = 2.dp,
-                            disabledElevation = 2.dp,
-                        ),
-                        colors = ButtonDefaults.buttonColors(
-                            contentColor = Color.White,
-                            containerColor = LocalColorTheme.current.primary[400],
-                            disabledContentColor = Color.White,
-                            disabledContainerColor = LocalColorTheme.current.primary[200],
-                        ),
-                        shape = RoundedCornerShape(15.dp),
-                        contentPadding = PaddingValues(13.dp),
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.login),
-                            fontFamily = LocalFontTheme.current.font,
-                            fontSize = 15.sp,
-                            lineHeight = 20.sp,
-                            fontWeight = FontWeight.W600,
-                        )
-                    }
+                    )
                     // ID와 비번 찾기 및 회원 가입
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(18.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val textStyle = TextStyle(
@@ -196,29 +182,28 @@ fun LoginScreen(
                             color = LocalColorTheme.current.grey[500]
                         )
 
-                        Text(
-                            text = stringResource(id = R.string.find_id),
-                            style = textStyle,
-                            modifier = Modifier.clickable { onFindIdButtonClicked() },
-                        )
-                        VerticalDivider(
-                            modifier = Modifier.height(12.dp),
-                            color = LocalColorTheme.current.grey[500],
-                        )
-                        Text(
-                            text = stringResource(id = R.string.find_password),
-                            style = textStyle,
-                            modifier = Modifier.clickable { onFindPasswordButtonClicked() },
-                        )
-                        VerticalDivider(
-                            modifier = Modifier.height(12.dp),
-                            color = LocalColorTheme.current.grey[500],
-                        )
-                        Text(
-                            text = stringResource(id = R.string.join),
-                            style = textStyle,
-                            modifier = Modifier.clickable { onJoinButtonClicked() },
-                        )
+                        listOf(
+                            stringResource(id = R.string.find_id) to onFindIdButtonClicked,
+                            stringResource(id = R.string.find_password) to onFindPasswordButtonClicked,
+                            stringResource(id = R.string.join) to onJoinButtonClicked,
+                        ).forEachIndexed { index, (text, onClick) ->
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(percent = 50))
+                                    .clickable { onClick() },
+                            ) {
+                                Text(
+                                    text = text,
+                                    style = textStyle,
+                                    modifier = Modifier
+                                        .padding(vertical = 4.dp, horizontal = 8.dp)
+                                )
+                            }
+                            if (index < 2) VerticalDivider(
+                                modifier = Modifier.height(12.dp),
+                                color = LocalColorTheme.current.grey[500],
+                            )
+                        }
                     }
                 }
             }
@@ -248,22 +233,17 @@ fun LoginScreen(
                     )
                 }
                 // 카카오 로그인 버튼
-                ElevatedButton(
+                CustomButton(
                     onClick = onKakaoLoginButtonClicked,
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = ButtonDefaults.elevatedButtonElevation(
-                        defaultElevation = 2.dp,
-                    ),
                     colors = ButtonDefaults.buttonColors(
                         contentColor = Color(0xFF3C1E1E),
                         containerColor = Color(0xFFFAE100),
                     ),
-                    shape = RoundedCornerShape(15.dp),
-                    contentPadding = PaddingValues(top = 16.dp, bottom = 15.dp),
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 15.dp)
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.ic_kakao),

@@ -61,8 +61,8 @@ class LoginViewModel @Inject constructor(
 
     suspend fun requestCertificationMail(
         request: CertificationMailRequest,
-    ) {
-        when (request) {
+    ): Boolean {
+        return when (request) {
             is CertificationMailRequestForJoin -> run {
                 userRepository.requestVerificationCodeForJoining(
                     email = request.email,

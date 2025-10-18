@@ -17,7 +17,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
@@ -25,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -32,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.umc.design.component.CustomButton
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.LocalFontTheme
 import com.umc.design.theme.ThemeProvider
@@ -43,6 +48,7 @@ import com.umc.login.component.PreviewCustomTextField
 data class FormScreenDescriptionMessageProp(
     val message: String,
     val color: Color,
+    val content: (@Composable () -> Unit)? = null,
 )
 
 @Composable
@@ -61,24 +67,35 @@ fun FormScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(WindowInsets.systemBars.union(WindowInsets.ime).asPaddingValues())
+            .padding(
+                WindowInsets.systemBars
+                    .union(WindowInsets.ime)
+                    .asPaddingValues()
+            )
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(horizontal = 22.dp, vertical = 32.dp)
         ) {
             Box(
-                contentAlignment = Alignment.CenterStart, modifier = Modifier.fillMaxWidth()
+                contentAlignment = Alignment.CenterStart,
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 // 뒤로가기 버튼
-                Icon(
-                    painter = painterResource(R.drawable.ic_back),
+                Box(
                     modifier = Modifier
-                        .size(16.dp)
-                        .clickable { onBackButtonClicked() },
-                    tint = LocalColorTheme.current.primary[500],
-                    contentDescription = null,
-                )
+                        .clip(CircleShape)
+                        .clickable { onBackButtonClicked() }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_back),
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .size(16.dp),
+                        tint = LocalColorTheme.current.primary[500],
+                        contentDescription = null,
+                    )
+                }
                 // 최상단 메시지
                 if (topLineMessage != null) Box(
                     contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()
@@ -86,20 +103,21 @@ fun FormScreen(
                     Text(
                         text = topLineMessage,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.W600,
+                        fontWeight = FontWeight.W800,
                         color = LocalColorTheme.current.primary[500],
                     )
                 }
             }
-            Column(
-                verticalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .widthIn(max = 480.dp)
+            Box(
+                contentAlignment = Alignment.BottomCenter,
+                modifier = Modifier.weight(1f),
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .widthIn(max = 480.dp)
                 ) {
                     // 로고
                     if (isLogoVisible) Box(
@@ -117,20 +135,23 @@ fun FormScreen(
                     Spacer(modifier = Modifier.height(48.dp))
                     // 설명 메시지
                     formScreenDescriptionMessageProp?.let {
-                        Box (
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
                                 text = it.message,
                                 fontSize = 18.sp,
-                                lineHeight = 28.sp,
+                                lineHeight = 24.sp,
                                 fontWeight = FontWeight.W800,
                                 color = it.color,
                             )
+                            it.content?.invoke()
                         }
                     }
                     Spacer(modifier = Modifier.height(18.dp))
                     form()
+                    Spacer(modifier = Modifier.height(120.dp))
                 }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -145,32 +166,11 @@ fun FormScreen(
                         color = LocalColorTheme.current.primary[600],
                     )
                     // 다음 버튼
-                    ElevatedButton(
-                        enabled = isNextButtonEnabled,
+                    CustomButton(
+                        text = nextButtonLabel,
                         onClick = onNextButtonClicked,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        elevation = ButtonDefaults.elevatedButtonElevation(
-                            defaultElevation = 2.dp,
-                            disabledElevation = 2.dp,
-                        ),
-                        colors = ButtonDefaults.buttonColors(
-                            contentColor = Color.White,
-                            containerColor = LocalColorTheme.current.primary[400],
-                            disabledContentColor = Color.White,
-                            disabledContainerColor = LocalColorTheme.current.primary[200],
-                        ),
-                        shape = RoundedCornerShape(15.dp),
-                    ) {
-                        Text(
-                            text = nextButtonLabel,
-                            fontFamily = LocalFontTheme.current.font,
-                            fontSize = 15.sp,
-                            lineHeight = 20.sp,
-                            fontWeight = FontWeight.W600,
-                        )
-                    }
+                        isEnabled = isNextButtonEnabled,
+                    )
                 }
             }
         }

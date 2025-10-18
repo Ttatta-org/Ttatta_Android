@@ -26,6 +26,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.umc.core.util.runWithScope
+import com.umc.design.component.CustomPopup
+import com.umc.design.component.LoadingModal
 import com.umc.design.theme.LocalColorTheme
 import com.umc.login.LoginViewModel
 import com.umc.login.R
@@ -55,11 +57,9 @@ import com.umc.login.logic.state.isPasswordValid
 import com.umc.login.screen.FormScreen
 import com.umc.login.screen.FormScreenDescriptionMessageProp
 import com.umc.login.screen.JoinDoneScreen
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.LocalTime
 
@@ -147,6 +147,9 @@ fun NavGraphBuilder.addJoinNavGraph(
         var emailDropdownButtonCenterOffset by remember { mutableStateOf(Offset.Zero) }
         var isEmailDomainDropdownExpanded by remember { mutableStateOf(false) }
 
+        var showLoading by remember { mutableStateOf(false) }
+        var showEmailDuplicatedPopup by remember { mutableStateOf(false) }
+
         Box(
             modifier = Modifier.onGloballyPositioned { screenLayoutCoordinates = it },
         ) {
@@ -177,16 +180,26 @@ fun NavGraphBuilder.addJoinNavGraph(
                     when (currentDestination) {
                         JoinNavGraphDestination.CERTIFICATION, JoinNavGraphDestination.EMAIL -> run {
                             viewModel.runWithScope {
+                                showLoading = true
+
                                 runCatching {
                                     requestCertificationMail(
-                                        request = CertificationMailRequestForJoin(email = "$emailLocal@$emailDomain"),
+                                        request = CertificationMailRequestForJoin(
+                                            email = "${emailLocal.trim()}@${emailDomain.trim()}"
+                                        ),
                                     )
-                                }.onSuccess {
-                                    emailSentTime = LocalTime.now()
-                                    if (currentDestination == JoinNavGraphDestination.EMAIL) MainScope().launch {
-                                        navController.navigate(route = JoinNavGraphDestination.CERTIFICATION.route)
+                                }.onSuccess { isSucceed ->
+                                    if (isSucceed) {
+                                        emailSentTime = LocalTime.now()
+                                        if (currentDestination == JoinNavGraphDestination.EMAIL) MainScope().launch {
+                                            navController.navigate(route = JoinNavGraphDestination.CERTIFICATION.route)
+                                        }
+                                    } else {
+                                        showEmailDuplicatedPopup = true
                                     }
                                 }
+
+                                showLoading = false
                             }
                         }
                         else -> run {
@@ -221,14 +234,20 @@ fun NavGraphBuilder.addJoinNavGraph(
                             state = idValidationState,
                             onIdChanged = { id = it },
                             onDuplicationCheckButtonClicked = {
-                                viewModel.runWithScope {
-                                    runCatching {
-                                        val isDuplicated = checkIdDuplication(id = id)
+                                if (idValidationState == IdValidationState.DID_NOT_CHECKED_DUPLICATED) {
+                                    viewModel.runWithScope {
+                                        showLoading = true
 
-                                        idValidationState = if (isDuplicated)
-                                            IdValidationState.DUPLICATED
-                                        else
-                                            IdValidationState.VALID
+                                        runCatching {
+                                            val isDuplicated = checkIdDuplication(id = id)
+
+                                            idValidationState = if (isDuplicated)
+                                                IdValidationState.DUPLICATED
+                                            else
+                                                IdValidationState.VALID
+                                        }
+
+                                        showLoading = false
                                     }
                                 }
                             },
@@ -255,7 +274,7 @@ fun NavGraphBuilder.addJoinNavGraph(
                             state = passwordValidationState,
                             passwordPlaceholder = stringResource(id = R.string.password),
                             confirmPasswordPlaceholder = stringResource(id = R.string.password_check),
-                            textAlignment = CustomTextFieldTextAlignment.CENTER,
+                            textAlignment = CustomTextFieldTextAlignment.START,
                             isPasswordVisible = isPasswordVisible,
                             isConfirmPasswordVisible = isConfirmPasswordVisible,
                             isConfirmPasswordFieldShowing = isConfirmPasswordFieldShowing,
@@ -374,6 +393,15 @@ fun NavGraphBuilder.addJoinNavGraph(
                 }
             }
         }
+
+        if (showLoading) LoadingModal()
+
+        if (showEmailDuplicatedPopup) CustomPopup(
+            onDismiss = { showEmailDuplicatedPopup = false },
+            title = stringResource(id = R.string.error_title_email_duplicated),
+            message = stringResource(id = R.string.error_content_email_duplicated),
+            cancelText = "확인",
+        )
     }
 
     composable(

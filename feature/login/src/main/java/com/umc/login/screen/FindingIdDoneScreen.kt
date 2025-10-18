@@ -53,6 +53,7 @@ import com.umc.design.character.Accessory
 import com.umc.design.character.AccessorySet
 import com.umc.design.character.CharacterType
 import com.umc.design.character.CharacterView
+import com.umc.design.component.CustomButton
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.LocalFontTheme
 import com.umc.design.theme.ThemeProvider
@@ -255,11 +256,9 @@ fun FindingIdDoneScreen(
                 .widthIn(max = 480.dp)
                 .padding(32.dp),
         ) {
-            ElevatedButton(
+            CustomButton(
+                text = stringResource(id = R.string.find_password),
                 onClick = onGoToFindPasswordButtonClicked,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
                 border = BorderStroke(
                     color = LocalColorTheme.current.primary[300],
                     width = 1.dp,
@@ -268,37 +267,11 @@ fun FindingIdDoneScreen(
                     contentColor = LocalColorTheme.current.primary[300],
                     containerColor = Color.White,
                 ),
-                shape = RoundedCornerShape(15.dp),
-                contentPadding = PaddingValues(13.dp),
-            ) {
-                Text(
-                    text = stringResource(id = R.string.find_password),
-                    fontFamily = LocalFontTheme.current.font,
-                    fontSize = 15.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.W600,
-                )
-            }
-            ElevatedButton(
+            )
+            CustomButton(
+                text = stringResource(id = R.string.go_to_login),
                 onClick = onBackToLoginButtonClicked,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(
-                    contentColor = Color.White,
-                    containerColor = LocalColorTheme.current.primary[300],
-                ),
-                shape = RoundedCornerShape(15.dp),
-                contentPadding = PaddingValues(13.dp),
-            ) {
-                Text(
-                    text = stringResource(id = R.string.go_to_login),
-                    fontFamily = LocalFontTheme.current.font,
-                    fontSize = 15.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.W600,
-                )
-            }
+            )
         }
     }
 }

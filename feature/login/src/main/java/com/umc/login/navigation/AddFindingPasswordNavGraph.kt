@@ -3,6 +3,7 @@ package com.umc.login.navigation
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.Text
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -16,13 +17,17 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.umc.core.util.runWithScope
+import com.umc.design.component.CustomPopup
+import com.umc.design.component.LoadingModal
 import com.umc.design.theme.LocalColorTheme
 import com.umc.login.LoginViewModel
 import com.umc.login.R
@@ -61,7 +66,7 @@ private enum class FindingPasswordNavGraphDestination(
     CERTIFICATION(
         route = "certification",
         topLineMessageId = R.string.find_password,
-        descriptionMessageId = R.string.find_form_description,
+        descriptionMessageId = R.string.find_password_description,
     ),
     RESET_PASSWORD(
         route = "reset_password",
@@ -109,6 +114,9 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
         var formLayoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
         var emailDropdownButtonCenterOffset by remember { mutableStateOf(Offset.Zero) }
 
+        var showLoading by remember { mutableStateOf(false) }
+        var showCannotSendMailPopup by remember { mutableStateOf(false) }
+
         Box(
             modifier = Modifier.onGloballyPositioned { screenLayoutCoordinates = it },
         ) {
@@ -116,15 +124,30 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                 topLineMessage = stringResource(id = currentDestination.topLineMessageId),
                 nextButtonLabel = stringResource(
                     id = when (currentDestination) {
-                        FindingPasswordNavGraphDestination.ID -> R.string.find_password_id_description
+                        FindingPasswordNavGraphDestination.ID -> R.string.next_button
                         FindingPasswordNavGraphDestination.CERTIFICATION -> if (isEmailSent) R.string.resend_email else R.string.send_email
-                        FindingPasswordNavGraphDestination.RESET_PASSWORD -> R.string.find_password_reset_password_description
+                        FindingPasswordNavGraphDestination.RESET_PASSWORD -> R.string.next_button
                     },
                 ),
                 nextButtonOverMessage = null,
                 formScreenDescriptionMessageProp = FormScreenDescriptionMessageProp(
                     message = stringResource(id = currentDestination.descriptionMessageId),
-                    color = LocalColorTheme.current.grey[400],
+                    color = LocalColorTheme.current.grey[700],
+                    content = if (currentDestination == FindingPasswordNavGraphDestination.ID) null else { ->
+                        Text(
+                            text = when (currentDestination) {
+                                FindingPasswordNavGraphDestination.ID -> TODO()
+                                FindingPasswordNavGraphDestination.CERTIFICATION -> stringResource(R.string.find_form_description)
+                                FindingPasswordNavGraphDestination.RESET_PASSWORD -> stringResource(
+                                    R.string.find_password_reset_password_description_2
+                                )
+                            },
+                            color = LocalColorTheme.current.grey[600],
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W400,
+                            fontSize = 14.sp,
+                        )
+                    }
                 ),
                 animatedProgressBarProp = null,
                 isNextButtonEnabled = when (currentDestination) {
@@ -146,6 +169,8 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
 
                         FindingPasswordNavGraphDestination.CERTIFICATION -> {
                             viewModel.runWithScope {
+                                showLoading = true
+
                                 runCatching {
                                     requestCertificationMail(
                                         request = CertificationMailRequestForFindingPassword(
@@ -154,11 +179,17 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                                             name = name,
                                         ),
                                     )
-                                }.onSuccess {
-                                    emailSentTime = LocalTime.now()
+                                }.onSuccess { isSucceed ->
+                                    if (isSucceed) {
+                                        emailSentTime = LocalTime.now()
+                                        isEmailSent = true
+                                    } else {
+                                        showCannotSendMailPopup = true
+                                    }
                                 }
+
+                                showLoading = false
                             }
-                            isEmailSent = true
                         }
 
                         FindingPasswordNavGraphDestination.RESET_PASSWORD -> {
@@ -239,6 +270,7 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                                 code = certificationCode,
                                 remainTime = remainTime,
                                 isEditable = true,
+                                isCodeFieldVisible = isEmailSent,
                                 onNameChanged = { name = it },
                                 onLocalChanged = { emailLocal = it },
                                 onDomainChanged = { emailDomain = it },
@@ -292,7 +324,8 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                 if (screen != null && form != null) Box(
                     modifier = Modifier
                         .offset {
-                            screen.localPositionOf(form)
+                            screen
+                                .localPositionOf(form)
                                 .plus(emailDropdownButtonCenterOffset)
                                 .plus(Offset(x = -dropdownWidth.toFloat(), y = 16.dp.toPx()))
                                 .round()
@@ -313,5 +346,14 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                 }
             }
         }
+
+        if (showLoading) LoadingModal()
+
+        if (showCannotSendMailPopup) CustomPopup(
+            title = stringResource(id = R.string.error_title_cannot_find_user),
+            message = stringResource(id = R.string.error_content_cannot_find_user),
+            cancelText = "확인",
+            onDismiss = { showCannotSendMailPopup = false },
+        )
     }
 }

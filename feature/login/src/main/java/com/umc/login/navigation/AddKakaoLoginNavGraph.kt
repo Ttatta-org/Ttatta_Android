@@ -14,6 +14,7 @@ import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.user.UserApiClient
 import com.umc.core.util.runWithScope
 import com.umc.design.Primary300
+import com.umc.design.component.LoadingModal
 import com.umc.design.theme.LocalColorTheme
 import com.umc.login.LoginViewModel
 import com.umc.login.R
@@ -39,6 +40,8 @@ fun NavGraphBuilder.addKakaoLoginNavGraph(
         val kakaoInstance = UserApiClient.instance
 
         var kakaoJoinEvent by remember { mutableStateOf<KakaoJoinEvent?>(null) }
+
+        var showLoading by remember { mutableStateOf(false) }
 
         LaunchedEffect(key1 = Unit) {
             val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
@@ -83,6 +86,8 @@ fun NavGraphBuilder.addKakaoLoginNavGraph(
                 isLogoVisible = true,
                 onNextButtonClicked = {
                     viewModel.runWithScope {
+                        showLoading = true
+
                         runCatching {
                             sendInfosForKakaoJoin(
                                 idToken = event.idToken,
@@ -91,6 +96,8 @@ fun NavGraphBuilder.addKakaoLoginNavGraph(
                         }.onSuccess {
                             onNavigatingToHome()
                         }
+
+                        showLoading = false
                     }
                 },
                 onBackButtonClicked = onNavigatingBackToLogin,
@@ -102,5 +109,7 @@ fun NavGraphBuilder.addKakaoLoginNavGraph(
                 )
             }
         }
+
+        if (showLoading) LoadingModal()
     }
 }

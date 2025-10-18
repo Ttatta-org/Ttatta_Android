@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -43,7 +42,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
-import com.umc.design.Grey300
 import com.umc.design.Positive
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.LocalFontTheme
@@ -60,7 +58,7 @@ data class CustomTextFieldProp(
     val value: String,
     val onValueChanged: (String) -> Unit,
     val placeholder: String,
-    val textAlignment: CustomTextFieldTextAlignment = CustomTextFieldTextAlignment.CENTER,
+    val textAlignment: CustomTextFieldTextAlignment = CustomTextFieldTextAlignment.START,
     val isVisible: Boolean = true,
     val isEditable: Boolean = true,
     val tail: (@Composable () -> Unit) = { Spacer(modifier = Modifier.height(32.dp)) },
@@ -129,6 +127,7 @@ fun CustomTextField(
                                 lineHeight = 20.sp,
                                 fontWeight = FontWeight.W400,
                                 color = LocalColorTheme.current.grey[400],
+                                maxLines = 1,
                             )
                         }
                     }

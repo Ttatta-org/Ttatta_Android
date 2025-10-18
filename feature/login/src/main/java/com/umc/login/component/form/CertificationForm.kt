@@ -24,7 +24,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,6 +49,7 @@ fun CertificationForm(
     code: String,
     remainTime: Duration?,
     isEditable: Boolean,
+    isCodeFieldVisible: Boolean,
     onNameChanged: (String) -> Unit,
     onLocalChanged: (String) -> Unit,
     onDomainChanged: (String) -> Unit,
@@ -57,8 +57,6 @@ fun CertificationForm(
     onDomainDropdownButtonCenterOffsetCalculated: (Offset) -> Unit,
     onCodeChanged: (String) -> Unit,
 ) {
-    val density = LocalDensity.current
-
     var totalLayoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     var buttonLayoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
@@ -148,8 +146,7 @@ fun CertificationForm(
                 }
             }
         }
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        if (isCodeFieldVisible) Row(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
@@ -195,6 +192,7 @@ fun PreviewCertificationForm() {
             code = "",
             remainTime = Duration.parse("PT3M12S"),
             isEditable = true,
+            isCodeFieldVisible = true,
             onNameChanged = {},
             onLocalChanged = {},
             onDomainChanged = {},
