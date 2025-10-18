@@ -20,7 +20,7 @@
 
     <!-- 회원가입 -->
     <string name="password_check">비밀번호 확인</string>
-    <string name="password_too_short_or_too_simple">비밀번호는 특수문자를 포함한 8자리 이상으로 정해주세요!</string>
+    <string name="password_too_short_or_too_simple">비밀번호는 영문, 숫자, 특수문자로 8~16자로 작성해주세요.</string>
     <string name="password_enter_confirm">비밀번호 확인란에 동일한 비밀번호를 입력해주세요.</string>
     <string name="password_not_match">비밀번호가 일치하지 않아요!</string>
     <string name="password_match">비밀번호가 일치해요!</string>
@@ -49,12 +49,16 @@
 
     <!-- 아이디/비번 찾기 -->
     <string name="find_id">아이디 찾기</string>
+    <string name="find_id_description">아이디를 찾기 위해\n아래 정보를 입력해주세요.</string>
     <string name="find_password">비밀번호 찾기</string>
     <string name="reset_password">비밀번호 재설정</string>
 
-    <string name="find_password_id_description">비밀번호를 찾고자 하는 아이디를 입력해 주세요.</string>
-    <string name="find_form_description">본인확인 이메일 주소와 입력한 이메일 주소가 같아야 인증번호를 받을 수 있습니다.</string>
-    <string name="find_password_reset_password_description">비밀번호를 변경해 주세요. 비밀번호는 특수문자를 포함한 8자리 이상으로 정해주세요!</string>
+    <string name="find_password_id_description">비밀번호를 찾고자 하는\n아이디를 입력해 주세요.</string>
+    <string name="find_password_description">비밀번호를 찾기 위해\n아래 정보를 입력해주세요.</string>
+    <string name="find_form_description">본인확인 이메일 주소와 입력한 이메일 주소가 같아야\n인증번호를 보낼 수 있어요!</string>
+    <string name="find_password_reset_password_description">비말번호 재설정을 위해\n아래 정보를 입력해주세요.</string>
+    <string name="find_password_reset_password_description_2">정보 확인이 끝났어요!\n이제 새 비밀번호를 만들어볼까요?</string>
+
     <string name="find_id_done">아이디 찾기가 완료되었어요!</string>
 
     <string name="name_placeholder">이름 입력</string>
@@ -70,4 +74,10 @@
 
     <!-- 카카오 가입 -->
     <string name="start">시작하기</string>
+
+    <!-- 에러 메시지 -->
+    <string name="error_title_email_duplicated">이미 가입된 이메일입니다!</string>
+    <string name="error_content_email_duplicated">다른 이메일로 가입해주세요.</string>
+    <string name="error_title_cannot_find_user">해당하는 사용자를 찾을 수 없습니다!</string>
+    <string name="error_content_cannot_find_user">입력하신 내용을 다시 확인해수세요.</string>
 </resources>
