@@ -5,7 +5,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraphBuilder
@@ -13,7 +12,6 @@ import androidx.navigation.compose.composable
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.user.UserApiClient
 import com.umc.core.util.runWithScope
-import com.umc.design.Primary300
 import com.umc.design.component.LoadingModal
 import com.umc.design.theme.LocalColorTheme
 import com.umc.login.LoginViewModel
