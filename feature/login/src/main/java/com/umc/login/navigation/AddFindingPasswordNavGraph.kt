@@ -3,27 +3,31 @@ package com.umc.login.navigation
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.umc.design.Grey400
+import com.umc.core.util.runWithScope
+import com.umc.design.component.CustomPopup
+import com.umc.design.component.LoadingModal
+import com.umc.design.theme.LocalColorTheme
 import com.umc.login.LoginViewModel
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
@@ -42,10 +46,9 @@ import com.umc.login.logic.state.isIdValid
 import com.umc.login.logic.state.isPasswordValid
 import com.umc.login.screen.FormScreen
 import com.umc.login.screen.FormScreenDescriptionMessageProp
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.Duration
 import java.time.LocalTime
 
@@ -53,25 +56,21 @@ private enum class FindingPasswordNavGraphDestination(
     val route: String,
     @StringRes val topLineMessageId: Int,
     @StringRes val descriptionMessageId: Int,
-    @StringRes val nextButtonLabelId: Int,
 ) {
     ID(
         route = "id",
         topLineMessageId = R.string.find_password,
         descriptionMessageId = R.string.find_password_id_description,
-        nextButtonLabelId = R.string.next_button,
     ),
     CERTIFICATION(
         route = "certification",
         topLineMessageId = R.string.find_password,
-        descriptionMessageId = R.string.find_form_description,
-        nextButtonLabelId = R.string.find_password
+        descriptionMessageId = R.string.find_password_description,
     ),
     RESET_PASSWORD(
         route = "reset_password",
         topLineMessageId = R.string.reset_password,
         descriptionMessageId = R.string.find_password_reset_password_description,
-        nextButtonLabelId = R.string.go_to_login
     )
 }
 
@@ -84,7 +83,6 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
     composable(
         route = "find_password"
     ) {
-        val scope = rememberCoroutineScope()
         val navController = rememberNavController()
         var currentDestination by remember { mutableStateOf(startDestination) }
 
@@ -97,63 +95,112 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
         }
 
         var id by remember { mutableStateOf("") }
+
         var password by remember { mutableStateOf("") }
         var confirmPassword by remember { mutableStateOf("") }
-        var isCertificationValid by remember { mutableStateOf(false) }
         var isResetPasswordValid by remember { mutableStateOf(false) }
 
+        var name by remember { mutableStateOf("") }
+        var emailLocal by remember { mutableStateOf("") }
+        var certificationCode by remember { mutableStateOf("") }
         var emailDomain by remember { mutableStateOf("") }
-
+        var isEmailSent by remember { mutableStateOf(false) }
+        var emailSentTime by remember { mutableStateOf<LocalTime?>(null) }
+        var remainTime by remember { mutableStateOf<Duration?>(null) }
         var isEmailDomainDropdownExpanded by remember { mutableStateOf(false) }
+
         var screenLayoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
         var formLayoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
-        var emailDropdownButtonCenterOffset by remember { mutableStateOf<Offset>(Offset.Zero) }
+        var emailDropdownButtonCenterOffset by remember { mutableStateOf(Offset.Zero) }
+
+        var showLoading by remember { mutableStateOf(false) }
+        var showCannotSendMailPopup by remember { mutableStateOf(false) }
 
         Box(
             modifier = Modifier.onGloballyPositioned { screenLayoutCoordinates = it },
         ) {
             FormScreen(
                 topLineMessage = stringResource(id = currentDestination.topLineMessageId),
-                nextButtonLabel = stringResource(id = currentDestination.nextButtonLabelId),
+                nextButtonLabel = stringResource(
+                    id = when (currentDestination) {
+                        FindingPasswordNavGraphDestination.ID -> R.string.next_button
+                        FindingPasswordNavGraphDestination.CERTIFICATION -> if (isEmailSent) R.string.resend_email else R.string.send_email
+                        FindingPasswordNavGraphDestination.RESET_PASSWORD -> R.string.next_button
+                    },
+                ),
                 nextButtonOverMessage = null,
                 formScreenDescriptionMessageProp = FormScreenDescriptionMessageProp(
                     message = stringResource(id = currentDestination.descriptionMessageId),
-                    color = Color.Grey400,
+                    color = LocalColorTheme.current.grey[700],
+                    content = if (currentDestination == FindingPasswordNavGraphDestination.ID) null else { ->
+                        Text(
+                            text = when (currentDestination) {
+                                FindingPasswordNavGraphDestination.ID -> TODO()
+                                FindingPasswordNavGraphDestination.CERTIFICATION -> stringResource(R.string.find_form_description)
+                                FindingPasswordNavGraphDestination.RESET_PASSWORD -> stringResource(
+                                    R.string.find_password_reset_password_description_2
+                                )
+                            },
+                            color = LocalColorTheme.current.grey[600],
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W400,
+                            fontSize = 14.sp,
+                        )
+                    }
                 ),
                 animatedProgressBarProp = null,
                 isNextButtonEnabled = when (currentDestination) {
                     FindingPasswordNavGraphDestination.ID -> isIdValid(id = id) == IdValidationState.DID_NOT_CHECKED_DUPLICATED
-                    FindingPasswordNavGraphDestination.CERTIFICATION -> isCertificationValid
+                    FindingPasswordNavGraphDestination.CERTIFICATION -> id.isNotBlank() && name.isNotBlank() && emailLocal.isNotBlank() && emailDomain.isNotBlank()
                     FindingPasswordNavGraphDestination.RESET_PASSWORD -> isResetPasswordValid
                 },
                 isLogoVisible = false,
                 onNextButtonClicked = lambda@{
-                    if (currentDestination == FindingPasswordNavGraphDestination.ID) {
-                        viewModel.checkIdExist(
-                            id = id,
-                            onSucceed = { isExist ->
-                                if (isExist) scope.launch {
-                                    withContext(context = Dispatchers.Main) {
-                                        navController.navigate(FindingPasswordNavGraphDestination.CERTIFICATION.route)
+                    when (currentDestination) {
+                        FindingPasswordNavGraphDestination.ID -> {
+                            viewModel.runWithScope {
+                                val isExist = checkIdExist(id = id)
+                                if (isExist) MainScope().launch {
+                                    navController.navigate(FindingPasswordNavGraphDestination.CERTIFICATION.route)
+                                }
+                            }
+                        }
+
+                        FindingPasswordNavGraphDestination.CERTIFICATION -> {
+                            viewModel.runWithScope {
+                                showLoading = true
+
+                                runCatching {
+                                    requestCertificationMail(
+                                        request = CertificationMailRequestForFindingPassword(
+                                            email = "${emailLocal}@${emailDomain}",
+                                            id = id,
+                                            name = name,
+                                        ),
+                                    )
+                                }.onSuccess { isSucceed ->
+                                    if (isSucceed) {
+                                        emailSentTime = LocalTime.now()
+                                        isEmailSent = true
+                                    } else {
+                                        showCannotSendMailPopup = true
                                     }
                                 }
-                            },
-                        )
-                        return@lambda
-                    }
 
-                    if (currentDestination == FindingPasswordNavGraphDestination.RESET_PASSWORD) {
-                        viewModel.changePassword(
-                            password = password,
-                            onSucceed = onNavigatingBackToLogin,
-                        )
-                        return@lambda
-                    }
+                                showLoading = false
+                            }
+                        }
 
-                    val index = FindingPasswordNavGraphDestination.entries.indexOf(
-                        currentDestination
-                    )
-                    navController.navigate(FindingPasswordNavGraphDestination.entries[index + 1].route)
+                        FindingPasswordNavGraphDestination.RESET_PASSWORD -> {
+                            viewModel.runWithScope {
+                                runCatching {
+                                    changePassword(password = password)
+                                }.onSuccess {
+                                    onNavigatingBackToLogin()
+                                }
+                            }
+                        }
+                    }
                 },
                 onBackButtonClicked = {
                     if (!navController.popBackStack()) onNavigatingBackToLogin()
@@ -178,14 +225,6 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                     composable(
                         route = FindingPasswordNavGraphDestination.CERTIFICATION.route
                     ) {
-                        var name by remember { mutableStateOf("") }
-                        var emailLocal by remember { mutableStateOf("") }
-                        var certificationCode by remember { mutableStateOf("") }
-
-                        var isCertificateButtonEnabled by remember { mutableStateOf(false) }
-                        var emailSentTime by remember { mutableStateOf<LocalTime?>(null) }
-                        var remainTime by remember { mutableStateOf<Duration?>(null) }
-
                         LaunchedEffect(key1 = Unit) {
                             while (true) {
                                 remainTime = emailSentTime?.let {
@@ -194,9 +233,29 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                                 if (remainTime?.isNegative == true) {
                                     emailSentTime = null
                                     remainTime = null
-                                    isCertificateButtonEnabled = false
                                 }
                                 delay(200L)
+                            }
+                        }
+
+                        LaunchedEffect(key1 = certificationCode) {
+                            if (certificationCode.length == 6) viewModel.runWithScope {
+                                runCatching {
+                                    requestCertificationCodeValidation(
+                                        request = CertificationCodeValidationRequestForFindingPassword(
+                                            email = "${emailLocal}@${emailDomain}",
+                                            code = certificationCode,
+                                        )
+                                    )
+                                }.onSuccess { isValid ->
+                                    if (isValid) MainScope().launch {
+                                        navController.navigate(FindingPasswordNavGraphDestination.RESET_PASSWORD.route) {
+                                            popUpTo(FindingPasswordNavGraphDestination.ID.route) {
+                                                inclusive = true
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
 
@@ -209,38 +268,18 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                                 domain = emailDomain,
                                 code = certificationCode,
                                 remainTime = remainTime,
-                                isCertificateButtonEnabled = isCertificateButtonEnabled,
-                                isEditable = !isCertificationValid,
+                                isEditable = true,
+                                isCodeFieldVisible = isEmailSent,
                                 onNameChanged = { name = it },
                                 onLocalChanged = { emailLocal = it },
                                 onDomainChanged = { emailDomain = it },
-                                onDomainDropdownExpandedChanged = { isEmailDomainDropdownExpanded = !isEmailDomainDropdownExpanded },
-                                onDomainDropdownButtonCenterOffsetCalculated = { emailDropdownButtonCenterOffset = it },
+                                onDomainDropdownExpandedChanged = {
+                                    isEmailDomainDropdownExpanded = !isEmailDomainDropdownExpanded
+                                },
+                                onDomainDropdownButtonCenterOffsetCalculated = {
+                                    emailDropdownButtonCenterOffset = it
+                                },
                                 onCodeChanged = { certificationCode = it },
-                                onSendCodeButtonClicked = {
-                                    viewModel.requestCertificationMail(
-                                        request = CertificationMailRequestForFindingPassword(
-                                            email = "${emailLocal}@${emailDomain}",
-                                            id = id,
-                                            name = name,
-                                        ),
-                                        onSucceed = {
-                                            emailSentTime = LocalTime.now()
-                                            isCertificateButtonEnabled = true
-                                        },
-                                    )
-                                },
-                                onCertificateButtonClicked = {
-                                    viewModel.requestCertificationCodeValidation(
-                                        request = CertificationCodeValidationRequestForFindingPassword(
-                                            email = "${emailLocal}@${emailDomain}",
-                                            code = certificationCode,
-                                        ),
-                                        onSucceed = { isValid: Boolean ->
-                                            isCertificationValid = isValid
-                                        },
-                                    )
-                                },
                             )
                         }
                     }
@@ -284,12 +323,13 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                 if (screen != null && form != null) Box(
                     modifier = Modifier
                         .offset {
-                            screen.localPositionOf(form)
+                            screen
+                                .localPositionOf(form)
                                 .plus(emailDropdownButtonCenterOffset)
                                 .plus(Offset(x = -dropdownWidth.toFloat(), y = 16.dp.toPx()))
                                 .round()
                         }
-                        .onSizeChanged { dropdownWidth = it.width  / 2 },
+                        .onSizeChanged { dropdownWidth = it.width / 2 },
                 ) {
                     EmailDomainDropdown(
                         props = emailDomains.map {
@@ -305,5 +345,14 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                 }
             }
         }
+
+        if (showLoading) LoadingModal()
+
+        if (showCannotSendMailPopup) CustomPopup(
+            title = stringResource(id = R.string.error_title_cannot_find_user),
+            message = stringResource(id = R.string.error_content_cannot_find_user),
+            cancelText = "확인",
+            onDismiss = { showCannotSendMailPopup = false },
+        )
     }
 }

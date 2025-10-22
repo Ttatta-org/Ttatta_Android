@@ -36,6 +36,8 @@ dependencies {
 
     implementation(project(":design"))
     implementation(libs.androidx.runtime.android)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.7.3")
 }

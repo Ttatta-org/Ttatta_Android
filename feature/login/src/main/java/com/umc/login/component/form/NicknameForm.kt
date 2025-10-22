@@ -25,6 +25,9 @@ fun NicknameForm(
                 value = nickname,
                 onValueChanged = onNicknameChanged,
                 placeholder = stringResource(id = R.string.nickname),
+                tail = {
+                    if (nickname.isNotEmpty()) ClearButton(onClick = { onNicknameChanged("") })
+                }
             )
         )
     }
@@ -35,7 +38,7 @@ fun NicknameForm(
 fun PreviewNicknameForm() {
     ThemeProvider {
         NicknameForm(
-            nickname = "",
+            nickname = "asd",
             state = NicknameValidationState.TOO_LONG,
             onNicknameChanged = {},
         )
