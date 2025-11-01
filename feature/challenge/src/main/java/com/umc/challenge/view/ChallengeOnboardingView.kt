@@ -117,7 +117,7 @@ fun ChallengeOnboardingView(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(state = rememberScrollState())
-            .background(color = Color.Secondary100)
+            .background(color = Color(0xFFFEF6F2))
     ) {
         // 뒷배경
         Box(
