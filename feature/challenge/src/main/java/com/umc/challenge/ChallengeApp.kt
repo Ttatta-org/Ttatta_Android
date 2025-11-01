@@ -118,6 +118,7 @@ fun ChallengeApp(
                                 challengeItemPropList = viewModel.todayChallenges.map {
                                     ChallengeItemProp(
                                         title = it.title,
+                                        content = it.content ?: it.content ?: "",
                                         state = if (it.isCompleted)
                                             ChallengeState.COMPLETED
                                         else
