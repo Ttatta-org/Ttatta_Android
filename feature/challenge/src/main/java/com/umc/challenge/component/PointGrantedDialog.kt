@@ -3,6 +3,7 @@ package com.umc.challenge.component
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -30,7 +32,8 @@ import com.umc.design.R
 import com.umc.design.theme.LocalColorTheme
 
 data class PointGrantedDialogProp(
-    val onDismissed: () -> Unit
+    val onDismissed: () -> Unit,
+    val onGoShop: () -> Unit
 )
 
 @Composable
@@ -91,6 +94,7 @@ fun PointGrantedDialog(
                     .background(Color.White, RoundedCornerShape(13.dp))
                     .clip(RoundedCornerShape(13.dp))
                     .border(1.dp, LocalColorTheme.current.primary[200], RoundedCornerShape(13.dp))
+                    .clickable(role = Role.Button) { prop.onDismissed() }
                     .padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -109,6 +113,7 @@ fun PointGrantedDialog(
                     .weight(1f)
                     .background(LocalColorTheme.current.primary[400], RoundedCornerShape(13.dp))
                     .clip(RoundedCornerShape(13.dp))
+                    .clickable(role = Role.Button) { prop.onGoShop() }
                     .padding(vertical = 12.dp),
                 contentAlignment = Alignment.Center
             ) {
@@ -127,7 +132,8 @@ fun PointGrantedDialog(
 }
 
 val previewPointGrantedDialogProp = PointGrantedDialogProp(
-    onDismissed = {}
+    onDismissed = {},
+    onGoShop = {}
 )
 
 @Preview(showBackground = true)
