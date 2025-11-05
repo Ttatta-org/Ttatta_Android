@@ -1,5 +1,6 @@
 package com.umc.data.implementation.repository
 
+import android.util.Log
 import com.umc.core.model.LoginType
 import com.umc.core.model.UserInfo
 import com.umc.core.model.UserStatus
@@ -9,15 +10,20 @@ import com.umc.data.api.dto.server.*
 import com.umc.data.api.withAuth
 import com.umc.data.api.withCheck
 import com.umc.data.preference.AuthPreference
+import retrofit2.HttpException
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val authPreference: AuthPreference,
-): UserRepository {
+) : UserRepository {
 
     override suspend fun isAlreadyLogin(): Boolean {
-        return try { getUserInfo() } catch (_: Exception) { null } != null
+        return try {
+            getUserInfo()
+        } catch (_: Exception) {
+            null
+        } != null
     }
 
     override suspend fun isIdAlreadyOccupied(id: String): Boolean {
@@ -67,9 +73,16 @@ class UserRepositoryImpl @Inject constructor(
         serverApi.withAuth(authPreference) { signUpKakao(body = body) }
     }
 
-    override suspend fun requestVerificationCodeForJoining(email: String) {
+    override suspend fun requestVerificationCodeForJoining(email: String): Boolean {
         val body = SendVerificationMailSignUpRequestDTO(email = email)
-        serverApi.withCheck { sendVerificationMailForSignUp(body = body) }
+
+        return try {
+            serverApi.withCheck { sendVerificationMailForSignUp(body = body) }
+            true
+        } catch (e: HttpException) {
+            if (e.code() == 400) return false
+            throw e
+        }
     }
 
     override suspend fun checkVerificationCodeForJoining(email: String, code: Int): Boolean {
@@ -78,14 +91,22 @@ class UserRepositoryImpl @Inject constructor(
         return try {
             serverApi.withCheck { checkVerificationCodeForSignUp(body = body) }
             true
-        } catch (e: Exception) {
-            false
+        } catch (e: HttpException) {
+            if (e.code() == 400) return false
+            throw e
         }
     }
 
-    override suspend fun requestEmailForFindingId(name: String, email: String) {
+    override suspend fun requestEmailForFindingId(name: String, email: String): Boolean {
         val body = SendVerificationMailFindIdRequestDTO(name = name, email = email)
-        serverApi.withCheck { sendVerificationMailForFindingId(body) }
+
+        return try {
+            serverApi.withCheck { sendVerificationMailForFindingId(body) }
+            true
+        } catch (e: HttpException) {
+            if (e.code() == 400) return false
+            throw e
+        }
     }
 
     override suspend fun checkVerificationCodeForFindingId(
@@ -97,9 +118,16 @@ class UserRepositoryImpl @Inject constructor(
         return response.name!! to response.id!!
     }
 
-    override suspend fun requestEmailForFindingPassword(name: String, email: String, id: String) {
+    override suspend fun requestEmailForFindingPassword(name: String, email: String, id: String): Boolean {
         val body = SendVerificationMailFindPwRequestDTO(name = name, email = email, username = id)
-        serverApi.withCheck { sendVerificationMailForFindingPassword(body = body) }
+
+        return try {
+            serverApi.withCheck { sendVerificationMailForFindingPassword(body = body) }
+            true
+        } catch (e: HttpException) {
+            if (e.code() == 400) return false
+            throw e
+        }
     }
 
     override suspend fun checkVerificationCodeForFindingPassword(
