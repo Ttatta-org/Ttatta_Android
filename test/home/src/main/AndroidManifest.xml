@@ -4,6 +4,7 @@
 
     <application
         android:name=".TestApplication"
+        android:usesCleartextTraffic="true"
         android:label="Home Test App"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

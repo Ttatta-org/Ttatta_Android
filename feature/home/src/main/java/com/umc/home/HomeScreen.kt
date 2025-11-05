@@ -583,7 +583,7 @@ fun CalendarView(
                         // ✅ 일요일 빨간색 제거, 선택 시 흰색
                         color = when {
                             isSelected -> Color.White
-                            hasDiary -> Color(0xFF333333)
+                            hasDiary -> Color.White
                             else -> Color(0xFFCACACA)
                         },
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = dayFontSize),
@@ -727,8 +727,8 @@ fun DiaryCard(
                     painter = painterResource(id = R.drawable.ic_detail),
                     contentDescription = "Detail Icon",
                     modifier = Modifier
-                        .width(2.dp)
-                        .height(12.dp)
+                        .width(17.dp)
+                        .height(3.dp)
                 )
             }
 

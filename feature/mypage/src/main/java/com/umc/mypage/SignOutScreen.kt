@@ -72,6 +72,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.shape.CircleShape
 // Coroutine
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -79,7 +80,7 @@ import kotlinx.coroutines.delay
 
 // LaunchedEffect
 import androidx.compose.runtime.LaunchedEffect
-
+import androidx.compose.ui.unit.Dp
 
 
 @Composable
@@ -110,7 +111,7 @@ fun SignOutScreen(
                     .padding(top = 60.dp)
                     .background(Color.White)
                     .padding(horizontal = 22.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                //horizontalAlignment = Alignment.CenterHorizontally,
                 // 하단 고정 영역과 겹치지 않도록 약간의 여백
                 contentPadding = PaddingValues(bottom = 24.dp)
             ) {
@@ -288,17 +289,16 @@ private fun ReasonRadioRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSelect(value) },
+            .clickable { onSelect(value) }
+            .padding(bottom = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RadioButton(
-            selected = selected == value,
-            onClick = { onSelect(value) },
-            colors = RadioButtonDefaults.colors(
-                selectedColor = Color(0xFFFF9888),
-                unselectedColor = Color(0xFFFFB1A5)
-            )
+        CustomRadioButton(
+            selected = selected == value
         )
+
+        Spacer(modifier = Modifier.width(10.dp))
+
         Text(text = text, fontSize = 15.sp)
     }
 }
@@ -470,7 +470,37 @@ fun SignOutButtonRow(
     }
 }
 
-
+@Composable
+fun CustomRadioButton(
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    size: Dp = 20.dp, // 라디오 버튼의 전체 크기
+    selectedColor: Color = Color(0xFFFF9888), // 선택 시 색상
+    unselectedColor: Color = Color(0xFFFFB1A5) // 미선택 시 색상
+) {
+    // 1. 바깥 원 (테두리)
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(CircleShape)
+            .border(
+                width = 2.dp,
+                color = if (selected) selectedColor else unselectedColor,
+                shape = CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        // 2. 선택됐을 때만 안쪽 원을 그림
+        if (selected) {
+            Box(
+                modifier = Modifier
+                    .size(size / 2) // 안쪽 원은 바깥 원의 절반 크기
+                    .clip(CircleShape)
+                    .background(selectedColor)
+            )
+        }
+    }
+}
 
 
 
