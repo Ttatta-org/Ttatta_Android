@@ -27,6 +27,40 @@ data class EditDiary(
     val content: String
 )
 
+/**
+ * 화면의 주요 모드를 정의합니다. (데이터 리스트의 상태)
+ * - Home: 기본 홈
+ * - Filtered: 날짜 선택
+ * - Search: 검색 결과 (코드는 동일, 데이터만 다름)
+ */
+sealed class ScreenMode {
+    object Home : ScreenMode()
+    data class Filtered(val date: LocalDate) : ScreenMode()
+    data class Search(val query: String) : ScreenMode()
+}
+/**
+ * TopBar의 시각적 상태를 정의합니다. -> 리팩토링:지금의 고정인 상태에서 바꾸기위함.
+ * - Closed: 닫힘
+ * - CalendarOpen: 캘린더 열림
+ * - SearchOpen: 검색창 열림
+ */
+enum class TopBarState {
+    Closed,
+    CalendarOpen,
+    SearchOpen
+}
+
+/**
+ * ViewModel이 UI에게 전달할 최종 데이터 묶음입니다.
+ * UI는 이 클래스 하나만 바라보면 됨.
+ */
+data class HomeUiState(
+    val screenMode: ScreenMode = ScreenMode.Home,
+    val diaries: List<Diary> = emptyList(), // ✅ 화면에 표시될 '단 하나'의 리스트
+    val isLoading: Boolean = true,
+    val recordedDates: List<LocalDate> = emptyList() // 캘린더 점 찍기용
+)
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository
