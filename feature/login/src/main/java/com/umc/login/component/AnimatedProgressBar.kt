@@ -21,10 +21,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.umc.login.R
+import com.umc.design.theme.LocalColorTheme
 
 data class AnimatedProgressBarProp(
     val currentStep: Int,
@@ -44,17 +43,17 @@ fun AnimatedProgressBar(
         modifier = Modifier
             .fillMaxWidth()
             .background(
-                color = colorResource(R.color.gray_200),
+                color = LocalColorTheme.current.grey[100],
                 shape = RoundedCornerShape(percent = 50)
             )
     ) {
         Box(
             modifier = Modifier
-                .height(5.dp)
+                .height(15.dp)
                 .fillMaxWidth(animatedProgress)
                 .background(
                     brush = Brush.horizontalGradient(
-                        colors = listOf(Color(0xFFFF9861), Color(0xFFFDDDC1))
+                        colors = listOf(Color(0xFFFFB1A5), Color(0xFFFFEFE4))
                     ),
                     shape = RoundedCornerShape(percent = 50)
                 )

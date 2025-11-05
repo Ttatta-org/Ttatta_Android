@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,17 +47,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
-import com.umc.design.Grey500
-import com.umc.design.Primary200
-import com.umc.design.Primary400
-import com.umc.design.Secondary100
-import com.umc.design.Secondary200
 import com.umc.design.character.Accessory
 import com.umc.design.character.AccessorySet
 import com.umc.design.character.CharacterType
 import com.umc.design.character.CharacterView
+import com.umc.design.component.CustomButton
+import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
+import com.umc.login.model.event.RenderEvent
 
 private val cardShape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
 private val textBalloonTailSize = DpSize(49.dp, 61.dp)
@@ -72,6 +68,7 @@ fun FindingIdDoneScreen(
     onGoToFindPasswordButtonClicked: () -> Unit,
 ) {
     val density = LocalDensity.current
+    val color = LocalColorTheme.current
 
     var textRenderEvent by remember { mutableStateOf<RenderEvent?>(null) }
 
@@ -86,7 +83,7 @@ fun FindingIdDoneScreen(
         Box(
             modifier = Modifier
                 .shadow(
-                    elevation = 4.dp,
+                    elevation = 5.dp,
                     shape = cardShape,
                     spotColor = Color(0x80000000),
                     ambientColor = Color(0x80000000)
@@ -98,7 +95,7 @@ fun FindingIdDoneScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        color = Color.Secondary100,
+                        color = LocalColorTheme.current.secondary[100],
                         shape = cardShape,
                     )
                     .heightIn(600.dp)
@@ -159,7 +156,7 @@ fun FindingIdDoneScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         drawCircle(
-                            color = Color.Secondary200,
+                            color = color.secondary[200],
                             center = textTopLeft + Offset(x = textSize.width * 0.5f, y = 0f),
                             radius = textSize.height + 64.dp.toPx()
                         )
@@ -202,13 +199,13 @@ fun FindingIdDoneScreen(
                 ) {
                     Text(
                         text = stringResource(id = R.string.find_id),
-                        color = Color.Primary400,
+                        color = LocalColorTheme.current.primary[500],
                         fontWeight = FontWeight.W600,
                         fontSize = 16.sp,
                     )
                     Text(
                         text = stringResource(id = R.string.find_id_done),
-                        color = Color.Primary400,
+                        color = LocalColorTheme.current.primary[500],
                         fontWeight = FontWeight.W800,
                         fontSize = 24.sp,
                     )
@@ -216,14 +213,14 @@ fun FindingIdDoneScreen(
                         horizontalArrangement = Arrangement.spacedBy(24.dp),
                     ) {
                         @Composable
-                        fun cellText(text: String) {
+                        fun CellText(text: String) {
                             Box(
                                 contentAlignment = Alignment.CenterStart,
                                 modifier = Modifier.height(with(density) { 24.sp.toDp() }),
                             ) {
                                 Text(
                                     text = text,
-                                    color = Color.Grey500,
+                                    color = LocalColorTheme.current.grey[700],
                                     fontWeight = FontWeight.W600,
                                     fontSize = 16.sp,
                                 )
@@ -233,14 +230,14 @@ fun FindingIdDoneScreen(
                         Column(
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            cellText(text = stringResource(id = R.string.subscriber))
-                            cellText(text = stringResource(id = R.string.id))
+                            CellText(text = stringResource(id = R.string.subscriber))
+                            CellText(text = stringResource(id = R.string.id))
                         }
                         Column(
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            cellText(text = name)
-                            cellText(text = id)
+                            CellText(text = name)
+                            CellText(text = id)
                         }
                     }
                 }
@@ -256,41 +253,22 @@ fun FindingIdDoneScreen(
                 .widthIn(max = 480.dp)
                 .padding(32.dp),
         ) {
-            ElevatedButton(
+            CustomButton(
+                text = stringResource(id = R.string.find_password),
                 onClick = onGoToFindPasswordButtonClicked,
-                modifier = Modifier.fillMaxWidth(),
                 border = BorderStroke(
-                    color = Color.Primary200,
+                    color = LocalColorTheme.current.primary[300],
                     width = 1.dp,
                 ),
                 colors = ButtonDefaults.buttonColors(
-                    contentColor = Color.Primary200,
+                    contentColor = LocalColorTheme.current.primary[300],
                     containerColor = Color.White,
                 ),
-                contentPadding = PaddingValues(13.dp),
-            ) {
-                Text(
-                    text = stringResource(id = R.string.find_password),
-                    fontSize = 15.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.W600,
-                )
-            }
-            ElevatedButton(
+            )
+            CustomButton(
+                text = stringResource(id = R.string.go_to_login),
                 onClick = onBackToLoginButtonClicked,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    contentColor = Color.White, containerColor = Color.Primary200
-                ),
-                contentPadding = PaddingValues(13.dp),
-            ) {
-                Text(
-                    text = stringResource(id = R.string.go_to_login),
-                    fontSize = 15.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight.W600,
-                )
-            }
+            )
         }
     }
 }

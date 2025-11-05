@@ -1,4 +1,4 @@
-package com.umc.login.screen
+package com.umc.login.model.event
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size

@@ -28,13 +28,17 @@ class MainViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
     private val challengeRepository: ChallengeRepository,
     private val settingRepository: SettingRepository,
-): ViewModel() {
+) : ViewModel() {
     private val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
 
     private val isLoggedInFlow = MutableStateFlow<Boolean?>(null)
-    private val isLockedFlow = MutableStateFlow(prefs.getBoolean("isLocked", false))  // 잠금화면을 띄워야 하는가에 대한 여부
+    private val isLockedFlow = MutableStateFlow(false)  // 잠금화면을 띄워야 하는가에 대한 여부
     private val userNameState = mutableStateOf("")
     private val equippedAccessoriesState = mutableStateOf(AccessorySet.create())
+
+    private var isLoggedInBefore: Boolean
+        get() = prefs.getBoolean("isLoggedInBefore", false)
+        set(value) { prefs.edit { putBoolean("isLoggedInBefore", value) } }
 
     val isLoggedInState: StateFlow<Boolean?> get() = isLoggedInFlow
     val isLockedState: StateFlow<Boolean> get() = isLockedFlow
@@ -52,32 +56,29 @@ class MainViewModel @Inject constructor(
             userRepository.isAlreadyLogin()
         }.getOrDefault(defaultValue = false)
 
-        if (isLoggedIn) runBlocking {
-            launch { getUserName() }
-            launch { getEquippedAccessories() }
-            launch { handleFcmToken() }
-            launch { syncPin() }
+        if (isLoggedIn) {
+            runBlocking {
+                launch { getUserName() }
+                launch { getEquippedAccessories() }
+                launch { handleFcmToken() }
+                launch { syncPin() }
+            }
+
+            if (isLoggedInBefore) {
+                isLockedFlow.value = settingRepository.getIsPinSet()
+            } else {
+                isLoggedInBefore = true
+            }
         } else {
-            prefs.edit { putBoolean("isLocked", false) }
+            isLoggedInBefore = false
             isLockedFlow.value = false
         }
 
         isLoggedInFlow.value = isLoggedIn
     }
 
-    suspend fun checkIsPinCorrect(pin: Int): Boolean {
-        return settingRepository.getIsPinCorrect(pin = pin)
-    }
-
     suspend fun makeChallengeComplete(challengeId: Long) {
         challengeRepository.completeChallenge(id = challengeId)
-    }
-
-    suspend fun enableLock() {
-        if (settingRepository.getIsPinSet()) {
-            prefs.edit { putBoolean("isLocked", true) }
-            isLockedFlow.value = true
-        }
     }
 
     private suspend fun syncPin() {

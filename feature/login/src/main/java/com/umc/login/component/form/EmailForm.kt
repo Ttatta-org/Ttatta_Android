@@ -91,7 +91,7 @@ fun EmailForm(
                         value = domain,
                         onValueChanged = onDomainChanged,
                         placeholder = stringResource(id = R.string.enter_yourself),
-                        textAlignment = CustomTextFieldTextAlignment.FLEX_CENTER,
+                        textAlignment = CustomTextFieldTextAlignment.START,
                         tail = {
                             Box(
                                 modifier = Modifier

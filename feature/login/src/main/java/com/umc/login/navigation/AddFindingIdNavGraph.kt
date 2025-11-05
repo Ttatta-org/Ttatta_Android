@@ -2,6 +2,7 @@ package com.umc.login.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -10,18 +11,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.umc.design.Grey400
+import com.umc.core.util.runWithScope
+import com.umc.design.component.CustomPopup
+import com.umc.design.component.LoadingModal
+import com.umc.design.theme.LocalColorTheme
 import com.umc.login.LoginViewModel
 import com.umc.login.R
 import com.umc.login.component.EmailDomainDropdown
@@ -33,7 +38,9 @@ import com.umc.login.logic.certification.CertificationMailRequestForFindingId
 import com.umc.login.screen.FindingIdDoneScreen
 import com.umc.login.screen.FormScreen
 import com.umc.login.screen.FormScreenDescriptionMessageProp
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalTime
 
@@ -51,26 +58,50 @@ fun NavGraphBuilder.addFindingIdNavGraph(
         var emailDomain by remember { mutableStateOf("") }
         var certificationCode by remember { mutableStateOf("") }
 
-        var isCertificateButtonEnabled by remember { mutableStateOf(false) }
         var startTime by remember { mutableStateOf<LocalTime?>(null) }
         var remainTime by remember { mutableStateOf<Duration?>(null) }
 
-        var isCertificationValid by remember { mutableStateOf(false) }
+        var isEmailRequested by remember { mutableStateOf(false) }
 
         var isEmailDomainDropdownExpanded by remember { mutableStateOf(false) }
         var screenLayoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
         var formLayoutCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
-        var emailDropdownButtonCenterOffset by remember { mutableStateOf<Offset>(Offset.Zero) }
+        var emailDropdownButtonCenterOffset by remember { mutableStateOf(Offset.Zero) }
+
+        var showLoading by remember { mutableStateOf(false) }
+        var showCannotSendMailPopup by remember { mutableStateOf(false) }
 
         LaunchedEffect(key1 = Unit) {
             while (true) {
-                remainTime = startTime?.let { Duration.parse("PT10M") - Duration.between(it, LocalTime.now()) }
+                remainTime = startTime?.let {
+                    Duration.parse("PT10M") - Duration.between(
+                        it, LocalTime.now()
+                    )
+                }
                 if (remainTime?.isNegative == true) {
                     startTime = null
                     remainTime = null
-                    isCertificateButtonEnabled = false
                 }
                 delay(200L)
+            }
+        }
+
+        LaunchedEffect(key1 = certificationCode) {
+            if (certificationCode.length != 6) return@LaunchedEffect
+
+            viewModel.runWithScope {
+                runCatching {
+                    val isValid = requestCertificationCodeValidation(
+                        request = CertificationCodeValidationRequestForFindingId(
+                            email = "$emailLocal@$emailDomain",
+                            code = certificationCode,
+                        ),
+                    )
+
+                    if (!isValid) return@runWithScope
+                    val (id, name) = viewModel.findId()
+                    MainScope().launch { onNavigatingToFindingIdDone(id, name) }
+                }
             }
         }
 
@@ -79,21 +110,47 @@ fun NavGraphBuilder.addFindingIdNavGraph(
         ) {
             FormScreen(
                 topLineMessage = stringResource(id = R.string.find_id),
-                nextButtonLabel = stringResource(id = R.string.find_id),
+                nextButtonLabel = if (isEmailRequested) stringResource(R.string.resend_email)
+                else stringResource(R.string.send_email),
                 nextButtonOverMessage = null,
                 formScreenDescriptionMessageProp = FormScreenDescriptionMessageProp(
-                    message = stringResource(id = R.string.find_form_description),
-                    color = Color.Grey400,
+                    message = stringResource(id = R.string.find_id_description),
+                    color = LocalColorTheme.current.grey[700],
+                    content = {
+                        Text(
+                            text = stringResource(R.string.find_form_description),
+                            color = LocalColorTheme.current.grey[600],
+                            lineHeight = 20.sp,
+                            fontWeight = FontWeight.W400,
+                            fontSize = 14.sp,
+                        )
+                    }
                 ),
                 animatedProgressBarProp = null,
-                isNextButtonEnabled = isCertificationValid,
+                isNextButtonEnabled = isEmailRequested || (emailLocal.isNotBlank() && emailDomain.isNotBlank() && name.isNotBlank()),
                 isLogoVisible = false,
                 onNextButtonClicked = {
-                    viewModel.findId(
-                        onSucceed = { id, name ->
-                            onNavigatingToFindingIdDone(id, name)
-                        },
-                    )
+                    viewModel.runWithScope {
+                        showLoading = true
+
+                        runCatching {
+                            requestCertificationMail(
+                                request = CertificationMailRequestForFindingId(
+                                    email = "$emailLocal@$emailDomain",
+                                    name = name,
+                                ),
+                            )
+                        }.onSuccess { isSucceed ->
+                            if (isSucceed) {
+                                isEmailRequested = true
+                                startTime = LocalTime.now()
+                            } else {
+                                showCannotSendMailPopup = true
+                            }
+                        }
+
+                        showLoading = false
+                    }
                 },
                 onBackButtonClicked = onNavigatingBackToLogin,
             ) {
@@ -106,37 +163,18 @@ fun NavGraphBuilder.addFindingIdNavGraph(
                         domain = emailDomain,
                         code = certificationCode,
                         remainTime = remainTime,
-                        isCertificateButtonEnabled = isCertificateButtonEnabled,
-                        isEditable = !isCertificationValid,
+                        isEditable = true,
+                        isCodeFieldVisible = isEmailRequested,
                         onNameChanged = { name = it },
                         onLocalChanged = { emailLocal = it },
                         onDomainChanged = { emailDomain = it },
-                        onDomainDropdownExpandedChanged = { isEmailDomainDropdownExpanded = !isEmailDomainDropdownExpanded },
-                        onDomainDropdownButtonCenterOffsetCalculated = { emailDropdownButtonCenterOffset = it },
+                        onDomainDropdownExpandedChanged = {
+                            isEmailDomainDropdownExpanded = !isEmailDomainDropdownExpanded
+                        },
+                        onDomainDropdownButtonCenterOffsetCalculated = {
+                            emailDropdownButtonCenterOffset = it
+                        },
                         onCodeChanged = { certificationCode = it },
-                        onSendCodeButtonClicked = {
-                            viewModel.requestCertificationMail(
-                                request = CertificationMailRequestForFindingId(
-                                    email = "$emailLocal@$emailDomain",
-                                    name = name,
-                                ),
-                                onSucceed = {
-                                    startTime = LocalTime.now()
-                                    isCertificateButtonEnabled = true
-                                },
-                            )
-                        },
-                        onCertificateButtonClicked = {
-                            viewModel.requestCertificationCodeValidation(
-                                request = CertificationCodeValidationRequestForFindingId(
-                                    email = "$emailLocal@$emailDomain",
-                                    code = certificationCode,
-                                ),
-                                onSucceed = { isValid: Boolean ->
-                                    isCertificationValid = isValid
-                                },
-                            )
-                        },
                     )
                 }
             }
@@ -149,7 +187,8 @@ fun NavGraphBuilder.addFindingIdNavGraph(
                 if (screen != null && form != null) Box(
                     modifier = Modifier
                         .offset {
-                            screen.localPositionOf(form)
+                            screen
+                                .localPositionOf(form)
                                 .plus(emailDropdownButtonCenterOffset)
                                 .plus(Offset(x = -dropdownWidth.toFloat(), y = 16.dp.toPx()))
                                 .round()
@@ -170,6 +209,15 @@ fun NavGraphBuilder.addFindingIdNavGraph(
                 }
             }
         }
+
+        if (showLoading) LoadingModal()
+
+        if (showCannotSendMailPopup) CustomPopup(
+            title = stringResource(id = R.string.error_title_cannot_find_user),
+            message = stringResource(id = R.string.error_content_cannot_find_user),
+            cancelText = "확인",
+            onDismiss = { showCannotSendMailPopup = false },
+        )
     }
 
     composable(
