@@ -41,13 +41,17 @@ class TestActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        enableEdgeToEdge()
+
         setContent {
             val navController = rememberNavController()
 
             HomeApp(viewModel = viewModel)
+
+            LaunchedEffect(Unit) {
+                prepareTest()
+            }
         }
-        // ✅ 테스트
-        prepareTest()
     }
 
     private fun prepareTest() {

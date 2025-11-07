@@ -4,6 +4,10 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,6 +26,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -31,9 +37,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,54 +54,48 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.svg.SvgDecoder
 import com.umc.core.model.Diary
+import com.umc.home.ScreenMode
+import com.umc.home.TopBarState
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun TopBarComponent(
     navController: NavHostController,
-    isExpanded: Boolean,
-    isSearchVisible: Boolean,
+    topBarState: TopBarState,
+
+    screenMode: ScreenMode,
+    selectedDate: LocalDate?, // Filtered 모드에서 날짜를 표시하기 위함
+    onBackClick: () -> Unit,
+
     searchQuery: String,
-    searchResults: List<Diary>,
     isSearchTriggered: Boolean,
+    areSearchResultsEmpty: Boolean,
     onQueryChange: (String) -> Unit,
-    onSearch: (String) -> Unit,
+    onSearchSubmitted: (String) -> Unit,
     onSearchToggle: () -> Unit,
     onCalendarToggle: () -> Unit,
     calendarContent: @Composable (Modifier) -> Unit,
-    recentSearches: List<String>, // 최근 검색어 리스트 추가
-    onRecentSearchClick: (String) -> Unit, // 최근 검색어 클릭 동작 추가
+    recentSearches: List<String>,
+    onRecentSearchClick: (String) -> Unit,
     onHeightChange: (Dp) -> Unit
 ) {
-    val baseHeight = when {
-        isSearchVisible -> 230.dp
-        isExpanded -> 420.dp
-        else -> 65.dp
-    }
-    val imageHeight by animateDpAsState(targetValue = baseHeight)
-
     val context = LocalContext.current
-
-    // ✅ 높이 값이 변경될 때 외부로 전달 (dragIcon 위치 조정 가능)
-    LaunchedEffect(imageHeight) {
-        onHeightChange(imageHeight)
-    }
+    val density = LocalDensity.current
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(imageHeight)
+            .wrapContentHeight()
             .background(Color.Transparent)
-            .zIndex(2f),
+            .zIndex(2f)
+            .onSizeChanged { size ->
+                onHeightChange(with(density) { size.height.toDp() })
+            },
         contentAlignment = Alignment.BottomCenter,
     ) {
         // 배경 이미지
-//        Image(
-//            painter = painterResource(id = R.drawable.full_top_bar),
-//            contentDescription = "배경 이미지",
-//            alignment = Alignment.BottomCenter,
-//            contentScale = ContentScale.Crop,
-//            modifier = Modifier.fillMaxSize()
-//        )
         Image(
             painter = rememberAsyncImagePainter(
                 model = ImageRequest.Builder(context)
@@ -108,30 +111,45 @@ fun TopBarComponent(
             contentDescription = "배경 이미지",
             alignment = Alignment.BottomCenter,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth(), // 필요에 따라 수정
+            modifier = Modifier.matchParentSize(), // 필요에 따라 수정
         )
         Column(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
+            modifier = Modifier.align(Alignment.TopCenter)
         ) {
             // 상단 Row를 별도의 Box로 TopCenter에 배치
             Box(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 28.dp, vertical = 20.dp),
+                        .padding(horizontal = 28.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // 왼쪽 로고
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_ttatta_logo),
-                        contentDescription = "로고",
-                        modifier = Modifier
-                            .width(34.6.dp)
-                            .height(30.dp)
-                    )
+                    if (screenMode is ScreenMode.Filtered) {
+                        // --- Filtered 모드 (뒤로가기 + 날짜) ---
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_arrow_left_new),
+                            contentDescription = "뒤로 가기",
+                            modifier = Modifier
+                                .width(10.dp)
+                                .height(16.25.dp)
+                                .clickable { onBackClick() }
+                        )
+
+                    } else {
+                        // --- Home / Search 모드 (로고) ---
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_ttatta_logo),
+                            contentDescription = "로고",
+                            modifier = Modifier
+                                .width(34.6.dp)
+                                .height(30.dp)
+                        )
+                    }
 
                     // 검색창과 아이콘 모두를 포함하는 Row
                     Row(
@@ -139,27 +157,22 @@ fun TopBarComponent(
                             .fillMaxWidth()
                             .padding(start = 16.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = if (!isSearchVisible) Arrangement.End else Arrangement.SpaceBetween
+                        horizontalArrangement = if (topBarState == TopBarState.SearchOpen) Arrangement.SpaceBetween else Arrangement.End
                     ) {
-                        if (isSearchVisible) {
-                            // 검색창 표시
+                        AnimatedVisibility(visible = topBarState == TopBarState.SearchOpen) {
                             SearchBar(
                                 query = searchQuery,
                                 onQueryChange = onQueryChange,
-                                onSearch = { onSearch(searchQuery) },
+                                onSearch = { onSearchSubmitted(searchQuery) },
                                 modifier = Modifier.weight(4f)
                             )
-                        } else {
-                            IconButton(
-                                onClick = { /* 위치 핀 클릭 동작 */ },
-                                modifier = Modifier.size(22.dp)
-                            ) {
+                        }
+                        AnimatedVisibility(visible = topBarState != TopBarState.SearchOpen) {
+                            IconButton(onClick = { /* 위치 핀 */ }, modifier = Modifier.size(22.dp)) {
                                 Image(
                                     painter = painterResource(id = R.drawable.ic_location_pin),
                                     contentDescription = "위치 핀",
-                                    modifier = Modifier
-                                        .width(19.21.dp)
-                                        .height(26.dp)
+                                    modifier = Modifier.width(19.21.dp).height(26.dp)
                                 )
                             }
                         }
@@ -169,14 +182,8 @@ fun TopBarComponent(
                         // 검색 아이콘 (항상 동일한 위치에 유지)
                         IconButton(
                             onClick = {
-//                                if (isSearchVisible) {
-//                                    onSearch()
-//                                }
-//                                onSearchToggle()
-                                if (isSearchVisible) {
-                                    onSearch(searchQuery)
-                                    onSearchToggle() // ✅ 검색 후 검색창 닫기
-                                    navController.navigate("search")
+                                if (topBarState == TopBarState.SearchOpen) {
+                                    onSearchSubmitted(searchQuery)
                                 } else {
                                     onSearchToggle() // ✅ 검색창을 열기
                                 }
@@ -186,72 +193,88 @@ fun TopBarComponent(
                             Image(
                                 painter = painterResource(id = R.drawable.ic_search),
                                 contentDescription = "검색",
-                                modifier = Modifier
-                                    .width(22.dp)
-                                    .height(24.dp)
+                                modifier = Modifier.width(22.dp).height(24.dp)
                             )
                         }
                     }
                 }
             }
 
-            // 달력을 BottomCenter에 배치
-            if (!isSearchVisible && isExpanded) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 22.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    calendarContent(Modifier.height(400.dp))
-
-                }
+            // --- 캘린더 ---
+            AnimatedVisibility(
+                visible = topBarState == TopBarState.CalendarOpen,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                calendarContent(Modifier.padding(horizontal = 22.dp))
             }
 
-            if (isSearchVisible) {
-                Box(
+            // --- 최근 검색어 ---
+            AnimatedVisibility(
+                visible = topBarState == TopBarState.SearchOpen,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                // Column으로 "최근 검색어"와 "결과 없음"을 둘 다 담습니다.
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 40.dp),
-                    contentAlignment = Alignment.TopStart
+                        .padding(horizontal = 28.dp, vertical = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally // "결과 없음"을 중앙 정렬
                 ) {
-                    if (searchResults.isEmpty() && isSearchTriggered) { // 🔹 검색 버튼을 눌렀을 때만 검사
-                        Log.d("HomeScreen", "🚫 검색 결과 없음")
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_error), // 에러 아이콘
-                                contentDescription = "에러 아이콘",
-                                modifier = Modifier.size(15.dp)
-                            )
-
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            Text(
-                                text = "찾으시는 검색어의 결과가 없어요!",
-                                fontSize = 14.sp,
-                                color = Color(0xFF4B4B4B) // 텍스트 색상
-                            )
-                        }
-                    } else {
-                        // 🔹 검색 결과가 있거나 검색을 실행하지 않은 상태면 최근 검색어 표시
-                        Log.d("HomeScreen", "✅ 검색 결과 있음")
+                    // 최근 검색어 (항상 왼쪽 정렬)
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopStart) {
                         RecentSearches(
                             recentSearches = recentSearches,
-                            onRecentSearchClick = { query ->
-                                onQueryChange(query)
-                            }
+                            onRecentSearchClick = onRecentSearchClick
                         )
+                    }
+
+                    // "검색 결과 없음" 메시지 (조건부 표시)
+                    if (isSearchTriggered && areSearchResultsEmpty) {
+                        Spacer(modifier = Modifier.height(16.dp)) // 둘 사이의 간격
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_error_small),
+                                contentDescription = "에러 아이콘",
+                                modifier = Modifier.size(11.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "찾으시는 검색어의 결과가 없어요!",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.W400,
+                                lineHeight = 18.sp,
+                                color = Color(0xFFFF6060)
+                            )
+                        }
                     }
                 }
             }
 
+            Spacer(modifier = Modifier.height(10.dp))
 
+//            // --- 드래그 핸들 ---
+//            val dragIcon = when (topBarState) {
+//                TopBarState.Closed -> R.drawable.ic_bottom_arrow
+//                else -> R.drawable.ic_top_arrow
+//            }
+//            IconButton(
+//                modifier = Modifier
+//                    .align(Alignment.CenterHorizontally)
+//                    .size(50.dp, 16.dp),
+//                onClick = onCalendarToggle // 캘린더만 토글
+//            ) {
+//                Image(
+//                    painter = painterResource(id = dragIcon),
+//                    contentDescription = "Toggle Calendar",
+//                    modifier = Modifier
+//                        .width(50.dp)
+//                        .height(16.dp)
+//                )
+//            }
         }
     }
 }
@@ -273,39 +296,62 @@ fun SearchBar(
             .fillMaxWidth(),
         contentAlignment = Alignment.CenterStart
     ) {
-        // Placeholder 텍스트를 기본 텍스트처럼 보이게
-        if (query.isEmpty()) {
-            Text(
-                text = "찾고 싶은 내용을 입력해주세요!",
-                style = TextStyle(
-                    fontSize = 13.sp,
-                    color = Color(0xFFCACACA),
-                    fontWeight = FontWeight.W400,
-                    lineHeight = 20.sp,
-                    letterSpacing = (-0.4).sp
-                )
-            )
-        }
-
-        BasicTextField(
-            value = query,
-            onValueChange = onQueryChange,
-            singleLine = true,
-            keyboardOptions = KeyboardOptions.Default.copy(
-                imeAction = androidx.compose.ui.text.input.ImeAction.Search
-            ),
-            keyboardActions = KeyboardActions(
-                onSearch = {
-                    onSearch() // "검색" 버튼 클릭 시 동작
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier.weight(1f), // 텍스트필드가 남는 공간을 모두 차지
+                contentAlignment = Alignment.CenterStart
+            ) {
+                // Placeholder 텍스트를 기본 텍스트처럼 보이게
+                if (query.isEmpty()) {
+                    Text(
+                        text = "찾고 싶은 내용을 입력해주세요!",
+                        style = TextStyle(
+                            fontSize = 13.sp,
+                            color = Color(0xFFCACACA),
+                            fontWeight = FontWeight.W400,
+                            lineHeight = 20.sp,
+                            letterSpacing = (-0.4).sp
+                        )
+                    )
                 }
-            ),
-            textStyle = androidx.compose.ui.text.TextStyle(
-                color = Color.Black,
-                fontSize = 13.sp
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-        )
+
+                BasicTextField(
+                    value = query,
+                    onValueChange = onQueryChange,
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = androidx.compose.ui.text.input.ImeAction.Search
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSearch = {
+                            onSearch() // "검색" 버튼 클릭 시 동작
+                        }
+                    ),
+                    textStyle = androidx.compose.ui.text.TextStyle(
+                        color = Color.Black,
+                        fontSize = 13.sp
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            if (query.isNotEmpty()) {
+                Spacer(modifier = Modifier.width(15.dp)) // 텍스트와 아이콘 사이 간격
+
+                Image(
+                    // ⚠️ 'ic_search_cancle'을 drawable에 추가하셔야 합니다.
+                    painter = painterResource(id = R.drawable.ic_search_cancle),
+                    contentDescription = "텍스트 지우기",
+                    modifier = Modifier
+                        .size(16.dp) // 아이콘 크기
+                        .clickable {
+                            onQueryChange("") // ✅ 클릭 시 텍스트를 비웁니다.
+                        }
+                )
+            }
+        }
     }
 }
 
@@ -324,8 +370,9 @@ fun RecentSearches(
         ) {
             Text(
                 text = "최근 검색어",
-                fontSize = 14.sp,
-                color = Color(0xFF4B4B4B),
+                fontSize = 13.sp,
+                color = Color(0xFF8E8E8E),
+                fontWeight = FontWeight.W400,
                 modifier = Modifier.padding(bottom = 10.dp)
             )
             Row(
@@ -334,23 +381,26 @@ fun RecentSearches(
                     .fillMaxWidth()
                     .height(IntrinsicSize.Min) // ✅ Row 높이 최소 보장
             ) {
-                recentSearches.take(3).forEach { search -> // 최대 3개만 표시
+                recentSearches.take(4).forEach { search -> // 최대 3개만 표시
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .border(1.dp, Color(0xFFFDDDC1), RoundedCornerShape(16.dp))
+                            .clip(RoundedCornerShape(13.dp))
+                            .border(1.dp, Color(0xFFFFD2AC), RoundedCornerShape(13.dp))
                             .background(Color(0xFFFEF6F2))
                             .clickable { onRecentSearchClick(search) }
-                            .padding(horizontal = 10.dp, vertical = 5.dp) // ✅ 내부 패딩 키움
+                            .padding(horizontal = 14.dp, vertical = 7.dp) // ✅ 내부 패딩 키움
                     ) {
                         Text(
                             text = search,
                             fontSize = 12.sp, // ✅ 폰트 크기 키움
+                            lineHeight = 18.sp,
+                            fontWeight = FontWeight.W400,
                             color = Color(0xFF333333) // ✅ 더 진한 색상으로 변경
                         )
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }

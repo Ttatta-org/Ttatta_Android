@@ -7,6 +7,7 @@ import android.os.Build
 import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -51,16 +52,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.asComposeRenderEffect
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+//import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -84,6 +78,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.zIndex
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -92,87 +87,51 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.launch
 
+enum class DiaryCardStyle {
+    DEFAULT,    // 사진 1번 (홈, 검색) 스타일
+    SUMMARIZED  // 사진 2번 (필터) 스타일
+}
 
 @Composable
 fun HomeScreen(
-    isLoading : Boolean,
-    // HomeApp에서 전달받은 데이터와 콜백들
     navController: NavHostController,
-    diaryList: List<Diary>,
-    lazyListState: LazyListState,
-    isExpanded: Boolean,
-    isSearchVisible: Boolean,
-    isSearchTriggered: Boolean,
-    isCalendarVisible: Boolean,
-    searchResults: List<Diary>,
+    uiState: HomeUiState,
     searchQuery: String,
     recentSearches: List<String>,
+    allDiaryDates: List<LocalDate>,
+    topBarState: TopBarState,
+    isDetailModalVisible: Boolean,
+    isSearchTriggered: Boolean,
+    onDeleteDiary: (Long) -> Unit,
     onQueryChange: (String) -> Unit,
-    onSearch: (String) -> Unit,
+    onSearchSubmitted: (String) -> Unit,
+    onRecentSearchClick: (String) -> Unit,
     onSearchToggle: () -> Unit,
     onCalendarToggle: () -> Unit,
-    onRecentSearchClick: (String) -> Unit,
-    onFabClick: () -> Unit,
-    onNavigateToFilteredDiaryScreen: (LocalDate) -> Unit,
-    onShowDetailModal: () -> Unit,
+    onDateSelected: (LocalDate) -> Unit,
+    onShowDetailModal: (Long) -> Unit, // (Long) 타입으로 수정됨
     onDismissDetailModal: () -> Unit,
-    isDetailModalVisible: Boolean,
-    onDeleteDiary: (Long) -> Unit,
-    allDiaryDates: List<LocalDate>
+    lazyListState: LazyListState,
+    onBackClick: () -> Unit
 ) {
 
     val systemUiController = rememberSystemUiController()
     val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
-
     SideEffect {
         systemUiController.setStatusBarColor(
             color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
         )
     }
-//    val uiState by viewModel.uiState.collectAsState()
-//    val searchResults by viewModel.searchResults.collectAsState()
-//
-//    // 캘린더가 보이는지 여부를 관리하는 상태
-//    var isCalendarVisible by remember { mutableStateOf(false) }
-//    var isSearchVisible by remember { mutableStateOf(false) }
-//
-//    val recentSearches by viewModel.recentSearches.collectAsState() // ✅ ViewModel의 최근 검색어 사용
-//    val searchQuery by viewModel.searchQuery.collectAsState() // ✅ ViewModel의 검색어 사용
 
-    // 드래그 버튼의 상태 (ic_bottom_arrow 또는 ic_top_arrow)
-    val dragIcon = when {
-        isSearchVisible -> R.drawable.ic_top_arrow // 검색 상태에서는 아래로 화살표
-        isCalendarVisible -> R.drawable.ic_top_arrow // 캘린더가 보이는 상태
-        else -> R.drawable.ic_bottom_arrow // 기본 상태
+    // 드래그 버튼의 상태 (TopBarState에 따라 아이콘 변경)
+    val dragIcon = when (topBarState) {
+        TopBarState.Closed -> R.drawable.ic_bottom_arrow_new
+        else -> R.drawable.ic_top_arrow_new
     }
-
-//    // TopBar 확장 여부
-//    var isExpanded by remember { mutableStateOf(false) }
-//    // 디테일 모달의 표시 여부 상태 관리
-//    var isDetailModalVisible by remember { mutableStateOf(false) }
-//    // 🔹 검색 실행 여부를 추적하는 변수
-//
-    var topBarHeight by remember { mutableStateOf(65.dp) }
-
-//    var isSearchTriggered by remember { mutableStateOf(false) } // 🔹 검색 버튼이 눌렸는지 여부를 저장하는 상태 변수
 
     var selectedDiaryId by remember { mutableStateOf<Long?>(null) }
 
-//    val view = LocalView.current
-//    val density = LocalDensity.current
-//    val context = LocalContext.current
-//    val activity = context as? Activity // ✅ 현재 Activity 가져오기
-//    val window = activity?.window
-//
-//    // ✅ 네비게이션 바(소프트키) 높이 가져오기
-//    val systemBarsHeight = with(density) {
-//        val insets = ViewCompat.getRootWindowInsets(view)
-//            ?.getInsets(WindowInsetsCompat.Type.systemBars())
-//        insets?.bottom?.toDp() ?: 0.dp
-//    }
-//    if (isSearchVisible || isCalendarVisible) {
-//        window?.navigationBarColor = 0x80FBDDC8.toInt()
-//    }
+    var topBarHeight by remember { mutableStateOf(0.dp) }
 
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -185,112 +144,121 @@ fun HomeScreen(
                     //.background(Color(0xFFFEF6F2)) // ✅ 부드러운 배경색 추가
             ) {
                 // ✅ 캘린더 또는 검색창이 열렸을 때만 배경을 블러 처리
-                if (isSearchVisible || isCalendarVisible) {
+                if (topBarState != TopBarState.Closed) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(
                                 Brush.verticalGradient(
                                     colors = listOf(
-                                        Color(0xFFFBDDC8).copy(alpha = 0.1f),
-                                        Color(0xFFFBDDC8).copy(alpha = 0.3f),
-                                        Color(0xFFFBDDC8).copy(alpha = 0.5f),
-                                        Color(0xFFFBDDC8).copy(alpha = 0.7f),
-                                        Color(0xFFFEDDC8).copy(alpha = 0.85f)  // ✅ 부드러운 그라디언트 유지
+                                        Color(0xFFFDDDC1).copy(alpha = 0.5f),
+                                        Color(0xFFFDDDC1).copy(alpha = 0.5f),
+                                        Color(0xFFFDDDC1).copy(alpha = 0.5f),
+                                        Color(0xFFFDDDC1).copy(alpha = 0.5f),
+                                        Color(0xFFFDDDC1).copy(alpha = 0.5f)
                                     ),
                                     startY = 0f,
                                     endY = Float.POSITIVE_INFINITY
                                 )
                             )
-                            .blur(50.dp) // ✅ 블러 강도를 높여 기존과 비슷한 효과를 줌
+                            .blur(60.dp) // ✅ 블러 강도를 높여 기존과 비슷한 효과를 줌
                             .zIndex(1f)
                     )
                 }
+                // 다이어리 목록
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color(0xFFFEF6F2))
                         .padding(top = 50.dp)
                 ) {
-                    Log.d("HomeViewModel", "isLoading 상태 확인: $isLoading")
-                    if (isLoading) {
-                        // ✅ 로딩 중이면 로딩 인디케이터 표시
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
+                    Log.d("HomeViewModel", "isLoading 상태 확인: ${uiState.isLoading}")
+                    if (uiState.isLoading) {
+                        // (로딩 인디케이터...)
+                    } else if (uiState.diaries.isNotEmpty()) {
+                        LazyColumn(
+                            state = lazyListState, // AppNavHost에서 받은 state
+                            modifier = Modifier.fillMaxSize()
                         ) {
-                            // 빈화면 출력
-                        }
-                    } else {
-                        if (diaryList.isNotEmpty()){
+                            item { Spacer(modifier = Modifier.height(80.dp)) }
 
-                            // ✅ 검색 결과가 있거나, 전체 리스트가 있을 경우 `LazyColumn` 표시
-                            LazyColumn(
-                                state = lazyListState,
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                item { Spacer(modifier = Modifier.height(60.dp)) }
-                                items(diaryList) { diary ->
-                                    DiaryCard(
-                                        diary = diary,
-                                        onDetailClick = {
-                                            selectedDiaryId = diary.id
-                                            onShowDetailModal()
-                                        }
+                            if (uiState.screenMode is ScreenMode.Filtered) {
+                                // 2. 'AiSummaryCard'를 리스트의 첫 번째 아이템으로 추가합니다.
+                                item {
+                                    AiSummaryCard(
+                                        // TODO: 이 데이터는 ViewModel의 uiState에서 가져와야 합니다.
+                                        summaryText = "오늘은 서울여자대학교 학생누리관에서 학식을 먹고 소원나무에 소원을 적어 걸었어요. 🌲 \n 올 한해는 건강하고 행복하게 해달라는 소원을 적었어요.",
+                                        timestamp = "2025.11.06 21:00 생성",
+                                        onRefresh = { /* TODO: ViewModel 새로고침 호출 */ }
                                     )
                                 }
                             }
-                        } else {
-                            // ✅ 다이어리가 없을 경우 빈 화면 표시
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                                contentAlignment = Alignment.BottomCenter // ✅ 이미지가 하단에 붙도록 정렬
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.invitation), // ✅ Drawable에 있는 이미지 사용
-                                    contentDescription = "초대장 이미지",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
+
+                            items(uiState.diaries) { diary ->
+                                // ✅ 7. uiState.screenMode에 따라 카드 스타일 결정
+                                val style = when (uiState.screenMode) {
+                                    is ScreenMode.Filtered -> DiaryCardStyle.SUMMARIZED
+                                    else -> DiaryCardStyle.DEFAULT
+                                }
+
+                                DiaryCard(
+                                    diary = diary,
+                                    style = style, // 3단계에서 만든 통합 카드 사용
+                                    onDetailClick = {
+                                        selectedDiaryId = diary.id // 내부 ID 저장
+                                        onShowDetailModal(diary.id) // 부모(AppNavHost)에게 알림
+                                    }
                                 )
                             }
+                        }
+                    } else {
+                        // ✅ 8. 빈 화면 (검색/홈 분기)
+                        val emptyImage = if (uiState.screenMode is ScreenMode.Search) {
+                            R.drawable.no_search_results
+                        } else {
+                            R.drawable.invitation
+                        }
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center // (기존 BottomCenter에서 수정)
+                        ) {
+                            Image(
+                                painter = painterResource(id = emptyImage),
+                                contentDescription = "빈 화면",
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         }
                     }
                 }
 
                 TopBarComponent(
                     navController = navController,
-                    isExpanded = isCalendarVisible,
-                    isSearchVisible = isSearchVisible,
+                    topBarState = topBarState,
+
+                    screenMode = uiState.screenMode,
+                    selectedDate = (uiState.screenMode as? ScreenMode.Filtered)?.date,
+                    onBackClick = onBackClick,
+
                     searchQuery = searchQuery,
-                    onQueryChange = onQueryChange,
-                    searchResults = searchResults,
                     isSearchTriggered = isSearchTriggered,
-                    onSearch = { onSearch(searchQuery) },
+                    // ✅ "검색 결과 없음" 여부를 TopBar에 알려줌
+                    areSearchResultsEmpty = (uiState.screenMode is ScreenMode.Search && uiState.diaries.isEmpty()),
+                    onQueryChange = onQueryChange,
+                    onSearchSubmitted = onSearchSubmitted,
                     onSearchToggle = onSearchToggle,
                     onCalendarToggle = onCalendarToggle,
                     calendarContent = { modifier ->
-                        Column(modifier = modifier.fillMaxWidth()) {
-                            AnimatedVisibility(
-                                visible = isCalendarVisible,
-                                enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
-                                exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top)
-                            ) {
-                                CalendarView(
-                                    modifier = modifier,
-                                    onDateSelected = { selectedDate ->
-                                        Log.d("HomeScreen", "📌 2. CalendarView에서 날짜 선택됨: $selectedDate")
-                                        onNavigateToFilteredDiaryScreen(selectedDate) // 🔹 네비게이션 실행
-                                    },
-                                    diaryDates = allDiaryDates
-                                )
-                            }
-                        }
+                        CalendarView(
+                            modifier = modifier,
+                            onDateSelected = onDateSelected,
+                            diaryDates = allDiaryDates
+                        )
                     },
                     recentSearches = recentSearches,
                     onRecentSearchClick = onRecentSearchClick,
-                    onHeightChange = { height -> topBarHeight = height }
-
+                    onHeightChange = { newHeight -> // 높이가 바뀔 때마다 topBarHeight 변수 업데이트
+                        topBarHeight = newHeight
+                    }
                 )
                 // ✅ 드래그 가능 영역
                 Box(
@@ -330,46 +298,38 @@ fun HomeScreen(
     }
 
     // 디테일 모달창 (수정/삭제)
-    // 모달이 열렸을 때만 FullSize 배경 클릭 이벤트 처리
     if (isDetailModalVisible) {
+        // (배경 클릭 시 닫기)
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clickable(
-                    onClick = onDismissDetailModal, // 모달 외부 클릭 시 닫기
-                    indication = null, // 클릭 애니메이션 제거
+                    onClick = onDismissDetailModal,
+                    indication = null,
                     interactionSource = remember { MutableInteractionSource() }
                 )
         )
 
-        // 디테일 모달창 (수정/삭제)
         Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter // 하단 중앙 정렬
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter
         ) {
             AnimatedVisibility(
                 visible = isDetailModalVisible,
                 enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                 exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
             ) {
-                // 모달 내용
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .clickable(
-                            onClick = { /* 모달 내부 클릭 시 닫히지 않음 */ },
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        )
-                ) {
-                    DetailModal(
-                        onDismiss = onDismissDetailModal,
-                        onDelete = { onDeleteDiary(selectedDiaryId!!) },
-                        onEdit = { navController.navigate("edit_record/${selectedDiaryId!!}") }
-                    )
-                }
+                DetailModal(
+                    onDismiss = onDismissDetailModal,
+                    onDelete = {
+                        if (selectedDiaryId != null) {
+                            onDeleteDiary(selectedDiaryId!!) // 내부 ID로 삭제 요청
+                        }
+                    },
+                    onEdit = {
+                        navController.navigate("edit_record/${selectedDiaryId!!}")
+                    }
+                )
             }
         }
     }
@@ -517,7 +477,7 @@ fun CalendarView(
             }
         }
 
-        Spacer(Modifier.height(15.dp))
+        Spacer(Modifier.height(18.dp))
 
         // 요일 표시 (일요일도 빨간색 없음)
         Row(
@@ -592,154 +552,341 @@ fun CalendarView(
                 }
             }
         }
+        Spacer(Modifier.height(5.dp))
     }
 }
 
 @Composable
 fun DiaryCard(
     diary: Diary,
-    onDetailClick: () -> Unit
+    onDetailClick: () -> Unit,
+    style: DiaryCardStyle = DiaryCardStyle.DEFAULT
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 25.dp)
-            .shadow(
-                elevation = 2.dp, // 그림자의 높이 조정
-                shape = RoundedCornerShape(28.dp), // 카드의 모서리 둥글기
-                spotColor = Color(0xFFDE806E),
-                ambientColor = Color(0xFFDE806E),
-                clip = true // 모서리가 잘리도록 설정
-            ),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Box(
-            modifier = Modifier.fillMaxWidth()
+    if (style == DiaryCardStyle.DEFAULT) {
+        // ✅ [기존 DiaryCard 코드] (홈/검색용)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 25.dp)
+                .shadow(
+                    elevation = 2.dp, // 그림자의 높이 조정
+                    shape = RoundedCornerShape(28.dp), // 카드의 모서리 둥글기
+                    spotColor = Color(0xFFDE806E),
+                    ambientColor = Color(0xFFDE806E),
+                    clip = true // 모서리가 잘리도록 설정
+                ),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(top = 14.dp, bottom = 20.dp, start = 24.dp, end = 24.dp)
-                    .fillMaxWidth()
-                    .background(Color.White)
-
+            Box(
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier
+                        .padding(top = 14.dp, bottom = 20.dp, start = 24.dp, end = 24.dp)
+                        .fillMaxWidth()
+                        .background(Color.White)
+
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_point),
-                        contentDescription = "Point Icon",
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_point),
+                            contentDescription = "Point Icon",
+                            modifier = Modifier
+                                .width(39.18.dp)
+                                .height(16.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = diary.date.formatToKorean(), // 날짜 텍스트
+                            style = TextStyle(
+                                color = Color(0xFFFF9888), // 텍스트 색상
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.W700,
+                                fontFamily = FontFamily.Default,
+                                letterSpacing = -0.4.sp,
+                                lineHeight = 20.sp
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Log.d("ImageDebug", "Loading image with URL: ${diary.imageUrl}")
+                    AsyncImage(
+                        model = diary.imageUrl,
+                        contentDescription = "Diary Image",
                         modifier = Modifier
-                            .width(39.18.dp)
-                            .height(16.dp)
+                            .fillMaxWidth()
+                            .heightIn(max = 300.dp)
+                            //.height(280.dp)
+                            .clip(RoundedCornerShape(15.dp)),
+                        contentScale = ContentScale.Crop,
+
+                        error = painterResource(id = R.drawable.if_image_error)
                     )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .background(Color(0xFFFEF6F2), RoundedCornerShape(15.dp)) // 배경색 및 모양 설정
+                            .padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_location), // 위치 아이콘 리소스 사용
+                            contentDescription = "위치 아이콘",
+                            modifier = Modifier
+                                .width(9.4.dp)
+                                .height(12.dp),
+                        )
+
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        Text(
+                            text = diary.locationName, // locationName 위치 가져오기
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = Color(0xFFFF9888), // 텍스트 색상
+                                fontSize = 12.sp
+                            )
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    Text(
-                        text = diary.date.formatToKorean(), // 날짜 텍스트
-                        style = TextStyle(
-                            color = Color(0xFFFF9888), // 텍스트 색상
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.W700,
-                            fontFamily = FontFamily.Default,
-                            letterSpacing = -0.4.sp,
-                            lineHeight = 20.sp
+                    // 내용 텍스트
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFFFEFE4).copy(alpha = 0.5f), RoundedCornerShape(18.dp))
+                            .padding(14.dp)
+                    ) {
+                        Text(
+                            text = diary.content,
+                            style = TextStyle(
+                                color = Color(0xFF4B4B4B), // 텍스트 색상
+                                fontSize = 13.sp,
+                                lineHeight = 17.sp,
+                                fontWeight = FontWeight.W400,
+                                fontFamily = FontFamily.Default,
+                                letterSpacing = -0.4.sp
+                            )
                         )
-                    )
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                AsyncImage(
-                    model = diary.imageUrl,
-                    contentDescription = "Diary Image",
+                // 오른쪽 상단에 디테일 아이콘
+                IconButton(
+                    onClick = onDetailClick,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 300.dp)
-                        //.height(280.dp)
-                        .clip(RoundedCornerShape(15.dp)),
-                    contentScale = ContentScale.Crop,
-
-                    error = painterResource(id = R.drawable.if_image_error)
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                Row(
-                    modifier = Modifier
-                        .wrapContentWidth()
-                        .background(Color(0xFFFEF6F2), RoundedCornerShape(15.dp)) // 배경색 및 모양 설정
-                        .padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .align(Alignment.TopEnd)
+                        .padding(top = 18.dp, end = 25.dp)
                 ) {
                     Image(
-                        painter = painterResource(id = R.drawable.ic_location), // 위치 아이콘 리소스 사용
-                        contentDescription = "위치 아이콘",
+                        painter = painterResource(id = R.drawable.ic_detail),
+                        contentDescription = "Detail Icon",
                         modifier = Modifier
-                            .width(9.4.dp)
-                            .height(12.dp),
-                    )
-
-                    Spacer(modifier = Modifier.width(6.dp))
-
-                    Text(
-                        text = diary.locationName, // locationName 위치 가져오기
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            color = Color(0xFFFF9888), // 텍스트 색상
-                            fontSize = 12.sp
-                        )
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
-                // 내용 텍스트
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFFFFEFE4).copy(alpha = 0.5f), RoundedCornerShape(18.dp))
-                        .padding(14.dp)
-                ) {
-                    Text(
-                        text = diary.content,
-                        style = TextStyle(
-                            color = Color(0xFF4B4B4B), // 텍스트 색상
-                            fontSize = 13.sp,
-                            lineHeight = 17.sp,
-                            fontWeight = FontWeight.W400,
-                            fontFamily = FontFamily.Default,
-                            letterSpacing = -0.4.sp
-                        )
+                            .width(17.dp)
+                            .height(3.dp)
                     )
                 }
             }
-            // 오른쪽 상단에 디테일 아이콘
-            IconButton(
-                onClick = onDetailClick,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 18.dp, end = 25.dp)
+        }
+
+        // 점선 구분선
+        Spacer(modifier = Modifier.height(20.dp))
+        DashedDivider()
+        Spacer(modifier = Modifier.height(20.dp))
+
+    } else {
+        // ✅ [기존 FillteredDiaryByDate 코드] (필터용)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 25.dp)
+                .shadow(
+                    elevation = 2.dp, // 그림자의 높이 조정
+                    shape = RoundedCornerShape(28.dp), // 카드의 모서리 둥글기
+                    spotColor = Color(0xFFDE806E),
+                    ambientColor = Color(0xFFDE806E),
+                    clip = true // 모서리가 잘리도록 설정
+                ),
+            shape = RoundedCornerShape(28.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_detail),
-                    contentDescription = "Detail Icon",
+                Column(
                     modifier = Modifier
-                        .width(17.dp)
-                        .height(3.dp)
+                        .padding(top = 14.dp, bottom = 20.dp, start = 24.dp, end = 24.dp)
+                        .fillMaxWidth()
+                        .background(Color.White)
+
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_point),
+                            contentDescription = "Point Icon",
+                            modifier = Modifier
+                                .width(39.18.dp)
+                                .height(16.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    AsyncImage(
+                        model = diary.imageUrl,
+                        contentDescription = "Diary Image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 300.dp)
+                            .clip(RoundedCornerShape(15.dp)),
+                        contentScale = ContentScale.Crop,
+                        // 필요 시 placeholder나 error 설정도 할 수 있음
+                        error = painterResource(id = R.drawable.if_image_error)
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // 위치 텍스트
+                    Row(
+                        modifier = Modifier
+                            .wrapContentWidth()
+                            .background(Color(0xFFFEF6F2), RoundedCornerShape(15.dp)) // 배경색 및 모양 설정
+                            .padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_location), // 위치 아이콘 리소스 사용
+                            contentDescription = "위치 아이콘",
+                            modifier = Modifier
+                                .width(9.4.dp)
+                                .height(12.dp),
+                        )
+
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        Text(
+                            text = diary.locationName, // locationName 위치 가져오기
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = Color(0xFFFF9888), // 텍스트 색상
+                                fontSize = 12.sp
+                            )
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(6.57.dp))
+
+                    // 내용 텍스트
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFFDDDC1).copy(alpha = 0.5f), RoundedCornerShape(15.dp))
+                            .padding(vertical = 10.dp, horizontal = 12.dp)
+                    ) {
+                        Text(
+                            text = diary.content,
+                            style = TextStyle(
+                                color = Color(0xFF4B4B4B), // 텍스트 색상
+                                fontSize = 12.sp,
+                                lineHeight = 16.sp,
+                                fontWeight = FontWeight.W400,
+                                fontFamily = FontFamily.Default,
+                                letterSpacing = -0.4.sp
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AiSummaryCard(
+    modifier: Modifier = Modifier,
+    summaryText: String,
+    timestamp: String,
+    onRefresh: () -> Unit
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 25.dp) // DiaryCard와 동일한 좌우 여백
+            .padding(bottom = 12.dp), // 위쪽 여백
+        shape = RoundedCornerShape(22.dp), // DiaryCard보다 둥글게
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = BorderStroke(1.5.dp, Color(0xFFFFD0C8)) // 옅은 분홍색 테두리
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 18.dp)
+                .padding(top = 18.dp, bottom = 15.dp)
+                .fillMaxWidth()
+        ) {
+            // --- AI 아이콘 + 타이틀 ---
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_ai_summary),
+                    contentDescription = "AI Summary Icon",
+                    modifier = Modifier.width(20.dp).height(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "하루 일기 요약",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.W700,
+                    color = Color(0xFFFF9888)
                 )
             }
 
+            Spacer(modifier = Modifier.height(11.dp))
+
+            // --- 2. 요약 내용 ---
+            Text(
+                text = summaryText,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.W400,
+                color = Color(0xFF4B4B4B),
+                lineHeight = 20.sp
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // --- 3. 타임스탬프 + 새로고침 ---
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = timestamp,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.W400,
+                    color = Color(0xFFFF9888)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Image(
+                    painter = painterResource(id = R.drawable.ic_refresh),
+                    contentDescription = "새로고침",
+                    modifier = Modifier
+                        .size(15.dp)
+                        .clickable { onRefresh() }
+                )
+            }
         }
-
     }
-
-    // 점선 구분선
-    Spacer(modifier = Modifier.height(20.dp))
-    DashedDivider()
-    Spacer(modifier = Modifier.height(20.dp))
 }
 
 @Composable
