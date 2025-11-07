@@ -66,15 +66,21 @@ class HomeViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository
 ) : ViewModel() {
 
-    private var isFirstLoad = true  // ✅ 처음 로드 여부 확인
-//    var isLoading = true // ✅ 중복 요청 방지
-
-    // ✅ isLoading을 MutableStateFlow로 변경 (Compose에서 감지 가능!)
-    private val _isLoading = MutableStateFlow(true) // 🔥 초기값을 true로 설정
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    // ✅ 1. 단 하나의 상태(State) 선언
+    private val _uiState = MutableStateFlow(HomeUiState(isLoading = true))
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     private val _isPaging = MutableStateFlow(false)
     val isPaging: StateFlow<Boolean> = _isPaging.asStateFlow()
+
+    private var isFirstLoad = true
+//    var isLoading = true
+
+    // isLoading을 MutableStateFlow로 변경 (Compose에서 감지 가능!)
+//    private val _isLoading = MutableStateFlow(true) // 초기값을 true로 설정
+//    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+
 
     init {
         if (isFirstLoad) {
@@ -86,33 +92,33 @@ class HomeViewModel @Inject constructor(
     }
 
     // 새로고침 필요할 때 호출하기
-    fun refreshDiaries() {
-        loadAllDiaries()
-        loadAllRecordedDates()
-    }
+//    fun refreshDiaries() {
+//        loadAllDiaries()
+//        loadAllRecordedDates()
+//    }
 
     // ✅ 전체 일기 목록을 저장하는 StateFlow 추가
-    private val _fullDiaryListState = MutableStateFlow<List<Diary>>(emptyList())
-    val fullDiaryListState: StateFlow<List<Diary>> = _fullDiaryListState
+//    private val _fullDiaryListState = MutableStateFlow<List<Diary>>(emptyList())
+//    val fullDiaryListState: StateFlow<List<Diary>> = _fullDiaryListState
 
-    private val _recordedDatesState = MutableStateFlow<List<LocalDate>>(emptyList()) // ✅ 전체 일기 날짜 저장
-    val recordedDatesState: StateFlow<List<LocalDate>> = _recordedDatesState
+//    private val _recordedDatesState = MutableStateFlow<List<LocalDate>>(emptyList()) // ✅ 전체 일기 날짜 저장
+//    val recordedDatesState: StateFlow<List<LocalDate>> = _recordedDatesState
 
-    private val _filteredDiaryListState = MutableStateFlow<List<Diary>>(emptyList())
-    val filteredDiaryListState: StateFlow<List<Diary>> = _filteredDiaryListState
+//    private val _filteredDiaryListState = MutableStateFlow<List<Diary>>(emptyList())
+//    val filteredDiaryListState: StateFlow<List<Diary>> = _filteredDiaryListState
 
     // 기본 일기 목록 상태
-    private val _diaryListState = MutableStateFlow<List<Diary>>(emptyList())
-    val diaryListState: StateFlow<List<Diary>> = _diaryListState
+//    private val _diaryListState = MutableStateFlow<List<Diary>>(emptyList())
+//    val diaryListState: StateFlow<List<Diary>> = _diaryListState
+
+    // ✅ **검색 결과 저장**
+//    private val _searchResultsState = MutableStateFlow<List<Diary>>(emptyList())
+//    val searchResultsState: StateFlow<List<Diary>> = _searchResultsState
 
     var currentPage = 0 // ✅ 일반 다이어리 리스트의 페이지 상태
     private var currentFilteredPage = 0
     private var searchPage = 0
-    //private var currentSearchPage = 0 // ✅ 검색 결과의 페이지 상태
-
-    // ✅ **검색 결과 저장**
-    private val _searchResultsState = MutableStateFlow<List<Diary>>(emptyList())
-    val searchResultsState: StateFlow<List<Diary>> = _searchResultsState
+    //private var currentSearchPage = 0 //  검색 결과의 페이지 상태
 
     // ✅ **최근 검색어 저장 (최대 3개)**
     private val _recentSearchesState = MutableStateFlow<List<String>>(emptyList())
@@ -156,7 +162,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val allDates = diaryRepository.getAllRecordedDates()
-                _recordedDatesState.value = allDates
+                _uiState.value = _uiState.value.copy(recordedDates = allDates)
                 Log.d("HomeViewModel", "✅ 전체 기록된 날짜 로드 완료: ${allDates.size}개")
             } catch (e: Exception) {
                 Log.e("HomeViewModel", "❌ 기록된 날짜 불러오기 실패: ${e.message}")
@@ -167,20 +173,20 @@ class HomeViewModel @Inject constructor(
     /**
      * 🟢 **전체 일기 데이터 로드 (캘린더에 표시될 모든 일기들)**
      */
-    fun loadAllDiaries() {
-        viewModelScope.launch {
-            try {
-                Log.d("HomeViewModel", "📌 전체 다이어리 목록 불러오기 (날짜 필터 없음)")
-                val allDiaries = diaryRepository.getDiaries(page = 0, date = null) // ✅ 날짜 필터 없이 전체 가져오기
-                _fullDiaryListState.value = allDiaries
-                Log.d("HomeViewModel", "✅ 전체 다이어리 저장 완료: ${allDiaries.size}개")
-            } catch (e: Exception) {
-                Log.e("HomeViewModel", "❌ 전체 다이어리 불러오기 실패: ${e.message}")
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
+//    fun loadAllDiaries() {
+//        viewModelScope.launch {
+//            try {
+//                Log.d("HomeViewModel", "전체 다이어리 목록 불러오기 (날짜 필터 없음)")
+//                val allDiaries = diaryRepository.getDiaries(page = 0, date = null) // ✅ 날짜 필터 없이 전체 가져오기
+//                _fullDiaryListState.value = allDiaries
+//                Log.d("HomeViewModel", "전체 다이어리 저장 완료: ${allDiaries.size}개")
+//            } catch (e: Exception) {
+//                Log.e("HomeViewModel", "전체 다이어리 불러오기 실패: ${e.message}")
+//            } finally {
+//                _isLoading.value = false
+//            }
+//        }
+//    }
 
     /**
      * 서버에서 일기 목록을 가져와 diaryListState를 업데이트합니다.
@@ -201,13 +207,13 @@ class HomeViewModel @Inject constructor(
         if (reset) {
             if (isFiltered) {
                 Log.d("Pagination", "📌 reset=true → 필터된 다이어리 초기화 & currentFilteredPage=0")
-                currentFilteredPage = 0  // ✅ 필터된 페이지 초기화
-                _filteredDiaryListState.value = emptyList()
+                currentFilteredPage = 0  // 필터된 페이지 초기화
             } else {
                 Log.d("Pagination", "📌 reset=true → 일반 다이어리 초기화 & currentPage=0")
-                currentPage = 0  // ✅ 일반 페이지 초기화
-                _diaryListState.value = emptyList()
+                currentPage = 0  // 일반 페이지 초기화
             }
+            // 리셋 시에 uistate 의 diaries도 비워준다.
+            _uiState.value = _uiState.value.copy(diaries = emptyList())
         }
 
         viewModelScope.launch {
@@ -217,33 +223,28 @@ class HomeViewModel @Inject constructor(
 
                 val newDiaries = diaryRepository.getDiaries(page = targetPage, date = date)
 
-                _isLoading.value = false // ✅ 로딩 상태 변경
-
-                // ✅ 새로운 다이어리 추가 (중복 방지)
-                if (isFiltered) {
-                    _filteredDiaryListState.value = (_filteredDiaryListState.value + newDiaries).distinctBy { it.id }
-                } else {
-                    _diaryListState.value = (_diaryListState.value + newDiaries).distinctBy { it.id }
-                }
-
-                // ✅ 데이터가 있을 때만 페이지 증가
-                if (newDiaries.isNotEmpty()) {
-                    if (isFiltered) {
-                        currentFilteredPage++  // ✅ 필터된 페이지 증가
-                        Log.d("Pagination", "✅ 필터된 리스트 페이지 증가: $currentFilteredPage")
+                // ✅ _uiState를 통째로 업데이트
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    // ✅ 현재 모드를 screenMode로 명시
+                    screenMode = if (isFiltered) ScreenMode.Filtered(date!!) else ScreenMode.Home,
+                    // ✅ diaries 리스트를 업데이트 (reset 여부에 따라 덮어쓰거나 추가)
+                    diaries = if (reset) {
+                        newDiaries
                     } else {
-                        currentPage++  // ✅ 일반 페이지 증가
-                        Log.d("Pagination", "✅ 일반 리스트 페이지 증가: $currentPage")
+                        (_uiState.value.diaries + newDiaries).distinctBy { it.id }
                     }
-                } else {
-                    Log.d("Pagination", "🚨 마지막 페이지 도달 - 더 이상 데이터 없음")
-                }
+                )
 
+                if (newDiaries.isNotEmpty()) {
+                    if (isFiltered) currentFilteredPage++
+                    else currentPage++
+                }
                 onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
             } finally {
-                _isPaging.value = false // ✅ 페이지 로딩 완료 후 false 설정
+                _isPaging.value = false
             }
         }
     }
@@ -270,17 +271,27 @@ class HomeViewModel @Inject constructor(
 
         if (reset) {
             searchPage = 0  // ✅ 검색 시작 시 항상 0으로 초기화
-            _searchResultsState.value = emptyList()  // ✅ 기존 검색 결과 초기화
-            //addRecentSearch(searchWord)
+            // ✅ 리셋 시 uiState의 diaries도 비워줌
+            _uiState.value = _uiState.value.copy(diaries = emptyList())
         }
 
         viewModelScope.launch {
             try {
                 val results = diaryRepository.getDiaries(page = searchPage, searchWord = searchWord)
 
-                _isLoading.value = false
+                // ✅ _uiState를 통째로 업데이트
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    // ✅ 현재 모드를 'Search'로 명시
+                    screenMode = ScreenMode.Search(searchWord),
+                    // ✅ diaries 리스트를 업데이트
+                    diaries = if (reset) {
+                        results
+                    } else {
+                        (_uiState.value.diaries + results).distinctBy { it.id }
+                    }
+                )
 
-                _searchResultsState.value = (_searchResultsState.value + results).distinctBy { it.id }
                 if (results.isNotEmpty()) {
                     searchPage++
                     if (searchWord.isNotBlank()) {
@@ -291,8 +302,6 @@ class HomeViewModel @Inject constructor(
                 onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
-            } finally {
-                _isLoading.value = false
             }
         }
     }
@@ -359,36 +368,18 @@ class HomeViewModel @Inject constructor(
                     image = image
                 )
 
-                // ✅ 기존 리스트에서 해당 다이어리 찾아 업데이트
-                _diaryListState.value = _diaryListState.value.map { diary ->
-                    if (diary.id == diaryId) {
-                        diary.copy(
-                            categoryId = categoryId ?: diary.categoryId,
-                            content = content ?: diary.content, // 변경된 내용 반영
-                            imageUrl = image?.path ?: diary.imageUrl // 변경된 이미지 반영
-                        )
-                    } else diary
-                }
-
-                _fullDiaryListState.value = _fullDiaryListState.value.map { diary ->
-                    if (diary.id == diaryId) {
-                        diary.copy(
-                            categoryId = categoryId ?: diary.categoryId,
-                            content = content ?: diary.content,
-                            imageUrl = image?.path ?: diary.imageUrl
-                        )
-                    } else diary
-                }
-
-                _searchResultsState.value = _searchResultsState.value.map { diary ->
-                    if (diary.id == diaryId) {
-                        diary.copy(
-                            categoryId = categoryId ?: diary.categoryId,
-                            content = content ?: diary.content,
-                            imageUrl = image?.path ?: diary.imageUrl
-                        )
-                    } else diary
-                }
+                // ✅ _uiState의 diaries 리스트만 map으로 수정
+                _uiState.value = _uiState.value.copy(
+                    diaries = _uiState.value.diaries.map { diary ->
+                        if (diary.id == diaryId) {
+                            diary.copy(
+                                categoryId = categoryId ?: diary.categoryId,
+                                content = content ?: diary.content,
+                                imageUrl = image?.path ?: diary.imageUrl
+                            )
+                        } else diary
+                    }
+                )
 
                 Log.d("modifyDiary", "✅ 수정 후 리스트 업데이트 완료")
                 onSucceed() // ✅ 성공 콜백 호출
@@ -442,10 +433,10 @@ class HomeViewModel @Inject constructor(
                 diaryRepository.deleteDiary(diaryId = diaryId)
                 Log.d("HomeViewModel", "✅ 일기 삭제 성공: $diaryId")
 
-                // ✅ 삭제된 항목을 리스트에서 즉시 제거
-                _diaryListState.value = _diaryListState.value.filterNot { it.id == diaryId }
-                _fullDiaryListState.value = _fullDiaryListState.value.filterNot { it.id == diaryId }
-                _searchResultsState.value = _searchResultsState.value.filterNot { it.id == diaryId }
+                // ✅ _uiState의 diaries 리스트만 filterNot으로 수정
+                _uiState.value = _uiState.value.copy(
+                    diaries = _uiState.value.diaries.filterNot { it.id == diaryId }
+                )
 
                 loadAllRecordedDates()
 
@@ -454,5 +445,29 @@ class HomeViewModel @Inject constructor(
                 onFailed(e)
             }
         }
+    }
+
+    /**
+     * ✅ UI가 날짜를 선택했을 때 호출하는 함수
+     */
+    fun onDateSelected(date: LocalDate) {
+        // 날짜 필터 모드로 다이어리를 로드 (항상 0페이지부터, 리셋)
+        loadDiaries(page = 0, date = date, isFiltered = true, reset = true)
+    }
+
+    /**
+     * ✅ UI가 검색을 실행했을 때 호출하는 함수
+     */
+    fun onSearchSubmitted(query: String) {
+        // 검색 모드로 다이어리를 로드 (항상 0페이지부터, 리셋)
+        searchDiaries(searchWord = query, reset = true)
+    }
+
+    /**
+     * ✅ UI가 필터/검색을 해제하고 홈으로 돌아갈 때 호출하는 함수
+     */
+    fun onClearMode() {
+        // 홈 모드로 다이어리를 로드 (항상 0페이지부터, 리셋)
+        loadDiaries(page = 0, date = null, isFiltered = false, reset = true)
     }
 }
