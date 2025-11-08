@@ -122,15 +122,19 @@ fun TopBarComponent(
                     .fillMaxWidth()
                     .statusBarsPadding()
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 28.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // 왼쪽 로고
-                    if (screenMode is ScreenMode.Filtered) {
-                        // --- Filtered 모드 (뒤로가기 + 날짜) ---
+                // --- ✅ 핵심: 두 가지 레이아웃을 조건부로 분리 ---
+                val isFilteredAndSearchClosed =
+                    (screenMode is ScreenMode.Filtered && topBarState != TopBarState.SearchOpen)
+
+                if (isFilteredAndSearchClosed) {
+                    // --- 1. Filtered 모드 + 검색창 닫힘 (가운데 날짜용 Box 레이아웃) ---
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 28.dp, vertical = 12.dp)
+                            .height(IntrinsicSize.Min), // 높이를 자식에 맞춤
+                    ) {
+                        // --- 왼쪽: 뒤로가기 버튼 ---
                         Image(
                             painter = painterResource(id = R.drawable.ic_arrow_left_new),
                             contentDescription = "뒤로 가기",
@@ -138,36 +142,27 @@ fun TopBarComponent(
                                 .width(10.dp)
                                 .height(16.25.dp)
                                 .clickable { onBackClick() }
+                                .align(Alignment.CenterStart) // ✅ 왼쪽 정렬
                         )
 
-                    } else {
-                        // --- Home / Search 모드 (로고) ---
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_ttatta_logo),
-                            contentDescription = "로고",
-                            modifier = Modifier
-                                .width(34.6.dp)
-                                .height(30.dp)
+                        // --- 중앙: 날짜 텍스트 ---
+                        Text(
+                            text = selectedDate?.format(
+                                DateTimeFormatter.ofPattern("yyyy년 MM월 dd일", Locale.KOREAN)
+                            ) ?: "날짜 없음",
+                            style = TextStyle( // 🎨 스크린샷과 유사한 스타일
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.W700,
+                                color = Color(0xFFF07B7B) // (디자인에 맞게 색상 변경)
+                            ),
+                            modifier = Modifier.align(Alignment.Center) // ✅ 중앙 정렬
                         )
-                    }
 
-                    // 검색창과 아이콘 모두를 포함하는 Row
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = if (topBarState == TopBarState.SearchOpen) Arrangement.SpaceBetween else Arrangement.End
-                    ) {
-                        AnimatedVisibility(visible = topBarState == TopBarState.SearchOpen) {
-                            SearchBar(
-                                query = searchQuery,
-                                onQueryChange = onQueryChange,
-                                onSearch = { onSearchSubmitted(searchQuery) },
-                                modifier = Modifier.weight(4f)
-                            )
-                        }
-                        AnimatedVisibility(visible = topBarState != TopBarState.SearchOpen) {
+                        // --- 오른쪽: 아이콘 2개 (Row로 묶음) ---
+                        Row(
+                            modifier = Modifier.align(Alignment.CenterEnd), // ✅ 오른쪽 정렬
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             IconButton(onClick = { /* 위치 핀 */ }, modifier = Modifier.size(22.dp)) {
                                 Image(
                                     painter = painterResource(id = R.drawable.ic_location_pin),
@@ -175,26 +170,90 @@ fun TopBarComponent(
                                     modifier = Modifier.width(19.21.dp).height(26.dp)
                                 )
                             }
+                            Spacer(modifier = Modifier.width(20.dp))
+                            IconButton(
+                                onClick = { onSearchToggle() }, // 검색창 열기
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_search),
+                                    contentDescription = "검색",
+                                    modifier = Modifier.width(22.dp).height(24.dp)
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // --- 2. 그 외 모든 경우 (검색창 열림, 홈 모드 등) (기존 Row 레이아웃) ---
+                    // ✅ 이 부분은 처음에 질문 주셨던 원본 코드와 동일합니다.
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 28.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // 왼쪽 로고 또는 뒤로가기 (상황에 맞게 표시됨)
+                        if (screenMode is ScreenMode.Filtered) {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_arrow_left_new),
+                                contentDescription = "뒤로 가기",
+                                modifier = Modifier
+                                    .width(10.dp)
+                                    .height(16.25.dp)
+                                    .clickable { onBackClick() }
+                            )
+                        } else {
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_ttatta_logo),
+                                contentDescription = "로고",
+                                modifier = Modifier
+                                    .width(34.6.dp)
+                                    .height(30.dp)
+                            )
                         }
 
-                        Spacer(modifier = Modifier.width(20.dp)) // 검색창과 검색 아이콘 간격
-
-                        // 검색 아이콘 (항상 동일한 위치에 유지)
-                        IconButton(
-                            onClick = {
-                                if (topBarState == TopBarState.SearchOpen) {
-                                    onSearchSubmitted(searchQuery)
-                                } else {
-                                    onSearchToggle() // ✅ 검색창을 열기
-                                }
-                            },
-                            modifier = Modifier.size(24.dp)
+                        // 검색창과 아이콘 모두를 포함하는 Row (기존 로직)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = if (topBarState == TopBarState.SearchOpen) Arrangement.SpaceBetween else Arrangement.End
                         ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_search),
-                                contentDescription = "검색",
-                                modifier = Modifier.width(22.dp).height(24.dp)
-                            )
+                            AnimatedVisibility(visible = topBarState == TopBarState.SearchOpen) {
+                                SearchBar(
+                                    query = searchQuery,
+                                    onQueryChange = onQueryChange,
+                                    onSearch = { onSearchSubmitted(searchQuery) },
+                                    modifier = Modifier.weight(4f) // ✅ 이 weight가 정상 작동
+                                )
+                            }
+                            AnimatedVisibility(visible = topBarState != TopBarState.SearchOpen) {
+                                IconButton(onClick = { /* 위치 핀 */ }, modifier = Modifier.size(22.dp)) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_location_pin),
+                                        contentDescription = "위치 핀",
+                                        modifier = Modifier.width(19.21.dp).height(26.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(20.dp))
+                            IconButton(
+                                onClick = {
+                                    if (topBarState == TopBarState.SearchOpen) {
+                                        onSearchSubmitted(searchQuery)
+                                    } else {
+                                        onSearchToggle()
+                                    }
+                                },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_search),
+                                    contentDescription = "검색",
+                                    modifier = Modifier.width(22.dp).height(24.dp)
+                                )
+                            }
                         }
                     }
                 }
