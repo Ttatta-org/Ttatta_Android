@@ -116,7 +116,8 @@ fun HomeScreen(
     onShowDetailModal: (Long) -> Unit, // (Long) 타입으로 수정됨
     onDismissDetailModal: () -> Unit,
     lazyListState: LazyListState,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onRefreshSummary: () -> Unit
 ) {
 
     val systemUiController = rememberSystemUiController()
@@ -187,14 +188,41 @@ fun HomeScreen(
                             item { Spacer(modifier = Modifier.height(80.dp)) }
 
                             if (uiState.screenMode is ScreenMode.Filtered) {
-                                // 2. 'AiSummaryCard'를 리스트의 첫 번째 아이템으로 추가합니다.
-                                item {
-                                    AiSummaryCard(
-                                        // TODO: 이 데이터는 ViewModel의 uiState에서 가져와야 합니다.
-                                        summaryText = "오늘은 서울여자대학교 학생누리관에서 학식을 먹고 소원나무에 소원을 적어 걸었어요. 🌲 \n 올 한해는 건강하고 행복하게 해달라는 소원을 적었어요.",
-                                        timestamp = "2025.11.06 21:00 생성",
-                                        onRefresh = { /* TODO: ViewModel 새로고침 호출 */ }
-                                    )
+                                val summaryState = uiState.aiSummaryState
+                                if (summaryState.isVisible) {
+                                    item {
+                                        when {
+                                            summaryState.isLoading -> {
+                                                // TODO: (선택) 요약 카드용 로딩 스켈레톤 UI
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .padding(horizontal = 25.dp)
+                                                        .padding(bottom = 12.dp)
+                                                        .height(150.dp) // AiSummaryCard와 비슷한 높이
+                                                        .background(Color.Gray.copy(alpha = 0.1f), RoundedCornerShape(22.dp)),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text("요약 불러오는 중...")
+                                                }
+                                            }
+                                            summaryState.error != null -> {
+                                                AiSummaryCard(
+                                                    summaryText = summaryState.error, // 에러 메시지 표시
+                                                    timestamp = "오류 발생",
+                                                    onRefresh = onRefreshSummary // 에러 시에도 새로고침
+                                                )
+                                            }
+                                            else -> {
+                                                // 성공 시 데이터 연결
+                                                AiSummaryCard(
+                                                    summaryText = summaryState.summaryText,
+                                                    timestamp = summaryState.timestamp,
+                                                    onRefresh = onRefreshSummary
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
 

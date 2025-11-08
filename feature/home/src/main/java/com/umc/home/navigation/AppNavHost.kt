@@ -162,7 +162,8 @@ fun AppNavHost(
                     isDetailModalVisible = false
                 },
                 lazyListState = lazyListState,
-                onBackClick = { viewModel.onClearMode() }
+                onBackClick = { viewModel.onClearMode() },
+                onRefreshSummary = viewModel::onRefreshSummary
             )
         }
 

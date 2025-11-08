@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import java.time.format.DateTimeFormatter
 import com.umc.core.model.CategoryInfo
 import com.umc.core.model.Diary
 import com.umc.core.repository.DiaryRepository
@@ -25,6 +26,14 @@ data class EditDiary(
     val date: LocalDateTime,
     val imageUrl: String?, // 이미지 URI를 String으로 저장
     val content: String
+)
+
+data class AiSummaryState(
+    val summaryText: String = "",
+    val timestamp: String = "", // "2025.11.06 21:00 생성" 같은 포맷
+    val isLoading: Boolean = false,
+    val error: String? = null,
+    val isVisible: Boolean = false
 )
 
 /**
@@ -58,7 +67,8 @@ data class HomeUiState(
     val screenMode: ScreenMode = ScreenMode.Home,
     val diaries: List<Diary> = emptyList(), // ✅ 화면에 표시될 '단 하나'의 리스트
     val isLoading: Boolean = true,
-    val recordedDates: List<LocalDate> = emptyList() // 캘린더 점 찍기용
+    val recordedDates: List<LocalDate> = emptyList(), // 캘린더 점 찍기용
+    val aiSummaryState: AiSummaryState = AiSummaryState()
 )
 
 @HiltViewModel
@@ -74,6 +84,8 @@ class HomeViewModel @Inject constructor(
     val isPaging: StateFlow<Boolean> = _isPaging.asStateFlow()
 
     private var isFirstLoad = true
+
+    private val summaryTimestampFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm 생성")
 //    var isLoading = true
 
     // isLoading을 MutableStateFlow로 변경 (Compose에서 감지 가능!)
@@ -261,7 +273,92 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * ✅ AI 요약 불러오기 (GET)
+     * 요약을 '조회'하고, 없으면(null) '생성'을 요청합니다.
+     */
+    fun loadAiSummary(date: LocalDate) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                aiSummaryState = AiSummaryState(isLoading = true, isVisible = true) // 1. 로딩 시작
+            )
+            try {
+                // 2. Repository의 'getDailySummary' 호출
+                val summary = diaryRepository.getDailySummary(date)
 
+                if (summary != null) {
+                    // 3a. 요약이 있으면 UI 상태 업데이트 (보이기)
+                    _uiState.value = _uiState.value.copy(
+                        aiSummaryState = AiSummaryState(
+                            summaryText = summary.summary,
+                            timestamp = summary.createdTime.format(summaryTimestampFormatter),
+                            isVisible = true // ✅ 보이기
+                        )
+                    )
+                    Log.d("HomeViewModel", "✅ AI 요약 조회 성공")
+                } else {
+                    // 3b. 요약이 없으면(null) 생성 요청
+                    Log.w("HomeViewModel", "⚠️ AI 요약 없음(404). 새로 '생성'을 요청합니다.")
+                    generateAiSummary(date) // ✅ 생성 함수 호출
+                }
+            } catch (e: Exception) {
+                // 4. 조회 중 (404가 아닌) 다른 에러가 나면
+                Log.e("HomeViewModel", "❌ AI 요약 조회 실패: ${e.message}")
+                _uiState.value = _uiState.value.copy(
+                    aiSummaryState = AiSummaryState(
+                        error = "요약 로딩 실패",
+                        isVisible = true // ✅ 에러 카드라도 보여주기
+                    )
+                )
+            }
+        }
+    }
+
+    /**
+     * AI 요약 생성/재생성 (POST/PUT)
+     * (loadAiSummary 또는 onRefreshSummary에서 호출됨)
+     */
+    private fun generateAiSummary(date: LocalDate) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(
+                aiSummaryState = _uiState.value.aiSummaryState.copy(isLoading = true, isVisible = true)
+            )
+            try {
+                // 1. generateDailySummary 호출 (이 함수가 알아서 POST/PUT 처리 후 DailySummary 반환)
+                val newSummary = diaryRepository.generateDailySummary(date)
+
+                // 2. 즉시 UI 상태 업데이트 (더 이상 GET을 또 호출할 필요 없음)
+                _uiState.value = _uiState.value.copy(
+                    aiSummaryState = AiSummaryState(
+                        summaryText = newSummary.summary,
+                        timestamp = newSummary.createdTime.format(summaryTimestampFormatter),
+                        isVisible = true
+                    )
+                )
+                Log.d("HomeViewModel", "✅ AI 요약 생성/재생성 성공 (API 응답 직접 사용)")
+
+            } catch (e: Exception) {
+                Log.e("HomeViewModel", "❌ AI 요약 생성/재생성 실패: ${e.message}}")
+                _uiState.value = _uiState.value.copy(
+                    aiSummaryState = AiSummaryState(
+                        error = "요약 생성/새로고침 실패",
+                        isVisible = true
+                    )
+                )
+            }
+        }
+    }
+
+    /**
+     * AI 요약 새로고침 (HomeScreen의 onRefresh 버튼과 연결됨)
+     */
+    fun onRefreshSummary() {
+        val mode = _uiState.value.screenMode
+        if (mode !is ScreenMode.Filtered) return // Filtered 모드가 아니면 무시
+
+        Log.d("HomeViewModel", "🔄 AI 요약 새로고침 요청 (날짜: ${mode.date})")
+        generateAiSummary(mode.date) // 'generate' 함수가 알아서 PUT(재생성)을 호출
+    }
 
 
     // ✅ SearchScreen의 검색 기능 (검색 시 reset = true)
@@ -453,6 +550,7 @@ class HomeViewModel @Inject constructor(
     fun onDateSelected(date: LocalDate) {
         // 날짜 필터 모드로 다이어리를 로드 (항상 0페이지부터, 리셋)
         loadDiaries(page = 0, date = date, isFiltered = true, reset = true)
+        loadAiSummary(date)
     }
 
     /**
