@@ -7,6 +7,10 @@ import android.os.Build
 import android.util.Log
 import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -399,87 +403,27 @@ fun DetailModal(
 }
 
 @Composable
-fun CalendarView(
+private fun CalendarBody(
     modifier: Modifier = Modifier,
+    year: Int,
+    month: Int,
+    diaryDates: List<LocalDate>,
+    selectedDate: LocalDate?,
     onDateSelected: (LocalDate) -> Unit,
-    diaryDates: List<LocalDate> // 다이어리를 작성한 날짜 리스트
 ) {
-    // 상태
-    val today = LocalDate.now()
-    var currentYear by remember { mutableStateOf(today.year) }
-    var currentMonth by remember { mutableStateOf(today.monthValue) }
-
-    // ✅ 내부 선택 상태(선택된 날짜 텍스트를 흰색으로)
-    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
-
-    val yearMonth = remember(currentYear, currentMonth) { YearMonth.of(currentYear, currentMonth) }
+    val yearMonth = remember(year, month) { YearMonth.of(year, month) }
     val daysInMonth = yearMonth.lengthOfMonth()
     val firstDayOfWeek = (yearMonth.atDay(1).dayOfWeek.value % 7)
 
-    // UI 사이즈(조정 포인트)
-    val cellSize = 50.dp            // ⬆️ 기존 40dp → 50dp로 확대
-    val dayFontSize = 15.sp         // ⬆️ 14sp → 15sp
+    // UI 사이즈 (원본과 동일)
+    val cellSize = 50.dp
+    val dayFontSize = 15.sp
     val weekFontSize = 14.sp
-    val flowerWidth = 38.5.dp         // ⬆️ 35dp → 42dp
-    val flowerHeight = 35.86.dp        // ⬆️ 32.5dp → 39dp
+    val flowerWidth = 38.5.dp
+    val flowerHeight = 35.86.dp
 
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-    ) {
-        // 상단 월/연도 + 네비게이션
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Box(
-                modifier = Modifier              // 원하는 터치 영역
-                    .clickable {                  // 이전 달
-                        if (currentMonth == 1) { currentMonth = 12; currentYear -= 1 }
-                        else currentMonth -= 1
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_arrow_left),
-                    contentDescription = "Previous Month",
-                    modifier = Modifier.size(width = 9.dp, height = 16.dp) // 아이콘 자체 크기
-                )
-            }
-
-            Text(
-                text = "${currentYear}년 ${currentMonth}월",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.W700,
-                    color = Color(0xFF4B4B4B),
-                    letterSpacing = (-0.4).sp,
-                    lineHeight = 20.sp
-                ),
-                modifier = Modifier.padding(horizontal = 14.dp)
-            )
-
-            Box(
-                modifier = Modifier
-                    .clickable {
-                        if (currentMonth == 12) { currentMonth = 1; currentYear += 1 }
-                        else currentMonth += 1
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_arrow_right),
-                    contentDescription = "Next Month",
-                    modifier = Modifier.size(width = 9.dp, height = 16.dp)
-                )
-            }
-        }
-
-        Spacer(Modifier.height(18.dp))
-
-        // 요일 표시 (일요일도 빨간색 없음)
+    Column(modifier = modifier) {
+        // 요일 표시 (원본과 동일)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -497,19 +441,17 @@ fun CalendarView(
 
         Spacer(Modifier.height(8.dp))
 
-        // 날짜 그리드
+        // 날짜 그리드 (원본과 동일)
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
             modifier = Modifier.fillMaxWidth(),
-            userScrollEnabled = false // 달력 높이 고정 느낌 유지
+            userScrollEnabled = false
         ) {
-            // 첫 주 공백
             items(firstDayOfWeek) { Spacer(modifier = Modifier.size(cellSize)) }
 
-            // 날짜 렌더
             items(daysInMonth) { index ->
                 val day = index + 1
-                val date = LocalDate.of(currentYear, currentMonth, day)
+                val date = LocalDate.of(year, month, day)
                 val hasDiary = diaryDates.contains(date)
                 val isSelected = selectedDate == date
 
@@ -519,16 +461,14 @@ fun CalendarView(
                         .padding(4.dp)
                         .clickable {
                             if (hasDiary) {
-                                selectedDate = date // ✅ 내부 선택상태 갱신
-                                onDateSelected(date)
+                                onDateSelected(date) // 부모의 selectedDate 갱신
                             }
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    // 일기 있는 날 → 꽃 배경
                     if (hasDiary) {
                         Image(
-                            painter = painterResource(id = R.drawable.ic_calender_point),
+                            painter = painterResource(id = R.drawable.ic_calender_point), // (리소스 ID 확인)
                             contentDescription = null,
                             modifier = Modifier
                                 .width(flowerWidth)
@@ -536,11 +476,8 @@ fun CalendarView(
                                 .align(Alignment.Center)
                         )
                     }
-
-                    // 날짜 텍스트
                     Text(
                         text = day.toString(),
-                        // ✅ 일요일 빨간색 제거, 선택 시 흰색
                         color = when {
                             isSelected -> Color.White
                             hasDiary -> Color.White
@@ -553,6 +490,122 @@ fun CalendarView(
             }
         }
         Spacer(Modifier.height(5.dp))
+    }
+}
+
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun CalendarView(
+    modifier: Modifier = Modifier,
+    onDateSelected: (LocalDate) -> Unit,
+    diaryDates: List<LocalDate> // 다이어리를 작성한 날짜 리스트
+) {
+    val today = LocalDate.now()
+    val scope = rememberCoroutineScope()
+
+    val pageCount = Int.MAX_VALUE
+    val initialPage = pageCount / 2
+    val pagerState = rememberPagerState(initialPage = initialPage) { pageCount }
+
+    var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+
+    LaunchedEffect(pagerState.currentPage) {
+        selectedDate = null
+    }
+
+    val (currentYear, currentMonth) = remember(pagerState.currentPage, pagerState.targetPage) {
+        val page = if (pagerState.isScrollInProgress) pagerState.targetPage else pagerState.currentPage
+        val monthsOffset = (page - initialPage).toLong()
+        today.plusMonths(monthsOffset).let { it.year to it.monthValue }
+    }
+
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(bottom = 10.dp)
+    ) {
+        // ✅ 상단 월/연도 + 네비게이션 (원본 디자인 코드로 복원)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .clickable {
+                        scope.launch {
+                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                // ✅ 원본 Image 코드
+                Image(
+                    painter = painterResource(id = R.drawable.ic_arrow_left), // (리소스 ID 확인)
+                    contentDescription = "Previous Month",
+                    modifier = Modifier.size(width = 9.dp, height = 16.dp)
+                )
+            }
+
+            // ✅ 원본 Text 코드 (스타일, 모디파이어 모두 복원)
+            Text(
+                text = "${currentYear}년 ${currentMonth}월",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.W700,
+                    color = Color(0xFF4B4B4B),
+                    letterSpacing = (-0.4).sp,
+                    lineHeight = 20.sp
+                ),
+                modifier = Modifier.padding(horizontal = 14.dp)
+            )
+
+            Box(
+                modifier = Modifier
+                    .clickable {
+                        scope.launch {
+                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                // ✅ 원본 Image 코드
+                Image(
+                    painter = painterResource(id = R.drawable.ic_arrow_right), // (리소스 ID 확인)
+                    contentDescription = "Next Month",
+                    modifier = Modifier.size(width = 9.dp, height = 16.dp)
+                )
+            }
+        }
+
+        Spacer(Modifier.height(18.dp))
+
+        // --- ✅ 여기가 HorizontalPager로 변경됨 ---
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth()
+        ) { page ->
+            // 각 페이지에 해당하는 년/월 계산
+            val (pageYear, pageMonth) = remember(page) {
+                val monthsOffset = (page - initialPage).toLong()
+                today.plusMonths(monthsOffset).let { it.year to it.monthValue }
+            }
+
+            // 분리된 CalendarBody 호출
+            CalendarBody(
+                year = pageYear,
+                month = pageMonth,
+                diaryDates = diaryDates,
+                selectedDate = selectedDate,
+                onDateSelected = { date ->
+                    selectedDate = date
+                    onDateSelected(date)
+                }
+            )
+        }
     }
 }
 

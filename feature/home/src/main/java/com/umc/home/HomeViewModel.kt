@@ -306,7 +306,7 @@ class HomeViewModel @Inject constructor(
         }
     }
     fun addRecentSearch(query: String) {
-        val updatedSearches = (listOf(query) + _recentSearchesState.value).distinct().take(3) // 최대 3개 유지
+        val updatedSearches = (listOf(query) + _recentSearchesState.value).distinct().take(4) // 최대 3개 유지
         _recentSearchesState.value = updatedSearches
         Log.d("RecentSearchesViewModel", "🔹 검색어 추가됨: $updatedSearches")
     }
