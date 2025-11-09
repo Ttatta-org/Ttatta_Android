@@ -411,7 +411,9 @@ fun DetailModal(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF4B4B4B),
-                        modifier = Modifier.clickable {
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
                             onEdit()
                             onDismiss()
                         }
@@ -424,7 +426,9 @@ fun DetailModal(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4B4B4B),
-                        modifier = Modifier.clickable { onDelete() }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onDelete() }
                     )
                 }
             }

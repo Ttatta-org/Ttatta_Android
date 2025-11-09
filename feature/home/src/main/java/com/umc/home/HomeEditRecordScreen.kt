@@ -71,7 +71,7 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.svg.SvgDecoder
 import com.umc.core.model.Diary
-import com.umc.home.components.TopBarComponent_recordEditPage
+import com.umc.home.components.TopBar_Default
 import com.umc.home.utils.formatToKorean
 import com.umc.home.utils.getFileFromUri
 import java.io.File
@@ -107,7 +107,7 @@ fun HomeEditRecordScreen(
     var selectedIcon by remember { mutableIntStateOf(getCategoryIcon(categoryList, selectedCategoryId)) }
 
     val context = LocalContext.current
-
+    var topBarHeight by remember { mutableStateOf(0.dp) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -122,7 +122,7 @@ fun HomeEditRecordScreen(
                         .fillMaxSize()
                         .background(Color(0xFFFEF6F2))
                         .verticalScroll(rememberScrollState()) // 스크롤 가능하게 설정
-                        .padding(top = 90.5.dp, bottom = 38.dp) // topbar 높이만큼 padding 추가하여 가려지지 않게 설정
+                        .padding(top = topBarHeight + 27.dp, bottom = 38.dp) // topbar 높이만큼 padding 추가하여 가려지지 않게 설정
                 ) {
                     // Date (변경 불가)
                     CommonText(
@@ -205,7 +205,11 @@ fun HomeEditRecordScreen(
                         )
                     }
                 }
-                TopBarComponent_recordEditPage()
+                TopBar_Default(
+                    onHeightChange = { newHeight ->
+                        topBarHeight = newHeight
+                    }
+                )
             }
         }
     }
