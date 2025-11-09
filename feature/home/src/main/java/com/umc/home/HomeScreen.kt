@@ -298,16 +298,18 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .offset(y = topBarHeight)
                         .height(30.dp)
-                        .background(Color.Transparent)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) { onCalendarToggle() },
+                        .background(Color.Transparent),
                     contentAlignment = Alignment.Center
                 ) {
                     IconButton(
                         modifier = Modifier.size(50.dp, 16.dp),
-                        onClick = { onCalendarToggle() }
+                        onClick = {
+                            when (topBarState) {
+                                TopBarState.SearchOpen -> onSearchToggle()   // 검색창 닫기
+                                TopBarState.CalendarOpen -> onCalendarToggle() // 캘린더 닫기
+                                TopBarState.Closed -> onCalendarToggle()     // 캘린더 열기
+                            }
+                        }
                     ) {
                         Image(
                             painter = painterResource(id = dragIcon), // 드래그 아이콘 변경
