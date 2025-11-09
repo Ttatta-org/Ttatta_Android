@@ -275,19 +275,21 @@ class HomeViewModel @Inject constructor(
 
     /**
      * ✅ AI 요약 불러오기 (GET)
-     * 요약을 '조회'하고, 없으면(null) '생성'을 요청합니다.
+     * 요약을 '조회'만 하고, 없으면(null) 'isVisible = false'로 설정합니다.
+     * (자동으로 생성하지 않습니다.)
      */
     fun loadAiSummary(date: LocalDate) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
-                aiSummaryState = AiSummaryState(isLoading = true, isVisible = true) // 1. 로딩 시작
+                // 1. 로딩 시작 (스켈레톤 UI가 잠깐 보이도록 isVisible = true)
+                aiSummaryState = AiSummaryState(isLoading = true, isVisible = true)
             )
             try {
-                // 2. Repository의 'getDailySummary' 호출
+                // 2. Repository의 'getDailySummary' 호출 (GET)
                 val summary = diaryRepository.getDailySummary(date)
 
                 if (summary != null) {
-                    // 3a. 요약이 있으면 UI 상태 업데이트 (보이기)
+                    // 3a. 요약이 있으면 -> UI 상태 업데이트 (보이기)
                     _uiState.value = _uiState.value.copy(
                         aiSummaryState = AiSummaryState(
                             summaryText = summary.summary,
@@ -297,18 +299,17 @@ class HomeViewModel @Inject constructor(
                     )
                     Log.d("HomeViewModel", "✅ AI 요약 조회 성공")
                 } else {
-                    // 3b. 요약이 없으면(null) 생성 요청
-                    Log.w("HomeViewModel", "⚠️ AI 요약 없음(404). 새로 '생성'을 요청합니다.")
-                    generateAiSummary(date) // ✅ 생성 함수 호출
+                    // 3b. 요약이 없으면(null) -> 🚨 그냥 숨긴다 🚨
+                    _uiState.value = _uiState.value.copy(
+                        aiSummaryState = AiSummaryState(isVisible = false) // ✅ 숨기기
+                    )
+                    Log.w("HomeViewModel", "⚠️ AI 요약 없음(404). (표시 안 함)")
                 }
             } catch (e: Exception) {
-                // 4. 조회 중 (404가 아닌) 다른 에러가 나면
+                // 4. 조회 중 (404가 아닌) 다른 에러가 나도 -> 🚨 그냥 숨긴다 🚨
                 Log.e("HomeViewModel", "❌ AI 요약 조회 실패: ${e.message}")
                 _uiState.value = _uiState.value.copy(
-                    aiSummaryState = AiSummaryState(
-                        error = "요약 로딩 실패",
-                        isVisible = true // ✅ 에러 카드라도 보여주기
-                    )
+                    aiSummaryState = AiSummaryState(isVisible = false) // ✅ 숨기기
                 )
             }
         }
