@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -434,11 +435,13 @@ fun RecentSearches(
                 fontWeight = FontWeight.W400,
                 modifier = Modifier.padding(bottom = 10.dp)
             )
-            Row(
+            FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
+                // 세로 (줄바꿈 시) 항목들 사이의 간격
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(IntrinsicSize.Min) // ✅ Row 높이 최소 보장
+                    //.height(IntrinsicSize.Min) // Row 높이 최소 보장
             ) {
                 recentSearches.take(4).forEach { search -> // 최대 3개만 표시
                     Box(
@@ -447,14 +450,14 @@ fun RecentSearches(
                             .border(1.dp, Color(0xFFFFD2AC), RoundedCornerShape(13.dp))
                             .background(Color(0xFFFEF6F2))
                             .clickable { onRecentSearchClick(search) }
-                            .padding(horizontal = 14.dp, vertical = 7.dp) // ✅ 내부 패딩 키움
+                            .padding(horizontal = 14.dp, vertical = 7.dp)
                     ) {
                         Text(
                             text = search,
-                            fontSize = 12.sp, // ✅ 폰트 크기 키움
+                            fontSize = 12.sp,
                             lineHeight = 18.sp,
                             fontWeight = FontWeight.W400,
-                            color = Color(0xFF333333) // ✅ 더 진한 색상으로 변경
+                            color = Color(0xFF333333)
                         )
                     }
                 }
