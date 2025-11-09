@@ -83,7 +83,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.umc.mypage.components.TopBarComponent
+import com.umc.mypage.components.TopBar_Mypage_Default
+import com.umc.mypage.components.TopBar_SubScreen
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -100,12 +101,13 @@ fun NotificationSettingsScreen(
     onChallengeToggle: (Boolean) -> Unit,
     onChallengeHoursChange: (Int) -> Unit,
     onLocationToggle: (Boolean) -> Unit,
+    onBackClick: () -> Unit,
 ){
     val systemUiController = rememberSystemUiController()
     val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
 
     val context = LocalContext.current
-
+    var topBarHeight by remember { mutableStateOf(0.dp) }
     // 권한 요청 후 실행할 보류 액션
     val pendingAction = remember { mutableStateOf<(() -> Unit)?>(null) }
 
@@ -160,7 +162,7 @@ fun NotificationSettingsScreen(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 60.dp)
+                        .padding(top = topBarHeight)
                         .background(Color.White)
                         .padding(horizontal = 22.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -322,16 +324,14 @@ fun NotificationSettingsScreen(
                 }
 
                 // ✅ 3. TopBar (스크롤 가능한 LazyColumn 위에 배치)
-                TopBarComponent()
+                TopBar_SubScreen(
+                    title = "알림 설정",
+                    onBackClick = onBackClick,
+                    onHeightChange = { newHeight ->
+                        topBarHeight = newHeight
+                    }
+                )
             }
-
-            // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)
-//            BottomNavigationBarWithFAB(
-//                selectedTab = "mypage",
-//                onTabSelected = { /* 탭 변경 로직 */ },
-//                onFabClick = onFabClick
-//            )
-
         }
     }
 }

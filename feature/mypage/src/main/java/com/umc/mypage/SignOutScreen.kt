@@ -59,7 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.mypage.components.Dialog
-import com.umc.mypage.components.TopBarComponent
+import com.umc.mypage.components.TopBar_Mypage_Default
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 // Focus & Keyboard
@@ -81,6 +81,7 @@ import kotlinx.coroutines.delay
 // LaunchedEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.unit.Dp
+import com.umc.mypage.components.TopBar_SubScreen
 
 
 @Composable
@@ -97,6 +98,8 @@ fun SignOutScreen(
     var etcText by rememberSaveable { mutableStateOf("") }
     var agreed by rememberSaveable { mutableStateOf(false) }
 
+    var topBarHeight by remember { mutableStateOf(0.dp) }
+
     SideEffect {
         systemUiController.setStatusBarColor(
             color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
@@ -108,7 +111,7 @@ fun SignOutScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 60.dp)
+                    .padding(top = topBarHeight)
                     .background(Color.White)
                     .padding(horizontal = 22.dp),
                 //horizontalAlignment = Alignment.CenterHorizontally,
@@ -130,7 +133,13 @@ fun SignOutScreen(
             }
 
             // 상단 TopBar 고정
-            TopBarComponent()
+            TopBar_SubScreen(
+                title = "탈퇴하기", // ✅ 타이틀 전달
+                onBackClick = onCancel, // ✅ 뒤로가기 이벤트 연결
+                onHeightChange = { newHeight ->
+                    topBarHeight = newHeight
+                }
+            )
         }
 
         // ───────────── 하단 고정 영역 ─────────────
