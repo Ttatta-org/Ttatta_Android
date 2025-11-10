@@ -90,7 +90,8 @@ fun AppNavHost(
                 onSummaryHourChange = viewModel::onSummaryHourChange,
                 onChallengeToggle = viewModel::onChallengeToggle,
                 onChallengeHoursChange = viewModel::onChallengeHoursChange,
-                onLocationToggle = viewModel::onLocationToggle
+                onLocationToggle = viewModel::onLocationToggle,
+                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -108,9 +109,8 @@ fun AppNavHost(
                     navController.navigate("changepassword")
                 },
                 isPinSet = isPinSet,
-                clearPin = {
-                    viewModel.clearPin()
-                }
+                clearPin = { viewModel.clearPin() },
+                onBackClick = { navController.popBackStack() }
             )
         }
         composable("lockpassword") {

@@ -10,6 +10,7 @@ import com.umc.core.repository.DiaryRepository
 import com.umc.data.api.ImageUploadApi
 import com.umc.data.api.ServerApi
 import com.umc.data.api.dto.server.CategoryDetailDTO
+import com.umc.data.api.dto.server.ChatGPTResponseDTO
 import com.umc.data.api.dto.server.CreateCategoryDTO
 import com.umc.data.api.dto.server.EditDTO
 import com.umc.data.api.dto.server.MapResultDTO
@@ -86,20 +87,45 @@ class DiaryRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun generateDailySummary(date: LocalDate) {
-        val request = "{\"date\":\"${date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))}\"}"
-        val response = try {
-            serverApi.withAuth(authPreference) { getDailySummary(request = request) }
+    override suspend fun generateDailySummary(date: LocalDate): DailySummary {
+        val dateString = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+
+        // 1. 먼저 요약이 있는지 GET으로 확인
+        val getRequestJson = "{\"date\":\"$dateString\"}"
+        val existingSummary = try {
+            serverApi.withAuth(authPreference) { getDailySummary(request = getRequestJson) }
         } catch (_: Exception) {
             null
         }
 
-        if (response != null) serverApi.withAuth(authPreference) {
-            val body = SummarizeDTO(date = date)
-            regenerateDailySummary(body = body)
-        } else serverApi.withAuth(authPreference) {
-            val body = SummarizeDTO(date = date)
-            generateDailySummary(body = body)
+        // 2. POST/PUT Body DTO 준비
+        val body = SummarizeDTO(date = date) // (타입이 LocalDate면 date = date)
+
+        if (existingSummary != null) {
+            // --- 3a. 요약이 '있으면' -> PUT (재생성) 요청 ---
+            // 'withAuth'가 BaseResponse<String>을 풀어서 String을 반환
+            val response: String = serverApi.withAuth(authPreference) {
+                regenerateDailySummary(body = body)
+            }
+
+            // ✅ 수정: response.result!! -> response
+            return DailySummary(
+                summary = response, // API가 반환한 새 요약 (String)
+                createdTime = LocalDateTime.now()
+            )
+        } else {
+            // --- 3b. 요약이 '없으면' -> POST (신규 생성) 요청 ---
+            // 'withAuth'가 BaseResponse<ChatGPTResponseDTO>를 풀어서 ChatGPTResponseDTO를 반환
+            val response: ChatGPTResponseDTO = serverApi.withAuth(authPreference) {
+                generateDailySummary(body = body)
+            }
+
+            // ✅ 수정: response.result!!.choices... -> response.choices...
+            val summaryContent = response.choices!!.first().message!!.content!!
+            return DailySummary(
+                summary = summaryContent, // DTO에서 추출한 요약
+                createdTime = LocalDateTime.now()
+            )
         }
     }
 

@@ -18,7 +18,7 @@ interface DiaryRepository {
 
     // 하루 요약 기능
     suspend fun getDailySummary(date: LocalDate): DailySummary?  // null을 반환할 경우, 아직 하루 요약이 생성되지 않음
-    suspend fun generateDailySummary(date: LocalDate)  // 하루 요약 생성 또는 재생성을 요청
+    suspend fun generateDailySummary(date: LocalDate): DailySummary // 하루 요약 생성 또는 재생성을 요청
 
     suspend fun getAllRecordedDates(): List<LocalDate>
 

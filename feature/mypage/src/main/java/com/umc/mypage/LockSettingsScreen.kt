@@ -32,7 +32,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.umc.mypage.components.TopBarComponent
+import com.umc.mypage.components.TopBar_Mypage_Default
+import com.umc.mypage.components.TopBar_SubScreen
 
 @Composable
 fun LockSettingsScreen(
@@ -40,12 +41,13 @@ fun LockSettingsScreen(
     onChangePassword: () -> Unit,
     isPinSet: Boolean,
     clearPin: () -> Unit,
-    onFabClick: () -> Unit = {}
+    onBackClick: () -> Unit
 ){
     val systemUiController = rememberSystemUiController()
     val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
 
     var lockSetting by remember { mutableStateOf(false) }
+    var topBarHeight by remember { mutableStateOf(0.dp) }
 
     SideEffect {
         systemUiController.setStatusBarColor(
@@ -64,7 +66,7 @@ fun LockSettingsScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .navigationBarsPadding()
-                        .padding(top = 60.dp)
+                        .padding(top = topBarHeight)
                         .background(Color.White)
                         .padding(horizontal = 22.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -116,7 +118,13 @@ fun LockSettingsScreen(
                 }
 
                 // ✅ 3. TopBar (스크롤 가능한 LazyColumn 위에 배치)
-                TopBarComponent()
+                TopBar_SubScreen(
+                    title = "암호 잠금", // ✅ 타이틀 전달
+                    onBackClick = onBackClick, // ✅ 뒤로가기 이벤트 연결
+                    onHeightChange = { newHeight ->
+                        topBarHeight = newHeight
+                    }
+                )
             }
 
             // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)

@@ -41,13 +41,17 @@ class TestActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        enableEdgeToEdge()
+
         setContent {
             val navController = rememberNavController()
 
             HomeApp(viewModel = viewModel)
+
+            LaunchedEffect(Unit) {
+                prepareTest()
+            }
         }
-        // ✅ 테스트
-        prepareTest()
     }
 
     private fun prepareTest() {
@@ -99,16 +103,16 @@ class TestActivity : ComponentActivity() {
                 val existingDiaries = diaryRepository.getDiaries(page = 0, date = null)
                 Log.d("TestActivity", "🔍 기존 일기 개수: ${existingDiaries.size}")
 
-                // ✅ 새로운 일기 추가
-                diaryRepository.createDiary(
-                    categoryId = categoryId,
-                    date = TestValues.TODAY,
-                    content = TestValues.CONTENT,
-                    image = imageFile,
-                    latitude = TestValues.LATITUDE,
-                    longitude = TestValues.LONGITUDE,
-                    locationName = "카테고리확인용"
-                )
+//                // ✅ 새로운 일기 추가
+//                diaryRepository.createDiary(
+//                    categoryId = categoryId,
+//                    date = TestValues.TODAY,
+//                    content = TestValues.CONTENT,
+//                    image = imageFile,
+//                    latitude = TestValues.LATITUDE,
+//                    longitude = TestValues.LONGITUDE,
+//                    locationName = "카테고리확인용"
+//                )
 
                 // ✅ ViewModel에서 데이터 로드
                 withContext(Dispatchers.Main) {

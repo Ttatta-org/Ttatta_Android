@@ -38,9 +38,9 @@ import com.umc.core.model.UserInfo
 import com.umc.core.model.UserStatus
 import com.umc.mypage.components.BottomNavigationBarWithFAB
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.umc.mypage.components.TopBarComponent
 import com.umc.mypage.R
 import com.umc.mypage.components.Dialog
+import com.umc.mypage.components.TopBar_Mypage_Default
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -60,6 +60,7 @@ fun MyPageScreen(
     val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
 
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var topBarHeight by remember { mutableStateOf(0.dp) }
 
     SideEffect {
         systemUiController.setStatusBarColor(
@@ -77,11 +78,14 @@ fun MyPageScreen(
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 60.dp)
                         .background(Color(0xFFFFF6F2))
                         .padding(horizontal = 22.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    item {
+                        // (충돌 방지를 위해 여기서도 coerceAtLeast 사용)
+                        Spacer(modifier = Modifier.height(topBarHeight.coerceAtLeast(0.dp)))
+                    }
                     item { Spacer(modifier = Modifier.height(40.dp)) }
                     item {
                         if (userInfo != null) {
@@ -125,7 +129,11 @@ fun MyPageScreen(
                 }
 
                 // ✅ 3. TopBar (스크롤 가능한 LazyColumn 위에 배치)
-                TopBarComponent()
+                TopBar_Mypage_Default(
+                    onHeightChange = { newHeight ->
+                        topBarHeight = newHeight
+                    }
+                )
             }
 
             // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)

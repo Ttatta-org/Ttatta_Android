@@ -195,8 +195,9 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun leaveUser(reason: String?) {
+        val body = DeleteRequestDTO(reason = reason)
         serverApi.withAuth(authPreference = authPreference) {
-            deleteUser()
+            deleteUser(body = body)
         }
     }
 }

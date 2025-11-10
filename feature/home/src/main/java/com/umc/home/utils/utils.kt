@@ -10,9 +10,14 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 fun LocalDateTime.formatToKorean(): String {
-    val formatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일")
+    val formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")
     return this.format(formatter)
 }
+fun LocalDate.formatToKorean(): String {
+    val formatter = DateTimeFormatter.ofPattern("yyyy년 MM월 dd일")
+    return this.format(formatter)
+}
+
 fun getFileFromUri(context: Context, uri: Uri): File? {
     return try {
         // ✅ URL인지 확인
