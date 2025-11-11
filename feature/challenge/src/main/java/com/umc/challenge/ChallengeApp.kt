@@ -23,7 +23,6 @@ import com.umc.challenge.view.ChallengeItemProp
 import com.umc.challenge.view.ChallengeOnboardingView
 import com.umc.challenge.view.ChallengeOnboardingViewProp
 import com.umc.challenge.view.ChallengeState
-import com.umc.challenge.view.FailedChallengeItemProp
 import com.umc.challenge.view.NewChallengeView
 import com.umc.challenge.view.NewChallengeViewProp
 import com.umc.design.character.Accessory
@@ -118,6 +117,7 @@ fun ChallengeApp(
                                 challengeItemPropList = viewModel.todayChallenges.map {
                                     ChallengeItemProp(
                                         title = it.title,
+                                        content = it.content ?: it.content ?: "",
                                         state = if (it.isCompleted)
                                             ChallengeState.COMPLETED
                                         else
@@ -138,29 +138,22 @@ fun ChallengeApp(
                         var title by remember { mutableStateOf("") }
                         var description by remember { mutableStateOf("") }
 
-                        LaunchedEffect(key1 = Unit) { viewModel.getFailedChallenges() }
+//                        LaunchedEffect(key1 = Unit) { viewModel.getFailedChallenges() }
 
                         NewChallengeView(
                             prop = NewChallengeViewProp(
                                 maxTitleLength = 20,
                                 title = title,
                                 description = description,
-                                failedChallengeItemPropList = viewModel.failedChallenges.map {
-                                    FailedChallengeItemProp(
-                                        elapsedDays = it.deadline,
-                                        title = it.title,
-                                        description = it.content,
-                                        onClick = { /* TODO */ }
-                                    )
-                                },
+                                equippedAccessorySet = viewModel.equippedAccessorySet,
                                 onTitleChanged = { if (it.length <= 20) title = it },
                                 onDescriptionChanged = { description = it },
                                 onCreateButtonClicked = {
                                     viewModel.createChallenge(
                                         title = title,
                                         description = description,
-                                        onSucceed = { challengeScreenNavController.popBackStack() },
-                                        onFailed = { /* TODO */ }
+                                        onSucceed = { /* 화면 뒤로 */ },
+                                        onFailed = { /* 에러 처리 */ }
                                     )
                                 }
                             )

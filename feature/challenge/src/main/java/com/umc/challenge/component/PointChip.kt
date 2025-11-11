@@ -55,12 +55,12 @@ fun PointChip(
         modifier = Modifier
             .clip(RoundedCornerShape(percent = 50))
             .background(color = theme.backgroundColor)
-            .height(24.dp)
+            .height(30.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp),
-            modifier = Modifier.padding(2.dp)
+            modifier = Modifier.padding(4.dp)
         ) {
             Image(
                 painter = painterResource(id = theme.icon),
@@ -71,15 +71,15 @@ fun PointChip(
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(48.dp)
+                    .width(47.dp)
                     .clip(RoundedCornerShape(percent = 50))
                     .background(color = Color.Secondary100)
             ) {
                 Box(
-                    contentAlignment = Alignment.CenterEnd,
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 4.dp, vertical = 2.dp)
+                        .padding(horizontal = 6.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = point.toString().replace(
@@ -87,8 +87,8 @@ fun PointChip(
                             replacement = ","
                         ),
                         color = Color.Primary300,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.ExtraBold,
                     )
                 }
             }

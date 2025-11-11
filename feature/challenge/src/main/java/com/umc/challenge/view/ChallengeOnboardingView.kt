@@ -16,9 +16,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialogDefaults.shape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Text
@@ -31,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -38,6 +41,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -57,6 +61,7 @@ import com.umc.design.Secondary300
 import com.umc.design.character.Accessory
 import com.umc.design.character.AccessorySet
 import com.umc.design.character.CharacterView
+import com.umc.design.theme.LocalColorTheme
 
 data class ChallengeOnboardingViewProp(
     val equippedAccessorySet: AccessorySet,
@@ -71,27 +76,28 @@ enum class ChallengeState(
     @DrawableRes val icon: Int
 ) {
     IN_PROGRESS(
-        borderColor = Color.Secondary300,
+        borderColor = Color(0xFFFFD0C8),
         backgroundColor = Color.White,
         icon = R.drawable.ic_no_stamp
     ),
     COMPLETED(
-        borderColor = Color.Primary200,
-        backgroundColor = Color(0xFFFFEAE2),
+        borderColor = Color(0xFFFFD0C8),
+        backgroundColor = Color(0xFFFFE6E1),
         icon = R.drawable.ic_complete_stamp
     ),
 }
 
 data class ChallengeItemProp(
     val title: String,
+    val content: String,
     val state: ChallengeState,
     val onClicked: () -> Unit,
 )
 
 private val speechBubbleShape = RoundedCornerShape(percent = 50)
-private val speechBubbleHeight = 84.dp
+private val speechBubbleHeight = 155.dp
 private const val speechBubbleTailOffsetRatio = 3f / 4f
-private val speechBubbleTailSize = DpSize(21.dp, 16.dp)
+private val speechBubbleTailSize = DpSize(66.63.dp, 33.dp)
 private val speechBubbleTailVerticalOffset = 2.dp * -1
 
 @Composable
@@ -105,12 +111,25 @@ fun ChallengeOnboardingView(
 
     var columnWidth by remember { mutableStateOf(0.dp) }
 
+    var attended by remember { mutableStateOf(false) } // TODO: ViewModel 상태로 교체
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(state = rememberScrollState())
-            .background(color = Color.Secondary100)
+            .background(color = Color(0xFFFEF6F2))
     ) {
+        // 뒷배경
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Image(
+                painter = painterResource(R.drawable.img_challenge_background),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -121,59 +140,78 @@ fun ChallengeOnboardingView(
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(32.dp),
             ) {
                 Spacer(modifier = Modifier.height(totalSpeechBubbleHeight))
+
                 // 캐릭터
                 CharacterView(
                     accessorySet = prop.equippedAccessorySet,
                     width = columnWidth
                 )
+
+                Spacer(modifier = Modifier.height(21.16.dp))
+
                 // 새 챌린지 버튼
-                ElevatedButton(
-                    onClick = prop.onNewChallengeButtonClicked,
-                    enabled = prop.isNewChallengeButtonEnabled,
-                    elevation = ButtonDefaults.elevatedButtonElevation(
-                        defaultElevation = 4.dp
-                    ),
-                    colors = ButtonDefaults.elevatedButtonColors(
-                        containerColor = Color.Primary200,
-                        contentColor = Color.White
-                    )
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(if (prop.isNewChallengeButtonEnabled) 4.dp else 0.dp, shape, clip = false)
+                        .background(LocalColorTheme.current.primary[400], RoundedCornerShape(16.dp))
+                        .clip(RoundedCornerShape(16.dp))
+                        .clickable(
+                            enabled = prop.isNewChallengeButtonEnabled,
+                            role = Role.Button
+                        ) { prop.onNewChallengeButtonClicked() }
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp)
+                            .padding(vertical = 12.dp)
                     ) {
                         Text(
-                            text = stringResource(id = R.string.new_challenge),
+                            text = "챌린지 생성하기",
                             fontSize = 15.sp,
-                            fontWeight = FontWeight.W600
+                            fontWeight = FontWeight.W700,
+                            color = Color.White
                         )
                     }
                 }
-                // 오늘 챌린지 목록
+
+                Spacer(modifier = Modifier.height(12.dp))
+
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    prop.challengeItemPropList.forEach { prop ->
-                        ChallengeItem(prop = prop)
+                    // 출석체크
+                    AttendanceCard(
+                        attended = attended,
+                        onClick = { attended = !attended } // TODO: 출석 API/로직 연결
+                    )
+
+                    // 오늘 챌린지 목록
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        prop.challengeItemPropList.forEach { prop ->
+                            ChallengeItem(prop = prop)
+                        }
                     }
                 }
             }
             // 말풍선
             ShadowBoxScope(
                 radius = 4.dp,
-                color = Color.Primary500.copy(alpha = 0.2f),
-                offset = DpOffset(0.dp, 4.dp)
+                color = Color(0xFFDE806E).copy(alpha = 0.1f),
+                offset = DpOffset(0.dp, 2.dp)
             ) {
                 var speechBubbleWidth by remember { mutableIntStateOf(0) }
 
                 Box(
-                    modifier = Modifier.height(totalSpeechBubbleHeight)
+                    modifier = Modifier
+                        .height(totalSpeechBubbleHeight)
+                        .padding(top = 40.dp)
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -185,20 +223,20 @@ fun ChallengeOnboardingView(
                                 shape = speechBubbleShape
                             )
                             .onGloballyPositioned { speechBubbleWidth = it.size.width }
+                            .padding(vertical = 49.dp)
                     ) {
                         Text(
-                            text = if (prop.challengeItemPropList.isEmpty())
-                                stringResource(id = R.string.speech_bubble_content_no_challenge)
-                            else
-                                stringResource(id = R.string.speech_bubble_content_has_challenge),
+                            text = "오늘의 챌린지를 만들고\n포인트를 얻어보세요!",
                             style = TextStyle(
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.W600,
-                                color = Color.Primary400,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.W700,
+                                color = LocalColorTheme.current.grey[700],
                                 textAlign = TextAlign.Center
                             ),
                         )
                     }
+
+                    // TODO: 말풍선 꼬리 고치기
                     Box(
                         modifier = Modifier
                             .offset {
@@ -225,17 +263,22 @@ fun ChallengeOnboardingView(
 private fun ChallengeItem(
     prop: ChallengeItemProp,
 ) {
+    val titleColor = if (prop.state == ChallengeState.COMPLETED)
+        LocalColorTheme.current.primary[400] else LocalColorTheme.current.grey[700]
+    val contentColor = if (prop.state == ChallengeState.COMPLETED)
+        LocalColorTheme.current.primary[400] else LocalColorTheme.current.grey[600]
+
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(percent = 50))
+            .clip(RoundedCornerShape(18.dp))
             .background(
                 color = prop.state.backgroundColor,
-                shape = RoundedCornerShape(percent = 50)
+                shape = RoundedCornerShape(18.dp)
             )
             .border(
                 width = 1.dp,
                 color = prop.state.borderColor,
-                shape = RoundedCornerShape(percent = 50)
+                shape = RoundedCornerShape(18.dp)
             )
             .clickable { prop.onClicked() }
     ) {
@@ -244,20 +287,92 @@ private fun ChallengeItem(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 20.dp, vertical = 15.dp)
         ) {
-            Text(
-                text = prop.title,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.W600,
-                color = Color(0xFF4B4B4B),
-                modifier = Modifier.padding(horizontal = 8.dp)
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            ) {
+                Text(
+                    text = prop.title,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.W700,
+                    color = titleColor,
+                    maxLines = 1
+                )
+                Text(
+                    text = prop.content,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.W400,
+                    color = contentColor,
+                    maxLines = 1
+                )
+            }
+
             Image(
                 painter = painterResource(id = prop.state.icon),
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(38.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun AttendanceCard(
+    attended: Boolean,
+    onClick: () -> Unit
+) {
+    val borderColor = Color(0xFFFFD0C8)
+    val backgroundColor = if (attended) Color(0xFFFFE6E1) else Color.White
+    val titleColor = if (attended) Color(0xFFFF9888) else LocalColorTheme.current.grey[700]
+    val contentColor = if (attended) Color(0xFFFF9888) else LocalColorTheme.current.grey[600]
+    val iconRes = if (attended) R.drawable.ic_complete_stamp else R.drawable.ic_no_stamp
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(18.dp))
+            .background(backgroundColor, RoundedCornerShape(18.dp))
+            .border(1.dp, borderColor, RoundedCornerShape(18.dp))
+            .clickable { onClick() }
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 15.dp)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            ) {
+                Text(
+                    text = "출석하기",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.W700,
+                    color = titleColor,
+                    maxLines = 1
+                )
+                Text(
+                    text = "매일 출석하고 10포인트 받아가세요!",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.W400,
+                    color = contentColor,
+                    maxLines = 1
+                )
+            }
+
+            Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(38.dp)
             )
         }
     }
@@ -273,16 +388,19 @@ val previewAccessorySet = AccessorySet.create(
 val previewChallengeItemPropList = listOf(
     ChallengeItemProp(
         title = "1시간 공부하기",
+        content = "CS 요약 정리 + 백준 2문제",
         state = ChallengeState.IN_PROGRESS,
         onClicked = {}
     ),
     ChallengeItemProp(
         title = "물 하루 3잔 마시기",
+        content = "점심 전 1잔, 오후에 2잔",
         state = ChallengeState.COMPLETED,
         onClicked = {}
     ),
     ChallengeItemProp(
         title = "도서관 가기",
+        content = "3층 열람실 2시간",
         state = ChallengeState.COMPLETED,
         onClicked = {}
     ),
