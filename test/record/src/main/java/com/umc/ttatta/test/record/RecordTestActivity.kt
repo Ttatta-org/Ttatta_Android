@@ -16,7 +16,6 @@ import com.umc.core.repository.DiaryRepository
 import com.umc.core.repository.UserRepository
 import com.umc.design.CategoryColor
 import com.umc.record.RecordApp
-import com.umc.record.RecordMode
 import com.umc.record.RecordViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -47,6 +46,7 @@ class RecordTestActivity : ComponentActivity() {
                     .windowInsetsPadding(WindowInsets(0))
                     .background(Color.White)
             ) {
+                /*
                 RecordApp(
                     viewModel = viewModel,
                     mode = RecordMode.CAMERA,
@@ -54,6 +54,7 @@ class RecordTestActivity : ComponentActivity() {
                     onNavigateToCategoryApp = {},
                     onDone = { finish() }
                 )
+                */
             }
         }
     }

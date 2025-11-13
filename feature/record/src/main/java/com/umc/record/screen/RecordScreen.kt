@@ -46,12 +46,12 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.umc.design.CategoryColor
 import com.umc.design.Primary300
+import com.umc.design.component.LoadingModal
 import com.umc.record.R
 import com.umc.record.component.CategoryDropdown
 import com.umc.record.component.CategoryDropdownProp
 import com.umc.record.component.DiaryBottomSheet
 import com.umc.record.component.DiaryBottomSheetProp
-import com.umc.record.component.LoadingDialog
 import com.umc.record.component.previewCategoryDropdownProp
 import com.umc.record.component.previewDiaryBottomSheetProp
 import java.io.File
@@ -60,7 +60,7 @@ import java.time.LocalDateTime
 
 @Composable
 fun RecordScreen(
-    image: File,
+    image: File?,
     date: LocalDateTime,
     location: String,
     selectedCategoryColor: CategoryColor?,
@@ -274,7 +274,7 @@ fun RecordScreen(
         }
     }
 
-    if (showLoadingDialog) LoadingDialog()
+    if (showLoadingDialog) LoadingModal()
 }
 
 @Preview(showBackground = true)

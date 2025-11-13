@@ -19,6 +19,7 @@ import com.umc.record.component.LocationBottomSheetProp
 import com.umc.record.screen.EditLocationScreen
 import com.umc.record.screen.EditLocationScreenTopBarProp
 import com.umc.record.screen.RecordScreen
+import com.umc.record.util.ImageMetadata
 import com.umc.record.util.getImageMetadata
 import java.io.File
 import java.time.LocalDateTime
@@ -26,7 +27,7 @@ import java.time.LocalDateTime
 @Composable
 fun RecordApp(
     viewModel: RecordViewModel,
-    image: File,
+    image: File?,
     diaryContent: String,
     onDiaryContentChanged: (String) -> Unit,
     onNavigateToCategoryApp: () -> Unit,
@@ -35,14 +36,17 @@ fun RecordApp(
     val context = LocalContext.current
     val navController = rememberNavController()
 
-    val metaData = remember { getImageMetadata(image) }
-    var date by remember { mutableStateOf(metaData.date ?: LocalDateTime.now()) }
-    var coordinates by remember {
+    val metadata: ImageMetadata? = remember { image?.let { getImageMetadata(it) } }
+
+    var date by remember(metadata) { mutableStateOf(metadata?.date ?: LocalDateTime.now()) }
+
+    var coordinates by remember(metadata) {
         mutableStateOf(
-            if (metaData.latitude != null && metaData.longitude != null) metaData.latitude to metaData.longitude
+            if (metadata?.latitude != null && metadata.longitude != null) metadata.latitude to metadata.longitude
             else null
         )
     }
+
     var locationName by remember { mutableStateOf("") }
     var showCategoryDropdown by remember { mutableStateOf(false) }
 
@@ -93,7 +97,7 @@ fun RecordApp(
                     userName = viewModel.userName,
                     diaryContent = diaryContent,
                     onCreateButtonClicked = {
-                        if (!isUploading) coordinates?.let { location ->
+                        if (!isUploading && image != null) coordinates?.let { location ->
                             isUploading = true
                             viewModel.saveDiary(
                                 image = image,
