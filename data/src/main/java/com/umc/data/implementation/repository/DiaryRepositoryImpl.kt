@@ -17,16 +17,13 @@ import com.umc.data.api.dto.server.MapResultDTO
 import com.umc.data.api.dto.server.ModifyCategoryDTO
 import com.umc.data.api.dto.server.PostDTO
 import com.umc.data.api.dto.server.SummarizeDTO
-import com.umc.data.api.withAuth
 import com.umc.data.preference.AuthPreference
 import com.umc.data.util.getMimeTypeFromExtension
 import com.umc.data.util.toOffsetDateTimeInKorea
+import com.umc.data.util.withAuth
 import com.umc.design.CategoryColor
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalDateTime

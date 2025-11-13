@@ -5,9 +5,9 @@ import com.umc.core.model.OwnedItem
 import com.umc.core.model.UnownedItem
 import com.umc.core.repository.ItemRepository
 import com.umc.data.api.ServerApi
-import com.umc.data.api.withAuth
 import com.umc.data.preference.AuthPreference
 import com.umc.data.preference.ItemPreference
+import com.umc.data.util.withAuth
 import com.umc.design.character.Accessory
 import javax.inject.Inject
 

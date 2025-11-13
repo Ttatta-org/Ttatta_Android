@@ -5,8 +5,8 @@ import com.umc.core.model.FailedChallenge
 import com.umc.core.repository.ChallengeRepository
 import com.umc.data.api.ServerApi
 import com.umc.data.api.dto.server.CreateChallengeRequestDTO
-import com.umc.data.api.withAuth
 import com.umc.data.preference.AuthPreference
+import com.umc.data.util.withAuth
 import javax.inject.Inject
 
 class ChallengeRepositoryImpl @Inject constructor(

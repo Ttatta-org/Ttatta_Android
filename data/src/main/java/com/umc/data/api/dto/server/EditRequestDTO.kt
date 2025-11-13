@@ -43,5 +43,8 @@ data class EditRequestDTO (
     @Json(name = "point")
     val point: kotlin.Long? = null
 
-)
+) {
+
+
+}
 

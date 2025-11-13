@@ -35,5 +35,8 @@ data class ModifyCategoryDTO (
     @Json(name = "categoryColor")
     val categoryColor: kotlin.String? = null
 
-)
+) {
+
+
+}
 

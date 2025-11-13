@@ -51,5 +51,8 @@ data class SearchDiaryDTO (
     @Json(name = "locationName")
     val locationName: kotlin.String? = null
 
-)
+) {
+
+
+}
 

@@ -22,18 +22,31 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * @param alarmTime 시:분:초 형식
+ * @param isActive 
+ * @param alarmTime 
  */
 
 
-data class UpdateDailySummaryAlarmRequestDTO (
+data class WritingDiaryAlarm (
 
-    /* 시:분:초 형식 */
+    @Json(name = "isActive")
+    val isActive: WritingDiaryAlarm.IsActive? = null,
+
     @Json(name = "alarmTime")
-    val alarmTime: kotlin.String? = null
+    val alarmTime: java.time.LocalTime? = null
 
 ) {
 
+    /**
+     * 
+     *
+     * Values: ON,OFF
+     */
+    @JsonClass(generateAdapter = false)
+    enum class IsActive(val value: kotlin.String) {
+        @Json(name = "ON") ON("ON"),
+        @Json(name = "OFF") OFF("OFF");
+    }
 
 }
 

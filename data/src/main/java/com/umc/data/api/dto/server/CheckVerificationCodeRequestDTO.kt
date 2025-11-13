@@ -35,5 +35,8 @@ data class CheckVerificationCodeRequestDTO (
     @Json(name = "code")
     val code: kotlin.String
 
-)
+) {
+
+
+}
 

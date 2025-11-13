@@ -51,7 +51,7 @@ data class MapResultDTO (
     val image: kotlin.String? = null,
 
     @Json(name = "color")
-    val color: Color? = null,
+    val color: MapResultDTO.Color? = null,
 
     @Json(name = "firstDiary")
     val firstDiary: kotlin.Boolean? = null,

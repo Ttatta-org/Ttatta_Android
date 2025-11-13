@@ -28,6 +28,7 @@ import com.squareup.moshi.JsonClass
  * @param latitude 
  * @param longitude 
  * @param clusterId 
+ * @param isSingle 
  */
 
 
@@ -53,5 +54,9 @@ data class FootprintDiaryDTO (
 
     @Json(name = "isSingle")
     val isSingle: kotlin.Boolean? = null
-)
+
+) {
+
+
+}
 

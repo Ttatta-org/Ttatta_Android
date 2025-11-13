@@ -35,5 +35,8 @@ data class FindPwRequestDTO (
     @Json(name = "password")
     val password: kotlin.String
 
-)
+) {
+
+
+}
 

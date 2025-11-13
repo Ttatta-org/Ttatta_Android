@@ -31,5 +31,8 @@ data class ChangePinRequestDTO (
     @Json(name = "newPin")
     val newPin: kotlin.String
 
-)
+) {
+
+
+}
 

@@ -15,13 +15,17 @@
 
 package com.umc.data.api.dto.server
 
+import com.umc.data.api.dto.server.Message
+
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
  *
  * @param index 
  * @param message 
+ * @param createdAt 
  */
 
 
@@ -31,7 +35,13 @@ data class Choice (
     val index: kotlin.Int? = null,
 
     @Json(name = "message")
-    val message: Message? = null
+    val message: Message? = null,
 
-)
+    @Json(name = "createdAt")
+    val createdAt: java.time.OffsetDateTime? = null
+
+) {
+
+
+}
 

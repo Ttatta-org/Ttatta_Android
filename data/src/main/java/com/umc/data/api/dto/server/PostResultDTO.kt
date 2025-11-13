@@ -35,5 +35,8 @@ data class PostResultDTO (
     @Json(name = "date")
     val date: java.time.OffsetDateTime? = null
 
-)
+) {
+
+
+}
 

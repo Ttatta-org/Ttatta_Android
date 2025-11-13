@@ -35,5 +35,8 @@ data class FindIdResultDTO (
     @Json(name = "id")
     val id: kotlin.String? = null
 
-)
+) {
+
+
+}
 

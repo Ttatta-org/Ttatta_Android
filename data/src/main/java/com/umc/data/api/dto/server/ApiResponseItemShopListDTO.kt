@@ -15,7 +15,10 @@
 
 package com.umc.data.api.dto.server
 
+import com.umc.data.api.dto.server.ItemShopListDTO
+
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
@@ -41,5 +44,8 @@ data class ApiResponseItemShopListDTO (
     @Json(name = "result")
     val result: ItemShopListDTO? = null
 
-)
+) {
+
+
+}
 

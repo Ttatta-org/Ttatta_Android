@@ -31,5 +31,8 @@ data class ChangePinResultDTO (
     @Json(name = "newPinHash")
     val newPinHash: kotlin.String? = null
 
-)
+) {
+
+
+}
 

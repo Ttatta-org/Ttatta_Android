@@ -42,7 +42,7 @@ data class UserInfoEditResultDTO (
     val nickname: kotlin.String? = null,
 
     @Json(name = "loginType")
-    val loginType: LoginType? = null,
+    val loginType: UserInfoEditResultDTO.LoginType? = null,
 
     @Json(name = "email")
     val email: kotlin.String? = null,
@@ -54,10 +54,10 @@ data class UserInfoEditResultDTO (
     val point: kotlin.Long? = null,
 
     @Json(name = "status")
-    val status: Status? = null,
+    val status: UserInfoEditResultDTO.Status? = null,
 
     @Json(name = "gender")
-    val gender: Gender? = null
+    val gender: UserInfoEditResultDTO.Gender? = null
 
 ) {
 

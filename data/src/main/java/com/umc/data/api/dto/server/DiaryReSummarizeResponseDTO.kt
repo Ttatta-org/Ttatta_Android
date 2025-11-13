@@ -22,22 +22,18 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * @param username 
- * @param name 
- * @param email 
+ * @param content 
+ * @param createdAt 
  */
 
 
-data class SendVerificationMailFindPwRequestDTO (
+data class DiaryReSummarizeResponseDTO (
 
-    @Json(name = "username")
-    val username: kotlin.String,
+    @Json(name = "content")
+    val content: kotlin.String? = null,
 
-    @Json(name = "name")
-    val name: kotlin.String,
-
-    @Json(name = "email")
-    val email: kotlin.String
+    @Json(name = "createdAt")
+    val createdAt: java.time.OffsetDateTime? = null
 
 ) {
 

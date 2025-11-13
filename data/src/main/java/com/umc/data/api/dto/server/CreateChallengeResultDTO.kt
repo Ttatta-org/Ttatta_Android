@@ -17,6 +17,7 @@ package com.umc.data.api.dto.server
 
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
@@ -46,5 +47,8 @@ data class CreateChallengeResultDTO (
     @Json(name = "createdAt")
     val createdAt: java.time.OffsetDateTime? = null
 
-)
+) {
+
+
+}
 

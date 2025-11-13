@@ -42,10 +42,10 @@ data class MakeItemDTO (
     val cost: kotlin.Long? = null,
 
     @Json(name = "characterType")
-    val characterType: CharacterType? = null,
+    val characterType: MakeItemDTO.CharacterType? = null,
 
     @Json(name = "bodyPart")
-    val bodyPart: BodyPart? = null
+    val bodyPart: MakeItemDTO.BodyPart? = null
 
 ) {
 

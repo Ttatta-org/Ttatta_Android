@@ -1,14 +1,14 @@
 package com.umc.data.api
 
 import com.umc.data.api.dto.BaseResponse
-import com.umc.data.api.dto.server.GetFcmTokenRequestDTO
-import com.umc.data.api.dto.server.UpdateWritingAlarmRequestDTO
-import com.umc.data.api.dto.server.WrittingDiaryAlarmOnResponseDTO
 import com.umc.data.api.dto.server.ChallengeRemindAlarmOnResponseDTO
-import com.umc.data.api.dto.server.UpdateChallengeRemindAlarmRequestDTO
 import com.umc.data.api.dto.server.DailySummaryAlarmOnResponseDTO
 import com.umc.data.api.dto.server.GetAllAlarmsResponseDTO
+import com.umc.data.api.dto.server.GetFcmTokenRequestDTO
+import com.umc.data.api.dto.server.UpdateChallengeRemindAlarmRequestDTO
 import com.umc.data.api.dto.server.UpdateDailySummaryAlarmRequestDTO
+import com.umc.data.api.dto.server.UpdateWritingAlarmRequestDTO
+import com.umc.data.api.dto.server.WrittingDiaryAlarmOnResponseDTO
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
@@ -70,6 +70,9 @@ interface AlarmApi {
 
     @GET("/alarms")
     suspend fun getAllAlarms(): BaseResponse<GetAllAlarmsResponseDTO>
-}
 
-enum class MemoryDiaryAlarmStatus { ON, OFF }
+    enum class MemoryDiaryAlarmStatus {
+        ON,
+        OFF,
+    }
+}

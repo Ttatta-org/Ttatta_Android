@@ -39,5 +39,8 @@ data class RefreshResultDTO (
     @Json(name = "refreshToken")
     val refreshToken: kotlin.String? = null
 
-)
+) {
+
+
+}
 

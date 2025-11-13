@@ -1,15 +1,25 @@
 package com.umc.data.implementation.repository
 
-import android.util.Log
 import com.umc.core.model.LoginType
 import com.umc.core.model.UserInfo
 import com.umc.core.model.UserStatus
 import com.umc.core.repository.UserRepository
 import com.umc.data.api.ServerApi
-import com.umc.data.api.dto.server.*
-import com.umc.data.api.withAuth
-import com.umc.data.api.withCheck
+import com.umc.data.api.dto.server.CheckVerificationCodeRequestDTO
+import com.umc.data.api.dto.server.DeleteRequestDTO
+import com.umc.data.api.dto.server.EditRequestDTO
+import com.umc.data.api.dto.server.FindPwRequestDTO
+import com.umc.data.api.dto.server.SendVerificationMailFindIdRequestDTO
+import com.umc.data.api.dto.server.SendVerificationMailFindPwRequestDTO
+import com.umc.data.api.dto.server.SendVerificationMailSignUpRequestDTO
+import com.umc.data.api.dto.server.SignInRequestDTO
+import com.umc.data.api.dto.server.SignUpKakaoRequestDTO
+import com.umc.data.api.dto.server.SignUpRequestDTO
+import com.umc.data.api.dto.server.UserInfoResultDTO
+import com.umc.data.api.dto.server.VerifyUsernameOverlapResultDTO
 import com.umc.data.preference.AuthPreference
+import com.umc.data.util.withAuth
+import com.umc.data.util.withCheck
 import retrofit2.HttpException
 import javax.inject.Inject
 
@@ -195,7 +205,7 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun leaveUser(reason: String?) {
-        val body = DeleteRequestDTO(reason = reason)
+        val body = DeleteRequestDTO(reason = reason ?: "")
         serverApi.withAuth(authPreference = authPreference) {
             deleteUser(body = body)
         }

@@ -18,6 +18,7 @@ package com.umc.data.api.dto.server
 import com.umc.data.api.dto.server.SearchDiaryDTO
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
@@ -31,5 +32,8 @@ data class SearchDiaryListDTO (
     @Json(name = "searchDiaryList")
     val searchDiaryList: kotlin.collections.List<SearchDiaryDTO>? = null
 
-)
+) {
+
+
+}
 

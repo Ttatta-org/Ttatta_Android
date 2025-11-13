@@ -33,7 +33,7 @@ data class CreateCategoryDTO (
     val categoryName: kotlin.String? = null,
 
     @Json(name = "categoryColor")
-    val categoryColor: CategoryColor? = null
+    val categoryColor: CreateCategoryDTO.CategoryColor? = null
 
 ) {
 

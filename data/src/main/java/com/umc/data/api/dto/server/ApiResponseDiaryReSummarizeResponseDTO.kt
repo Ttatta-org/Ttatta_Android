@@ -15,7 +15,7 @@
 
 package com.umc.data.api.dto.server
 
-import com.umc.data.api.dto.server.CreateCategoryResultDTO
+import com.umc.data.api.dto.server.DiaryReSummarizeResponseDTO
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -30,7 +30,7 @@ import com.squareup.moshi.JsonClass
  */
 
 
-data class ApiResponseCreateCategoryResultDTO (
+data class ApiResponseDiaryReSummarizeResponseDTO (
 
     @Json(name = "isSuccess")
     val isSuccess: kotlin.Boolean? = null,
@@ -42,7 +42,7 @@ data class ApiResponseCreateCategoryResultDTO (
     val message: kotlin.String? = null,
 
     @Json(name = "result")
-    val result: CreateCategoryResultDTO? = null
+    val result: DiaryReSummarizeResponseDTO? = null
 
 ) {
 

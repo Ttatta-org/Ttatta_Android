@@ -35,5 +35,8 @@ data class PresignedResultDTO (
     @Json(name = "objectKey")
     val objectKey: kotlin.String? = null
 
-)
+) {
+
+
+}
 

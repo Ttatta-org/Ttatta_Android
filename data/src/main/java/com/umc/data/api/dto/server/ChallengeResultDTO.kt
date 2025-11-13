@@ -39,5 +39,8 @@ data class ChallengeResultDTO (
     @Json(name = "isCompleted")
     val isCompleted: kotlin.Boolean? = null
 
-)
+) {
+
+
+}
 
