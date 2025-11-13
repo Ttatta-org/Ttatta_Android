@@ -23,13 +23,12 @@ object ServerApiModule {
         authPreference: AuthPreference,
         moshi: Moshi,
     ): ServerApi {
-        val logger = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
 
-        val client = OkHttpClient.Builder()
-            .addNetworkInterceptor {
-                val request = it.request()
+        val clientBuilder = OkHttpClient
+            .Builder()
+            .addNetworkInterceptor { chain ->
+                val request = chain
+                    .request()
                     .newBuilder()
                     .let { builder ->
                         authPreference.accessToken?.let { token ->
@@ -37,15 +36,23 @@ object ServerApiModule {
                         } ?: builder
                     }
                     .build()
-                it.proceed(request)
-            }
-            .addInterceptor(logger)
-            .build()
 
-        return Retrofit.Builder()
+                chain.proceed(request)
+            }
+
+        if (BuildConfig.DEBUG) {
+            val logger = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            }
+
+            clientBuilder.addInterceptor(logger)
+        }
+
+        return Retrofit
+            .Builder()
             .baseUrl(BuildConfig.SERVER_BASE_URL)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .client(client)
+            .client(clientBuilder.build())
             .build()
             .create(ServerApi::class.java)
     }
