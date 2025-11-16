@@ -1,5 +1,6 @@
 package com.umc.footprint.component.card
 
+import android.icu.lang.UCharacter
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
@@ -36,6 +37,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -64,7 +67,26 @@ private val diaryCardVerticalPadding = 32.dp
 @Composable
 fun DiaryCard(prop: DiaryCardProp) {
     val colors = LocalColorTheme.current
+    val fonts = LocalFontTheme.current
     val density = LocalDensity.current
+    val measure = rememberTextMeasurer()
+
+    val descriptionTextStyle = remember {
+        TextStyle(
+            color = colors.primary[600],
+            fontFamily = fonts.font,
+            fontWeight = FontWeight.W800,
+            fontSize = 24.sp,
+            lineHeight = 28.sp,
+            letterSpacing = (-0.4).sp,
+            textAlign = TextAlign.Center,
+            shadow = Shadow(
+                color = Color.White,
+                offset = Offset.Zero,
+                blurRadius = with(density) { 8.dp.toPx() },
+            ),
+        )
+    }
 
     val cardRotationAngles = remember { mutableStateMapOf<Long, Float>() }
     val pagerState = rememberPagerState { 1 + (prop.diaryCardLoadedPropMap.keys.maxOrNull() ?: 0) }
@@ -91,21 +113,33 @@ fun DiaryCard(prop: DiaryCardProp) {
                     .offset(y = -diaryCardVerticalPadding)
             ) {
                 Text(
-                    text = it,
-                    style = TextStyle(
-                        color = colors.primary[600],
-                        fontFamily = LocalFontTheme.current.font,
-                        fontWeight = FontWeight.W800,
-                        fontSize = 24.sp,
-                        lineHeight = 28.sp,
-                        letterSpacing = (-0.4).sp,
-                        textAlign = TextAlign.Center,
-                        shadow = Shadow(
-                            color = Color.White,
-                            offset = Offset.Zero,
-                            blurRadius = with(density) { 8.dp.toPx() },
-                        )
-                    )
+                    text = it
+                        .split(" ")
+                        .let { original ->
+                            var result = ""
+                            var line = ""
+
+                            original.forEachIndexed { index, word ->
+                                line += word
+
+                                val lineWidth = measure.measure(
+                                    text = line,
+                                    style = descriptionTextStyle,
+                                ).size.width
+
+                                if (lineWidth > with(density) { DesignConstant.DiaryCardSize.width.toPx() }) {
+                                    result += "\n"
+                                    line = ""
+                                }
+
+                                result += word
+
+                                if (index != original.lastIndex) result += " "
+                            }
+
+                            result
+                        },
+                    style = descriptionTextStyle,
                 )
             }
         }
@@ -273,7 +307,7 @@ val previewDiaryCardLoadedProp = DiaryCardLoadedProp(
 
 val previewDiaryCardProp = DiaryCardProp(
     key = 1L,
-    description = "일주일 전 이곳을 방문해,\n기록을 남겼어요",
+    description = "일주일 전 이곳을 방문해 기록을 남겼어요",
     defaultCategoryColor = CategoryColor.BLUE,
     diaryCardLoadedPropMap = List(10) { index ->
         index to previewDiaryCardLoadedProp
@@ -341,7 +375,7 @@ fun PreviewDiaryCard() {
             DiaryCard(
                 prop = DiaryCardProp(
                     key = 1L,
-                    description = "일주일 전 이곳을 방문해,\n기록을 남겼어요",
+                    description = "일주일 전 이곳을 방문해 기록을 남겼어요",
                     defaultCategoryColor = CategoryColor.BLUE,
                     diaryCardLoadedPropMap = diaryCardLoadedPropMap,
                     onNewDiaryRequested = onNewDiaryRequested@{ page ->

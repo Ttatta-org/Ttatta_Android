@@ -55,7 +55,7 @@ class FootprintViewModel @Inject constructor(
     ) {
         mapHandler.MapView(
             isBlurApplied = isBlurApplied,
-            isLocationMarkingEnabled = isLocationMarkingEnabled,
+            isLocationPermissionGranted = isLocationMarkingEnabled,
         )
     }
 

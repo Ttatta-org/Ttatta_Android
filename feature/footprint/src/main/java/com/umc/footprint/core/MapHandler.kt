@@ -9,7 +9,7 @@ interface MapHandler {
     @Composable
     fun MapView(
         isBlurApplied: Boolean,
-        isLocationMarkingEnabled: Boolean,
+        isLocationPermissionGranted: Boolean,
     )
 
     suspend fun moveTo(

@@ -1,7 +1,6 @@
 package com.umc.footprint
 
 import android.Manifest
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -25,7 +24,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.center
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.toSize
@@ -76,7 +74,7 @@ fun FootprintApp(
             x = 0f,
             y = with(density) {
                 (DesignConstant.DiaryCardSize.height.toPx() / 2)
-                    .plus(DesignConstant.MarkerSize.height.toPx() / 4)
+                    .plus(DesignConstant.FootprintMarkerSize.height.toPx() / 4)
                     .plus(topPadding.toPx() / 2)
             },
         )
@@ -222,7 +220,7 @@ fun FootprintApp(
                 isBook = diary.isClustered,
                 color = diary.color ?: CategoryColor.RED,  // TODO: 카테고리 컬러는 추후 Nullable 특성을 잃음
                 imageUrl = diary.imageUrl,
-                content = remindEvent.description,
+                content = diary.content,
                 onDismissed = {
                     remindEvent.onDismissed()
                     remindLoadedEvent = null
@@ -279,7 +277,7 @@ fun FootprintApp(
                 offset = mapViewSize.center + centralFootprintOffset,
                 prop = DiaryCardProp(
                     key = -1L,
-                    description = remindLoadedEvent?.description,
+                    description = event.description,
                     defaultCategoryColor = event.color,
                     diaryCardLoadedPropMap = mapOf(
                         0 to DiaryCardLoadedProp(
@@ -298,6 +296,8 @@ fun FootprintApp(
                     ),
                     onNewDiaryRequested = { /* DO NOTHING */ }
                 ),
+                showMarker = true,
+                isMarkerBook = event.isBook,
             )
         } ?: markerEvent?.let { event ->
             // 발자국 마커 클릭에 의해서 카드가 띄워지는 경우
@@ -314,6 +314,8 @@ fun FootprintApp(
                         viewModel.runWithScope { getDiaryFromServer(page = page) }
                     },
                 ),
+                showMarker = false,
+                isMarkerBook = false,
             )
         },
         diaryModificationBarProp = barOpenEvent?.let { event ->

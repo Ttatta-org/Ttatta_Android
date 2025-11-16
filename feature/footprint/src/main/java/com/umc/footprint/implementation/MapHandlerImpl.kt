@@ -34,7 +34,6 @@ import com.naver.maps.map.clustering.Clusterer
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
 import com.naver.maps.map.util.FusedLocationSource
-import com.umc.design.CategoryColor
 import com.umc.footprint.R
 import com.umc.footprint.core.DesignConstant
 import com.umc.footprint.core.MapHandler
@@ -53,66 +52,48 @@ class MapHandlerImpl(
     private val context: Context,
 ) : MapHandler {
 
-    private val locatorImage: OverlayImage = OverlayImage.fromBitmap(
-        loadRawImageAsBitmap(
-            context = context,
-            rawResourceId = R.raw.ic_locator,
-            size = DesignConstant.LocatorSize,
-        )
-    )
-
-    private val clusterImage: OverlayImage = OverlayImage.fromBitmap(
-        loadRawImageAsBitmap(
-            context = context,
-            rawResourceId = R.raw.ic_clustered_marker,
-            size = DesignConstant.ClusterMarkerMaxSize,
-        )
-    )
-
-    private val footMarkerImages: Map<CategoryColor, OverlayImage> = mapOf(
-        CategoryColor.RED to R.raw.ic_foot_red,
-        CategoryColor.ORANGE to R.raw.ic_foot_orange,
-        CategoryColor.YELLOW to R.raw.ic_foot_yellow,
-        CategoryColor.GREEN to R.raw.ic_foot_green,
-        CategoryColor.TURQUOISE to R.raw.ic_foot_turquoise,
-        CategoryColor.BLUE to R.raw.ic_foot_blue,
-        CategoryColor.NAVY to R.raw.ic_foot_navy,
-        CategoryColor.PURPLE to R.raw.ic_foot_purple,
-        CategoryColor.BROWN to R.raw.ic_foot_brown,
-        CategoryColor.PINK to R.raw.ic_foot_pink,
-        CategoryColor.WHITE to R.raw.ic_foot_white,
-        CategoryColor.BLACK to R.raw.ic_foot_black,
-    ).mapValues { (_, value) ->
+    val locatorImage by lazy {
         OverlayImage.fromBitmap(
             loadRawImageAsBitmap(
                 context = context,
-                rawResourceId = value,
-                size = DesignConstant.MarkerSize,
+                rawResourceId = R.raw.ic_locator,
+                size = DesignConstant.LocatorSize,
             )
         )
     }
 
-    private val bookMarkerImages: Map<CategoryColor, OverlayImage> = mapOf(
-        CategoryColor.RED to R.raw.ic_book_red,
-        CategoryColor.ORANGE to R.raw.ic_book_orange,
-        CategoryColor.YELLOW to R.raw.ic_book_yellow,
-        CategoryColor.GREEN to R.raw.ic_book_green,
-        CategoryColor.TURQUOISE to R.raw.ic_book_turquoise,
-        CategoryColor.BLUE to R.raw.ic_book_blue,
-        CategoryColor.NAVY to R.raw.ic_book_navy,
-        CategoryColor.PURPLE to R.raw.ic_book_purple,
-        CategoryColor.BROWN to R.raw.ic_book_brown,
-        CategoryColor.PINK to R.raw.ic_book_pink,
-        CategoryColor.WHITE to R.raw.ic_book_white,
-        CategoryColor.BLACK to R.raw.ic_book_black,
-    ).mapValues { (_, value) ->
+    val clusterImage by lazy {
         OverlayImage.fromBitmap(
             loadRawImageAsBitmap(
                 context = context,
-                rawResourceId = value,
-                size = DesignConstant.MarkerSize,
+                rawResourceId = R.raw.ic_clustered_marker,
+                size = DesignConstant.ClusterMarkerMaxSize,
             )
         )
+    }
+
+    val footMarkerImages by lazy {
+        DesignConstant.FootprintMarkerResourceMap.mapValues { (_, value) ->
+            OverlayImage.fromBitmap(
+                loadRawImageAsBitmap(
+                    context = context,
+                    rawResourceId = value,
+                    size = DesignConstant.FootprintMarkerSize,
+                )
+            )
+        }
+    }
+
+    val bookMarkerImages by lazy {
+        DesignConstant.BookMarkerResourceMap.mapValues { (_, value) ->
+            OverlayImage.fromBitmap(
+                loadRawImageAsBitmap(
+                    context = context,
+                    rawResourceId = value,
+                    size = DesignConstant.BookMarkerSize,
+                )
+            )
+        }
     }
 
     private val mapView: MapView
@@ -362,18 +343,21 @@ class MapHandlerImpl(
         val isOverlapping = marker.isOverlapping
         val onClicked = marker.onClicked
 
-        width = (DesignConstant.MarkerSize.width.value * density).roundToInt()
-        height = (DesignConstant.MarkerSize.height.value * density).roundToInt()
-        anchor = PointF(0.5f, 0.5f)
-        (if (isOverlapping) bookMarkerImages[color] else footMarkerImages[color])?.let { icon = it }
+        val size =
+            if (isOverlapping) DesignConstant.BookMarkerSize else DesignConstant.FootprintMarkerSize
+        val imageMap = if (isOverlapping) bookMarkerImages else footMarkerImages
+
+        this.width = (size.width.value * density).roundToInt()
+        this.height = (size.height.value * density).roundToInt()
+        this.anchor = PointF(0.5f, 0.5f)
         this.zIndex = zIndex
+        imageMap[color]?.let { this.icon = it }
+
         setOnClickListener {
             onPreviousMarkerDismissed?.invoke()
             map?.projection
                 ?.toScreenLocation(this.position)
-                ?.apply {
-                    onPreviousMarkerDismissed = onClicked?.invoke(Offset(x, y))
-                }
+                ?.apply { onPreviousMarkerDismissed = onClicked?.invoke(Offset(x, y)) }
             true
         }
     }

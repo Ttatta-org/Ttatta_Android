@@ -14,7 +14,7 @@ fun getDiaryCardTopLeftOffset(
     return with(density) {
         Offset(
             x = markerOffset.x - diaryCardSize.width.toPx() / 2,
-            y = markerOffset.y - DesignConstant.MarkerSize.height.toPx() / 2 - diaryCardSize.height.toPx(),
+            y = markerOffset.y - DesignConstant.FootprintMarkerSize.height.toPx() / 2 - diaryCardSize.height.toPx(),
         )
     }
 }

@@ -44,7 +44,6 @@ fun DiaryCardBack(
             contentContainerColor = categoryColor?.a ?: colors.secondary[300],
             onModifyButtonClicked = prop.prop?.onModifyButtonClicked,
             content = {
-                // 본문
                 if (prop.prop != null) Box(
                     contentAlignment = Alignment.CenterStart,
                     modifier = Modifier
@@ -81,7 +80,7 @@ fun DiaryCardBack(
                     )
                 } else Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(220.dp),
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     CircularProgressIndicator(
                         color = colors.primary[400],

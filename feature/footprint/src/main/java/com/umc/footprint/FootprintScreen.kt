@@ -1,7 +1,9 @@
 package com.umc.footprint
 
+import android.graphics.BitmapFactory
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,7 +23,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -36,6 +40,7 @@ import com.umc.footprint.component.ShadowedImage
 import com.umc.footprint.component.TopBar
 import com.umc.footprint.component.previewCategorySelectionBarProp
 import com.umc.footprint.component.card.previewDiaryCardProp
+import com.umc.footprint.core.DesignConstant
 import com.umc.footprint.model.prop.DiaryModificationBarProp
 import com.umc.footprint.model.prop.PositionedDiaryCardProp
 import com.umc.footprint.model.prop.VisibleCategorySelectionBarProp
@@ -54,6 +59,7 @@ fun FootprintScreen(
     onCategoryButtonClicked: () -> Unit,
     onLocationButtonClicked: () -> Unit,
 ) {
+    val context = LocalContext.current
     val density = LocalDensity.current
     var screenHeight by remember { mutableStateOf<Dp?>(null) }
     var categorySelectionBarHeight by remember { mutableStateOf<Dp?>(null) }
@@ -82,16 +88,47 @@ fun FootprintScreen(
                 ) { onBackScreenClicked() }
         )
         // 일기 팝업
-        diaryCardProp?.let { (offset, prop) ->
+        diaryCardProp?.let { prop ->
             Box(
                 modifier = Modifier.offset {
                     getDiaryCardTopLeftOffset(
                         density = density,
-                        markerOffset = offset,
+                        markerOffset = prop.offset,
                     ).round()
                 },
             ) {
-                DiaryCard(prop = prop)
+                DiaryCard(prop = prop.prop)
+            }
+
+            if (prop.showMarker) {
+                val marker = remember {
+                    val resourceMap =
+                        if (prop.isMarkerBook) DesignConstant.BookMarkerResourceMap else DesignConstant.FootprintMarkerResourceMap
+
+                    resourceMap[prop.prop.defaultCategoryColor]?.let {
+                        BitmapFactory
+                            .decodeResource(context.resources, it)
+                            .asImageBitmap()
+                    }
+                }
+
+                val size =
+                    if (prop.isMarkerBook) DesignConstant.BookMarkerSize else DesignConstant.FootprintMarkerSize
+
+                marker?.let {
+                    Box(
+                        modifier = Modifier.offset(
+                            x = with(density) { prop.offset.x.toDp() } - size.width / 2,
+                            y = with(density) { prop.offset.y.toDp() } - size.height / 2,
+                        ),
+                    ) {
+                        Image(
+                            bitmap = marker,
+                            contentDescription = null,
+                            modifier = Modifier.size(size),
+                        )
+                    }
+                }
             }
         }
         // 탑 바
@@ -110,7 +147,8 @@ fun FootprintScreen(
                 }
                 .offset {
                     Offset(
-                        x = 0f, y = categorySelectionBarOffset.toPx()
+                        x = 0f,
+                        y = categorySelectionBarOffset.toPx(),
                     ).round()
                 },
         ) {
@@ -180,6 +218,8 @@ fun PreviewFootprintScreen() {
             diaryCardProp = PositionedDiaryCardProp(
                 offset = Offset(600f, 1500f),
                 prop = previewDiaryCardProp,
+                showMarker = true,
+                isMarkerBook = false,
             ),
             diaryModificationBarProp = null, // previewDiaryModificationBarProp,
             categorySelectionBarProp = VisibleCategorySelectionBarProp(

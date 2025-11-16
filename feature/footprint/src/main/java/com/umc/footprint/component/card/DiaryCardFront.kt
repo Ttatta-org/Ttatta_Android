@@ -46,9 +46,9 @@ fun DiaryCardFront(
             contentContainerColor = categoryColor?.a ?: colors.secondary[300],
             onModifyButtonClicked = prop.prop?.onModifyButtonClicked,
             content = {
-                // 본문
                 Box(
-                    contentAlignment = Alignment.Center, modifier = Modifier.size(220.dp)
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(32.dp),
@@ -56,22 +56,25 @@ fun DiaryCardFront(
                     )
                     if (prop.prop != null) Image(
                         painter = rememberAsyncImagePainter(
-                        model = prop.prop.imageUrl, onState = { state ->
-                            if (state is AsyncImagePainter.State.Success) scope.launch {
-                                alpha.animateTo(
-                                    targetValue = 1f, animationSpec = tween(
-                                        durationMillis = diaryCardFrameAnimationDurationMillis,
-                                        easing = LinearEasing,
+                            model = prop.prop.imageUrl,
+                            onState = { state ->
+                                if (state is AsyncImagePainter.State.Success) scope.launch {
+                                    alpha.animateTo(
+                                        targetValue = 1f, animationSpec = tween(
+                                            durationMillis = diaryCardFrameAnimationDurationMillis,
+                                            easing = LinearEasing,
+                                        )
                                     )
-                                )
-                            }
-                        }),
+                                }
+                            },
+                        ),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
                             .alpha(alpha.value)
-                            .clip(RoundedCornerShape(8.dp)))
+                            .clip(RoundedCornerShape(8.dp))
+                    )
                 }
             },
         )
