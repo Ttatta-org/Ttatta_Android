@@ -54,7 +54,6 @@ fun NavGraphBuilder.addKakaoLoginNavGraph(
                             else kakaoJoinEvent = KakaoJoinEvent(idToken = it)
                         }.onFailure {
                             onNavigatingBackToLogin()
-
                         }
                     }
                 }
