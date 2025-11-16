@@ -28,7 +28,7 @@ enum class NotificationType(
             getNewIntent(
                 intentType = IntentType.LocationMemory(
                     diaryId = remoteMessage.data["diaryId"]!!.toLong(),
-                    description = remoteMessage.notification?.body!!
+                    description = remoteMessage.data["body"]!!,
                 ),
             )
         },
