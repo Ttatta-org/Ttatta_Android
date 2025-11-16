@@ -27,6 +27,7 @@ import com.umc.design.theme.LocalFontTheme
 @Composable
 fun CustomButton(
     text: String? = null,
+    showShadow: Boolean = true,
     isEnabled: Boolean = true,
     colors: ButtonColors = ButtonColors(
         containerColor = LocalColorTheme.current.primary[400],
@@ -44,11 +45,13 @@ fun CustomButton(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(
-                elevation = 4.dp,
-                shape = shape,
-                spotColor = Color.Black.copy(alpha = 0.4f),
-            )
+            .let {
+                if (showShadow) it.shadow(
+                    elevation = 4.dp,
+                    shape = shape,
+                    spotColor = Color.Black.copy(alpha = 0.4f),
+                ) else it
+            }
             .background(
                 color = if (isEnabled) colors.containerColor else colors.disabledContainerColor,
                 shape = shape,
@@ -58,7 +61,7 @@ fun CustomButton(
                 else it
             }
             .clip(shape)
-            .clickable { if (isEnabled) onClick() }
+            .clickable { if (isEnabled) onClick() },
     ) {
         if (content != null) {
             content.invoke()
