@@ -8,18 +8,17 @@ import androidx.lifecycle.viewModelScope
 import com.umc.core.model.CategoryInfo
 import com.umc.core.model.DiaryForCard
 import com.umc.core.model.DiaryForRemind
+import com.umc.core.model.Footprint
 import com.umc.core.repository.DiaryRepository
 import com.umc.core.repository.UserRepository
-import com.umc.design.CategoryColor
 import com.umc.footprint.core.MapHandler
 import com.umc.footprint.core.MapMarker
 import com.umc.footprint.model.event.MapMarkerClickedEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import javax.inject.Inject
 
 @HiltViewModel
@@ -76,27 +75,33 @@ class FootprintViewModel @Inject constructor(
         latitude: Double,
         longitude: Double,
         pivot: Offset,
+        zoom: Boolean,
     ) {
-        mapHandler.moveTo(
-            latitude = latitude,
-            longitude = longitude,
-            offset = pivot,
-            animationTime = 200,
-        )
+        suspendCancellableCoroutine { continuation ->
+            MainScope().launch {
+                mapHandler.moveTo(
+                    latitude = latitude,
+                    longitude = longitude,
+                    offset = pivot,
+                    animationTime = 200,
+                    zoom = zoom,
+                    onAnimationEnded = {
+                        continuation.resume(Unit) { _, _, _ -> }
+                    }
+                )
+            }
+        }
     }
 
     suspend fun selectShowingCategory(categoryId: Long?) {
         mapHandler.removeAllMarkers()
-        diaryRepository.getAllFootprints(categoryId = categoryId).forEach {
-            markMap(
-                latitude = it.latitude,
-                longitude = it.longitude,
-                clusterId = it.clusterId,
-                zIndex = it.diaryId.toInt(),
-                isOverlapping = it.isClustered,
-                color = it.color,
-            )
-        }
+
+        val markers = diaryRepository
+            .getAllFootprints(categoryId = categoryId)
+            .map { it.toMapMarker() }
+            .toTypedArray()
+
+        mapHandler.addMarkers(*markers)
         selectedCategoryIdState.value = categoryId
     }
 
@@ -155,42 +160,32 @@ class FootprintViewModel @Inject constructor(
         userNameState.value = userRepository.getUserInfo().name
     }
 
-    private suspend fun markMap(
-        latitude: Double,
-        longitude: Double,
-        clusterId: Long,
-        zIndex: Int,
-        isOverlapping: Boolean,
-        color: CategoryColor?,
-    ) {
-        val marker = MapMarker(
-            latitude = latitude,
-            longitude = longitude,
-            zIndex = zIndex,
-            color = color,
-            isOverlapping = isOverlapping,
-            onClicked = onClicked@{ offset ->
-                if (previousClickedClusterId != clusterId) {
-                    mapMarkerClickedEventState.value = MapMarkerClickedEvent(
-                        offset = offset,
-                        latitude = latitude,
-                        longitude = longitude,
-                        clusterId = clusterId,
-                        isBook = isOverlapping,
-                        color = color,
-                    )
-                    previousClickedClusterId = clusterId
-                } else {
-                    previousClickedClusterId = null
-                }
+    private fun Footprint.toMapMarker() = MapMarker(
+        latitude = latitude,
+        longitude = longitude,
+        zIndex = diaryId.toInt(),
+        color = color,
+        isOverlapping = isClustered,
+        onClicked = onClicked@{ offset ->
+            if (previousClickedClusterId != clusterId) {
+                mapMarkerClickedEventState.value = MapMarkerClickedEvent(
+                    offset = offset,
+                    latitude = latitude,
+                    longitude = longitude,
+                    clusterId = clusterId,
+                    isBook = isClustered,
+                    color = color,
+                )
 
-                return@onClicked {
-                    mapMarkerClickedEventState.value = null
-                    diaryMapState.value = emptyMap()
-                }
-            },
-        )
+                previousClickedClusterId = clusterId
+            } else {
+                previousClickedClusterId = null
+            }
 
-        mapHandler.addMarker(marker)
-    }
+            return@onClicked {
+                mapMarkerClickedEventState.value = null
+                diaryMapState.value = emptyMap()
+            }
+        },
+    )
 }

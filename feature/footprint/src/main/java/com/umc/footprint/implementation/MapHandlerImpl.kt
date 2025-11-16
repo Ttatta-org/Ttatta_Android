@@ -2,9 +2,9 @@ package com.umc.footprint.implementation
 
 import android.content.Context
 import android.graphics.PointF
-import android.location.Location
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,25 +16,27 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraAnimation
 import com.naver.maps.map.CameraUpdate
-import com.naver.maps.map.LocationSource
 import com.naver.maps.map.LocationTrackingMode
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.clustering.Clusterer
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
+import com.naver.maps.map.util.FusedLocationSource
 import com.umc.design.CategoryColor
 import com.umc.footprint.R
 import com.umc.footprint.core.DesignConstant
-import com.umc.footprint.core.LocationHandler
 import com.umc.footprint.core.MapHandler
 import com.umc.footprint.core.MapMarker
 import com.umc.footprint.util.calculateClusteredMarkerSize
@@ -45,13 +47,11 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import kotlin.math.roundToInt
 
-class MapHandlerImpl @Inject constructor(
+class MapHandlerImpl(
     private val context: Context,
-    private val locationHandler: LocationHandler,
-): MapHandler {
+) : MapHandler {
 
     private val locatorImage: OverlayImage = OverlayImage.fromBitmap(
         loadRawImageAsBitmap(
@@ -117,6 +117,7 @@ class MapHandlerImpl @Inject constructor(
 
     private val mapView: MapView
     private val clusterManager: Clusterer<MarkerKey>
+    private var fusedLocationSource: FusedLocationSource? = null
 
     private val mapFlow = MutableStateFlow<NaverMap?>(null)
     private val isNonClusteringZoomLevelReached = MutableStateFlow(false)
@@ -130,7 +131,8 @@ class MapHandlerImpl @Inject constructor(
 
     init {
         // 클러스터 매니저 설정
-        clusterManager = Clusterer.Builder<MarkerKey>()
+        clusterManager = Clusterer
+            .Builder<MarkerKey>()
             .maxZoom(14)
             .screenDistance(DesignConstant.ClusteringDistance.value.toDouble())
             .clusterMarkerUpdater { info, marker ->
@@ -155,63 +157,35 @@ class MapHandlerImpl @Inject constructor(
             )
 
             getMapAsync { map ->
-                map.apply {
-                    // 이벤트 리스너 설정
-                    addOnCameraChangeListener { reason, _ ->
-                        if (reason == CameraUpdate.REASON_GESTURE) CoroutineScope(Dispatchers.Main).launch {
-                            dismissMarkerEvent()
-                        }
-                    }
-
-                    setOnMapClickListener { _, _ ->
-                        CoroutineScope(Dispatchers.Main).launch {
-                            dismissMarkerEvent()
-                        }
-                    }
-
-                    addOnCameraIdleListener {
-                        isNonClusteringZoomLevelReached.value = map.cameraPosition.zoom > 15
-                    }
-
-                    // UI 설정
-                    uiSettings.apply {
-                        isLogoClickEnabled = false
-                        isCompassEnabled = false
-                        isScaleBarEnabled = false
-                        isZoomControlEnabled = false
-                        isIndoorLevelPickerEnabled = false
-                        isLocationButtonEnabled = false
-                    }
-
-                    isIndoorEnabled = false
-                    locationOverlay.icon = locatorImage
-
-                    // 위치 추적 기능 설정
-                    locationSource = object: LocationSource {
-                        private var locationChangeListener: (Location) -> Unit = {}
-
-                        override fun activate(listener: LocationSource.OnLocationChangedListener) {
-                            try {
-                                { location: Location ->
-                                    listener.onLocationChanged(location)
-                                }.let { lambda ->
-                                    locationHandler.addLocationChangeListener(lambda)
-                                    locationChangeListener = lambda
-                                }
-                            } catch (e: Exception) {
-                                // TODO
-                            }
-                        }
-
-                        override fun deactivate() {
-                            try {
-                                locationHandler.removeLocationChangeListener(locationChangeListener)
-                            } catch (e: Exception) {
-                                // TODO
-                            }
-                        }
+                // 이벤트 리스너 설정
+                map.addOnCameraChangeListener { reason, _ ->
+                    if (reason == CameraUpdate.REASON_GESTURE) CoroutineScope(Dispatchers.Main).launch {
+                        dismissMarkerEvent()
                     }
                 }
+
+                map.setOnMapClickListener { _, _ ->
+                    CoroutineScope(Dispatchers.Main).launch {
+                        dismissMarkerEvent()
+                    }
+                }
+
+                map.addOnCameraIdleListener {
+                    isNonClusteringZoomLevelReached.value = map.cameraPosition.zoom > 15
+                }
+
+                // UI 설정
+                map.uiSettings.apply {
+                    isLogoClickEnabled = false
+                    isCompassEnabled = false
+                    isScaleBarEnabled = false
+                    isZoomControlEnabled = false
+                    isIndoorLevelPickerEnabled = false
+                    isLocationButtonEnabled = false
+                }
+
+                map.isIndoorEnabled = false
+                map.locationOverlay.icon = locatorImage
 
                 mapFlow.value = map
                 clusterManager.map = map
@@ -221,10 +195,12 @@ class MapHandlerImpl @Inject constructor(
         // 최대 비클러스터링 확대 레벨 감지
         CoroutineScope(Dispatchers.Main).launch {
             isNonClusteringZoomLevelReached.collect { isReached ->
-                markers.filter { it.isAdded }.forEach {
-                    if (isReached) it.toNormalMarker(marker = it.tag as MapMarker)
-                    else it.toClusterMarker(clusterSize = 1)
-                }
+                markers
+                    .filter { it.isAdded }
+                    .forEach {
+                        if (isReached) it.toNormalMarker(marker = it.tag as MapMarker)
+                        else it.toClusterMarker(clusterSize = 1)
+                    }
             }
         }
     }
@@ -232,8 +208,9 @@ class MapHandlerImpl @Inject constructor(
     @Composable
     override fun MapView(
         isBlurApplied: Boolean,
-        isLocationMarkingEnabled: Boolean,
+        isLocationPermissionGranted: Boolean,
     ) {
+        val context = LocalContext.current as ComponentActivity
         var capturedMap by remember { mutableStateOf<ImageBitmap?>(null) }
 
         LaunchedEffect(key1 = isBlurApplied) {
@@ -244,9 +221,16 @@ class MapHandlerImpl @Inject constructor(
             }
         }
 
-        LaunchedEffect(key1 = isLocationMarkingEnabled) {
-            if (isLocationMarkingEnabled) {
-                getMap().locationTrackingMode = LocationTrackingMode.Follow
+        LaunchedEffect(key1 = isLocationPermissionGranted) {
+            if (isLocationPermissionGranted) {
+                val source = FusedLocationSource(context, 100)
+
+                getMap().apply {
+                    locationTrackingMode = LocationTrackingMode.Follow
+                    locationSource = source
+                }
+
+                fusedLocationSource = source
             } else {
                 getMap().locationTrackingMode = LocationTrackingMode.None
             }
@@ -270,8 +254,9 @@ class MapHandlerImpl @Inject constructor(
                     bitmap = bitmap,
                     contentScale = ContentScale.Fit,
                     contentDescription = null,
-                    modifier = Modifier.matchParentSize()
-                )
+                    modifier = Modifier
+                        .matchParentSize()
+                        .let { if (isBlurApplied) it.blur(radius = 10.dp) else it })
             }
         }
     }
@@ -280,6 +265,7 @@ class MapHandlerImpl @Inject constructor(
         latitude: Double,
         longitude: Double,
         offset: Offset,
+        zoom: Boolean,
         animationTime: Long,
         onAnimationEnded: () -> Unit,
     ) {
@@ -292,7 +278,10 @@ class MapHandlerImpl @Inject constructor(
 
         val target = LatLng(latitude, longitude)
         onMoveAnimationEnded = onAnimationEnded
-        val cameraUpdate = CameraUpdate.scrollTo(target)
+        val cameraUpdate = run {
+            if (zoom) CameraUpdate.scrollAndZoomTo(target, 16.0)
+            else CameraUpdate.scrollTo(target)
+        }
             .pivot(pivot)
             .animate(CameraAnimation.Easing, animationTime)
             .finishCallback { onMoveAnimationEnded?.invoke() }
@@ -301,7 +290,7 @@ class MapHandlerImpl @Inject constructor(
     }
 
     override suspend fun moveToCurrentPosition() {
-        val location = locationHandler.getCurrentLocation()
+        val location = fusedLocationSource?.lastLocation ?: return
         moveTo(location.latitude, location.longitude)
     }
 
@@ -310,16 +299,20 @@ class MapHandlerImpl @Inject constructor(
         return position.latitude to position.longitude
     }
 
-    override suspend fun addMarker(marker: MapMarker) {
-        val key = MarkerKey(marker)
+    override suspend fun addMarkers(vararg markers: MapMarker) {
+        val keys = markers.associate { marker ->
+            MarkerKey(marker) to null
+        }
+
         MainScope().launch {
-            clusterManager.add(key, null)
+            clusterManager.addAll(keys)
         }
     }
 
     override suspend fun removeAllMarkers() {
         onPreviousMarkerDismissed?.invoke()
         onPreviousMarkerDismissed = null
+
         MainScope().launch {
             clusterManager.clear()
             markers.clear()
@@ -376,9 +369,11 @@ class MapHandlerImpl @Inject constructor(
         this.zIndex = zIndex
         setOnClickListener {
             onPreviousMarkerDismissed?.invoke()
-            map?.projection?.toScreenLocation(this.position)?.apply {
-                onPreviousMarkerDismissed = onClicked?.invoke(Offset(x, y))
-            }
+            map?.projection
+                ?.toScreenLocation(this.position)
+                ?.apply {
+                    onPreviousMarkerDismissed = onClicked?.invoke(Offset(x, y))
+                }
             true
         }
     }

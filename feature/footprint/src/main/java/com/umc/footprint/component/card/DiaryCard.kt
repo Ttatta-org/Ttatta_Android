@@ -29,8 +29,12 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.CategoryColor
 import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.LocalFontTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.core.DesignConstant
 import com.umc.footprint.model.prop.DiaryCardBackLoadedProp
@@ -59,6 +64,8 @@ private val diaryCardVerticalPadding = 32.dp
 @Composable
 fun DiaryCard(prop: DiaryCardProp) {
     val colors = LocalColorTheme.current
+    val density = LocalDensity.current
+
     val cardRotationAngles = remember { mutableStateMapOf<Long, Float>() }
     val pagerState = rememberPagerState { 1 + (prop.diaryCardLoadedPropMap.keys.maxOrNull() ?: 0) }
     val isScrollEnabled = prop.diaryCardLoadedPropMap[pagerState.currentPage]?.let {
@@ -85,12 +92,20 @@ fun DiaryCard(prop: DiaryCardProp) {
             ) {
                 Text(
                     text = it,
-                    color = colors.primary[600],
-                    fontWeight = FontWeight.W800,
-                    fontSize = 24.sp,
-                    lineHeight = 28.sp,
-                    letterSpacing = (-0.4).sp,
-                    textAlign = TextAlign.Center,
+                    style = TextStyle(
+                        color = colors.primary[600],
+                        fontFamily = LocalFontTheme.current.font,
+                        fontWeight = FontWeight.W800,
+                        fontSize = 24.sp,
+                        lineHeight = 28.sp,
+                        letterSpacing = (-0.4).sp,
+                        textAlign = TextAlign.Center,
+                        shadow = Shadow(
+                            color = Color.White,
+                            offset = Offset.Zero,
+                            blurRadius = with(density) { 8.dp.toPx() },
+                        )
+                    )
                 )
             }
         }
@@ -131,7 +146,7 @@ fun DiaryCard(prop: DiaryCardProp) {
                     )
                     .graphicsLayer {
                         rotationY = rotateAngle
-                        cameraDistance = 8 * density
+                        cameraDistance = 8 * this.density
                     }
                     .clickable(
                         indication = null,

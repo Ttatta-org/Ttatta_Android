@@ -36,12 +36,12 @@ fun DiaryCardHorizontalPageArrow(
 
     val outerColor by animateColorAsState(
         targetValue = prop.outerColor,
-        animationSpec = tween(durationMillis = prop.colorAnimationDuration.toInt()),
+        animationSpec = tween(durationMillis = prop.colorAnimationDuration),
     )
 
     val innerColor by animateColorAsState(
         targetValue = prop.innerColor,
-        animationSpec = tween(durationMillis = prop.colorAnimationDuration.toInt()),
+        animationSpec = tween(durationMillis = prop.colorAnimationDuration),
     )
 
     Canvas(
