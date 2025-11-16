@@ -15,10 +15,13 @@ import java.lang.reflect.Type
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class LocalDateTimeSerializer: JsonDeserializer<LocalDateTime>,
+class LocalDateTimeSerializer : JsonDeserializer<LocalDateTime>,
     JsonSerializer<LocalDateTime>,
     JsonAdapter<LocalDateTime>() {
-    private val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+
+    companion object {
+        private val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+    }
 
     override fun deserialize(
         json: JsonElement,
@@ -38,12 +41,16 @@ class LocalDateTimeSerializer: JsonDeserializer<LocalDateTime>,
 
     @FromJson
     override fun fromJson(jsonReader: JsonReader): LocalDateTime? {
-        val string = jsonReader.nextString()
-        return LocalDateTime.parse(string, formatter)
+        return if (jsonReader.peek() == JsonReader.Token.NULL) {
+            jsonReader.nextNull()
+        } else {
+            LocalDateTime.parse(jsonReader.nextString(), formatter)
+        }
     }
 
     @ToJson
-    override fun toJson(jsonReader: JsonWriter, value: LocalDateTime?) {
-        jsonReader.value(value?.format(formatter))
+    override fun toJson(jsonWriter: JsonWriter, value: LocalDateTime?) {
+        if (value == null) jsonWriter.nullValue()
+        else jsonWriter.value(value.format(formatter))
     }
 }

@@ -13,6 +13,7 @@ import com.umc.data.api.dto.server.PostResultDTO
 import com.umc.data.api.dto.server.PresignedResultDTO
 import com.umc.data.api.dto.server.SearchDiaryListDTO
 import com.umc.data.api.dto.server.RemindDTO
+import com.umc.data.api.dto.server.RemindDiaryDTO
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -48,6 +49,12 @@ interface DiaryApi {
         @Path("requestNum") requestNum: Int,
         @Query("searchContent") searchContent: String
     ): BaseResponse<SearchDiaryListDTO>
+
+    // 리마인드 일기 조회
+    @GET("/diaries/remind/{id}")
+    suspend fun getRemindDiary(
+        @Path("id") diaryId: Long,
+    ): BaseResponse<RemindDiaryDTO>
 
     // 일기 사진 업로드 링크 발급
     @GET("/diaries/post/presignedUrl")

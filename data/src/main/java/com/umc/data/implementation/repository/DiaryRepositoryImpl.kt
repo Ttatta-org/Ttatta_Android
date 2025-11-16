@@ -16,6 +16,7 @@ import com.umc.data.api.dto.server.EditDTO
 import com.umc.data.api.dto.server.MapResultDTO
 import com.umc.data.api.dto.server.ModifyCategoryDTO
 import com.umc.data.api.dto.server.PostDTO
+import com.umc.data.api.dto.server.RemindDiaryDTO
 import com.umc.data.api.dto.server.SummarizeDTO
 import com.umc.data.preference.AuthPreference
 import com.umc.data.util.getMimeTypeFromExtension
@@ -155,20 +156,33 @@ class DiaryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getDiaryForRemind(id: Long): DiaryForRemind {
-        // FIXME: 실제 ID 값으로 일기를 조회할 것
-        val footprints = getAllFootprints()
-        val footprint = footprints.first()
-        val diary = getDiaries(page = 0, clusterId = footprint.clusterId, categoryId = footprint.categoryId)
+        val diary = serverApi.withAuth(authPreference) {
+            getRemindDiary(diaryId = id)
+        }
 
         return DiaryForRemind(
-            id = diary.id,
-            isClustered = footprint.isClustered,
-            date = diary.date,
-            color = diary.color,
-            content = diary.content,
-            imageUrl = diary.imageUrl,
-            latitude = footprint.latitude,
-            longitude = footprint.longitude,
+            id = diary.diaryId!!,
+            isClustered = diary.isSingle!!,
+            date = diary.date!!.toLocalDate(),
+            color = when (diary.color) {
+                RemindDiaryDTO.Color.RED -> CategoryColor.RED
+                RemindDiaryDTO.Color.ORANGE -> CategoryColor.ORANGE
+                RemindDiaryDTO.Color.YELLOW -> CategoryColor.YELLOW
+                RemindDiaryDTO.Color.GREEN -> CategoryColor.GREEN
+                RemindDiaryDTO.Color.SKYBLUE -> CategoryColor.TURQUOISE
+                RemindDiaryDTO.Color.BLUE -> CategoryColor.BLUE
+                RemindDiaryDTO.Color.INDIGO -> CategoryColor.NAVY
+                RemindDiaryDTO.Color.VIOLET -> CategoryColor.PURPLE
+                RemindDiaryDTO.Color.BROWN -> CategoryColor.BROWN
+                RemindDiaryDTO.Color.WHITE -> CategoryColor.WHITE
+                RemindDiaryDTO.Color.PINK -> CategoryColor.PINK
+                RemindDiaryDTO.Color.BLACK -> CategoryColor.BLACK
+                null -> null
+            },
+            content = diary.content!!,
+            imageUrl = diary.image!!,
+            latitude = diary.latitude!!,
+            longitude = diary.longitude!!,
         )
     }
 

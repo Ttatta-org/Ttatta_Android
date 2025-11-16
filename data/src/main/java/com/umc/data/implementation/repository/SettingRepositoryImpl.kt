@@ -2,8 +2,8 @@ package com.umc.data.implementation.repository
 
 import com.umc.core.model.NotificationSetting
 import com.umc.core.model.Theme
-import com.umc.core.repository.AlarmResult
-import com.umc.core.repository.AlarmSummary
+import com.umc.core.model.AlarmResult
+import com.umc.core.model.AlarmSummary
 import com.umc.core.repository.SettingRepository
 import com.umc.data.api.AlarmApi
 import com.umc.data.api.ServerApi
@@ -103,15 +103,18 @@ class SettingRepositoryImpl @Inject constructor(
                 minute = writingTime?.minute ?: prevWriting?.minute ?: 30
             )
         )
+
         settingPreference.setNotificationSetting(
             NotificationSetting.LocationBasedRemind(isOn = memoryActive)
         )
+
         settingPreference.setNotificationSetting(
             NotificationSetting.ChallengeRemind(
                 isOn = challengeActive,
                 remainingHours = challengeHours ?: prevChal?.remainingHours ?: 1
             )
         )
+
         settingPreference.setNotificationSetting(
             NotificationSetting.DailySummary(
                 isOn = dailyActive,
