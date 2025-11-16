@@ -10,7 +10,7 @@
     <string name="description">상세 설명</string>
     <string name="title_field_placeholder">챌린지 제목을 입력해주세요</string>
     <string name="description_field_placeholder">챌린지 내용을 입력해주세요</string>
-    <string name="challenge_completion_dialog_content_1">기록하기를 통해 챌린지를 완료할 수 있어요</string>
+    <string name="challenge_completion_dialog_content_1">기록하기를 통해\n챌린지를 완료할 수 있어요!</string>
     <string name="challenge_completion_dialog_content_2">기록하러 가볼까요?</string>
     <string name="record">기록하기</string>
     <string name="point_unit">P</string>

@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -38,7 +39,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.R
+import com.umc.design.component.CustomButton
 import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.LocalFontTheme
 
 data class ChallengeBottomSheetProp(
     val title: String,
@@ -75,7 +78,9 @@ fun NewChallengeBottomSheet(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(
-                bottom = WindowInsets.safeDrawing.asPaddingValues().calculateBottomPadding()
+                bottom = WindowInsets.safeDrawing
+                    .asPaddingValues()
+                    .calculateBottomPadding()
             )
         ) {
             // 헤더 이미지
@@ -146,12 +151,10 @@ fun NewChallengeBottomSheet(
                 ) {
                     Text(
                         text = "챌린지 명",
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.W600,
-                            color = LocalColorTheme.current.grey[600],
-                            textAlign = TextAlign.Center
-                        ),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.W600,
+                        color = LocalColorTheme.current.grey[600],
+                        textAlign = TextAlign.Center
                     )
                 }
 
@@ -170,27 +173,28 @@ fun NewChallengeBottomSheet(
                             color = Color.White,
                             shape = RoundedCornerShape(18.dp)
                         )
-                        .padding(horizontal = 16.dp, vertical = 18.dp) // 내부 여백
+                        .padding(horizontal = 16.dp, vertical = 12.dp) // 내부 여백
                 ) {
                     Box(
+                        contentAlignment = Alignment.CenterStart,
                         modifier = Modifier.weight(1f)
                     ) {
+                        Text(
+                            text = "챌린지 명을 입력해주세요", // 힌트 텍스트
+                            color = LocalColorTheme.current.grey[400],
+                            fontSize = 13.sp,
+                            modifier = Modifier.alpha(if (prop.title.isEmpty()) 1f else 0f),
+                        )
                         BasicTextField(
                             value = prop.title,
                             onValueChange = prop.onTitleChanged,
                             textStyle = TextStyle(
+                                fontFamily = LocalFontTheme.current.font,
                                 fontSize = 13.sp,
                                 color = Color.Black
                             ),
-                            modifier = Modifier.fillMaxWidth()
-                        ) { innerTextField ->
-                            innerTextField()
-                            if (prop.title.isEmpty()) Text(
-                                text = "챌린지 명을 입력해주세요", // 힌트 텍스트
-                                color = LocalColorTheme.current.grey[400],
-                                fontSize = 13.sp
-                            )
-                        }
+                            modifier = Modifier.fillMaxWidth(),
+                        )
                     }
 
                     val count = prop.title.length
@@ -199,7 +203,7 @@ fun NewChallengeBottomSheet(
                     else
                         LocalColorTheme.current.primary[500]
 
-                    Row() {
+                    Row {
                         Text(
                             text = count.toString(),
                             style = TextStyle(
@@ -224,12 +228,10 @@ fun NewChallengeBottomSheet(
                 ) {
                     Text(
                         text = "내용",
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.W600,
-                            color = LocalColorTheme.current.grey[600],
-                            textAlign = TextAlign.Center
-                        ),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.W600,
+                        color = LocalColorTheme.current.grey[600],
+                        textAlign = TextAlign.Center,
                     )
                 }
 
@@ -248,27 +250,28 @@ fun NewChallengeBottomSheet(
                             color = Color.White,
                             shape = RoundedCornerShape(18.dp)
                         )
-                        .padding(horizontal = 16.dp, vertical = 18.dp) // 내부 여백
+                        .padding(horizontal = 16.dp, vertical = 12.dp) // 내부 여백
                 ) {
                     Box(
+                        contentAlignment = Alignment.CenterStart,
                         modifier = Modifier.weight(1f)
                     ) {
+                        Text(
+                            text = "챌린지 명을 입력해주세요", // 힌트 텍스트
+                            color = LocalColorTheme.current.grey[400],
+                            fontSize = 13.sp,
+                            modifier = Modifier.alpha(if (prop.content.isEmpty()) 1f else 0f),
+                        )
                         BasicTextField(
                             value = prop.content,
                             onValueChange = prop.onContentChanged,
                             textStyle = TextStyle(
+                                fontFamily = LocalFontTheme.current.font,
                                 fontSize = 13.sp,
                                 color = Color.Black
                             ),
                             modifier = Modifier.fillMaxWidth()
-                        ) { innerTextField ->
-                            innerTextField()
-                            if (prop.content.isEmpty()) Text(
-                                text = "챌린지 명을 입력해주세요", // 힌트 텍스트
-                                color = LocalColorTheme.current.grey[400],
-                                fontSize = 13.sp
-                            )
-                        }
+                        )
                     }
                 }
 
@@ -276,7 +279,7 @@ fun NewChallengeBottomSheet(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 40.dp)
+                        .padding(top = 40.dp, bottom = 20.dp)
                 ) {
                     Text(
                         text = "지난 챌린지를 보러가볼까요?",
@@ -290,39 +293,11 @@ fun NewChallengeBottomSheet(
                     )
                 }
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 22.dp)
-                        .background(
-                            if (isEnabled) LocalColorTheme.current.primary[400]
-                            else LocalColorTheme.current.primary[200],
-                            RoundedCornerShape(16.dp)
-                        )
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable(
-                            enabled = isEnabled,
-                            role = Role.Button
-                        ) { prop.onCreateButtonClicked() }
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 13.dp)
-                    ) {
-                        Text(
-                            text = "챌린지 생성하기",
-                            style = TextStyle(
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.W700,
-                                color = Color.White,
-                                textAlign = TextAlign.Center,
-                            ),
-                        )
-                    }
-                }
+                CustomButton(
+                    text = "챌린지 생성하기",
+                    isEnabled = isEnabled,
+                    onClick = prop.onCreateButtonClicked
+                )
             }
         }
     }
