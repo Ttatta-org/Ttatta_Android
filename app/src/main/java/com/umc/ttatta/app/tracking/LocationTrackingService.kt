@@ -6,14 +6,10 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.IBinder
 import android.os.Looper
-import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
-import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -22,7 +18,6 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.umc.core.repository.SettingRepository
 import com.umc.ttatta.app.R
-import com.umc.ttatta.app.util.PermissionManager.checkPermission
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,16 +38,6 @@ class LocationTrackingService : Service() {
         private const val ACTION_STOP = "ACTION_STOP_LOCATION_TRACKING"
 
         fun Context.startLocationTrackingService() {
-            if (!checkPermission(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.FOREGROUND_SERVICE_LOCATION,
-                    Manifest.permission.POST_NOTIFICATIONS,
-                )
-            ) {
-                throw Exception("Location permission is not granted")
-            }
-
             val intent = Intent(this, LocationTrackingService::class.java).apply {
                 action = ACTION_START
             }
