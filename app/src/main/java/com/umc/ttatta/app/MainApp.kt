@@ -299,7 +299,10 @@ fun MainApp(
                     composable<NavigationRoute.Footprint.Category> {
                         CategoryApp(
                             viewModel = hiltViewModel(),
-                            showTopBar = true,
+                            topBarTitle = "발자국 새로 만들기 및 수정",
+                            onBackButtonClicked = {
+                                MainScope().launch { navigator.popBackStack() }
+                            }
                         )
                     }
                 }
@@ -422,7 +425,10 @@ fun MainApp(
                     composable<NavigationRoute.Record.Category> {
                         CategoryApp(
                             viewModel = hiltViewModel(),
-                            showTopBar = false,
+                            topBarTitle = "발자국 새로 만들기",
+                            onBackButtonClicked = {
+                                MainScope().launch { navigator.popBackStack() }
+                            }
                         )
                     }
                 }

@@ -1,4 +1,4 @@
-package com.umc.category.component
+package com.umc.category.modal
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -34,7 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.category.R
-import com.umc.design.Grey500
+import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.design.R as Res
 
@@ -44,8 +44,6 @@ data class CategoryManagementBarProp(
     val onDeleteCategoryOptionClicked: () -> Unit,
     val onDeleteCategoryAndAllIncludedDiariesOptionClicked: () -> Unit,
 )
-
-private val categoryManagementBarShape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,11 +69,11 @@ fun CategoryManagementBar(
                 modifier = Modifier
                     .shadow(
                         elevation = 16.dp,
-                        shape = categoryManagementBarShape,
+                        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
                     )
                     .background(
                         color = Color.White,
-                        shape = categoryManagementBarShape,
+                        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
                     )
             ) {
                 Column(
@@ -111,7 +109,7 @@ fun CategoryManagementBar(
                                 fontSize = 15.sp,
                                 lineHeight = 20.sp,
                                 fontWeight = FontWeight.W600,
-                                color = Color.Grey500,
+                                color = LocalColorTheme.current.grey[700],
                                 modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
                             )
                         }
