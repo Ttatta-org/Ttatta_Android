@@ -3,6 +3,7 @@ package com.umc.footprint
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import com.umc.footprint.component.TopBar
 import com.umc.footprint.component.card.previewDiaryCardProp
 import com.umc.footprint.core.DesignConstant
 import com.umc.footprint.model.prop.PositionedDiaryCardProp
+import com.umc.footprint.util.CenterRippleIndication
 import com.umc.footprint.util.getDiaryCardTopLeftOffset
 
 @Composable
@@ -115,8 +117,8 @@ fun FootprintScreen(
                 // 카테고리 선택
                 Box(
                     modifier = Modifier.clickable(
-                        indication = null,
-                        interactionSource = null,
+                        indication = CenterRippleIndication,
+                        interactionSource = remember { MutableInteractionSource() },
                         onClick = onCategoryButtonClicked,
                     )
                 ) {
@@ -129,8 +131,8 @@ fun FootprintScreen(
                 // 내 위치로 이동
                 Box(
                     modifier = Modifier.clickable(
-                        indication = null,
-                        interactionSource = null,
+                        indication = CenterRippleIndication,
+                        interactionSource = remember { MutableInteractionSource() },
                         onClick = onLocationButtonClicked,
                     ),
                 ) {
