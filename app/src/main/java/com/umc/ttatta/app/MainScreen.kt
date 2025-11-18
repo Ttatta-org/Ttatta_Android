@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,8 +41,8 @@ import com.umc.ttatta.app.component.RecordOptionPicker
 import com.umc.ttatta.app.component.ShadowedImage
 import com.umc.ttatta.app.component.centerButtonSize
 import com.umc.ttatta.app.model.prop.CenterButtonProp
-import com.umc.ttatta.app.model.prop.RecordOptionPickerProp
 import com.umc.ttatta.app.model.prop.NavigationBarProp
+import com.umc.ttatta.app.model.prop.RecordOptionPickerProp
 
 private val centerButtonTopOffsetFromNavBarTopCenter = 12.dp
 

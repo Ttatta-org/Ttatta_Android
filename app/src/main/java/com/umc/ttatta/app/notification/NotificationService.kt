@@ -1,9 +1,12 @@
 package com.umc.ttatta.app.notification
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -13,14 +16,12 @@ import com.google.firebase.messaging.RemoteMessage
 import com.umc.core.repository.SettingRepository
 import com.umc.core.repository.UserRepository
 import com.umc.data.R
-import com.umc.ttatta.app.util.PermissionManager.isNotificationPermissionGranted
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 
 @AndroidEntryPoint
 class NotificationService : FirebaseMessagingService() {
@@ -48,12 +49,14 @@ class NotificationService : FirebaseMessagingService() {
             putExtra("title", title)
             putExtra("body", body)
 
-            extras?.apply {
-                remove(MessageNotificationKeys.ENABLE_NOTIFICATION)
-                remove(getKeyWithOldPrefix(MessageNotificationKeys.ENABLE_NOTIFICATION))
-            }.let { extras ->
-                replaceExtras(extras)
-            }
+            extras
+                ?.apply {
+                    remove(MessageNotificationKeys.ENABLE_NOTIFICATION)
+                    remove(getKeyWithOldPrefix(MessageNotificationKeys.ENABLE_NOTIFICATION))
+                }
+                .let { extras ->
+                    replaceExtras(extras)
+                }
         }
 
         super.handleIntent(newIntent)
@@ -63,7 +66,10 @@ class NotificationService : FirebaseMessagingService() {
         Log.d("NotificationService", "Message received: $remoteMessage")
 
         // 알림 권한 검사
-        if (!isNotificationPermissionGranted) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && checkSelfPermission(
+                Manifest.permission.POST_NOTIFICATIONS
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             Log.d("NotificationService", "Has no notification permission.")
             return
         }
@@ -103,7 +109,8 @@ class NotificationService : FirebaseMessagingService() {
         }
 
         // 알림 빌더 설정
-        val builder = NotificationCompat.Builder(this, type.channelId)
+        val builder = NotificationCompat
+            .Builder(this, type.channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(remoteMessage.data["title"] ?: "")
             .setContentText(remoteMessage.data["body"] ?: "")
@@ -114,7 +121,11 @@ class NotificationService : FirebaseMessagingService() {
         // 알림 표시
         with(notificationManagerCompat) {
             try {
-                notify(System.currentTimeMillis().toInt(), builder.build())
+                notify(
+                    System
+                        .currentTimeMillis()
+                        .toInt(), builder.build()
+                )
             } catch (e: SecurityException) {
                 Log.e("NotificationService", "Failed to send notification: ${e.message}")
             }

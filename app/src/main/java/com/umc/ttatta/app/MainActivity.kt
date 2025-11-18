@@ -1,14 +1,13 @@
 package com.umc.ttatta.app
 
 import android.Manifest
-import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.collectAsState
@@ -18,23 +17,17 @@ import com.umc.ttatta.app.intent.IntentManager
 import com.umc.ttatta.app.intent.IntentType
 import com.umc.ttatta.app.model.event.IntentEvent
 import com.umc.ttatta.app.util.FileManager.createImageUri
-import com.umc.ttatta.app.util.PermissionManager.checkPermissionAndTryRequest
-import com.umc.ttatta.app.util.PermissionManager.isCameraPermissionGranted
-import com.umc.ttatta.app.util.PermissionManager.isLocationPermissionGranted
-import com.umc.ttatta.app.util.PermissionManager.isMediaPermissionGranted
 import com.umc.ttatta.app.util.setStatusBarTransparent
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
 
-    private lateinit var imagePickerLauncher: ActivityResultLauncher<Intent>
+    private lateinit var imagePickerLauncher: ActivityResultLauncher<PickVisualMediaRequest>
     private lateinit var cameraLauncher: ActivityResultLauncher<Uri>
+    private lateinit var cameraPermissionLauncher: ActivityResultLauncher<String>
 
     private var imageUri: Uri? = null
     private var imageLoadedCallback: ((Uri?) -> Unit)? = null
@@ -61,18 +54,14 @@ class MainActivity : ComponentActivity() {
                 },
                 requestImagePicker = { callback ->
                     imageLoadedCallback = callback
-
-                    val intent =
-                        Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-
-                    imagePickerLauncher.launch(intent)
+                    imagePickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 },
                 requestCamera = { callback ->
                     imageLoadedCallback = callback
 
-                    CoroutineScope(Dispatchers.IO).launch {
-                        if (!checkPermissionAndTryRequest(Manifest.permission.CAMERA)) return@launch
-
+                    if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                    } else {
                         createImageUri()?.let { uri ->
                             imageUri = uri
                             cameraLauncher.launch(uri)
@@ -85,10 +74,10 @@ class MainActivity : ComponentActivity() {
 
     private fun setLaunchers() {
         imagePickerLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            if (result.resultCode == RESULT_OK) {
-                val uri = result.data?.data!!
+            ActivityResultContracts.PickVisualMedia()
+        ) { uri ->
+            uri?.let {
+                imageUri = uri
                 imageLoadedCallback?.invoke(uri)
             }
         }
@@ -98,6 +87,17 @@ class MainActivity : ComponentActivity() {
         ) { output ->
             if (output) {
                 imageUri?.let { imageLoadedCallback?.invoke(it) }
+            }
+        }
+
+        cameraPermissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted ->
+            if (isGranted) {
+                createImageUri()?.let { uri ->
+                    imageUri = uri
+                    cameraLauncher.launch(uri)
+                }
             }
         }
     }
