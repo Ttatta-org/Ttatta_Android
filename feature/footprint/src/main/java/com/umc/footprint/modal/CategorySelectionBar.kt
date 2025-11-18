@@ -1,26 +1,33 @@
-package com.umc.footprint.component
+package com.umc.footprint.modal
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -30,41 +37,44 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.CategoryColor
-import com.umc.design.Grey200
-import com.umc.design.Grey400
-import com.umc.design.Primary400
-import com.umc.design.R
-import com.umc.design.Secondary100
+import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
+import com.umc.footprint.R
 import com.umc.footprint.model.prop.CategoryItemProp
 import com.umc.footprint.model.prop.CategorySelectionBarProp
 
-val categorySelectionBarShape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategorySelectionBar(
     prop: CategorySelectionBarProp,
 ) {
-    Box(
-        modifier = Modifier
-            .shadow(
-                shape = categorySelectionBarShape, elevation = 16.dp
-            )
-            .background(
-                color = Color.Secondary100,
-                shape = categorySelectionBarShape,
-            )
+    val navigationBarHeight = WindowInsets.navigationBars
+        .asPaddingValues()
+        .calculateBottomPadding()
+
+    ModalBottomSheet(
+        scrimColor = Color.Transparent,
+        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
+        containerColor = LocalColorTheme.current.secondary[100],
+        dragHandle = {
+            Box(
+                modifier = Modifier.padding(vertical = 16.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = com.umc.design.R.drawable.ic_header_deco),
+                    contentDescription = null,
+                    modifier = Modifier.width(32.dp),
+                )
+            }
+        },
+        onDismissRequest = prop.onDismiss,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 32.dp, vertical = 16.dp)
+            modifier = Modifier.padding(horizontal = 22.dp)
         ) {
             // 제목 라인
-            Image(
-                painter = painterResource(id = R.drawable.ic_header_deco),
-                contentDescription = null,
-                modifier = Modifier.width(32.dp),
-            )
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Bottom,
@@ -75,17 +85,19 @@ fun CategorySelectionBar(
                 Text(
                     text = buildAnnotatedString {
                         append(prop.userName)
-                        append(stringResource(id = com.umc.footprint.R.string.category_list_suffix))
+                        append(stringResource(id = R.string.category_list_suffix))
                         append(" ")
                         append(prop.itemProps.size.toString())
                     },
-                    color = Color.Primary400,
-                    fontWeight = FontWeight.W600,
+                    color = LocalColorTheme.current.primary[500],
+                    fontWeight = FontWeight.W700,
                     fontSize = 15.sp,
                 )
                 Text(
-                    text = prop.itemProps.sumOf { it.count }.toString(),
-                    color = Color.Grey400,
+                    text = prop.itemProps
+                        .sumOf { it.count ?: 0 }
+                        .toString(),
+                    color = LocalColorTheme.current.grey[600],
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W400,
                 )
@@ -93,65 +105,54 @@ fun CategorySelectionBar(
             // 카테고리 목록
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.heightIn(max = 500.dp)
             ) {
-                items(count = prop.itemProps.size * 2 + 1) { index ->
+                items(count = prop.itemProps.size + 1) { index ->
                     if (index == 0) {
                         // 새 카테고리 등록 버튼
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(percent = 50))
-                                .clickable { prop.onNewCategoryButtonClicked() },
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .padding(
-                                        vertical = 4.dp, horizontal = 16.dp
-                                    )
-                                    .fillMaxWidth()
-                            ) {
-                                Image(
-                                    painter = painterResource(id = com.umc.footprint.R.drawable.ic_new_category),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp),
-                                )
-                                Text(
-                                    text = stringResource(id = com.umc.footprint.R.string.new_category),
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.W400,
-                                )
-                            }
-                        }
-                    } else if (index and 1 == 0) {
-                        val itemProp = prop.itemProps[(index shr 1) - 1]
-                        CategoryItem(prop = itemProp)
-                    } else {
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(1.dp)
-                                .background(color = Color.Grey200),
+                        CategoryItem(
+                            prop = CategoryItemProp(
+                                name = stringResource(id = R.string.new_category),
+                                icon = R.drawable.ic_new_category,
+                                count = null,
+                                onClicked = prop.onNewCategoryButtonClicked
+                            ),
                         )
+                    } else {
+                        CategoryItem(prop = prop.itemProps[index - 1])
                     }
                 }
+
+                item {
+                    Spacer(modifier = Modifier.height(22.dp))
+                }
             }
+            Spacer(modifier = Modifier.height(navigationBarHeight))
         }
     }
 }
 
 @Composable
-fun CategoryItem(prop: CategoryItemProp) {
+private fun CategoryItem(prop: CategoryItemProp) {
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(percent = 50))
+            .background(
+                color = Color.White.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(18.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = LocalColorTheme.current.primary[100],
+                shape = RoundedCornerShape(18.dp),
+            )
+            .clip(RoundedCornerShape(18.dp))
             .clickable(onClick = prop.onClicked)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .padding(vertical = 4.dp, horizontal = 16.dp)
+                .padding(vertical = 8.dp, horizontal = 16.dp)
                 .fillMaxWidth()
         ) {
             Row(
@@ -159,7 +160,7 @@ fun CategoryItem(prop: CategoryItemProp) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
-                    painter = painterResource(id = prop.color?.footIconId ?: R.drawable.ic_foot),
+                    painter = painterResource(id = prop.icon),
                     contentDescription = null,
                     modifier = Modifier.size(32.dp),
                 )
@@ -169,12 +170,14 @@ fun CategoryItem(prop: CategoryItemProp) {
                     fontSize = 13.sp,
                 )
             }
-            Text(
-                text = prop.count.toString(),
-                color = Color.Grey400,
-                fontWeight = FontWeight.W400,
-                fontSize = 12.sp,
-            )
+            prop.count?.let {
+                Text(
+                    text = it.toString(),
+                    color = LocalColorTheme.current.grey[600],
+                    fontWeight = FontWeight.W400,
+                    fontSize = 12.sp,
+                )
+            }
         }
     }
 }
@@ -184,37 +187,45 @@ val previewCategorySelectionBarProp = CategorySelectionBarProp(
     itemProps = listOf(
         CategoryItemProp(
             name = "친구들",
-            color = CategoryColor.YELLOW,
+            icon = CategoryColor.YELLOW.footIconId,
             count = 10,
             onClicked = {},
-        ), CategoryItemProp(
+        ),
+        CategoryItemProp(
             name = "가족",
-            color = CategoryColor.GREEN,
+            icon = CategoryColor.GREEN.footIconId,
             count = 7,
             onClicked = {},
-        ), CategoryItemProp(
+        ),
+        CategoryItemProp(
             name = "연인",
-            color = CategoryColor.BLUE,
+            icon = CategoryColor.BLUE.footIconId,
             count = 14,
             onClicked = {},
-        ), CategoryItemProp(
+        ),
+        CategoryItemProp(
             name = "일상",
-            color = null,
+            icon = com.umc.design.R.drawable.ic_foot,
             count = 14,
             onClicked = {},
-        ), CategoryItemProp(
+        ),
+        CategoryItemProp(
             name = "다시 오고싶은 장소",
-            color = CategoryColor.BLUE,
+            icon = CategoryColor.BLUE.footIconId,
             count = 20,
             onClicked = {},
-        ), CategoryItemProp(
+        ),
+        CategoryItemProp(
             name = "?",
-            color = null,
+            icon = com.umc.design.R.drawable.ic_foot,
             count = 14,
             onClicked = {},
-        )
-    ),
+        ),
+    ).let {
+        it + it + it
+    },
     onNewCategoryButtonClicked = {},
+    onDismiss = {},
 )
 
 @Preview

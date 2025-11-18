@@ -30,7 +30,10 @@ import androidx.compose.ui.unit.toSize
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.umc.design.CategoryColor
+import com.umc.design.R
 import com.umc.footprint.core.DesignConstant
+import com.umc.footprint.modal.CategorySelectionBar
+import com.umc.footprint.modal.DiaryModificationBar
 import com.umc.footprint.model.event.DiaryModificationBarOpenEvent
 import com.umc.footprint.model.event.ModifiedMapMarkerClickedEvent
 import com.umc.footprint.model.event.RemindEvent
@@ -42,7 +45,6 @@ import com.umc.footprint.model.prop.DiaryCardProp
 import com.umc.footprint.model.prop.DiaryModificationBarProp
 import com.umc.footprint.model.prop.DiaryModificationModeProp
 import com.umc.footprint.model.prop.PositionedDiaryCardProp
-import com.umc.footprint.model.prop.VisibleCategorySelectionBarProp
 import com.umc.footprint.util.calculateInclusion
 import com.umc.footprint.util.getDiaryCardTopLeftOffset
 import com.umc.footprint.util.runWithScope
@@ -85,7 +87,7 @@ fun FootprintApp(
     var isCategorySelectionBarVisible by remember { mutableStateOf(false) }
     var isRemindDiaryCardFlipped by remember { mutableStateOf(false) }
 
-    var barOpenEvent: DiaryModificationBarOpenEvent? by remember { mutableStateOf(null) }
+    var modificationBarOpenEvent: DiaryModificationBarOpenEvent? by remember { mutableStateOf(null) }
     var markerEvent: ModifiedMapMarkerClickedEvent? by remember { mutableStateOf(null) }
     var remindLoadedEvent: RemindLoadedEvent? by remember { mutableStateOf(null) }
 
@@ -143,7 +145,7 @@ fun FootprintApp(
                         }
                     },
                     onModifyButtonClicked = {
-                        barOpenEvent = DiaryModificationBarOpenEvent(
+                        modificationBarOpenEvent = DiaryModificationBarOpenEvent(
                             targetDiaryId = diary.id
                         )
                     },
@@ -225,7 +227,7 @@ fun FootprintApp(
                     remindEvent.onDismissed()
                     remindLoadedEvent = null
                     isRemindDiaryCardFlipped = false
-                }
+                },
             )
         }
     }
@@ -294,7 +296,7 @@ fun FootprintApp(
                             onModifyButtonClicked = null,
                         ),
                     ),
-                    onNewDiaryRequested = { /* DO NOTHING */ }
+                    onNewDiaryRequested = { /* DO NOTHING */ },
                 ),
                 showMarker = true,
                 isMarkerBook = event.isBook,
@@ -318,8 +320,46 @@ fun FootprintApp(
                 isMarkerBook = false,
             )
         },
-        diaryModificationBarProp = barOpenEvent?.let { event ->
-            DiaryModificationBarProp(
+        onBackScreenClicked = remindLoadedEvent?.onDismissed,
+        onCategoryButtonClicked = {
+            viewModel.runWithScope {
+                if (viewModel.selectedCategoryId != null) selectShowingCategory(categoryId = null)
+                else isCategorySelectionBarVisible = !isCategorySelectionBarVisible
+            }
+        },
+        onLocationButtonClicked = {
+            if (locationPermissionState.allPermissionsGranted) {
+                viewModel.runWithScope { runCatching { moveMapToCurrentPosition() } }
+            } else {
+                locationPermissionState.launchMultiplePermissionRequest()
+            }
+        },
+    )
+
+    if (isCategorySelectionBarVisible) {
+        CategorySelectionBar(
+            prop = CategorySelectionBarProp(
+                userName = viewModel.userName,
+                itemProps = viewModel.categoryList.map { categoryInfo ->
+                    CategoryItemProp(
+                        name = categoryInfo.name,
+                        icon = categoryInfo.color?.footIconId ?: R.drawable.ic_foot,
+                        count = categoryInfo.count,
+                        onClicked = {
+                            viewModel.runWithScope { selectShowingCategory(categoryId = categoryInfo.id) }
+                            isCategorySelectionBarVisible = false
+                        },
+                    )
+                },
+                onNewCategoryButtonClicked = { onNavigateToCategoryApp() },
+                onDismiss = { isCategorySelectionBarVisible = false },
+            ),
+        )
+    }
+
+    modificationBarOpenEvent?.let { event ->
+        DiaryModificationBar(
+            prop = DiaryModificationBarProp(
                 onModifyOptionClicked = {
                     diaryCardLoadedPropMap[event.targetDiaryId]?.apply {
                         diaryCardLoadedPropMap[key] = copy(
@@ -351,49 +391,17 @@ fun FootprintApp(
                             ),
                         )
                     }
-                    barOpenEvent = null
+
+                    modificationBarOpenEvent = null
                 },
                 onDeleteOptionClicked = {
                     viewModel.runWithScope {
                         runCatching { deleteDiary(diaryId = event.targetDiaryId) }
-                        barOpenEvent = null
+                        modificationBarOpenEvent = null
                     }
                 },
-                onDismissed = { barOpenEvent = null },
+                onDismissed = { modificationBarOpenEvent = null },
             )
-        },
-        categorySelectionBarProp = VisibleCategorySelectionBarProp(
-            isVisible = isCategorySelectionBarVisible,
-            prop = CategorySelectionBarProp(
-                userName = viewModel.userName,
-                itemProps = viewModel.categoryList.map { categoryInfo ->
-                    CategoryItemProp(
-                        name = categoryInfo.name,
-                        color = categoryInfo.color,
-                        count = categoryInfo.count,
-                        onClicked = {
-                            viewModel.runWithScope { selectShowingCategory(categoryId = categoryInfo.id) }
-                            isCategorySelectionBarVisible = false
-                        },
-                    )
-                },
-                onNewCategoryButtonClicked = { onNavigateToCategoryApp() },
-            ),
-            onDismissed = { isCategorySelectionBarVisible = false },
-        ),
-        onBackScreenClicked = remindLoadedEvent?.onDismissed,
-        onCategoryButtonClicked = {
-            viewModel.runWithScope {
-                if (viewModel.selectedCategoryId != null) selectShowingCategory(categoryId = null)
-                else isCategorySelectionBarVisible = !isCategorySelectionBarVisible
-            }
-        },
-        onLocationButtonClicked = {
-            if (locationPermissionState.allPermissionsGranted) {
-                viewModel.runWithScope { runCatching { moveMapToCurrentPosition() } }
-            } else {
-                locationPermissionState.launchMultiplePermissionRequest()
-            }
-        },
-    )
+        )
+    }
 }

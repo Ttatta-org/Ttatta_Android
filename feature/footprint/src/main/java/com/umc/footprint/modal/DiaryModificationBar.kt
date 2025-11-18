@@ -1,4 +1,4 @@
-package com.umc.footprint.component
+package com.umc.footprint.modal
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -43,7 +43,9 @@ val diaryModificationBarShape = RoundedCornerShape(topStart = 32.dp, topEnd = 32
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiaryModificationBar(prop: DiaryModificationBarProp) {
-    val bottom = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+    val bottom = WindowInsets.systemBars
+        .asPaddingValues()
+        .calculateBottomPadding()
 
     ModalBottomSheet(
         onDismissRequest = prop.onDismissed,

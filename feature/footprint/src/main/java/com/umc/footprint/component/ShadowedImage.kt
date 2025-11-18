@@ -8,12 +8,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import com.google.android.material.shape.EdgeTreatment
 
 @Composable
 fun ShadowedImage(
@@ -26,14 +30,14 @@ fun ShadowedImage(
     offsetY: Dp = 2.dp,
 ) {
     Box {
-        Icon(
+        Image(
             painter = painterResource(id = id),
             contentDescription = null,
+            colorFilter = ColorFilter.tint(color = shadowColor),
             modifier = Modifier
                 .size(size)
                 .offset(x = offsetX, y = offsetY)
-                .blur(shadowBlur),
-            tint = shadowColor,
+                .blur(radius = shadowBlur, edgeTreatment = BlurredEdgeTreatment.Unbounded),
         )
         Image(
             painter = painterResource(id = id),
