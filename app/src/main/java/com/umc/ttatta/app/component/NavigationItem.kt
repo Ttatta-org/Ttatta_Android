@@ -13,25 +13,25 @@ enum class NavigationItem(
     DIARY(
         title = "일기 보관함",
         icon = R.drawable.ic_diary_locker,
-        size = Size(21f, 20f),
+        size = Size(23.02f, 21.02f),
         magnification = 1f,
     ),
     FOOTPRINT(
         title = "나의 발자국",
         icon = R.drawable.ic_my_footprint,
-        size = Size(39f, 31f),
-        magnification = 1.1f
+        size = Size(24.5f, 22f),
+        magnification = 1f
     ),
     CHALLENGE(
         title = "나의 챌린지",
         icon = R.drawable.ic_my_challenge,
-        size = Size(31f, 32f),
+        size = Size(22f, 22f),
         magnification = 1f,
     ),
     MY_PAGE(
         title = "마이페이지",
         icon = R.drawable.ic_my_page,
-        size = Size(33f, 31f),
+        size = Size(24f, 22f),
         magnification = 1f
     )
 }

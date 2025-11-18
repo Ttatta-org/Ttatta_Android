@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import com.umc.design.Grey200
 import com.umc.design.Grey300
 import com.umc.design.Primary500
+import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 
 val centerButtonSize = DpSize(95.dp, 90.dp)
@@ -47,7 +48,9 @@ fun NavigationBar(
     onNavigate: (NavigationItem) -> Unit,
 ) {
     val density = LocalDensity.current
-    val padding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+    val padding = WindowInsets.systemBars
+        .asPaddingValues()
+        .calculateBottomPadding()
     var maxHeight by remember { mutableStateOf<Dp?>(null) }
 
     Box(
@@ -60,7 +63,7 @@ fun NavigationBar(
         ) {
             Box(
                 modifier = Modifier
-                    .background(color = Color.Grey200)
+                    .background(color = LocalColorTheme.current.grey[200])
                     .width(16.dp)
                     .height(1.dp),
             )
@@ -77,7 +80,7 @@ fun NavigationBar(
                     modifier = Modifier
                         .weight(1f)
                         .clickable { onNavigate(item) }
-                        .let { modifier -> maxHeight?.let{ modifier.height(it) } ?: modifier }
+                        .let { modifier -> maxHeight?.let { modifier.height(it) } ?: modifier }
                         .onGloballyPositioned {
                             with(density) {
                                 val height = it.size.height.toDp()
@@ -89,37 +92,39 @@ fun NavigationBar(
                         modifier = Modifier
                             .background(
                                 color = if (currentNavigationItem == item)
-                                    Color.Primary500
+                                    LocalColorTheme.current.primary[500]
                                 else
-                                    Color.Grey200
+                                    LocalColorTheme.current.grey[200]
                             )
                             .fillMaxWidth()
                             .height(1.dp),
                     )
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.padding(top = 13.dp, bottom = 8.dp),
                     ) {
                         Icon(
                             painter = painterResource(id = item.icon),
                             contentDescription = null,
-                            tint = if (currentNavigationItem == item) Color.Primary500 else Color.Grey300,
+                            tint = if (currentNavigationItem == item) LocalColorTheme.current.primary[500] else LocalColorTheme.current.grey[400],
                             modifier = Modifier
                                 .width(iconHeight * item.size.width / item.size.height * item.magnification)
                                 .height(iconHeight * item.magnification)
                         )
                         Text(
                             text = item.title,
-                            fontSize = 10.sp,
+                            fontSize = 12.sp,
                             lineHeight = 20.sp,
-                            fontWeight = FontWeight.W400,
-                            color = if (currentNavigationItem == item) Color.Primary500 else Color.Grey300,
+                            letterSpacing = (-0.5).sp,
+                            fontWeight = FontWeight.W700,
+                            color = if (currentNavigationItem == item) LocalColorTheme.current.primary[500] else LocalColorTheme.current.grey[400],
                         )
                     }
                 } else {
                     Box(
                         modifier = Modifier
-                            .background(color = Color.Grey200)
+                            .background(color = LocalColorTheme.current.grey[200])
                             .width(centerButtonSize.width)
                             .height(1.dp),
                     )
@@ -127,7 +132,7 @@ fun NavigationBar(
             }
             Box(
                 modifier = Modifier
-                    .background(color = Color.Grey200)
+                    .background(color = LocalColorTheme.current.grey[200])
                     .width(16.dp)
                     .height(1.dp),
             )

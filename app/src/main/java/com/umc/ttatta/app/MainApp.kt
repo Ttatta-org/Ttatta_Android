@@ -134,8 +134,11 @@ fun MainApp(
 
     LaunchedEffect(key1 = Unit) {
         navigator.addOnDestinationChangedListener { _, destination, _ ->
-            val route =
-                NavigationRoute::class.sealedSubclasses.find { it.simpleName == destination.route }
+            val route = NavigationRoute::class.sealedSubclasses.find {
+                it.simpleName == destination.route
+                    ?.split(".")
+                    ?.lastOrNull()
+            }
 
             currentNavigationItem = when (route) {
                 NavigationRoute.Home::class -> NavigationItem.DIARY
@@ -302,8 +305,7 @@ fun MainApp(
                             topBarTitle = "발자국 새로 만들기 및 수정",
                             onBackButtonClicked = {
                                 MainScope().launch { navigator.popBackStack() }
-                            }
-                        )
+                            })
                     }
                 }
 
@@ -428,19 +430,17 @@ fun MainApp(
                             topBarTitle = "발자국 새로 만들기",
                             onBackButtonClicked = {
                                 MainScope().launch { navigator.popBackStack() }
-                            }
-                        )
+                            })
                     }
                 }
             }
         }
 
-        if (showLocationPermissionPopup) LocationAccessPopup(
-            onDismiss = { showLocationPermissionPopup = false },
-            onConfirm = {
-                showLocationPermissionPopup = false
-                locationPermissionState.launchMultiplePermissionRequest()
-            }
-        )
+        if (showLocationPermissionPopup) LocationAccessPopup(onDismiss = {
+            showLocationPermissionPopup = false
+        }, onConfirm = {
+            showLocationPermissionPopup = false
+            locationPermissionState.launchMultiplePermissionRequest()
+        })
     }
 }
