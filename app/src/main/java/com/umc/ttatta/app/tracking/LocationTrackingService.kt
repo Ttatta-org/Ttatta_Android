@@ -139,9 +139,10 @@ class LocationTrackingService : Service() {
             .setSmallIcon(R.drawable.ic_notification)
             .build()
 
-        startForeground(1, notification)
+        runCatching {
+            startForeground(1, notification)
+        }
     }
-
 
     override fun onBind(intent: Intent?): IBinder? {
         return null

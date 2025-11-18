@@ -1,6 +1,7 @@
 package com.umc.ttatta.app
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -77,6 +78,7 @@ class MainActivity : ComponentActivity() {
             ActivityResultContracts.PickVisualMedia()
         ) { uri ->
             uri?.let {
+                contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 imageUri = uri
                 imageLoadedCallback?.invoke(uri)
             }
