@@ -1,10 +1,13 @@
 package com.umc.ttatta.app
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
+import android.util.DisplayMetrics
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
@@ -73,12 +76,31 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun attachBaseContext(newBase: Context?) {
+        val metrics = newBase?.resources?.displayMetrics
+
+        val newOverride = Configuration(newBase?.resources?.configuration).apply {
+            if (metrics?.densityDpi != DisplayMetrics.DENSITY_DEVICE_STABLE) {
+                this.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE
+            }
+
+            this.fontScale = 1.0f
+        }
+
+        applyOverrideConfiguration(newOverride)
+        super.attachBaseContext(newBase)
+    }
+
     private fun setLaunchers() {
         imagePickerLauncher = registerForActivityResult(
             ActivityResultContracts.PickVisualMedia()
         ) { uri ->
             uri?.let {
-                contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                contentResolver.takePersistableUriPermission(
+                    it,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+
                 imageUri = uri
                 imageLoadedCallback?.invoke(uri)
             }
