@@ -101,7 +101,7 @@ class UserRepositoryImpl @Inject constructor(
         val body = CheckVerificationCodeRequestDTO(email = email, code = code.toString())
 
         return try {
-            serverApi.withCheck { checkVerificationCodeForSignUp(body = body) }
+            serverApi.withCheck { checkVerificationCode(body = body) }
             true
         } catch (e: HttpException) {
             if (e.code() == 400) return false
@@ -124,10 +124,15 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun checkVerificationCodeForFindingId(
         email: String,
         code: Int
-    ): Pair<String, String> {
+    ): Pair<String, String>? {
         val body = CheckVerificationCodeRequestDTO(email = email, code = code.toString())
-        val response = serverApi.withCheck { findId(body = body) }
-        return response.name!! to response.id!!
+        try {
+            val response = serverApi.withCheck { findId(body = body) }
+            return response.name!! to response.id!!
+        } catch (e: HttpException) {
+            if (e.code() == 400) return null
+            throw e
+        }
     }
 
     override suspend fun requestEmailForFindingPassword(name: String, email: String, id: String): Boolean {
@@ -146,7 +151,15 @@ class UserRepositoryImpl @Inject constructor(
         email: String,
         code: Int,
     ): Boolean {
-        return true
+        val body = CheckVerificationCodeRequestDTO(email = email, code = code.toString())
+
+        return try {
+            serverApi.withCheck { checkVerificationCode(body = body) }
+            true
+        } catch (e: HttpException) {
+            if (e.code() == 400) return false
+            throw e
+        }
     }
 
     override suspend fun checkIdForFindingPassword(id: String): Boolean {

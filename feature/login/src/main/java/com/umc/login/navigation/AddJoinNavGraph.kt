@@ -1,15 +1,17 @@
 package com.umc.login.navigation
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -67,9 +69,9 @@ import java.time.LocalTime
 
 private enum class JoinNavGraphDestination(
     val route: String,
-    @StringRes val descriptionMessageId: Int,
-    @StringRes val nextButtonOverMessageId: Int? = null,
-    @StringRes val nextButtonLabelId: Int = R.string.next_button,
+    @param:StringRes val descriptionMessageId: Int,
+    @param:StringRes val nextButtonOverMessageId: Int? = null,
+    @param:StringRes val nextButtonLabelId: Int = R.string.next_button,
 ) {
     NICKNAME(
         route = "nickname",
@@ -111,7 +113,6 @@ fun NavGraphBuilder.addJoinNavGraph(
     composable(
         route = "join"
     ) {
-        rememberCoroutineScope()
         val navController = rememberNavController()
         var currentDestination by remember { mutableStateOf(startDestination) }
 
@@ -179,6 +180,8 @@ fun NavGraphBuilder.addJoinNavGraph(
                 },
                 isLogoVisible = false,
                 onNextButtonClicked = {
+                    isEmailDomainDropdownExpanded = false
+
                     when (currentDestination) {
                         JoinNavGraphDestination.CERTIFICATION, JoinNavGraphDestination.EMAIL -> run {
                             viewModel.runWithScope {
@@ -212,6 +215,7 @@ fun NavGraphBuilder.addJoinNavGraph(
                     }
                 },
                 onBackButtonClicked = {
+                    isEmailDomainDropdownExpanded = false
                     if (!navController.popBackStack()) onNavigatingBackToLogin()
                 },
             ) {
@@ -301,10 +305,25 @@ fun NavGraphBuilder.addJoinNavGraph(
                     composable(
                         route = JoinNavGraphDestination.EMAIL.route
                     ) {
+                        DisposableEffect(Unit) {
+                            onDispose { isEmailDomainDropdownExpanded = false }
+                        }
+
+                        BackHandler {
+                            isEmailDomainDropdownExpanded = false
+                            navController.popBackStack()
+                        }
+
                         Box(
-                            modifier = Modifier.onGloballyPositioned {
-                                emailFormLayoutCoordinates = it
-                            },
+                            modifier = Modifier
+                                .onGloballyPositioned { emailFormLayoutCoordinates = it }
+                                .let {
+                                    if (isEmailDomainDropdownExpanded) it.clickable(
+                                        indication = null,
+                                        interactionSource = null,
+                                        onClick = { isEmailDomainDropdownExpanded = false }
+                                    ) else it
+                                },
                         ) {
                             EmailForm(
                                 local = emailLocal,
@@ -332,54 +351,55 @@ fun NavGraphBuilder.addJoinNavGraph(
                         LaunchedEffect(key1 = Unit) {
                             while (true) {
                                 remainTime = emailDuration - Duration.between(
-                                    emailSentTime, LocalTime.now()
+                                    emailSentTime,
+                                    LocalTime.now(),
                                 )
-                                if (remainTime.seconds <= 0)
-                                    navController.popBackStack()
+
+                                if (remainTime.seconds <= 0) navController.popBackStack()
                                 delay(500L)
                             }
                         }
 
                         LaunchedEffect(key1 = code) {
-                            code.let { code ->
-                                if (code.length == 6 && code.isDigitsOnly()) viewModel.runWithScope {
-                                    showLoading = true
+                            if (code.length != 6 || !code.isDigitsOnly()) return@LaunchedEffect
 
-                                    val isValid = runCatching {
-                                        requestCertificationCodeValidation(
-                                            request = CertificationCodeValidationRequestForJoin(
-                                                email = "$emailLocal@$emailDomain",
-                                                code = code,
-                                            ),
+                            viewModel.runWithScope {
+                                showLoading = true
+
+                                val isValid = runCatching {
+                                    requestCertificationCodeValidation(
+                                        request = CertificationCodeValidationRequestForJoin(
+                                            email = "$emailLocal@$emailDomain",
+                                            code = code,
+                                        ),
+                                    )
+                                }.getOrNull()
+
+                                if (isValid == true) {
+                                    runCatching {
+                                        viewModel.join(
+                                            nickname = nickname,
+                                            id = id,
+                                            password = password,
+                                            name = name,
+                                            email = "$emailLocal@$emailDomain",
                                         )
-                                    }.getOrDefault(null)
-
-                                    if (isValid == true) {
-                                        runCatching {
-                                            viewModel.join(
-                                                nickname = nickname,
-                                                id = id,
-                                                password = password,
-                                                name = name,
-                                                email = "$emailLocal@$emailDomain",
-                                            )
-                                        }.onSuccess {
-                                            onNavigatingToJoinDone(name)
-                                        }
-                                    } else if (isValid == false) {
-                                        MainScope().launch {
-                                            val toast = Toast.makeText(
-                                                context,
-                                                "인증번호가 올바르지 않습니다.",
-                                                Toast.LENGTH_SHORT,
-                                            )
-
-                                            toast.show()
-                                        }
+                                    }.onSuccess {
+                                        onNavigatingToJoinDone(name)
                                     }
+                                } else if (isValid == false) {
+                                    MainScope().launch {
+                                        val toast = Toast.makeText(
+                                            context,
+                                            "인증번호가 올바르지 않습니다.",
+                                            Toast.LENGTH_SHORT,
+                                        )
 
-                                    showLoading = false
+                                        toast.show()
+                                    }
                                 }
+
+                                showLoading = false
                             }
                         }
 
@@ -403,10 +423,15 @@ fun NavGraphBuilder.addJoinNavGraph(
                             screen
                                 .localPositionOf(emailForm)
                                 .plus(emailDropdownButtonCenterOffset)
-                                .plus(Offset(x = -dropdownWidth.toFloat(), y = 16.dp.toPx()))
+                                .plus(
+                                    Offset(
+                                        x = 16.dp.toPx() - dropdownWidth.toFloat(),
+                                        y = 16.dp.toPx(),
+                                    )
+                                )
                                 .round()
                         }
-                        .onSizeChanged { dropdownWidth = it.width / 2 },
+                        .onSizeChanged { dropdownWidth = it.width },
                 ) {
                     EmailDomainDropdown(
                         props = emailDomains.map {
