@@ -18,6 +18,7 @@ import com.umc.data.api.dto.server.SignUpRequestDTO
 import com.umc.data.api.dto.server.UserInfoResultDTO
 import com.umc.data.api.dto.server.VerifyUsernameOverlapResultDTO
 import com.umc.data.preference.AuthPreference
+import com.umc.data.preference.SettingPreference
 import com.umc.data.util.withAuth
 import com.umc.data.util.withCheck
 import retrofit2.HttpException
@@ -26,6 +27,7 @@ import javax.inject.Inject
 class UserRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val authPreference: AuthPreference,
+    private val settingPreference: SettingPreference,
 ) : UserRepository {
 
     override suspend fun isAlreadyLogin(): Boolean {
@@ -163,9 +165,13 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun logout() {
         serverApi.withCheck { logout() }
+
         authPreference.accessToken = null
         authPreference.refreshToken = null
         authPreference.userId = null
+
+        settingPreference.pinHash = null
+        settingPreference.lastSentFcmToken = null
     }
 
     override suspend fun getUserInfo(): UserInfo {
@@ -213,5 +219,8 @@ class UserRepositoryImpl @Inject constructor(
         authPreference.accessToken = null
         authPreference.refreshToken = null
         authPreference.userId = null
+
+        settingPreference.pinHash = null
+        settingPreference.lastSentFcmToken = null
     }
 }
