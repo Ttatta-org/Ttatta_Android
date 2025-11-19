@@ -1,5 +1,6 @@
 package com.umc.login.navigation
 
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
@@ -15,6 +16,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
@@ -202,6 +204,7 @@ fun NavGraphBuilder.addJoinNavGraph(
                                 showLoading = false
                             }
                         }
+
                         else -> run {
                             val index = JoinNavGraphDestination.entries.indexOf(currentDestination)
                             navController.navigate(JoinNavGraphDestination.entries[index + 1].route)
@@ -299,7 +302,9 @@ fun NavGraphBuilder.addJoinNavGraph(
                         route = JoinNavGraphDestination.EMAIL.route
                     ) {
                         Box(
-                            modifier = Modifier.onGloballyPositioned { emailFormLayoutCoordinates = it },
+                            modifier = Modifier.onGloballyPositioned {
+                                emailFormLayoutCoordinates = it
+                            },
                         ) {
                             EmailForm(
                                 local = emailLocal,
@@ -307,8 +312,12 @@ fun NavGraphBuilder.addJoinNavGraph(
                                 state = emailValidationState,
                                 onLocalChanged = { emailLocal = it },
                                 onDomainChanged = { emailDomain = it },
-                                onDomainDropdownExpandedChanged = { isEmailDomainDropdownExpanded = !isEmailDomainDropdownExpanded },
-                                onDomainDropdownButtonCenterOffsetCalculated = { emailDropdownButtonCenterOffset = it },
+                                onDomainDropdownExpandedChanged = {
+                                    isEmailDomainDropdownExpanded = !isEmailDomainDropdownExpanded
+                                },
+                                onDomainDropdownButtonCenterOffsetCalculated = {
+                                    emailDropdownButtonCenterOffset = it
+                                },
                             )
                         }
                     }
@@ -316,6 +325,7 @@ fun NavGraphBuilder.addJoinNavGraph(
                     composable(
                         route = JoinNavGraphDestination.CERTIFICATION.route
                     ) {
+                        val context = LocalContext.current
                         var code by remember { mutableStateOf("") }
                         var remainTime by remember { mutableStateOf(emailDuration) }
 
@@ -333,24 +343,42 @@ fun NavGraphBuilder.addJoinNavGraph(
                         LaunchedEffect(key1 = code) {
                             code.let { code ->
                                 if (code.length == 6 && code.isDigitsOnly()) viewModel.runWithScope {
-                                    val isValid = requestCertificationCodeValidation(
-                                        request = CertificationCodeValidationRequestForJoin(
-                                            email = "$emailLocal@$emailDomain",
-                                            code = code,
-                                        ),
-                                    )
+                                    showLoading = true
 
-                                    if (isValid) runCatching {
-                                        viewModel.join(
-                                            nickname = nickname,
-                                            id = id,
-                                            password = password,
-                                            name = name,
-                                            email = "$emailLocal@$emailDomain",
+                                    val isValid = runCatching {
+                                        requestCertificationCodeValidation(
+                                            request = CertificationCodeValidationRequestForJoin(
+                                                email = "$emailLocal@$emailDomain",
+                                                code = code,
+                                            ),
                                         )
-                                    }.onSuccess {
-                                        onNavigatingToJoinDone(name)
+                                    }.getOrDefault(null)
+
+                                    if (isValid == true) {
+                                        runCatching {
+                                            viewModel.join(
+                                                nickname = nickname,
+                                                id = id,
+                                                password = password,
+                                                name = name,
+                                                email = "$emailLocal@$emailDomain",
+                                            )
+                                        }.onSuccess {
+                                            onNavigatingToJoinDone(name)
+                                        }
+                                    } else if (isValid == false) {
+                                        MainScope().launch {
+                                            val toast = Toast.makeText(
+                                                context,
+                                                "인증번호가 올바르지 않습니다.",
+                                                Toast.LENGTH_SHORT,
+                                            )
+
+                                            toast.show()
+                                        }
                                     }
+
+                                    showLoading = false
                                 }
                             }
                         }
@@ -358,7 +386,7 @@ fun NavGraphBuilder.addJoinNavGraph(
                         CertificationCodeForm(
                             code = code,
                             remainTime = remainTime,
-                            onCodeChanged = { code = it },
+                            onCodeChanged = { if (it.length <= 6) code = it },
                         )
                     }
                 }
@@ -372,7 +400,8 @@ fun NavGraphBuilder.addJoinNavGraph(
                 if (screen != null && emailForm != null) Box(
                     modifier = Modifier
                         .offset {
-                            screen.localPositionOf(emailForm)
+                            screen
+                                .localPositionOf(emailForm)
                                 .plus(emailDropdownButtonCenterOffset)
                                 .plus(Offset(x = -dropdownWidth.toFloat(), y = 16.dp.toPx()))
                                 .round()
