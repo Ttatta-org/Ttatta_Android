@@ -29,7 +29,7 @@
     <string name="duplicate_check">중복 확인</string>
     <string name="id_duplicated">이미 다른 사용자가 사용중인 아이디에요!</string>
     <string name="id_available">사용 가능한 아이디에요!</string>
-    <string name="id_too_long_or_has_not_allowed_char">아이디는 영문으로 15자리 이하로 정해주세요!</string>
+    <string name="id_too_long_or_has_not_allowed_char">아이디는 영문과 숫자 조합 15자리 이하로 정해주세요!</string>
     <string name="name_not_allowed_char">특수문자나, 숫자, 초성은 사용할 수 없습니다!</string>
     <string name="certification_placeholder">인증번호 입력</string>
     <string name="certification_mail_did_not_arrived">메일이 오지 않았다면 아래 버튼을 클릭해주세요.</string>
