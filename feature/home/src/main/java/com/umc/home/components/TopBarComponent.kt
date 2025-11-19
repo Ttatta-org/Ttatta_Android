@@ -162,14 +162,6 @@ fun TopBarComponent(
                             modifier = Modifier.align(Alignment.CenterEnd), // ✅ 오른쪽 정렬
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            IconButton(onClick = { /* 위치 핀 */ }, modifier = Modifier.size(22.dp)) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_location_pin),
-                                    contentDescription = "위치 핀",
-                                    modifier = Modifier.width(19.21.dp).height(26.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(20.dp))
                             IconButton(
                                 onClick = { onSearchToggle() }, // 검색창 열기
                                 modifier = Modifier.size(24.dp)
@@ -226,15 +218,6 @@ fun TopBarComponent(
                                     onSearch = { onSearchSubmitted(searchQuery) },
                                     modifier = Modifier.weight(4f) // ✅ 이 weight가 정상 작동
                                 )
-                            }
-                            AnimatedVisibility(visible = topBarState != TopBarState.SearchOpen) {
-                                IconButton(onClick = { /* 위치 핀 */ }, modifier = Modifier.size(22.dp)) {
-                                    Image(
-                                        painter = painterResource(id = R.drawable.ic_location_pin),
-                                        contentDescription = "위치 핀",
-                                        modifier = Modifier.width(19.21.dp).height(26.dp)
-                                    )
-                                }
                             }
                             Spacer(modifier = Modifier.width(20.dp))
                             IconButton(
