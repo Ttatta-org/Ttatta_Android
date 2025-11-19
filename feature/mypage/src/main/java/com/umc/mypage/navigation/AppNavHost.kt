@@ -52,13 +52,18 @@ fun AppNavHost(
         rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
     } else null
 
-    val notificationAndLocationPermissionState = rememberMultiplePermissionsState(
-        listOfNotNull(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.POST_NOTIFICATIONS.takeIf { Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU },
-            Manifest.permission.FOREGROUND_SERVICE_LOCATION.takeIf { Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE },
+    val notificationAndLocationPermissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        rememberMultiplePermissionsState(
+            listOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.POST_NOTIFICATIONS,
+            )
         )
-    )
+    } else {
+        rememberMultiplePermissionsState(
+            listOf(Manifest.permission.ACCESS_FINE_LOCATION)
+        )
+    }
 
     var showLocationPermissionPopup by remember { mutableStateOf(false) }
 

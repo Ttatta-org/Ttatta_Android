@@ -305,7 +305,8 @@ fun MainApp(
                             topBarTitle = "발자국 새로 만들기 및 수정",
                             onBackButtonClicked = {
                                 MainScope().launch { navigator.popBackStack() }
-                            })
+                            },
+                        )
                     }
                 }
 
@@ -340,10 +341,12 @@ fun MainApp(
                     MyPageApp(
                         viewModel = hiltViewModel(),
                         onLoginCanceled = {
-                            navigator.popBackStack(
-                                destinationId = navigator.graph.startDestinationId,
-                                inclusive = false,
-                            )
+                            MainScope().launch {
+                                navigator.popBackStack(
+                                    destinationId = navigator.graph.startDestinationId,
+                                    inclusive = false,
+                                )
+                            }
                         },
                         onBackgroundLocationRequirementChanged = { isRequired ->
                             if (isRequired) {

@@ -209,5 +209,9 @@ class UserRepositoryImpl @Inject constructor(
         serverApi.withAuth(authPreference = authPreference) {
             deleteUser(body = body)
         }
+
+        authPreference.accessToken = null
+        authPreference.refreshToken = null
+        authPreference.userId = null
     }
 }
