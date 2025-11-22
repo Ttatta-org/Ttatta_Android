@@ -4,6 +4,7 @@ import com.umc.ttatta.app.component.NavigationItem
 
 data class NavigationBarProp(
     val currentNavigationItem: NavigationItem?,
+    val showTooltip: Boolean,
     val onNavigate: (NavigationItem) -> Unit,
     val onCenterButtonClicked: () -> Unit,
 )

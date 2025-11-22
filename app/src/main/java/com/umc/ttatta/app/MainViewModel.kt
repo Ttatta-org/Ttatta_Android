@@ -3,6 +3,7 @@ package com.umc.ttatta.app
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
@@ -13,12 +14,12 @@ import com.umc.core.repository.UserRepository
 import com.umc.design.character.AccessorySet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
-import androidx.core.content.edit
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -42,11 +43,21 @@ class MainViewModel @Inject constructor(
             prefs.edit { putBoolean("isLoggedInBefore", value) }
         }
 
+    private var isDiaryRecordOccurred: Boolean
+        get() = prefs.getBoolean("isDiaryRecordOccurred", false)
+        set(value) {
+            prefs.edit { putBoolean("isDiaryRecordOccurred", value) }
+        }
+
     val isLoggedInState: StateFlow<Boolean?> get() = isLoggedInFlow
     val isLockedState: StateFlow<Boolean> get() = isLockedFlow
     val isLocationBasedRemindEnabledState: StateFlow<Boolean> get() = isLocationBasedRemindEnabledFlow
     val userName get() = userNameState.value
     val equippedAccessories get() = equippedAccessoriesState.value
+
+    val isDiaryRecordOccurredState = MutableStateFlow(isDiaryRecordOccurred).also {
+        viewModelScope.launch { it.collect { value -> isDiaryRecordOccurred = value } }
+    }
 
     suspend fun refresh() {
         isLoggedInFlow.value = null
@@ -56,18 +67,12 @@ class MainViewModel @Inject constructor(
         }.getOrDefault(defaultValue = false)
 
         if (isLoggedIn) {
-            runBlocking {
+            CoroutineScope(Dispatchers.IO).launch {
                 launch { runCatching { checkIsLocationBasedRemindEnabled() } }
                 launch { runCatching { getUserName() } }
                 launch { runCatching { getEquippedAccessories() } }
                 launch { runCatching { handleFcmToken() } }
                 launch { runCatching { syncPin() } }
-            }
-
-            if (isLoggedInBefore) {
-                isLockedFlow.value = settingRepository.getIsPinSet()
-            } else {
-                isLoggedInBefore = true
             }
         } else {
             isLoggedInBefore = false
@@ -88,6 +93,12 @@ class MainViewModel @Inject constructor(
 
     private suspend fun syncPin() {
         settingRepository.syncPinWithServer()
+
+        if (isLoggedInBefore) {
+            isLockedFlow.value = settingRepository.getIsPinSet()
+        } else {
+            isLoggedInBefore = true
+        }
     }
 
     private suspend fun getUserName() {

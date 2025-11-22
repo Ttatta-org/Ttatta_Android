@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
@@ -33,14 +34,10 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
-import com.umc.design.Grey200
-import com.umc.design.Grey300
-import com.umc.design.Primary500
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 
-val centerButtonSize = DpSize(95.dp, 90.dp)
-val iconHeight = 24.dp
+val centerButtonSize = DpSize(80.dp, 74.dp)
 
 @Composable
 fun NavigationBar(
@@ -102,20 +99,26 @@ fun NavigationBar(
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.padding(top = 13.dp, bottom = 8.dp),
+                        modifier = Modifier.padding(
+                            top = 12.dp,
+                            bottom = if (padding > 12.dp) 1.dp else 12.dp
+                        ),
                     ) {
-                        Icon(
-                            painter = painterResource(id = item.icon),
-                            contentDescription = null,
-                            tint = if (currentNavigationItem == item) LocalColorTheme.current.primary[500] else LocalColorTheme.current.grey[400],
-                            modifier = Modifier
-                                .width(iconHeight * item.size.width / item.size.height * item.magnification)
-                                .height(iconHeight * item.magnification)
-                        )
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.height(22.dp),
+                        ) {
+                            Icon(
+                                painter = painterResource(id = if (currentNavigationItem == item) item.selectedIcon else item.unselectedIcon),
+                                contentDescription = null,
+                                tint = if (currentNavigationItem == item) LocalColorTheme.current.primary[500] else LocalColorTheme.current.grey[400],
+                                modifier = Modifier.size(item.size)
+                            )
+                        }
                         Text(
                             text = item.title,
                             fontSize = 12.sp,
-                            lineHeight = 20.sp,
+                            lineHeight = 15.sp,
                             letterSpacing = (-0.5).sp,
                             fontWeight = FontWeight.W700,
                             color = if (currentNavigationItem == item) LocalColorTheme.current.primary[500] else LocalColorTheme.current.grey[400],
@@ -125,7 +128,7 @@ fun NavigationBar(
                     Box(
                         modifier = Modifier
                             .background(color = LocalColorTheme.current.grey[200])
-                            .width(centerButtonSize.width)
+                            .width(centerButtonSize.width + 16.dp)
                             .height(1.dp),
                     )
                 }

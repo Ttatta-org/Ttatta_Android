@@ -3,7 +3,10 @@ package com.umc.ttatta.app.component
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,13 +28,14 @@ import com.umc.design.Primary500
 import com.umc.design.character.Accessory
 import com.umc.design.character.AccessorySet
 import com.umc.design.character.CharacterView
+import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.ttatta.app.R
 import com.umc.ttatta.app.model.prop.RecordOptionPickerProp
 
-private val cameraButtonSize = Size(141f, 40f)
-private val galleryButtonSize = Size(141f, 51f)
-private val buttonActualWidth = 160.dp
+private val cameraButtonSize = Size(150f, 42f)
+private val galleryButtonSize = Size(150f, 42f)
+private val buttonActualWidth = 150.dp
 
 @Composable
 fun RecordOptionPicker(
@@ -39,61 +43,88 @@ fun RecordOptionPicker(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(32.dp),
     ) {
-        Text(
-            text = buildAnnotatedString {
-                appendLine(prop.userName + stringResource(id = R.string.record_top_line_message))
-                appendLine(stringResource(id = R.string.record_body1_message))
-                append(stringResource(id = R.string.record_body2_message))
-            },
-            color = Color.Primary500,
-            fontWeight = FontWeight.Bold,
-            fontSize = 24.sp,
-            lineHeight = 33.sp,
-            letterSpacing = 0.4.sp,
-            textAlign = TextAlign.Center,
-        )
+        Box(
+            contentAlignment = Alignment.TopCenter,
+        ) {
+            ShadowedImage(
+                id = R.drawable.img_chat_bubble,
+                contentDescription = null,
+                width = 277.dp,
+                height = 141.dp,
+                offsetY = 4.dp,
+                shadowBlur = 10.dp,
+                shadowColor = Color(0xFFD7806F).copy(alpha = 0.35f),
+            )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.height(109.dp),
+            ) {
+                Text(
+                    text = buildAnnotatedString {
+                        appendLine(prop.userName + stringResource(id = R.string.record_top_line_message))
+                        appendLine(stringResource(id = R.string.record_body1_message))
+                        append(stringResource(id = R.string.record_body2_message))
+                    },
+                    color = LocalColorTheme.current.primary[600],
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp,
+                    letterSpacing = (-0.4).sp,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
         CharacterView(
             accessorySet = prop.accessories,
-            width = 200.dp,
+            width = 270.dp,
         )
+        Spacer(modifier = Modifier.height(32.dp))
         Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             DpSize(
                 width = buttonActualWidth,
                 height = buttonActualWidth * cameraButtonSize.height / cameraButtonSize.width
             ).let { size ->
-                Image(
-                    painter = painterResource(id = R.drawable.btn_camera),
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .size(size)
-                        .clickable(
-                            indication = null,
-                            interactionSource = null,
-                            onClick = prop.onCameraOptionClicked
-                        )
-                )
+                Box(
+                    modifier = Modifier.clickable(
+                        indication = null,
+                        interactionSource = null,
+                        onClick = prop.onCameraOptionClicked
+                    ),
+                ) {
+                    ShadowedImage(
+                        id = R.drawable.btn_camera,
+                        contentDescription = null,
+                        width = size.width,
+                        height = size.height,
+                        offsetY = 4.dp,
+                        shadowBlur = 10.dp,
+                        shadowColor = Color(0xFFD7806F).copy(alpha = 0.35f),
+                    )
+                }
             }
             DpSize(
                 width = buttonActualWidth,
                 height = buttonActualWidth * galleryButtonSize.height / galleryButtonSize.width
             ).let { size ->
-                Image(
-                    painter = painterResource(id = R.drawable.btn_gallary),
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .size(size)
-                        .clickable(
-                            indication = null,
-                            interactionSource = null,
-                            onClick = prop.onGalleryOptionClicked
-                        )
-                )
+                Box(
+                    modifier = Modifier.clickable(
+                        indication = null,
+                        interactionSource = null,
+                        onClick = prop.onGalleryOptionClicked
+                    ),
+                ) {
+                    ShadowedImage(
+                        id = R.drawable.btn_gallery,
+                        contentDescription = null,
+                        width = size.width,
+                        height = size.height,
+                        offsetY = 4.dp,
+                        shadowBlur = 10.dp,
+                        shadowColor = Color(0xFFD7806F).copy(alpha = 0.35f),
+                    )
+                }
             }
         }
     }

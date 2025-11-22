@@ -14,6 +14,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,6 +51,7 @@ import com.umc.ttatta.app.tracking.LocationTrackingService.Companion.finishLocat
 import com.umc.ttatta.app.tracking.LocationTrackingService.Companion.startLocationTrackingService
 import com.umc.ttatta.app.util.FileManager.uriToFile
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -63,6 +65,7 @@ fun MainApp(
 ) {
     val navigator = rememberNavController()
     val context = LocalContext.current as ComponentActivity
+    val recordTooltipShowingScope = rememberCoroutineScope()
 
     val locationPermissionState = rememberMultiplePermissionsState(
         permissions = listOf(
@@ -74,11 +77,14 @@ fun MainApp(
     val isLoggedIn by viewModel.isLoggedInState.collectAsState()
     val isLocked by viewModel.isLockedState.collectAsState()
     val isLocationBasedRemindEnabled by viewModel.isLocationBasedRemindEnabledState.collectAsState()
+    val isDiaryRecordOccurred by viewModel.isDiaryRecordOccurredState.collectAsState()
 
     var currentNavigationItem by remember { mutableStateOf<NavigationItem?>(null) }
     var showNavBar by remember { mutableStateOf(false) }
     var isCenterButtonActivated by remember { mutableStateOf(false) }
     var showLocationPermissionPopup by remember { mutableStateOf(false) }
+    var isRecordTooltipHasShown by remember { mutableStateOf(false) }
+    var showRecordTooltip by remember { mutableStateOf(false) }
 
     var recordingDiaryImage: Uri? by remember { mutableStateOf(null) }
     var recordingDiaryContent by remember { mutableStateOf("") }
@@ -161,10 +167,33 @@ fun MainApp(
         }
     }
 
+    // 일기 등록 툴팁 보이기
+    LaunchedEffect(
+        isDiaryRecordOccurred,
+        isRecordTooltipHasShown,
+        currentNavigationItem,
+    ) {
+        val isCurrentScreenHasNavigationBar = currentNavigationItem != null
+
+        if (!isDiaryRecordOccurred && !isRecordTooltipHasShown && isCurrentScreenHasNavigationBar) {
+            isRecordTooltipHasShown = true
+
+            recordTooltipShowingScope.launch {
+                delay(1000L)
+                showRecordTooltip = true
+                delay(5000L)
+                showRecordTooltip = false
+            }
+        } else if (!isCurrentScreenHasNavigationBar) {
+            isRecordTooltipHasShown = false
+        }
+    }
+
     ThemeProvider {
         MainScreen(
             navigationBarProp = if (showNavBar) NavigationBarProp(
                 currentNavigationItem = currentNavigationItem,
+                showTooltip = showRecordTooltip,
                 onNavigate = {
                     val route = when (it) {
                         NavigationItem.DIARY -> NavigationRoute.Home
@@ -300,6 +329,8 @@ fun MainApp(
                     }
 
                     composable<NavigationRoute.Footprint.Category> {
+                        LaunchedEffect(Unit) { showNavBar = false }
+
                         CategoryApp(
                             viewModel = hiltViewModel(),
                             topBarTitle = "발자국 새로 만들기 및 수정",
@@ -385,6 +416,7 @@ fun MainApp(
                                 recordingChallengeId = null
                                 recordingDiaryImage = null
                                 recordingDiaryContent = ""
+
                                 MainScope().launch {
                                     route?.let {
                                         navigator.navigate(route = route) {
@@ -413,6 +445,8 @@ fun MainApp(
                                 }
                             },
                             onDone = {
+                                viewModel.isDiaryRecordOccurredState.value = true
+
                                 recordingChallengeId?.let { challengeId ->
                                     viewModel.runWithScope {
                                         runCatching {
@@ -433,17 +467,21 @@ fun MainApp(
                             topBarTitle = "발자국 새로 만들기",
                             onBackButtonClicked = {
                                 MainScope().launch { navigator.popBackStack() }
-                            })
+                            },
+                        )
                     }
                 }
             }
         }
 
-        if (showLocationPermissionPopup) LocationAccessPopup(onDismiss = {
-            showLocationPermissionPopup = false
-        }, onConfirm = {
-            showLocationPermissionPopup = false
-            locationPermissionState.launchMultiplePermissionRequest()
-        })
+        if (showLocationPermissionPopup) LocationAccessPopup(
+            onDismiss = {
+                showLocationPermissionPopup = false
+            },
+            onConfirm = {
+                showLocationPermissionPopup = false
+                locationPermissionState.launchMultiplePermissionRequest()
+            },
+        )
     }
 }

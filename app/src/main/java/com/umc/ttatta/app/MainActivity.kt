@@ -1,8 +1,10 @@
 package com.umc.ttatta.app
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -21,6 +23,8 @@ import com.umc.ttatta.app.util.FileManager.createImageUri
 import com.umc.ttatta.app.util.setStatusBarTransparent
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.math.min
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -71,6 +75,28 @@ class MainActivity : ComponentActivity() {
                 },
             )
         }
+    }
+
+    override fun attachBaseContext(newBase: Context?) {
+        val metrics = newBase?.resources?.displayMetrics
+
+        if (metrics == null) {
+            super.attachBaseContext(null)
+            return
+        }
+
+        val screenWidth = metrics.widthPixels
+        val designWidth = 390 * metrics.density
+
+        val scaleFactor = min(1f, screenWidth / designWidth)
+
+        val newConfiguration = Configuration(newBase.resources?.configuration).apply {
+            this.fontScale = scaleFactor
+            this.densityDpi = (metrics.densityDpi * scaleFactor).roundToInt()
+        }
+
+        applyOverrideConfiguration(newConfiguration)
+        super.attachBaseContext(newBase)
     }
 
     private fun setLaunchers() {

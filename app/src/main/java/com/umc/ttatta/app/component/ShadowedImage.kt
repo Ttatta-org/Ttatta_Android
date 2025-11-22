@@ -37,7 +37,7 @@ fun ShadowedImage(
                 .offset(x = offsetX, y = offsetY)
                 .blur(
                     radius = shadowBlur,
-                    edgeTreatment = BlurredEdgeTreatment.Unbounded
+                    edgeTreatment = BlurredEdgeTreatment.Unbounded,
                 ),
             tint = shadowColor,
         )

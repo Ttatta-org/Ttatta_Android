@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +31,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import com.umc.design.character.Accessory
@@ -45,6 +47,7 @@ import com.umc.ttatta.app.model.prop.NavigationBarProp
 import com.umc.ttatta.app.model.prop.RecordOptionPickerProp
 
 private val centerButtonTopOffsetFromNavBarTopCenter = 12.dp
+private val recordTooltipSize = DpSize(175.dp, 40.5.dp)
 
 @Composable
 fun MainScreen(
@@ -117,14 +120,38 @@ fun MainScreen(
                         )
                 ) {
                     ShadowedImage(
-                        id = if (centerButtonProp == null) R.drawable.btn_record
-                        else R.drawable.btn_cancel_record,
+                        id = if (centerButtonProp == null) R.drawable.btn_record else R.drawable.btn_cancel_record,
                         contentDescription = null,
                         width = centerButtonSize.width,
                         height = centerButtonSize.height,
                         shadowColor = Color.Black.copy(alpha = 0.25f),
                         shadowBlur = 8.dp,
                         offsetY = 4.dp
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = navigationBarProp.showTooltip,
+                enter = fadeIn(),
+                exit = fadeOut(),
+                modifier = Modifier.offset {
+                    Offset(
+                        x = x - recordTooltipSize.width.toPx() / 2,
+                        y = y - centerButtonSize.height.toPx() / 2 - 9.5.dp.toPx() - recordTooltipSize.height.toPx(),
+                    ).round()
+                },
+            ) {
+                Box(
+                    modifier = Modifier.padding(bottom = 9.5.dp)
+                ) {
+                    ShadowedImage(
+                        id = R.drawable.img_record_tooltip,
+                        contentDescription = null,
+                        width = recordTooltipSize.width,
+                        height = recordTooltipSize.height,
+                        shadowColor = Color(0xFFDE806E).copy(alpha = 0.1f),
+                        shadowBlur = 10.dp,
                     )
                 }
             }
@@ -145,20 +172,22 @@ fun MainScreen(
                 visible = centerButtonProp != null,
                 enter = fadeIn(animationSpec = tween(durationMillis = 200)),
                 exit = fadeOut(animationSpec = tween(durationMillis = 200)),
-                modifier = Modifier.offset {
-                    centerButtonCenter?.let { (_, y) ->
-                        Offset(
-                            x = 0f,
-                            y = y - centerButtonSize.height.toPx() / 2 - recordOptionPickerHeight
-                        ).round()
-                    } ?: Offset.Zero.round()
-                },
+                modifier = Modifier
+                    .offset {
+                        centerButtonCenter?.let { (_, y) ->
+                            Offset(
+                                x = 0f,
+                                y = y - centerButtonSize.height.toPx() / 2 - recordOptionPickerHeight - 12.dp.toPx()
+                            ).round()
+                        } ?: Offset.Zero.round()
+                    },
             ) {
                 residualCenterButtonProp?.let { prop ->
                     Box(
                         contentAlignment = Alignment.TopCenter,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(bottom = 12.dp)
                             .onGloballyPositioned {
                                 recordOptionPickerHeight = it.size.height
                             },
@@ -182,6 +211,7 @@ fun PreviewMainScreen() {
         MainScreen(
             navigationBarProp = NavigationBarProp(
                 currentNavigationItem = currentNavigationItem,
+                showTooltip = true,
                 onNavigate = { currentNavigationItem = it },
                 onCenterButtonClicked = { isCenterButtonActivated = true },
             ),
