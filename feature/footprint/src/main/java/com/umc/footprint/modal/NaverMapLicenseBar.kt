@@ -1,5 +1,6 @@
 package com.umc.footprint.modal
 
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,29 +13,37 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.naver.maps.map.app.LegalNoticeActivity
+import com.naver.maps.map.app.OpenSourceLicenseActivity
 import com.umc.design.component.CustomBottomSheet
 import com.umc.design.theme.LocalColorTheme
-import com.umc.design.theme.ThemeProvider
-import com.umc.footprint.R
-import com.umc.footprint.model.prop.DiaryModificationBarProp
 
 @Composable
-fun DiaryModificationBar(prop: DiaryModificationBarProp) {
+fun NaverMapLicenseBar(
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+
     CustomBottomSheet(
-        onDismissRequest = prop.onDismissed,
+        onDismissRequest = onDismiss,
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.padding(start = 22.dp, end = 22.dp, top = 8.dp, bottom = 32.dp),
         ) {
             listOf(
-                stringResource(id = R.string.modify) to prop.onModifyOptionClicked,
-                stringResource(id = R.string.delete) to prop.onDeleteOptionClicked,
+                "네이버 지도 SDK 법적 공지" to {
+                    val intent = Intent(context, LegalNoticeActivity::class.java)
+                    context.startActivity(intent)
+                },
+                "오픈소스 라이선스" to {
+                    val intent = Intent(context, OpenSourceLicenseActivity::class.java)
+                    context.startActivity(intent)
+                },
             ).forEach { (text, onClicked) ->
                 Row(
                     modifier = Modifier
@@ -57,21 +66,5 @@ fun DiaryModificationBar(prop: DiaryModificationBarProp) {
                 }
             }
         }
-    }
-}
-
-val previewDiaryModificationBarProp = DiaryModificationBarProp(
-    onModifyOptionClicked = {},
-    onDeleteOptionClicked = {},
-    onDismissed = {},
-)
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewDiaryModificationBar() {
-    ThemeProvider {
-        DiaryModificationBar(
-            prop = previewDiaryModificationBarProp
-        )
     }
 }

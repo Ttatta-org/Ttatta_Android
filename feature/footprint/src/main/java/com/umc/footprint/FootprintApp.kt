@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.toSize
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.naver.maps.map.app.LegalNoticeActivity
 import com.umc.design.CategoryColor
 import com.umc.design.R
 import com.umc.footprint.core.DesignConstant
@@ -99,12 +100,19 @@ fun FootprintApp(
             loadInitialData()
             // 보여질 발자국 카테고리 초기화
             selectShowingCategory(categoryId = null)
-            // 지도를 내 위치로 이동
-            if (remindEvent == null) moveMapToCurrentPosition()
         }
 
         // 위치 권한 획득 시도
         locationPermissionState.launchMultiplePermissionRequest()
+    }
+
+    LaunchedEffect(locationPermissionState) {
+        if (locationPermissionState.allPermissionsGranted) {
+            // 지도를 내 위치로 이동
+            viewModel.runWithScope {
+                if (remindEvent == null) moveMapToCurrentPosition()
+            }
+        }
     }
 
     // 일기가 새로 로드되었을 때마다 실행

@@ -6,28 +6,20 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,114 +29,74 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.CategoryColor
+import com.umc.design.component.CustomBottomSheet
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.R
 import com.umc.footprint.model.prop.CategoryItemProp
 import com.umc.footprint.model.prop.CategorySelectionBarProp
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategorySelectionBar(
     prop: CategorySelectionBarProp,
 ) {
-    val navigationBarHeight = WindowInsets.navigationBars
-        .asPaddingValues()
-        .calculateBottomPadding()
-
-    ModalBottomSheet(
-        scrimColor = Color.Transparent,
-        containerColor = Color.Transparent,
-        sheetMaxWidth = 1024.dp,
-        dragHandle = null,
+    CustomBottomSheet(
+        containerColor = LocalColorTheme.current.secondary[100],
         onDismissRequest = prop.onDismiss,
-        contentWindowInsets = { WindowInsets(bottom = 0.dp) }
     ) {
-        Column {
-            // 그림자를 위한 여백
-            Spacer(modifier = Modifier.height(16.dp))
-            Box(
-                modifier = Modifier
-                    .shadow(
-                        elevation = 20.dp,
-                        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
+        // 제목 라인
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom,
+            modifier = Modifier
+                .padding(vertical = 16.dp, horizontal = 34.dp)
+                .fillMaxWidth(),
+        ) {
+            Text(
+                text = buildAnnotatedString {
+                    append(prop.userName)
+                    append(stringResource(id = R.string.category_list_suffix))
+                    append(" ")
+                    append(prop.itemProps.size.toString())
+                },
+                color = LocalColorTheme.current.primary[500],
+                fontWeight = FontWeight.W700,
+                fontSize = 15.sp,
+            )
+            Text(
+                text = prop.itemProps
+                    .sumOf { it.count ?: 0 }
+                    .toString(),
+                color = LocalColorTheme.current.grey[600],
+                fontSize = 12.sp,
+                fontWeight = FontWeight.W400,
+            )
+        }
+        // 카테고리 목록
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier
+                .heightIn(max = 500.dp)
+                .padding(horizontal = 22.dp)
+        ) {
+            items(count = prop.itemProps.size + 1) { index ->
+                if (index == 0) {
+                    // 새 카테고리 등록 버튼
+                    CategoryItem(
+                        prop = CategoryItemProp(
+                            name = stringResource(id = R.string.new_category),
+                            icon = R.drawable.ic_new_category,
+                            count = null,
+                            onClicked = prop.onNewCategoryButtonClicked
+                        ),
                     )
-                    .background(
-                        color = LocalColorTheme.current.secondary[100],
-                        shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
-                    ),
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .padding(horizontal = 22.dp)
-
-                ) {
-                    Box(
-                        modifier = Modifier.padding(vertical = 16.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(id = com.umc.design.R.drawable.ic_header_deco),
-                            contentDescription = null,
-                            modifier = Modifier.width(32.dp),
-                        )
-                    }
-                    // 제목 라인
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Bottom,
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxWidth(),
-                    ) {
-                        Text(
-                            text = buildAnnotatedString {
-                                append(prop.userName)
-                                append(stringResource(id = R.string.category_list_suffix))
-                                append(" ")
-                                append(prop.itemProps.size.toString())
-                            },
-                            color = LocalColorTheme.current.primary[500],
-                            fontWeight = FontWeight.W700,
-                            fontSize = 15.sp,
-                        )
-                        Text(
-                            text = prop.itemProps
-                                .sumOf { it.count ?: 0 }
-                                .toString(),
-                            color = LocalColorTheme.current.grey[600],
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.W400,
-                        )
-                    }
-                    // 카테고리 목록
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier.heightIn(max = 500.dp)
-                    ) {
-                        items(count = prop.itemProps.size + 1) { index ->
-                            if (index == 0) {
-                                // 새 카테고리 등록 버튼
-                                CategoryItem(
-                                    prop = CategoryItemProp(
-                                        name = stringResource(id = R.string.new_category),
-                                        icon = R.drawable.ic_new_category,
-                                        count = null,
-                                        onClicked = prop.onNewCategoryButtonClicked
-                                    ),
-                                )
-                            } else {
-                                CategoryItem(prop = prop.itemProps[index - 1])
-                            }
-                        }
-
-                        item {
-                            Spacer(modifier = Modifier.height(22.dp))
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(navigationBarHeight))
+                } else {
+                    CategoryItem(prop = prop.itemProps[index - 1])
                 }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(22.dp))
             }
         }
     }

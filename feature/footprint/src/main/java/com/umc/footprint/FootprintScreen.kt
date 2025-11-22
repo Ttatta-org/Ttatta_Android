@@ -57,7 +57,8 @@ fun FootprintScreen(
                 .clickable(
                     indication = null,
                     interactionSource = null,
-                ) { onBackScreenClicked() })
+                ) { onBackScreenClicked() },
+        )
         // 일기 팝업
         diaryCardProp?.let { prop ->
             Box(

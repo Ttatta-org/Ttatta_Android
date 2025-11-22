@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,8 +41,8 @@ fun DiaryCardBack(
         prop = DiaryCardFrameProp(
             date = prop.prop?.date,
             borderColor = categoryColor?.b ?: colors.primary[400],
-            backgroundColor = categoryColor?.c ?: colors.secondary[200],
-            contentContainerColor = categoryColor?.a ?: colors.secondary[300],
+            backgroundColor = Color.White,
+            contentContainerColor = categoryColor?.c ?: colors.secondary[300],
             onModifyButtonClicked = prop.prop?.onModifyButtonClicked,
             content = {
                 if (prop.prop != null) Box(

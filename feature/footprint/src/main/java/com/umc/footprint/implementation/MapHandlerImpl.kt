@@ -1,19 +1,24 @@
 package com.umc.footprint.implementation
 
 import android.content.Context
+import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.PointF
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
@@ -22,6 +27,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.naver.maps.geometry.LatLng
@@ -30,6 +37,7 @@ import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.LocationTrackingMode
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
+import com.naver.maps.map.app.LegalNoticeActivity
 import com.naver.maps.map.clustering.Clusterer
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
@@ -38,8 +46,8 @@ import com.umc.footprint.R
 import com.umc.footprint.core.DesignConstant
 import com.umc.footprint.core.MapHandler
 import com.umc.footprint.core.MapMarker
+import com.umc.footprint.modal.NaverMapLicenseBar
 import com.umc.footprint.util.calculateClusteredMarkerSize
-import com.umc.footprint.util.loadRawImageAsBitmap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
@@ -48,38 +56,24 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-class MapHandlerImpl(
-    private val context: Context,
-) : MapHandler {
+class MapHandlerImpl(context: Context) : MapHandler {
 
     val locatorImage by lazy {
         OverlayImage.fromBitmap(
-            loadRawImageAsBitmap(
-                context = context,
-                rawResourceId = R.raw.ic_locator,
-                size = DesignConstant.LocatorSize,
-            )
+            BitmapFactory.decodeResource(context.resources, R.raw.ic_locator)
         )
     }
 
     val clusterImage by lazy {
         OverlayImage.fromBitmap(
-            loadRawImageAsBitmap(
-                context = context,
-                rawResourceId = R.raw.ic_clustered_marker,
-                size = DesignConstant.ClusterMarkerMaxSize,
-            )
+            BitmapFactory.decodeResource(context.resources, R.raw.ic_clustered_marker)
         )
     }
 
     val footMarkerImages by lazy {
         DesignConstant.FootprintMarkerResourceMap.mapValues { (_, value) ->
             OverlayImage.fromBitmap(
-                loadRawImageAsBitmap(
-                    context = context,
-                    rawResourceId = value,
-                    size = DesignConstant.FootprintMarkerSize,
-                )
+                BitmapFactory.decodeResource(context.resources, value)
             )
         }
     }
@@ -87,11 +81,7 @@ class MapHandlerImpl(
     val bookMarkerImages by lazy {
         DesignConstant.BookMarkerResourceMap.mapValues { (_, value) ->
             OverlayImage.fromBitmap(
-                loadRawImageAsBitmap(
-                    context = context,
-                    rawResourceId = value,
-                    size = DesignConstant.BookMarkerSize,
-                )
+                BitmapFactory.decodeResource(context.resources, value)
             )
         }
     }
@@ -99,6 +89,7 @@ class MapHandlerImpl(
     private val mapView: MapView
     private val clusterManager: Clusterer<MarkerKey>
     private var fusedLocationSource: FusedLocationSource? = null
+    private var density: Float = context.resources.displayMetrics.density
 
     private val mapFlow = MutableStateFlow<NaverMap?>(null)
     private val isNonClusteringZoomLevelReached = MutableStateFlow(false)
@@ -166,7 +157,6 @@ class MapHandlerImpl(
                 }
 
                 map.isIndoorEnabled = false
-                map.locationOverlay.icon = locatorImage
 
                 mapFlow.value = map
                 clusterManager.map = map
@@ -192,7 +182,9 @@ class MapHandlerImpl(
         isLocationPermissionGranted: Boolean,
     ) {
         val context = LocalContext.current as ComponentActivity
+        val density = LocalDensity.current
         var capturedMap by remember { mutableStateOf<ImageBitmap?>(null) }
+        var showLicenseBottomSheet by remember { mutableStateOf(false) }
 
         LaunchedEffect(key1 = isBlurApplied) {
             if (isBlurApplied) {
@@ -206,9 +198,18 @@ class MapHandlerImpl(
             if (isLocationPermissionGranted) {
                 val source = FusedLocationSource(context, 100)
 
+                // 이미 권한이 허용되었을 때에 실행되므로, 바로 성공 처리
+                context.requestPermissions(
+                    arrayOf(
+                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                    ),
+                    100,
+                )
+
                 getMap().apply {
-                    locationTrackingMode = LocationTrackingMode.Follow
                     locationSource = source
+                    locationTrackingMode = LocationTrackingMode.NoFollow
                 }
 
                 fusedLocationSource = source
@@ -217,7 +218,20 @@ class MapHandlerImpl(
             }
         }
 
+        LaunchedEffect(density) {
+            this@MapHandlerImpl.density = density.density
+
+            getMap().locationOverlay.let { locationOverlay ->
+                with(density) {
+                    locationOverlay.icon = locatorImage
+                    locationOverlay.iconWidth = DesignConstant.LocatorSize.width.roundToPx()
+                    locationOverlay.iconHeight = DesignConstant.LocatorSize.height.roundToPx()
+                }
+            }
+        }
+
         Box(
+            contentAlignment = Alignment.BottomStart,
             modifier = Modifier.fillMaxSize()
         ) {
             AndroidView(
@@ -239,6 +253,15 @@ class MapHandlerImpl(
                         .matchParentSize()
                         .let { if (isBlurApplied) it.blur(radius = 10.dp) else it })
             }
+            Box(
+                modifier = Modifier
+                    .size(width = 75.dp, height = 50.dp)
+                    .clickable { showLicenseBottomSheet = true }
+            )
+        }
+
+        if (showLicenseBottomSheet) {
+            NaverMapLicenseBar(onDismiss = { showLicenseBottomSheet = false })
         }
     }
 
@@ -325,7 +348,7 @@ class MapHandlerImpl(
 
     private fun Marker.toClusterMarker(clusterSize: Int) {
         val (clusterWidth, clusterHeight) = calculateClusteredMarkerSize(
-            density = context.resources.displayMetrics.density,
+            density = density,
             count = clusterSize,
         )
 
@@ -337,7 +360,7 @@ class MapHandlerImpl(
     }
 
     private fun Marker.toNormalMarker(marker: MapMarker) {
-        val density = context.resources.displayMetrics.density
+        val density = density
         val color = marker.color
         val zIndex = marker.zIndex
         val isOverlapping = marker.isOverlapping
