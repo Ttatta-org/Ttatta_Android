@@ -35,5 +35,8 @@ data class ItemEquipResultDTO (
     @Json(name = "isEquipped")
     val isEquipped: kotlin.Boolean? = null
 
-)
+) {
+
+
+}
 

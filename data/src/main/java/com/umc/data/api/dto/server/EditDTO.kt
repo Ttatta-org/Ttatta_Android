@@ -35,5 +35,8 @@ data class EditDTO (
     @Json(name = "diaryCategoryId")
     val diaryCategoryId: kotlin.Long? = null
 
-)
+) {
+
+
+}
 

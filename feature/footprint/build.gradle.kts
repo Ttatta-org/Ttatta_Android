@@ -79,4 +79,7 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
     implementation("io.coil-kt.coil3:coil-svg:3.0.4")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
+
+    // Accompanist Permission
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 }

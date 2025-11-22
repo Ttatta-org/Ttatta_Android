@@ -1,9 +1,13 @@
 package com.umc.login.navigation
 
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Text
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -15,11 +19,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.sp
+import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -203,6 +209,7 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                     }
                 },
                 onBackButtonClicked = {
+                    isEmailDomainDropdownExpanded = false
                     if (!navController.popBackStack()) onNavigatingBackToLogin()
                 },
             ) {
@@ -225,6 +232,8 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                     composable(
                         route = FindingPasswordNavGraphDestination.CERTIFICATION.route
                     ) {
+                        val context = LocalContext.current
+
                         LaunchedEffect(key1 = Unit) {
                             while (true) {
                                 remainTime = emailSentTime?.let {
@@ -239,28 +248,66 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                         }
 
                         LaunchedEffect(key1 = certificationCode) {
-                            if (certificationCode.length == 6) viewModel.runWithScope {
-                                runCatching {
+                            if (certificationCode.length != 6 || !certificationCode.isDigitsOnly()) return@LaunchedEffect
+
+                            viewModel.runWithScope {
+                                showLoading = true
+                                isEmailDomainDropdownExpanded = false
+
+                                val isValid = runCatching {
                                     requestCertificationCodeValidation(
                                         request = CertificationCodeValidationRequestForFindingPassword(
                                             email = "${emailLocal}@${emailDomain}",
                                             code = certificationCode,
                                         )
                                     )
-                                }.onSuccess { isValid ->
-                                    if (isValid) MainScope().launch {
-                                        navController.navigate(FindingPasswordNavGraphDestination.RESET_PASSWORD.route) {
+                                }.getOrNull()
+
+                                if (isValid == true) {
+                                    MainScope().launch {
+                                        navController.navigate(
+                                            route = FindingPasswordNavGraphDestination.RESET_PASSWORD.route
+                                        ) {
                                             popUpTo(FindingPasswordNavGraphDestination.ID.route) {
                                                 inclusive = true
                                             }
                                         }
                                     }
+                                } else if (isValid == false) {
+                                    MainScope().launch {
+                                        val toast = Toast.makeText(
+                                            context,
+                                            "인증번호가 올바르지 않습니다.",
+                                            Toast.LENGTH_SHORT,
+                                        )
+
+                                        toast.show()
+                                    }
                                 }
+
+                                showLoading = false
                             }
                         }
 
+                        DisposableEffect(Unit) {
+                            onDispose { isEmailDomainDropdownExpanded = false }
+                        }
+
+                        BackHandler {
+                            isEmailDomainDropdownExpanded = false
+                            navController.popBackStack()
+                        }
+
                         Box(
-                            modifier = Modifier.onGloballyPositioned { formLayoutCoordinates = it },
+                            modifier = Modifier
+                                .onGloballyPositioned { formLayoutCoordinates = it }
+                                .let {
+                                    if (isEmailDomainDropdownExpanded) it.clickable(
+                                        indication = null,
+                                        interactionSource = null,
+                                        onClick = { isEmailDomainDropdownExpanded = false }
+                                    ) else it
+                                },
                         ) {
                             CertificationForm(
                                 name = name,
@@ -279,7 +326,7 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                                 onDomainDropdownButtonCenterOffsetCalculated = {
                                     emailDropdownButtonCenterOffset = it
                                 },
-                                onCodeChanged = { certificationCode = it },
+                                onCodeChanged = { if (it.length <= 6) certificationCode = it },
                             )
                         }
                     }
@@ -326,10 +373,15 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                             screen
                                 .localPositionOf(form)
                                 .plus(emailDropdownButtonCenterOffset)
-                                .plus(Offset(x = -dropdownWidth.toFloat(), y = 16.dp.toPx()))
+                                .plus(
+                                    Offset(
+                                        x = 16.dp.toPx() - dropdownWidth.toFloat(),
+                                        y = 16.dp.toPx(),
+                                    )
+                                )
                                 .round()
                         }
-                        .onSizeChanged { dropdownWidth = it.width / 2 },
+                        .onSizeChanged { dropdownWidth = it.width },
                 ) {
                     EmailDomainDropdown(
                         props = emailDomains.map {

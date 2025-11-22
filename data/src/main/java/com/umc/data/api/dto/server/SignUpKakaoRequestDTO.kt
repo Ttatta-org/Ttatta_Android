@@ -31,5 +31,8 @@ data class SignUpKakaoRequestDTO (
     @Json(name = "nickname")
     val nickname: kotlin.String
 
-)
+) {
+
+
+}
 

@@ -15,7 +15,10 @@
 
 package com.umc.data.api.dto.server
 
+import com.umc.data.api.dto.server.Choice
+
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
@@ -29,5 +32,8 @@ data class ChatGPTResponseDTO (
     @Json(name = "choices")
     val choices: kotlin.collections.List<Choice>? = null
 
-)
+) {
+
+
+}
 

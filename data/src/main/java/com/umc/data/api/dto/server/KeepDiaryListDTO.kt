@@ -15,7 +15,10 @@
 
 package com.umc.data.api.dto.server
 
+import com.umc.data.api.dto.server.KeepDiaryDTO
+
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
@@ -29,5 +32,8 @@ data class KeepDiaryListDTO (
     @Json(name = "diaryList")
     val diaryList: kotlin.collections.List<KeepDiaryDTO>? = null
 
-)
+) {
+
+
+}
 

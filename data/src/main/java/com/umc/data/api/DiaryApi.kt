@@ -12,15 +12,13 @@ import com.umc.data.api.dto.server.PostDTO
 import com.umc.data.api.dto.server.PostResultDTO
 import com.umc.data.api.dto.server.PresignedResultDTO
 import com.umc.data.api.dto.server.SearchDiaryListDTO
-import com.umc.data.api.dto.server.ChatGPTResponseDTO
-import com.umc.data.api.dto.server.GetSummaryResultDTO
-import com.umc.data.api.dto.server.SummaryRequestDTO
+import com.umc.data.api.dto.server.RemindDTO
+import com.umc.data.api.dto.server.RemindDiaryDTO
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
-import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 import java.time.LocalDateTime
@@ -31,6 +29,12 @@ interface DiaryApi {
     suspend fun createDiary(
         @Body body: PostDTO,
     ): BaseResponse<PostResultDTO>
+
+    // 일기 리마인드를 위한 위치 전송
+    @POST("/diaries/remind")
+    suspend fun updateLocationForRemind(
+        @Body body: RemindDTO,
+    ): BaseResponse<Any?>
 
     // 일기 수정
     @PATCH("/diaries/edit/{diaryId}")
@@ -45,6 +49,12 @@ interface DiaryApi {
         @Path("requestNum") requestNum: Int,
         @Query("searchContent") searchContent: String
     ): BaseResponse<SearchDiaryListDTO>
+
+    // 리마인드 일기 조회
+    @GET("/diaries/remind/{id}")
+    suspend fun getRemindDiary(
+        @Path("id") diaryId: Long,
+    ): BaseResponse<RemindDiaryDTO>
 
     // 일기 사진 업로드 링크 발급
     @GET("/diaries/post/presignedUrl")
@@ -97,24 +107,4 @@ interface DiaryApi {
     suspend fun deleteDiary(
         @Path("diaryId") diaryId: Long
     ): BaseResponse<Any?>
-
-    // --- 하루 요약 관련 ---
-
-    // 하루 일기 요약 생성
-    @POST("/gpt/summary")
-    suspend fun createSummary(
-        @Body body: SummaryRequestDTO
-    ): BaseResponse<ChatGPTResponseDTO>
-
-    // 하루 일기 요약 조회
-    @GET("/gpt/get/summary")
-    suspend fun getSummary(
-        @Query("date") date: String // "2025-11-08" 형식
-    ): BaseResponse<GetSummaryResultDTO>
-
-    // 하루 일기 요약 재생성
-    @PUT("/gpt/summary/reSummary")
-    suspend fun regenerateSummary(
-        @Body body: SummaryRequestDTO
-    ): BaseResponse<String>
 }

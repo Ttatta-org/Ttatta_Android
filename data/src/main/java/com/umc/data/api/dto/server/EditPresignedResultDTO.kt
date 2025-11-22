@@ -31,5 +31,8 @@ data class EditPresignedResultDTO (
     @Json(name = "presignedUrl")
     val presignedUrl: kotlin.String? = null
 
-)
+) {
+
+
+}
 

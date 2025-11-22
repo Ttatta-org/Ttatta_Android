@@ -39,5 +39,8 @@ data class SendVerificationMailFindPwRequestDTO (
     @Json(name = "email")
     val email: kotlin.String
 
-)
+) {
+
+
+}
 

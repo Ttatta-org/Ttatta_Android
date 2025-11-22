@@ -1,5 +1,6 @@
 package com.umc.login.navigation
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +46,7 @@ fun NavGraphBuilder.addLoginNavGraph(
                     }.onSuccess {
                         onNavigatingToHome()
                     }.onFailure {
+                        Log.e("LoginApp", "error: $it")
                         isErrorOccurred = true
                     }
 

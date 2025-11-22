@@ -29,7 +29,7 @@ import com.squareup.moshi.JsonClass
 data class VerifyUsernameOverlapResultDTO (
 
     @Json(name = "isAvailable")
-    val isAvailable: IsAvailable? = null
+    val isAvailable: VerifyUsernameOverlapResultDTO.IsAvailable? = null
 
 ) {
 

@@ -46,7 +46,7 @@ data class UserKaKaoOpenIdResultDTO (
     val userId: kotlin.Long? = null,
 
     @Json(name = "loginType")
-    val loginType: LoginType? = null,
+    val loginType: UserKaKaoOpenIdResultDTO.LoginType? = null,
 
     @Json(name = "createdAt")
     val createdAt: java.time.OffsetDateTime? = null

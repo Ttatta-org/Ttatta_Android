@@ -146,10 +146,6 @@ class MyPageViewModel @Inject constructor(
     private val _notificationUi = MutableStateFlow(NotificationSettingsUiState())
     val notificationUi: StateFlow<NotificationSettingsUiState> = _notificationUi
 
-    init {
-        loadNotificationSettings()
-    }
-
     /** 화면 진입 시 서버 요약 한 방에 로드 */
     fun loadNotificationSettings() = viewModelScope.launch {
         _notificationUi.value = _notificationUi.value.copy(isLoading = true, error = null)

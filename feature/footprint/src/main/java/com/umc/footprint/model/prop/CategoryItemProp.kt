@@ -1,10 +1,10 @@
 package com.umc.footprint.model.prop
 
-import com.umc.design.CategoryColor
+import androidx.annotation.DrawableRes
 
 data class CategoryItemProp(
     val name: String,
-    val color: CategoryColor?,
-    val count: Int,
+    @field:DrawableRes val icon: Int,
+    val count: Int?,
     val onClicked: () -> Unit,
 )

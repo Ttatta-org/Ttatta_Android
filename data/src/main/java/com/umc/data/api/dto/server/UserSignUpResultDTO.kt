@@ -38,7 +38,7 @@ data class UserSignUpResultDTO (
     val nickname: kotlin.String? = null,
 
     @Json(name = "loginType")
-    val loginType: LoginType? = null,
+    val loginType: UserSignUpResultDTO.LoginType? = null,
 
     @Json(name = "createdAt")
     val createdAt: java.time.OffsetDateTime? = null

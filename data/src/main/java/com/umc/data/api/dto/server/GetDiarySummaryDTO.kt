@@ -17,6 +17,7 @@ package com.umc.data.api.dto.server
 
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
@@ -30,5 +31,8 @@ data class GetDiarySummaryDTO (
     @Json(name = "date")
     val date: java.time.LocalDate? = null
 
-)
+) {
+
+
+}
 

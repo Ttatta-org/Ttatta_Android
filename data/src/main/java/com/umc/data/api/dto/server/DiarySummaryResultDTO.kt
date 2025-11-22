@@ -17,6 +17,7 @@ package com.umc.data.api.dto.server
 
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
@@ -34,5 +35,8 @@ data class DiarySummaryResultDTO (
     @Json(name = "summaryDiary")
     val summaryDiary: kotlin.String? = null
 
-)
+) {
+
+
+}
 

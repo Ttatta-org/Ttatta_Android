@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,13 +43,13 @@ fun DiaryCardFront(
         prop = DiaryCardFrameProp(
             date = prop.prop?.date,
             borderColor = categoryColor?.b ?: colors.primary[400],
-            backgroundColor = categoryColor?.c ?: colors.secondary[200],
-            contentContainerColor = categoryColor?.a ?: colors.secondary[300],
+            backgroundColor = Color.White,
+            contentContainerColor = categoryColor?.c ?: colors.secondary[300],
             onModifyButtonClicked = prop.prop?.onModifyButtonClicked,
             content = {
-                // 본문
                 Box(
-                    contentAlignment = Alignment.Center, modifier = Modifier.size(220.dp)
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(32.dp),
@@ -56,22 +57,25 @@ fun DiaryCardFront(
                     )
                     if (prop.prop != null) Image(
                         painter = rememberAsyncImagePainter(
-                        model = prop.prop.imageUrl, onState = { state ->
-                            if (state is AsyncImagePainter.State.Success) scope.launch {
-                                alpha.animateTo(
-                                    targetValue = 1f, animationSpec = tween(
-                                        durationMillis = diaryCardFrameAnimationDurationMillis,
-                                        easing = LinearEasing,
+                            model = prop.prop.imageUrl,
+                            onState = { state ->
+                                if (state is AsyncImagePainter.State.Success) scope.launch {
+                                    alpha.animateTo(
+                                        targetValue = 1f, animationSpec = tween(
+                                            durationMillis = diaryCardFrameAnimationDurationMillis,
+                                            easing = LinearEasing,
+                                        )
                                     )
-                                )
-                            }
-                        }),
+                                }
+                            },
+                        ),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .fillMaxSize()
                             .alpha(alpha.value)
-                            .clip(RoundedCornerShape(8.dp)))
+                            .clip(RoundedCornerShape(8.dp))
+                    )
                 }
             },
         )

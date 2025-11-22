@@ -55,5 +55,8 @@ data class PostDTO (
     @Json(name = "objectKey")
     val objectKey: kotlin.String? = null
 
-)
+) {
+
+
+}
 

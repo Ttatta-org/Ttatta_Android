@@ -43,5 +43,8 @@ data class FailChallengeResultDTO (
     @Json(name = "term")
     val term: kotlin.Int? = null
 
-)
+) {
+
+
+}
 

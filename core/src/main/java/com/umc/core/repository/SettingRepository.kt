@@ -1,9 +1,9 @@
 package com.umc.core.repository
 
-import com.umc.core.model.NotificationSetting
+import com.umc.core.model.AlarmResult
+import com.umc.core.model.AlarmSummary
 import com.umc.core.model.Theme
 import java.time.LocalTime
-import kotlin.reflect.KClass
 
 interface SettingRepository {
     // 테마 설정
@@ -39,22 +39,7 @@ interface SettingRepository {
     suspend fun turnOnDailySummary(): AlarmResult
     suspend fun updateDailySummaryTime(time: LocalTime): AlarmResult
     suspend fun turnOffDailySummary()
+
+    // 위치 기반 리마인드를 위한 위치 전송
+    suspend fun sendLocation(latitude: Double, longitude: Double)
 }
-
-// 화면 초기화용 도메인 모델
-data class AlarmSummary(
-    val writingActive: Boolean,
-    val writingTime: LocalTime?,
-    val memoryActive: Boolean,
-    val challengeActive: Boolean,
-    val challengeHoursAgo: Int?,
-    val dailyActive: Boolean,
-    val dailyTime: LocalTime?
-)
-
-// 개별 동작 결과(ON/변경 공통)
-data class AlarmResult(
-    val active: Boolean,
-    val time: LocalTime? = null,
-    val hoursAgo: Int? = null
-)

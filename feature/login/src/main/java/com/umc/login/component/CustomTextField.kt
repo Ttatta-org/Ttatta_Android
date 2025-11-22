@@ -35,6 +35,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -61,6 +62,7 @@ data class CustomTextFieldProp(
     val textAlignment: CustomTextFieldTextAlignment = CustomTextFieldTextAlignment.START,
     val isVisible: Boolean = true,
     val isEditable: Boolean = true,
+    val keyboardType: KeyboardType = KeyboardType.Unspecified,
     val tail: (@Composable () -> Unit) = { Spacer(modifier = Modifier.height(32.dp)) },
 )
 
@@ -95,11 +97,11 @@ fun CustomTextField(
             readOnly = !prop.isEditable,
             maxLines = 1,
             keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Done
+                imeAction = ImeAction.Done,
+                keyboardType = prop.keyboardType,
             ),
             textStyle = innerTextStyle,
-            visualTransformation = if (prop.isVisible) VisualTransformation.None
-            else PasswordVisualTransformation(),
+            visualTransformation = if (prop.isVisible) VisualTransformation.None else PasswordVisualTransformation(),
             interactionSource = interactionSource,
             modifier = Modifier.widthIn(min = 0.dp),
         ) { innerTextField ->

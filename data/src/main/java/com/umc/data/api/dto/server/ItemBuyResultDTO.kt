@@ -43,5 +43,8 @@ data class ItemBuyResultDTO (
     @Json(name = "cost")
     val cost: kotlin.Long? = null
 
-)
+) {
+
+
+}
 

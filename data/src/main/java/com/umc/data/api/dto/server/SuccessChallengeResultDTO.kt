@@ -39,5 +39,8 @@ data class SuccessChallengeResultDTO (
     @Json(name = "updatedAt")
     val updatedAt: java.time.OffsetDateTime? = null
 
-)
+) {
+
+
+}
 

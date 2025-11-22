@@ -38,7 +38,7 @@ data class CreateCategoryResultDTO (
     val categoryName: kotlin.String? = null,
 
     @Json(name = "categoryColor")
-    val categoryColor: CategoryColor? = null,
+    val categoryColor: CreateCategoryResultDTO.CategoryColor? = null,
 
     @Json(name = "createdAt")
     val createdAt: java.time.OffsetDateTime? = null

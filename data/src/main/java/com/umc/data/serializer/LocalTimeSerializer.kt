@@ -1,4 +1,3 @@
-// com.umc.data.serializer.LocalTimeSerializer.kt
 package com.umc.data.serializer
 
 import com.google.gson.*
@@ -11,27 +10,38 @@ import java.lang.reflect.Type
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-class LocalTimeSerializer :
-    JsonDeserializer<LocalTime>,
+class LocalTimeSerializer : JsonDeserializer<LocalTime>,
     JsonSerializer<LocalTime>,
     JsonAdapter<LocalTime>() {
 
-    private val formatter = DateTimeFormatter.ISO_LOCAL_TIME // "HH:mm:ss"
+    companion object {
+        private val formatter = DateTimeFormatter.ISO_LOCAL_TIME // "HH:mm:ss"
+    }
 
     // Gson
-    override fun deserialize(json: JsonElement, typeOfT: Type, ctx: JsonDeserializationContext): LocalTime =
-        LocalTime.parse(json.asString, formatter)
+    override fun deserialize(
+        json: JsonElement,
+        typeOfT: Type,
+        ctx: JsonDeserializationContext,
+    ): LocalTime = LocalTime.parse(json.asString, formatter)
 
-    override fun serialize(src: LocalTime, typeOfSrc: Type, ctx: JsonSerializationContext): JsonElement =
-        JsonPrimitive(src.format(formatter))
+    override fun serialize(
+        src: LocalTime, typeOfSrc: Type, ctx: JsonSerializationContext
+    ): JsonElement = JsonPrimitive(src.format(formatter))
 
     // Moshi
     @FromJson
-    override fun fromJson(reader: JsonReader): LocalTime? =
-        LocalTime.parse(reader.nextString(), formatter)
+    override fun fromJson(reader: JsonReader): LocalTime? {
+        return if (reader.peek() == JsonReader.Token.NULL) {
+            reader.nextNull()
+        } else {
+            LocalTime.parse(reader.nextString(), formatter)
+        }
+    }
 
     @ToJson
     override fun toJson(writer: JsonWriter, value: LocalTime?) {
-        writer.value(value?.format(formatter))
+        if (value == null) writer.nullValue()
+        else writer.value(value.format(formatter))
     }
 }

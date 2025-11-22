@@ -35,5 +35,8 @@ data class IdDTO (
     @Json(name = "itemUniqueId")
     val itemUniqueId: kotlin.String? = null
 
-)
+) {
+
+
+}
 

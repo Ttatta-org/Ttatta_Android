@@ -45,7 +45,7 @@ data class MakeItemResultDTO (
     val cost: kotlin.Long? = null,
 
     @Json(name = "characterType")
-    val characterType: CharacterType? = null
+    val characterType: MakeItemResultDTO.CharacterType? = null
 
 ) {
 

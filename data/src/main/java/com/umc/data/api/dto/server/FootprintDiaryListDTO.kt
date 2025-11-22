@@ -18,6 +18,7 @@ package com.umc.data.api.dto.server
 import com.umc.data.api.dto.server.FootprintDiaryDTO
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
@@ -31,5 +32,8 @@ data class FootprintDiaryListDTO (
     @Json(name = "footprintList")
     val footprintList: kotlin.collections.List<FootprintDiaryDTO>? = null
 
-)
+) {
+
+
+}
 
