@@ -17,6 +17,8 @@ import com.umc.challenge.screen.ChallengeScreenTopBarProp
 import com.umc.challenge.screen.ClickedItemProp
 import com.umc.challenge.screen.MyItemItemItemProp
 import com.umc.challenge.screen.MyItemScreen
+import com.umc.challenge.screen.PastChallengeScreen
+import com.umc.challenge.screen.PastChallengeScreenTopBarProp
 import com.umc.challenge.screen.ShopItemItemProp
 import com.umc.challenge.screen.ShopScreen
 import com.umc.challenge.view.ChallengeItemProp
@@ -155,6 +157,9 @@ fun ChallengeApp(
                                         onSucceed = { /* 화면 뒤로 */ },
                                         onFailed = { /* 에러 처리 */ }
                                     )
+                                },
+                                onPastChallengeClick = {
+                                    navController.navigate("past_challenge")
                                 }
                             )
                         )
@@ -261,6 +266,18 @@ fun ChallengeApp(
                         }
                     }
                 }
+            )
+        }
+
+        composable("past_challenge") {
+            PastChallengeScreen(
+                topBarProp = PastChallengeScreenTopBarProp(
+                    onHeightChanged = { /* 필요 없으면 무시해도 됨 */ },
+                    onBackIconClicked = {
+                        // 뒤로가기 → challenge 화면으로 복귀
+                        navController.popBackStack()
+                    }
+                )
             )
         }
     }

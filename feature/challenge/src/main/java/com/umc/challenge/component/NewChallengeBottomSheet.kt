@@ -46,7 +46,8 @@ data class ChallengeBottomSheetProp(
     val onCreateButtonClicked: () -> Unit,
     val onTitleChanged: (String) -> Unit,
     val onContentChanged: (String) -> Unit,
-    val isButtonEnabled: Boolean
+    val isButtonEnabled: Boolean,
+    val onPastChallengeClick: () -> Unit
 )
 
 private val bottomSheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
@@ -277,6 +278,7 @@ fun NewChallengeBottomSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 40.dp)
+                        .clickable { prop.onPastChallengeClick() }
                 ) {
                     Text(
                         text = "지난 챌린지를 보러가볼까요?",
@@ -334,7 +336,8 @@ val previewChallengeBottomSheetProp = ChallengeBottomSheetProp(
     onCreateButtonClicked = {},
     onTitleChanged = {},
     onContentChanged = {},
-    isButtonEnabled = true
+    isButtonEnabled = true,
+    onPastChallengeClick = {}
 )
 
 @Preview
