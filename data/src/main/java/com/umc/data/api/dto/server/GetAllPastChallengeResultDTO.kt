@@ -25,11 +25,11 @@ import com.squareup.moshi.JsonClass
  * @param challengeId 
  * @param title 
  * @param content 
- * @param isCompleted 
+ * @param completed 
  */
 
 
-data class ChallengeResultDTO (
+data class GetAllPastChallengeResultDTO (
 
     @Json(name = "challengeId")
     val challengeId: kotlin.Long? = null,
@@ -40,8 +40,8 @@ data class ChallengeResultDTO (
     @Json(name = "content")
     val content: kotlin.String? = null,
 
-    @Json(name = "isCompleted")
-    val isCompleted: kotlin.Boolean? = null
+    @Json(name = "completed")
+    val completed: kotlin.Boolean? = null
 
 ) {
 

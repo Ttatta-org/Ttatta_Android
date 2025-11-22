@@ -15,6 +15,7 @@
 
 package com.umc.data.api.dto.server
 
+import com.umc.data.api.dto.server.GetAllPastChallengeResultDTO
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
@@ -22,26 +23,14 @@ import com.squareup.moshi.JsonClass
 /**
  * 
  *
- * @param challengeId 
- * @param title 
- * @param content 
- * @param isCompleted 
+ * @param getAllPastChallengeResultDTOList 
  */
 
 
-data class ChallengeResultDTO (
+data class GetAllPastChallengeListResultDTO (
 
-    @Json(name = "challengeId")
-    val challengeId: kotlin.Long? = null,
-
-    @Json(name = "title")
-    val title: kotlin.String? = null,
-
-    @Json(name = "content")
-    val content: kotlin.String? = null,
-
-    @Json(name = "isCompleted")
-    val isCompleted: kotlin.Boolean? = null
+    @Json(name = "getAllPastChallengeResultDTOList")
+    val getAllPastChallengeResultDTOList: kotlin.collections.List<GetAllPastChallengeResultDTO>? = null
 
 ) {
 

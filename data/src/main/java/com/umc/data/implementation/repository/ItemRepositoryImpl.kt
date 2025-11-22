@@ -9,60 +9,72 @@ import com.umc.data.preference.AuthPreference
 import com.umc.data.preference.ItemPreference
 import com.umc.data.util.withAuth
 import com.umc.design.character.Accessory
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class ItemRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val authPreference: AuthPreference,
     private val itemPreference: ItemPreference,
-): ItemRepository {
+) : ItemRepository {
 
     override suspend fun getUnownedItemsWithPoint(): Pair<Int, List<UnownedItem>> {
         val response = serverApi.withAuth(authPreference) { getShopItems() }
         return response.point!!.toInt() to (response.itemShopList?.mapNotNull {
-            Accessory.entries.firstOrNull { accessory ->
-                accessory.code == it.itemUniqueId!!
-            }?.let { accessory ->
-                UnownedItem(
-                    id = it.itemId!!,
-                    item = accessory,
-                    cost = it.cost!!.toInt(),
-                )
-            }
+            Accessory.entries
+                .firstOrNull { accessory ->
+                    accessory.code == it.itemUniqueId!!
+                }
+                ?.let { accessory ->
+                    UnownedItem(
+                        id = it.itemId!!,
+                        item = accessory,
+                        cost = it.cost!!.toInt(),
+                    )
+                }
         } ?: listOf())
     }
 
     override suspend fun getOwnedItemsWithPoint(): Pair<Int, List<OwnedItem>> {
         val response = serverApi.withAuth(authPreference) { getOwnedItems() }
         return response.point!!.toInt() to (response.myItemList?.mapNotNull {
-            Accessory.entries.firstOrNull { accessory ->
-                accessory.code == it.itemUniqueId!!
-            }?.let { accessory ->
-                OwnedItem(
-                    id = it.itemId!!,
-                    item = accessory,
-                    isEquipped = it.isEquipped!!
-                )
-            }
+            Accessory.entries
+                .firstOrNull { accessory ->
+                    accessory.code == it.itemUniqueId!!
+                }
+                ?.let { accessory ->
+                    OwnedItem(
+                        id = it.itemId!!,
+                        item = accessory,
+                        isEquipped = it.isEquipped!!
+                    )
+                }
         } ?: listOf())
     }
 
     override suspend fun getEquippedItems(): List<EquippedItem> {
-        try {
-            val response = serverApi.withAuth(authPreference) { getEquippedItems() }
-            return response.idList?.mapNotNull {
-                Accessory.entries.firstOrNull { accessory ->
-                    accessory.code == it.itemUniqueId!!
-                }?.let { accessory ->
-                    EquippedItem(
-                        id = it.itemId!!,
-                        item = accessory,
-                    )
-                }
-            } ?: listOf()
-        } catch (e: Exception) {
-            return itemPreference.itemList
+        CoroutineScope(Dispatchers.IO).launch {
+            runCatching {
+                val response = serverApi.withAuth(authPreference) { getEquippedItems() }
+
+                itemPreference.itemList = response.idList?.mapNotNull {
+                    Accessory.entries
+                        .firstOrNull { accessory ->
+                            accessory.code == it.itemUniqueId!!
+                        }
+                        ?.let { accessory ->
+                            EquippedItem(
+                                id = it.itemId!!,
+                                item = accessory,
+                            )
+                        }
+                } ?: listOf()
+            }
         }
+
+        return itemPreference.itemList
     }
 
     override suspend fun purchaseItem(id: Long) {
