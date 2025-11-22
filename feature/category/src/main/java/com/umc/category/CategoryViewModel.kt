@@ -25,7 +25,7 @@ class CategoryViewModel @Inject constructor(
 
     suspend fun createCategory(
         name: String,
-        color: CategoryColor?,
+        color: CategoryColor,
     ) {
         diaryRepository.createCategory(name = name, color = color)
         getCategoryListFromServer()
@@ -34,7 +34,7 @@ class CategoryViewModel @Inject constructor(
     suspend fun modifyCategory(
         id: Long,
         name: String,
-        color: CategoryColor?,
+        color: CategoryColor,
     ) {
         diaryRepository.modifyCategory(categoryId = id, name = name, color = color)
         getCategoryListFromServer()

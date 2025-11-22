@@ -45,7 +45,7 @@ fun CategoryApp(
     val categoryList by viewModel.categoryList.collectAsState()
 
     var categoryNameInputFieldValue by remember { mutableStateOf("") }
-    var selectedCategoryColor by remember { mutableStateOf<CategoryColor?>(null) }
+    var selectedCategoryColor by remember { mutableStateOf(CategoryColor.entries.first()) }
     var selectedCategory by remember { mutableStateOf<CategoryInfo?>(null) }
     var showCategoryManagementBar by remember { mutableStateOf(false) }
     var showCategoryDeletionDialog by remember { mutableStateOf(false) }
@@ -93,7 +93,7 @@ fun CategoryApp(
                     if (it.length <= MAX_CATEGORY_NAME_LENGTH) categoryNameInputFieldValue = it
                 },
                 onCategoryColorClicked = {
-                    selectedCategoryColor = if (selectedCategoryColor == it) null else it
+                    selectedCategoryColor = it
                 },
                 onDoneButtonClicked = {
                     viewModel.runWithScope {
@@ -107,7 +107,7 @@ fun CategoryApp(
                         }
                             .onSuccess {
                                 categoryNameInputFieldValue = ""
-                                selectedCategoryColor = null
+                                selectedCategoryColor = CategoryColor.entries.first()
                             }
                             .onFailure {
                                 val toast =
@@ -128,11 +128,12 @@ fun CategoryApp(
             route = "/modify"
         ) {
             var categoryName by remember(selectedCategory) {
-                mutableStateOf(
-                    selectedCategory?.name ?: ""
-                )
+                mutableStateOf(selectedCategory?.name ?: "")
             }
-            var categoryColor by remember(selectedCategory) { mutableStateOf(selectedCategory?.color) }
+
+            var categoryColor by remember(selectedCategory) {
+                mutableStateOf(selectedCategory?.color ?: CategoryColor.entries.first())
+            }
 
             BackHandler {
                 MainScope().launch { navigator.popBackStack() }
@@ -143,13 +144,28 @@ fun CategoryApp(
                 maxCategoryNameLength = MAX_CATEGORY_NAME_LENGTH,
                 categoryNameInputFieldValue = categoryName,
                 selectedCategoryColor = categoryColor,
-                isDoneButtonEnabled = categoryName.isNotBlank() && categoryName.length <= MAX_CATEGORY_NAME_LENGTH && categoryColor != null,
+                isDoneButtonEnabled = categoryName.isNotBlank() && categoryName.length <= MAX_CATEGORY_NAME_LENGTH,
                 onCategoryNameInputFieldValueChanged = {
                     if (it.length <= MAX_CATEGORY_NAME_LENGTH) categoryName = it
                 },
                 onCategoryColorClicked = { categoryColor = it },
                 onDoneButtonClicked = onDoneButtonClicked@{
                     val id = selectedCategory?.id ?: return@onDoneButtonClicked
+                    val categoryName = categoryName.trim()
+
+                    if (categoryName == "일상") {
+                        MainScope().launch {
+                            val toast = Toast.makeText(
+                                context,
+                                "\"일상\"이라는 이름은 사용할 수 없습니다!",
+                                Toast.LENGTH_SHORT,
+                            )
+
+                            toast.show()
+                        }
+
+                        return@onDoneButtonClicked
+                    }
 
                     viewModel.runWithScope {
                         showLoading = true
