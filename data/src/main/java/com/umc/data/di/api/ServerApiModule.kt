@@ -3,6 +3,7 @@ package com.umc.data.di.api
 import com.squareup.moshi.Moshi
 import com.umc.data.BuildConfig
 import com.umc.data.api.ServerApi
+import com.umc.data.exception.TokenExpiredException
 import com.umc.data.preference.AuthPreference
 import dagger.Module
 import dagger.Provides
@@ -26,18 +27,35 @@ object ServerApiModule {
 
         val clientBuilder = OkHttpClient
             .Builder()
-            .addNetworkInterceptor { chain ->
-                val request = chain
+            .addInterceptor { chain ->
+                val accessToken = authPreference.accessToken
+
+                val requestBuilder = chain
                     .request()
                     .newBuilder()
-                    .let { builder ->
-                        authPreference.accessToken?.let { token ->
-                            builder.addHeader("Authorization", "Bearer $token")
-                        } ?: builder
-                    }
-                    .build()
 
-                chain.proceed(request)
+                if (accessToken != null) {
+                    requestBuilder.addHeader("Authorization", "Bearer $accessToken")
+                }
+
+                val response = chain.proceed(requestBuilder.build())
+
+                if (accessToken != null) {
+                    val contentLength = response.body?.contentLength() ?: -1L
+                    val shouldPeekBody = contentLength != -1L && contentLength < 1024L
+
+                    if (shouldPeekBody &&
+                        response
+                            .peekBody(1024L)
+                            .string()
+                            .contains("\"Token_Expired\"")
+                    ) {
+                        response.close()
+                        throw TokenExpiredException(accessToken = accessToken)
+                    }
+                }
+
+                response
             }
 
         if (BuildConfig.DEBUG) {
