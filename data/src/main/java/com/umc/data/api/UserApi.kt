@@ -57,7 +57,7 @@ interface UserApi {
 
     // 회원가입 인증번호 확인
     @POST("/users/signup/verify/check")
-    suspend fun checkVerificationCodeForSignUp(
+    suspend fun checkVerificationCode(
         @Body body: CheckVerificationCodeRequestDTO
     ): BaseResponse<Any?>
 

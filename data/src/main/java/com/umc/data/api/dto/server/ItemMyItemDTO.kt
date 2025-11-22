@@ -43,10 +43,10 @@ data class ItemMyItemDTO (
     val name: kotlin.String? = null,
 
     @Json(name = "characterType")
-    val characterType: CharacterType? = null,
+    val characterType: ItemMyItemDTO.CharacterType? = null,
 
     @Json(name = "bodyPart")
-    val bodyPart: BodyPart? = null,
+    val bodyPart: ItemMyItemDTO.BodyPart? = null,
 
     @Json(name = "isEquipped")
     val isEquipped: kotlin.Boolean? = null

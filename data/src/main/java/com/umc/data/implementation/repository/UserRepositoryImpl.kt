@@ -1,29 +1,37 @@
 package com.umc.data.implementation.repository
 
-import android.util.Log
 import com.umc.core.model.LoginType
 import com.umc.core.model.UserInfo
 import com.umc.core.model.UserStatus
 import com.umc.core.repository.UserRepository
 import com.umc.data.api.ServerApi
-import com.umc.data.api.dto.server.*
-import com.umc.data.api.withAuth
-import com.umc.data.api.withCheck
+import com.umc.data.api.dto.server.CheckVerificationCodeRequestDTO
+import com.umc.data.api.dto.server.DeleteRequestDTO
+import com.umc.data.api.dto.server.EditRequestDTO
+import com.umc.data.api.dto.server.FindPwRequestDTO
+import com.umc.data.api.dto.server.SendVerificationMailFindIdRequestDTO
+import com.umc.data.api.dto.server.SendVerificationMailFindPwRequestDTO
+import com.umc.data.api.dto.server.SendVerificationMailSignUpRequestDTO
+import com.umc.data.api.dto.server.SignInRequestDTO
+import com.umc.data.api.dto.server.SignUpKakaoRequestDTO
+import com.umc.data.api.dto.server.SignUpRequestDTO
+import com.umc.data.api.dto.server.UserInfoResultDTO
+import com.umc.data.api.dto.server.VerifyUsernameOverlapResultDTO
 import com.umc.data.preference.AuthPreference
+import com.umc.data.preference.SettingPreference
+import com.umc.data.util.withAuth
+import com.umc.data.util.withCheck
 import retrofit2.HttpException
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val authPreference: AuthPreference,
+    private val settingPreference: SettingPreference,
 ) : UserRepository {
 
     override suspend fun isAlreadyLogin(): Boolean {
-        return try {
-            getUserInfo()
-        } catch (_: Exception) {
-            null
-        } != null
+        return runCatching { getUserInfo() }.isSuccess
     }
 
     override suspend fun isIdAlreadyOccupied(id: String): Boolean {
@@ -31,16 +39,16 @@ class UserRepositoryImpl @Inject constructor(
         return response.isAvailable != VerifyUsernameOverlapResultDTO.IsAvailable.AVAILABLE
     }
 
-
     override suspend fun login(id: String, password: String) {
         val body = SignInRequestDTO(
             username = id,
             password = password,
         )
+
         val response = serverApi.withCheck { signIn(body = body) }
+
         authPreference.accessToken = response.accessToken
         authPreference.refreshToken = response.refreshToken
-        authPreference.userId = response.userId
     }
 
     override suspend fun join(
@@ -57,13 +65,16 @@ class UserRepositoryImpl @Inject constructor(
             username = id,
             password = password
         )
+
         serverApi.withCheck { signUp(body = body) }
     }
 
     override suspend fun tryLoginWithKakao(openIdToken: String): Boolean {
         val response = serverApi.withCheck { serverApi.loginWithKakao(idToken = openIdToken) }
+
         authPreference.accessToken = response.accessToken
         authPreference.refreshToken = response.refreshToken
+
         return response.isRegistered!!
     }
 
@@ -89,7 +100,7 @@ class UserRepositoryImpl @Inject constructor(
         val body = CheckVerificationCodeRequestDTO(email = email, code = code.toString())
 
         return try {
-            serverApi.withCheck { checkVerificationCodeForSignUp(body = body) }
+            serverApi.withCheck { checkVerificationCode(body = body) }
             true
         } catch (e: HttpException) {
             if (e.code() == 400) return false
@@ -112,10 +123,15 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun checkVerificationCodeForFindingId(
         email: String,
         code: Int
-    ): Pair<String, String> {
+    ): Pair<String, String>? {
         val body = CheckVerificationCodeRequestDTO(email = email, code = code.toString())
-        val response = serverApi.withCheck { findId(body = body) }
-        return response.name!! to response.id!!
+        try {
+            val response = serverApi.withCheck { findId(body = body) }
+            return response.name!! to response.id!!
+        } catch (e: HttpException) {
+            if (e.code() == 400) return null
+            throw e
+        }
     }
 
     override suspend fun requestEmailForFindingPassword(name: String, email: String, id: String): Boolean {
@@ -134,7 +150,15 @@ class UserRepositoryImpl @Inject constructor(
         email: String,
         code: Int,
     ): Boolean {
-        return true
+        val body = CheckVerificationCodeRequestDTO(email = email, code = code.toString())
+
+        return try {
+            serverApi.withCheck { checkVerificationCode(body = body) }
+            true
+        } catch (e: HttpException) {
+            if (e.code() == 400) return false
+            throw e
+        }
     }
 
     override suspend fun checkIdForFindingPassword(id: String): Boolean {
@@ -153,9 +177,12 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun logout() {
         serverApi.withCheck { logout() }
+
         authPreference.accessToken = null
         authPreference.refreshToken = null
-        authPreference.userId = null
+
+        settingPreference.pinHash = null
+        settingPreference.lastSentFcmToken = null
     }
 
     override suspend fun getUserInfo(): UserInfo {
@@ -195,9 +222,15 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun leaveUser(reason: String?) {
-        val body = DeleteRequestDTO(reason = reason)
+        val body = DeleteRequestDTO(reason = reason ?: "")
         serverApi.withAuth(authPreference = authPreference) {
             deleteUser(body = body)
         }
+
+        authPreference.accessToken = null
+        authPreference.refreshToken = null
+
+        settingPreference.pinHash = null
+        settingPreference.lastSentFcmToken = null
     }
 }

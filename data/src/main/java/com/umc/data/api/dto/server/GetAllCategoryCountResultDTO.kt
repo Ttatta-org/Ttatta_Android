@@ -18,6 +18,7 @@ package com.umc.data.api.dto.server
 import com.umc.data.api.dto.server.CategoryDetailDTO
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
@@ -35,5 +36,8 @@ data class GetAllCategoryCountResultDTO (
     @Json(name = "totalDiaryCount")
     val totalDiaryCount: kotlin.Int? = null
 
-)
+) {
+
+
+}
 

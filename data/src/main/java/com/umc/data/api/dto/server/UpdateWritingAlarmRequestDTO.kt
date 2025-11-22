@@ -32,5 +32,8 @@ data class UpdateWritingAlarmRequestDTO (
     @Json(name = "alarmTime")
     val alarmTime: kotlin.String? = null
 
-)
+) {
+
+
+}
 

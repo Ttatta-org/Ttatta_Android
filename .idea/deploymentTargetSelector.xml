@@ -19,10 +19,7 @@
       <SelectionState runConfigName="test.record">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="TestActivity (home)">
-        <option name="selectionMode" value="DROPDOWN" />
-      </SelectionState>
-      <SelectionState runConfigName="TestActivity (mypage)">
+      <SelectionState runConfigName="test.challenge">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

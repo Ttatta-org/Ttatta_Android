@@ -28,6 +28,8 @@ import com.umc.challenge.view.ChallengeState
 import com.umc.challenge.view.NewChallengeView
 import com.umc.challenge.view.NewChallengeViewProp
 import com.umc.design.character.Accessory
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 data class ClickedUncompletedChallengeInfo(
     val id: Long,
@@ -44,15 +46,19 @@ data class ClickedOwnedItemInfo(
     val isEquipped: Boolean,
 )
 
+data class PointGrantEvent(
+    val point: Int,
+    val onDismiss: () -> Unit,
+)
+
 @Composable
 fun ChallengeApp(
     viewModel: ChallengeViewModel,
-    showPointGrantedPopup: Boolean,
+    pointGrantEvent: PointGrantEvent?,
     onNavigationBarVisibilityChanged: (Boolean) -> Unit,
     onChallengeCompletionRequired: (id: Long) -> Unit,
 ) {
     val navController = rememberNavController()
-    var showPointGrantedCardDialog by remember { mutableStateOf(showPointGrantedPopup) }
 
     LaunchedEffect(key1 = Unit) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -69,7 +75,9 @@ fun ChallengeApp(
     ) {
         composable("challenge") {
             var isLoading by remember { mutableStateOf(true) }
-            var clickedUncompletedChallengeInfo by remember { mutableStateOf<ClickedUncompletedChallengeInfo?>(null) }
+            var clickedUncompletedChallengeInfo by remember {
+                mutableStateOf<ClickedUncompletedChallengeInfo?>(null)
+            }
 
             LaunchedEffect(key1 = Unit) {
                 viewModel.getTodayChallenges(onSucceed = { isLoading = false })
@@ -92,9 +100,16 @@ fun ChallengeApp(
                         }
                     )
                 },
-                pointGrantedCardDialogProp = if (showPointGrantedCardDialog) PointGrantedCardDialogProp(
-                    onDismissed = { showPointGrantedCardDialog = false },
-                ) else null,
+                pointGrantedCardDialogProp = pointGrantEvent?.let { event ->
+                    PointGrantedCardDialogProp(
+                        point = event.point,
+                        onDismissed = event.onDismiss,
+                        onGoToShopButtonClicked = {
+                            event.onDismiss.invoke()
+                            navController.navigate("shop")
+                        }
+                    )
+                },
             ) {
                 val challengeScreenNavController = rememberNavController()
 
@@ -119,13 +134,14 @@ fun ChallengeApp(
                                 challengeItemPropList = viewModel.todayChallenges.map {
                                     ChallengeItemProp(
                                         title = it.title,
-                                        content = it.content ?: it.content ?: "",
+                                        content = it.content,
                                         state = if (it.isCompleted)
                                             ChallengeState.COMPLETED
                                         else
                                             ChallengeState.IN_PROGRESS,
                                         onClicked = {
-                                            if (!it.isCompleted) clickedUncompletedChallengeInfo = ClickedUncompletedChallengeInfo(id = it.id)
+                                            if (!it.isCompleted) clickedUncompletedChallengeInfo =
+                                                ClickedUncompletedChallengeInfo(id = it.id)
                                         }
                                     )
                                 },
@@ -140,8 +156,6 @@ fun ChallengeApp(
                         var title by remember { mutableStateOf("") }
                         var description by remember { mutableStateOf("") }
 
-//                        LaunchedEffect(key1 = Unit) { viewModel.getFailedChallenges() }
-
                         NewChallengeView(
                             prop = NewChallengeViewProp(
                                 maxTitleLength = 20,
@@ -154,7 +168,9 @@ fun ChallengeApp(
                                     viewModel.createChallenge(
                                         title = title,
                                         description = description,
-                                        onSucceed = { /* 화면 뒤로 */ },
+                                        onSucceed = {
+                                            MainScope().launch { challengeScreenNavController.popBackStack() }
+                                        },
                                         onFailed = { /* 에러 처리 */ }
                                     )
                                 },
@@ -167,7 +183,7 @@ fun ChallengeApp(
                 }
             }
         }
-        
+
         composable("shop") {
             var clickedShopItemInfo by remember { mutableStateOf<ClickedShopItemInfo?>(null) }
 
@@ -217,7 +233,7 @@ fun ChallengeApp(
                 }
             )
         }
-        
+
         composable("my_item") {
             var clickedOwnedItemInfo by remember { mutableStateOf<ClickedOwnedItemInfo?>(null) }
 

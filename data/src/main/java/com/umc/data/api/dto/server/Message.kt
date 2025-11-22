@@ -35,5 +35,8 @@ data class Message (
     @Json(name = "content")
     val content: kotlin.String? = null
 
-)
+) {
+
+
+}
 

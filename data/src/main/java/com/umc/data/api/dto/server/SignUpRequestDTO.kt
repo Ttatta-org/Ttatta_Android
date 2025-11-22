@@ -47,5 +47,8 @@ data class SignUpRequestDTO (
     @Json(name = "password")
     val password: kotlin.String
 
-)
+) {
+
+
+}
 

@@ -31,5 +31,8 @@ data class SendVerificationMailSignUpRequestDTO (
     @Json(name = "email")
     val email: kotlin.String
 
-)
+) {
+
+
+}
 

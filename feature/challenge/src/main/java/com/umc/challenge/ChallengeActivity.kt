@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import com.umc.challenge.screen.ChallengeScreen
 import com.umc.challenge.screen.ChallengeScreenTopBarProp
 
+@Deprecated("Jetpack Compose 사용중")
 class ChallengeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

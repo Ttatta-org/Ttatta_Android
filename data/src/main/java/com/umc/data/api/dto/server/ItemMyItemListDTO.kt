@@ -18,6 +18,7 @@ package com.umc.data.api.dto.server
 import com.umc.data.api.dto.server.ItemMyItemDTO
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
@@ -35,5 +36,8 @@ data class ItemMyItemListDTO (
     @Json(name = "myItemList")
     val myItemList: kotlin.collections.List<ItemMyItemDTO>? = null
 
-)
+) {
+
+
+}
 

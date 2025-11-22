@@ -31,5 +31,8 @@ data class IsPendingResultDTO (
     @Json(name = "pending")
     val pending: kotlin.Boolean? = null
 
-)
+) {
+
+
+}
 

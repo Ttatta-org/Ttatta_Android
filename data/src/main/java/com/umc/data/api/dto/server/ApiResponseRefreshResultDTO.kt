@@ -15,7 +15,10 @@
 
 package com.umc.data.api.dto.server
 
+import com.umc.data.api.dto.server.RefreshResultDTO
+
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 /**
  * 
@@ -41,5 +44,8 @@ data class ApiResponseRefreshResultDTO (
     @Json(name = "result")
     val result: RefreshResultDTO? = null
 
-)
+) {
+
+
+}
 

@@ -38,7 +38,7 @@ data class ModifyCategoryResultDTO (
     val categoryName: kotlin.String? = null,
 
     @Json(name = "categoryColor")
-    val categoryColor: CategoryColor? = null,
+    val categoryColor: ModifyCategoryResultDTO.CategoryColor? = null,
 
     @Json(name = "updatedAt")
     val updatedAt: java.time.OffsetDateTime? = null

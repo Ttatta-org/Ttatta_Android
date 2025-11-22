@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,6 +33,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.umc.design.R
 import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.LocalFontTheme
 import com.umc.design.theme.ThemeProvider
 
 @Composable
@@ -42,6 +44,7 @@ fun CustomPopup(
     confirmText: String = "확인",
     onDismiss: () -> Unit,
     onConfirm: (() -> Unit)? = null,
+    content: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -69,7 +72,7 @@ fun CustomPopup(
                 )
                 Spacer(modifier = Modifier.height(15.dp))
                 Column(
-                    verticalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     if (title != null) Text(
@@ -77,15 +80,20 @@ fun CustomPopup(
                         fontSize = 16.sp,
                         color = Color.Black,
                         fontWeight = FontWeight.W700,
+                        textAlign = TextAlign.Center,
                     )
                     if (message != null) Text(
                         text = message,
                         fontSize = 13.sp,
+                        lineHeight = 18.sp,
                         color = LocalColorTheme.current.grey[700],
                         fontWeight = FontWeight.W400,
+                        textAlign = TextAlign.Center,
                     )
                 }
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+                content?.invoke(this)
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.fillMaxWidth(),
@@ -100,6 +108,7 @@ fun CustomPopup(
                     ) {
                         Text(
                             text = cancelText,
+                            fontFamily = LocalFontTheme.current.font,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.W600,
                             color = LocalColorTheme.current.primary[200],
@@ -110,10 +119,11 @@ fun CustomPopup(
                         colors = ButtonDefaults.buttonColors(containerColor = LocalColorTheme.current.primary[400]),
                         shape = RoundedCornerShape(13.dp),
                         modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(vertical = 13.dp)
+                        contentPadding = PaddingValues(vertical = 13.dp),
                     ) {
                         Text(
                             text = confirmText,
+                            fontFamily = LocalFontTheme.current.font,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.W600,
                             color = Color.White,
@@ -125,14 +135,13 @@ fun CustomPopup(
     }
 }
 
-
 @Composable
 @Preview(showBackground = true, backgroundColor = 0xFFEFEFEF)
 fun DialogPreview() {
     ThemeProvider {
         CustomPopup(
             title = "로그아웃 하시겠습니까?",
-            message = "언제든 따따와 함께하고 싶다면 찾아와주세요!",
+            message = "언제든 따따와 함께하고\n싶다면 찾아와주세요!",
             onDismiss = {},
             onConfirm = null,
         )

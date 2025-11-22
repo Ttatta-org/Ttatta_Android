@@ -1,122 +1,95 @@
 package com.umc.footprint.implementation
 
 import android.content.Context
+import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.PointF
-import android.location.Location
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraAnimation
 import com.naver.maps.map.CameraUpdate
-import com.naver.maps.map.LocationSource
 import com.naver.maps.map.LocationTrackingMode
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
+import com.naver.maps.map.app.LegalNoticeActivity
 import com.naver.maps.map.clustering.Clusterer
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.overlay.OverlayImage
-import com.umc.design.CategoryColor
+import com.naver.maps.map.util.FusedLocationSource
 import com.umc.footprint.R
 import com.umc.footprint.core.DesignConstant
-import com.umc.footprint.core.LocationHandler
 import com.umc.footprint.core.MapHandler
 import com.umc.footprint.core.MapMarker
+import com.umc.footprint.modal.NaverMapLicenseBar
 import com.umc.footprint.util.calculateClusteredMarkerSize
-import com.umc.footprint.util.loadRawImageAsBitmap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import kotlin.math.roundToInt
 
-class MapHandlerImpl @Inject constructor(
-    private val context: Context,
-    private val locationHandler: LocationHandler,
-): MapHandler {
+class MapHandlerImpl(context: Context) : MapHandler {
 
-    private val locatorImage: OverlayImage = OverlayImage.fromBitmap(
-        loadRawImageAsBitmap(
-            context = context,
-            rawResourceId = R.raw.ic_locator,
-            size = DesignConstant.LocatorSize,
-        )
-    )
-
-    private val clusterImage: OverlayImage = OverlayImage.fromBitmap(
-        loadRawImageAsBitmap(
-            context = context,
-            rawResourceId = R.raw.ic_clustered_marker,
-            size = DesignConstant.ClusterMarkerMaxSize,
-        )
-    )
-
-    private val footMarkerImages: Map<CategoryColor, OverlayImage> = mapOf(
-        CategoryColor.RED to R.raw.ic_foot_red,
-        CategoryColor.ORANGE to R.raw.ic_foot_orange,
-        CategoryColor.YELLOW to R.raw.ic_foot_yellow,
-        CategoryColor.GREEN to R.raw.ic_foot_green,
-        CategoryColor.TURQUOISE to R.raw.ic_foot_turquoise,
-        CategoryColor.BLUE to R.raw.ic_foot_blue,
-        CategoryColor.NAVY to R.raw.ic_foot_navy,
-        CategoryColor.PURPLE to R.raw.ic_foot_purple,
-        CategoryColor.BROWN to R.raw.ic_foot_brown,
-        CategoryColor.PINK to R.raw.ic_foot_pink,
-        CategoryColor.WHITE to R.raw.ic_foot_white,
-        CategoryColor.BLACK to R.raw.ic_foot_black,
-    ).mapValues { (_, value) ->
+    val locatorImage by lazy {
         OverlayImage.fromBitmap(
-            loadRawImageAsBitmap(
-                context = context,
-                rawResourceId = value,
-                size = DesignConstant.MarkerSize,
-            )
+            BitmapFactory.decodeResource(context.resources, R.raw.ic_locator)
         )
     }
 
-    private val bookMarkerImages: Map<CategoryColor, OverlayImage> = mapOf(
-        CategoryColor.RED to R.raw.ic_book_red,
-        CategoryColor.ORANGE to R.raw.ic_book_orange,
-        CategoryColor.YELLOW to R.raw.ic_book_yellow,
-        CategoryColor.GREEN to R.raw.ic_book_green,
-        CategoryColor.TURQUOISE to R.raw.ic_book_turquoise,
-        CategoryColor.BLUE to R.raw.ic_book_blue,
-        CategoryColor.NAVY to R.raw.ic_book_navy,
-        CategoryColor.PURPLE to R.raw.ic_book_purple,
-        CategoryColor.BROWN to R.raw.ic_book_brown,
-        CategoryColor.PINK to R.raw.ic_book_pink,
-        CategoryColor.WHITE to R.raw.ic_book_white,
-        CategoryColor.BLACK to R.raw.ic_book_black,
-    ).mapValues { (_, value) ->
+    val clusterImage by lazy {
         OverlayImage.fromBitmap(
-            loadRawImageAsBitmap(
-                context = context,
-                rawResourceId = value,
-                size = DesignConstant.MarkerSize,
-            )
+            BitmapFactory.decodeResource(context.resources, R.raw.ic_clustered_marker)
         )
+    }
+
+    val footMarkerImages by lazy {
+        DesignConstant.FootprintMarkerResourceMap.mapValues { (_, value) ->
+            OverlayImage.fromBitmap(
+                BitmapFactory.decodeResource(context.resources, value)
+            )
+        }
+    }
+
+    val bookMarkerImages by lazy {
+        DesignConstant.BookMarkerResourceMap.mapValues { (_, value) ->
+            OverlayImage.fromBitmap(
+                BitmapFactory.decodeResource(context.resources, value)
+            )
+        }
     }
 
     private val mapView: MapView
     private val clusterManager: Clusterer<MarkerKey>
+    private var fusedLocationSource: FusedLocationSource? = null
+    private var density: Float = context.resources.displayMetrics.density
 
     private val mapFlow = MutableStateFlow<NaverMap?>(null)
     private val isNonClusteringZoomLevelReached = MutableStateFlow(false)
@@ -130,7 +103,8 @@ class MapHandlerImpl @Inject constructor(
 
     init {
         // 클러스터 매니저 설정
-        clusterManager = Clusterer.Builder<MarkerKey>()
+        clusterManager = Clusterer
+            .Builder<MarkerKey>()
             .maxZoom(14)
             .screenDistance(DesignConstant.ClusteringDistance.value.toDouble())
             .clusterMarkerUpdater { info, marker ->
@@ -155,63 +129,34 @@ class MapHandlerImpl @Inject constructor(
             )
 
             getMapAsync { map ->
-                map.apply {
-                    // 이벤트 리스너 설정
-                    addOnCameraChangeListener { reason, _ ->
-                        if (reason == CameraUpdate.REASON_GESTURE) CoroutineScope(Dispatchers.Main).launch {
-                            dismissMarkerEvent()
-                        }
-                    }
-
-                    setOnMapClickListener { _, _ ->
-                        CoroutineScope(Dispatchers.Main).launch {
-                            dismissMarkerEvent()
-                        }
-                    }
-
-                    addOnCameraIdleListener {
-                        isNonClusteringZoomLevelReached.value = map.cameraPosition.zoom > 15
-                    }
-
-                    // UI 설정
-                    uiSettings.apply {
-                        isLogoClickEnabled = false
-                        isCompassEnabled = false
-                        isScaleBarEnabled = false
-                        isZoomControlEnabled = false
-                        isIndoorLevelPickerEnabled = false
-                        isLocationButtonEnabled = false
-                    }
-
-                    isIndoorEnabled = false
-                    locationOverlay.icon = locatorImage
-
-                    // 위치 추적 기능 설정
-                    locationSource = object: LocationSource {
-                        private var locationChangeListener: (Location) -> Unit = {}
-
-                        override fun activate(listener: LocationSource.OnLocationChangedListener) {
-                            try {
-                                { location: Location ->
-                                    listener.onLocationChanged(location)
-                                }.let { lambda ->
-                                    locationHandler.addLocationChangeListener(lambda)
-                                    locationChangeListener = lambda
-                                }
-                            } catch (e: Exception) {
-                                // TODO
-                            }
-                        }
-
-                        override fun deactivate() {
-                            try {
-                                locationHandler.removeLocationChangeListener(locationChangeListener)
-                            } catch (e: Exception) {
-                                // TODO
-                            }
-                        }
+                // 이벤트 리스너 설정
+                map.addOnCameraChangeListener { reason, _ ->
+                    if (reason == CameraUpdate.REASON_GESTURE) CoroutineScope(Dispatchers.Main).launch {
+                        dismissMarkerEvent()
                     }
                 }
+
+                map.setOnMapClickListener { _, _ ->
+                    CoroutineScope(Dispatchers.Main).launch {
+                        dismissMarkerEvent()
+                    }
+                }
+
+                map.addOnCameraIdleListener {
+                    isNonClusteringZoomLevelReached.value = map.cameraPosition.zoom > 15
+                }
+
+                // UI 설정
+                map.uiSettings.apply {
+                    isLogoClickEnabled = false
+                    isCompassEnabled = false
+                    isScaleBarEnabled = false
+                    isZoomControlEnabled = false
+                    isIndoorLevelPickerEnabled = false
+                    isLocationButtonEnabled = false
+                }
+
+                map.isIndoorEnabled = false
 
                 mapFlow.value = map
                 clusterManager.map = map
@@ -221,10 +166,12 @@ class MapHandlerImpl @Inject constructor(
         // 최대 비클러스터링 확대 레벨 감지
         CoroutineScope(Dispatchers.Main).launch {
             isNonClusteringZoomLevelReached.collect { isReached ->
-                markers.filter { it.isAdded }.forEach {
-                    if (isReached) it.toNormalMarker(marker = it.tag as MapMarker)
-                    else it.toClusterMarker(clusterSize = 1)
-                }
+                markers
+                    .filter { it.isAdded }
+                    .forEach {
+                        if (isReached) it.toNormalMarker(marker = it.tag as MapMarker)
+                        else it.toClusterMarker(clusterSize = 1)
+                    }
             }
         }
     }
@@ -232,9 +179,12 @@ class MapHandlerImpl @Inject constructor(
     @Composable
     override fun MapView(
         isBlurApplied: Boolean,
-        isLocationMarkingEnabled: Boolean,
+        isLocationPermissionGranted: Boolean,
     ) {
+        val context = LocalContext.current as ComponentActivity
+        val density = LocalDensity.current
         var capturedMap by remember { mutableStateOf<ImageBitmap?>(null) }
+        var showLicenseBottomSheet by remember { mutableStateOf(false) }
 
         LaunchedEffect(key1 = isBlurApplied) {
             if (isBlurApplied) {
@@ -244,15 +194,44 @@ class MapHandlerImpl @Inject constructor(
             }
         }
 
-        LaunchedEffect(key1 = isLocationMarkingEnabled) {
-            if (isLocationMarkingEnabled) {
-                getMap().locationTrackingMode = LocationTrackingMode.Follow
+        LaunchedEffect(key1 = isLocationPermissionGranted) {
+            if (isLocationPermissionGranted) {
+                val source = FusedLocationSource(context, 100)
+
+                // 이미 권한이 허용되었을 때에 실행되므로, 바로 성공 처리
+                context.requestPermissions(
+                    arrayOf(
+                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                        android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                    ),
+                    100,
+                )
+
+                getMap().apply {
+                    locationSource = source
+                    locationTrackingMode = LocationTrackingMode.NoFollow
+                }
+
+                fusedLocationSource = source
             } else {
                 getMap().locationTrackingMode = LocationTrackingMode.None
             }
         }
 
+        LaunchedEffect(density) {
+            this@MapHandlerImpl.density = density.density
+
+            getMap().locationOverlay.let { locationOverlay ->
+                with(density) {
+                    locationOverlay.icon = locatorImage
+                    locationOverlay.iconWidth = DesignConstant.LocatorSize.width.roundToPx()
+                    locationOverlay.iconHeight = DesignConstant.LocatorSize.height.roundToPx()
+                }
+            }
+        }
+
         Box(
+            contentAlignment = Alignment.BottomStart,
             modifier = Modifier.fillMaxSize()
         ) {
             AndroidView(
@@ -270,9 +249,19 @@ class MapHandlerImpl @Inject constructor(
                     bitmap = bitmap,
                     contentScale = ContentScale.Fit,
                     contentDescription = null,
-                    modifier = Modifier.matchParentSize()
-                )
+                    modifier = Modifier
+                        .matchParentSize()
+                        .let { if (isBlurApplied) it.blur(radius = 10.dp) else it })
             }
+            Box(
+                modifier = Modifier
+                    .size(width = 75.dp, height = 50.dp)
+                    .clickable { showLicenseBottomSheet = true }
+            )
+        }
+
+        if (showLicenseBottomSheet) {
+            NaverMapLicenseBar(onDismiss = { showLicenseBottomSheet = false })
         }
     }
 
@@ -280,6 +269,7 @@ class MapHandlerImpl @Inject constructor(
         latitude: Double,
         longitude: Double,
         offset: Offset,
+        zoom: Boolean,
         animationTime: Long,
         onAnimationEnded: () -> Unit,
     ) {
@@ -292,7 +282,10 @@ class MapHandlerImpl @Inject constructor(
 
         val target = LatLng(latitude, longitude)
         onMoveAnimationEnded = onAnimationEnded
-        val cameraUpdate = CameraUpdate.scrollTo(target)
+        val cameraUpdate = run {
+            if (zoom) CameraUpdate.scrollAndZoomTo(target, 16.0)
+            else CameraUpdate.scrollTo(target)
+        }
             .pivot(pivot)
             .animate(CameraAnimation.Easing, animationTime)
             .finishCallback { onMoveAnimationEnded?.invoke() }
@@ -301,7 +294,7 @@ class MapHandlerImpl @Inject constructor(
     }
 
     override suspend fun moveToCurrentPosition() {
-        val location = locationHandler.getCurrentLocation()
+        val location = fusedLocationSource?.lastLocation ?: return
         moveTo(location.latitude, location.longitude)
     }
 
@@ -310,16 +303,20 @@ class MapHandlerImpl @Inject constructor(
         return position.latitude to position.longitude
     }
 
-    override suspend fun addMarker(marker: MapMarker) {
-        val key = MarkerKey(marker)
+    override suspend fun addMarkers(vararg markers: MapMarker) {
+        val keys = markers.associate { marker ->
+            MarkerKey(marker) to null
+        }
+
         MainScope().launch {
-            clusterManager.add(key, null)
+            clusterManager.addAll(keys)
         }
     }
 
     override suspend fun removeAllMarkers() {
         onPreviousMarkerDismissed?.invoke()
         onPreviousMarkerDismissed = null
+
         MainScope().launch {
             clusterManager.clear()
             markers.clear()
@@ -351,7 +348,7 @@ class MapHandlerImpl @Inject constructor(
 
     private fun Marker.toClusterMarker(clusterSize: Int) {
         val (clusterWidth, clusterHeight) = calculateClusteredMarkerSize(
-            density = context.resources.displayMetrics.density,
+            density = density,
             count = clusterSize,
         )
 
@@ -363,22 +360,27 @@ class MapHandlerImpl @Inject constructor(
     }
 
     private fun Marker.toNormalMarker(marker: MapMarker) {
-        val density = context.resources.displayMetrics.density
+        val density = density
         val color = marker.color
         val zIndex = marker.zIndex
         val isOverlapping = marker.isOverlapping
         val onClicked = marker.onClicked
 
-        width = (DesignConstant.MarkerSize.width.value * density).roundToInt()
-        height = (DesignConstant.MarkerSize.height.value * density).roundToInt()
-        anchor = PointF(0.5f, 0.5f)
-        (if (isOverlapping) bookMarkerImages[color] else footMarkerImages[color])?.let { icon = it }
+        val size =
+            if (isOverlapping) DesignConstant.BookMarkerSize else DesignConstant.FootprintMarkerSize
+        val imageMap = if (isOverlapping) bookMarkerImages else footMarkerImages
+
+        this.width = (size.width.value * density).roundToInt()
+        this.height = (size.height.value * density).roundToInt()
+        this.anchor = PointF(0.5f, 0.5f)
         this.zIndex = zIndex
+        imageMap[color]?.let { this.icon = it }
+
         setOnClickListener {
             onPreviousMarkerDismissed?.invoke()
-            map?.projection?.toScreenLocation(this.position)?.apply {
-                onPreviousMarkerDismissed = onClicked?.invoke(Offset(x, y))
-            }
+            map?.projection
+                ?.toScreenLocation(this.position)
+                ?.apply { onPreviousMarkerDismissed = onClicked?.invoke(Offset(x, y)) }
             true
         }
     }

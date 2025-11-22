@@ -1,5 +1,4 @@
 plugins {
-    //alias(libs.plugins.android.application)
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
@@ -53,10 +52,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.navigation.compose)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.messaging.ktx)
     implementation(libs.kotlinx.coroutines.play.services)
-
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -64,16 +60,13 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
     // coil 의존성 추가
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
     implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.4")
-
     implementation("io.coil-kt.coil3:coil-svg:3.0.4")
 
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
-
     implementation("androidx.compose.foundation:foundation")
-
 
     // 의존성 정의
     implementation(project(":core"))
@@ -87,5 +80,10 @@ dependencies {
 
     // FCM
     // ✅ Firebase (BOM + messaging-ktx)
+    implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging.ktx)
+
+    // Accompanist
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
 }

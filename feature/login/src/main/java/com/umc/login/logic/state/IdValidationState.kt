@@ -44,7 +44,7 @@ enum class IdValidationState(
 }
 
 fun isIdValid(id: String): IdValidationState {
-    if (!id.matches(Regex("^[a-zA-Z]*$"))) return IdValidationState.NOT_ALLOWED_CHAR
+    if (!id.matches(Regex("^[a-zA-Z0-9]*$"))) return IdValidationState.NOT_ALLOWED_CHAR
     if (id.length < 6) return IdValidationState.TOO_SHORT
     if (id.length > 15) return IdValidationState.TOO_LONG
     return IdValidationState.DID_NOT_CHECKED_DUPLICATED

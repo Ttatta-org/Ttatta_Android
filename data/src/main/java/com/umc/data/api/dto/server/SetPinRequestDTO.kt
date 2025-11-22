@@ -31,5 +31,8 @@ data class SetPinRequestDTO (
     @Json(name = "pin")
     val pin: kotlin.String
 
-)
+) {
+
+
+}
 

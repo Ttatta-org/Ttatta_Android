@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.LocalFontTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
@@ -70,6 +71,7 @@ fun IdForm(
                 Text(
                     text = stringResource(id = R.string.duplicate_check),
                     color = LocalColorTheme.current.primary[300],
+                    fontFamily = LocalFontTheme.current.font,
                     fontWeight = FontWeight.W700,
                     fontSize = 13.sp,
                 )

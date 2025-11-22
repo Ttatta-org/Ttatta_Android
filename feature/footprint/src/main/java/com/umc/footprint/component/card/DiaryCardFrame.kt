@@ -5,6 +5,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -58,22 +60,26 @@ private val diaryColorAnimationSpec = tween<Color>(
     durationMillis = diaryCardFrameAnimationDurationMillis,
     easing = LinearEasing,
 )
-const val path = "M14 0.75H234.148C241.466 0.75 247.398 6.68223 247.398 14V272.449C247.398 279.767 241.466 285.699 234.148 285.699H141.316C136.516 285.699 132.144 288.463 130.085 292.8C127.339 298.583 119.109 298.583 116.363 292.8C114.304 288.463 109.933 285.699 105.133 285.699H14C6.68231 285.699 0.750132 279.767 0.75 272.449V14C0.75 6.68223 6.68223 0.75 14 0.75Z"
+const val path =
+    "M14 0.75H234.148C241.466 0.75 247.398 6.68223 247.398 14V272.449C247.398 279.767 241.466 285.699 234.148 285.699H141.316C136.516 285.699 132.144 288.463 130.085 292.8C127.339 298.583 119.109 298.583 116.363 292.8C114.304 288.463 109.933 285.699 105.133 285.699H14C6.68231 285.699 0.750132 279.767 0.75 272.449V14C0.75 6.68223 6.68223 0.75 14 0.75Z"
 
 @Composable
 fun DiaryCardFrame(prop: DiaryCardFrameProp) {
     val density = LocalDensity.current
     val path = remember { Path().apply { addSvg(pathData = path) } }
-    val scaleFactor = remember { with(density) { DesignConstant.DiaryCardSize.width.toPx() } / path.getBounds().width }
+    val scaleFactor =
+        remember { with(density) { DesignConstant.DiaryCardSize.width.toPx() } / path.getBounds().width }
 
     val borderColor by animateColorAsState(
         targetValue = prop.borderColor,
         animationSpec = diaryColorAnimationSpec
     )
+
     val backgroundColor by animateColorAsState(
         targetValue = prop.backgroundColor,
         animationSpec = diaryColorAnimationSpec
     )
+
     val contentContainerColor by animateColorAsState(
         targetValue = prop.contentContainerColor,
         animationSpec = diaryColorAnimationSpec
@@ -119,21 +125,6 @@ fun DiaryCardFrame(prop: DiaryCardFrameProp) {
                         join = StrokeJoin.Round,
                     ),
                 )
-
-                drawRoundRect(
-                    color = contentContainerColor,
-                    topLeft = with(density) {
-                        Offset(
-                            x = contentOffset.x.value, y = contentOffset.y.value
-                        )
-                    },
-                    size = with(density) {
-                        Size(
-                            width = contentSize.width.value, height = contentSize.height.value
-                        )
-                    },
-                    cornerRadius = CornerRadius(contentBorderRadius.value),
-                )
             }
         }
         Box(
@@ -175,12 +166,19 @@ fun DiaryCardFrame(prop: DiaryCardFrameProp) {
         }
         // 내용
         Box(
-            modifier = Modifier
-                .offset(x = contentOffset.x, y = contentOffset.y)
-                .size(contentSize)
-                .graphicsLayer(clip = true, shape = RoundedCornerShape(contentBorderRadius)),
+            modifier = Modifier.offset(x = contentOffset.x + 1.dp, y = contentOffset.y + 1.dp)
         ) {
-            prop.content()
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = contentContainerColor,
+                        shape = RoundedCornerShape(contentBorderRadius)
+                    )
+                    .size(contentSize)
+                    .clip(RoundedCornerShape(contentBorderRadius))
+            ) {
+                prop.content.invoke()
+            }
         }
     }
 }

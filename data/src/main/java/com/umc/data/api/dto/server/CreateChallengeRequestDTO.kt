@@ -35,5 +35,8 @@ data class CreateChallengeRequestDTO (
     @Json(name = "content")
     val content: kotlin.String? = null
 
-)
+) {
+
+
+}
 

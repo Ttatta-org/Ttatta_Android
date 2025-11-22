@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.center
 import androidx.compose.ui.unit.dp
@@ -159,6 +160,7 @@ fun CertificationForm(
                         placeholder = stringResource(id = R.string.certification_placeholder),
                         textAlignment = CustomTextFieldTextAlignment.START,
                         isEditable = isEditable,
+                        keyboardType = KeyboardType.Number,
                         tail = {
                             if (remainTime != null) Box(
                                 contentAlignment = Alignment.Center,

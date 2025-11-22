@@ -13,13 +13,12 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.ToJson
 import com.umc.data.util.toOffsetDateTimeInKorea
 import java.lang.reflect.Type
-import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class OffsetDateTimeSerializer: JsonDeserializer<OffsetDateTime>, JsonSerializer<OffsetDateTime>,
+class OffsetDateTimeSerializer : JsonDeserializer<OffsetDateTime>,
+    JsonSerializer<OffsetDateTime>,
     JsonAdapter<OffsetDateTime>() {
     private val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
@@ -41,13 +40,18 @@ class OffsetDateTimeSerializer: JsonDeserializer<OffsetDateTime>, JsonSerializer
 
     @FromJson
     override fun fromJson(jsonReader: JsonReader): OffsetDateTime? {
-        val string = jsonReader.nextString()
-        val localDateTime = LocalDateTime.parse(string, formatter)
-        return localDateTime.toOffsetDateTimeInKorea()
+        return if (jsonReader.peek() == JsonReader.Token.NULL) {
+            jsonReader.nextNull()
+        } else {
+            LocalDateTime
+                .parse(jsonReader.nextString(), formatter)
+                .toOffsetDateTimeInKorea()
+        }
     }
 
     @ToJson
     override fun toJson(jsonReader: JsonWriter, value: OffsetDateTime?) {
-        jsonReader.value(value?.format(formatter))
+        if (value == null) jsonReader.nullValue()
+        else jsonReader.value(value.format(formatter))
     }
 }

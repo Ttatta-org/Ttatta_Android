@@ -35,5 +35,8 @@ data class SendVerificationMailFindIdRequestDTO (
     @Json(name = "email")
     val email: kotlin.String
 
-)
+) {
+
+
+}
 

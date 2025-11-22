@@ -46,10 +46,10 @@ data class ItemShopDTO (
     val cost: kotlin.Long? = null,
 
     @Json(name = "characterType")
-    val characterType: CharacterType? = null,
+    val characterType: ItemShopDTO.CharacterType? = null,
 
     @Json(name = "bodyPart")
-    val bodyPart: BodyPart? = null
+    val bodyPart: ItemShopDTO.BodyPart? = null
 
 ) {
 

@@ -31,5 +31,8 @@ data class GetPinResultDTO (
     @Json(name = "pinHash")
     val pinHash: kotlin.String? = null
 
-)
+) {
+
+
+}
 

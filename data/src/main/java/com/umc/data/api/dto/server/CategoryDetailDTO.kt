@@ -41,7 +41,7 @@ data class CategoryDetailDTO (
     val diaryCount: kotlin.Int? = null,
 
     @Json(name = "categoryColor")
-    val categoryColor: CategoryColor? = null
+    val categoryColor: CategoryDetailDTO.CategoryColor? = null
 
 ) {
 

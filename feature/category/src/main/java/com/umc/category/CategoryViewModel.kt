@@ -1,101 +1,52 @@
 package com.umc.category
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.umc.core.model.CategoryInfo
 import com.umc.core.repository.DiaryRepository
 import com.umc.design.CategoryColor
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 @HiltViewModel
 class CategoryViewModel @Inject constructor(
     private val diaryRepository: DiaryRepository,
-): ViewModel() {
-    private val categoryListState = mutableStateOf<List<CategoryInfo>>(listOf())
+) : ViewModel() {
 
-    val categoryList get() = categoryListState.value
+    private val categoryListState = MutableStateFlow<List<CategoryInfo>?>(null)
 
-    init {
+    val categoryList: StateFlow<List<CategoryInfo>?> = categoryListState
+
+    suspend fun getCategoryListFromServer() {
+        categoryListState.value = null
+        categoryListState.value = diaryRepository.getAllCategoryInfo()
+    }
+
+    suspend fun createCategory(
+        name: String,
+        color: CategoryColor,
+    ) {
+        diaryRepository.createCategory(name = name, color = color)
         getCategoryListFromServer()
     }
 
-    private fun getCategoryListFromServer(
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        viewModelScope.launch {
-            try {
-                categoryListState.value = diaryRepository.getAllCategoryInfo()
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
-    }
-
-    fun createCategory(
-        name: String,
-        color: CategoryColor?,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
-    ) {
-        viewModelScope.launch {
-            try {
-                diaryRepository.createCategory(name = name, color = color)
-                getCategoryListFromServer(onSucceed = { onSucceed() }, onFailed = { throw it })
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
-    }
-
-    fun modifyCategory(
+    suspend fun modifyCategory(
         id: Long,
         name: String,
-        color: CategoryColor?,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
+        color: CategoryColor,
     ) {
-        viewModelScope.launch {
-            try {
-                diaryRepository.modifyCategory(categoryId = id, name = name, color = color)
-                getCategoryListFromServer(onSucceed = { onSucceed() }, onFailed = { throw it })
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
+        diaryRepository.modifyCategory(categoryId = id, name = name, color = color)
+        getCategoryListFromServer()
     }
 
-    fun deleteCategory(
-        id: Long,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
-    ) {
-        viewModelScope.launch {
-            try {
-                diaryRepository.deleteCategory(categoryId = id)
-                getCategoryListFromServer(onSucceed = { onSucceed() }, onFailed = { throw it })
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
+    suspend fun deleteCategory(id: Long) {
+        diaryRepository.deleteCategory(categoryId = id)
+        getCategoryListFromServer()
     }
 
-    fun deleteCategoryAndAllIncludedDiaries(
-        id: Long,
-        onSucceed: () -> Unit,
-        onFailed: (e: Exception) -> Unit,
-    ) {
-        viewModelScope.launch {
-            try {
-                diaryRepository.deleteCategoryAndAllIncludedDiaries(categoryId = id)
-                getCategoryListFromServer(onSucceed = { onSucceed() }, onFailed = { throw it })
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
+    suspend fun deleteCategoryAndAllIncludedDiaries(id: Long) {
+        diaryRepository.deleteCategoryAndAllIncludedDiaries(categoryId = id)
+        getCategoryListFromServer()
     }
 }

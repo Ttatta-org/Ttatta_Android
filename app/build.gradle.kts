@@ -12,21 +12,24 @@ plugins {
 
     // FCM
     id("com.google.gms.google-services")
+
+    // Serialization
+    alias(libs.plugins.kotlin.serialization)
 }
 
 val localProperties = Properties()
 localProperties.load(FileInputStream(rootProject.file("local.properties")))
 
 android {
-    namespace = "com.umc.ttatta"
+    namespace = "com.umc.ttatta.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.umc.ttatta"
+        applicationId = "com.umc.ttatta.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 12
+        versionName = "1.0.0+12"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -74,6 +77,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.firebase.messaging.ktx)
+    implementation(libs.play.services.location)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -109,6 +113,13 @@ dependencies {
 
     // FCM
     implementation(platform("com.google.firebase:firebase-bom:33.13.0"))
-    implementation("com.google.firebase:firebase-analytics")
 
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
+
+    // Kotlin Reflection
+    implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.0")
+
+    // Accompanist Permission
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 }

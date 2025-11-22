@@ -31,5 +31,8 @@ data class GetFcmTokenRequestDTO (
     @Json(name = "fcmToken")
     val fcmToken: kotlin.String? = null
 
-)
+) {
+
+
+}
 

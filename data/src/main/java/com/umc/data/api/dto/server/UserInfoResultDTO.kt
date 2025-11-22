@@ -43,7 +43,7 @@ data class UserInfoResultDTO (
     val nickname: kotlin.String? = null,
 
     @Json(name = "loginType")
-    val loginType: LoginType? = null,
+    val loginType: UserInfoResultDTO.LoginType? = null,
 
     @Json(name = "email")
     val email: kotlin.String? = null,
@@ -55,10 +55,10 @@ data class UserInfoResultDTO (
     val point: kotlin.Long? = null,
 
     @Json(name = "status")
-    val status: Status? = null,
+    val status: UserInfoResultDTO.Status? = null,
 
     @Json(name = "gender")
-    val gender: Gender? = null,
+    val gender: UserInfoResultDTO.Gender? = null,
 
     @Json(name = "diaryCount")
     val diaryCount: kotlin.Long? = null

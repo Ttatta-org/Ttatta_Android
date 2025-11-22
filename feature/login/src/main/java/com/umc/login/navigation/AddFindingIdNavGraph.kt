@@ -1,5 +1,7 @@
 package com.umc.login.navigation
 
+import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Text
@@ -14,11 +16,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.sp
+import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
@@ -53,6 +57,8 @@ fun NavGraphBuilder.addFindingIdNavGraph(
     composable(
         route = "find_id"
     ) {
+        val context = LocalContext.current
+
         var name by remember { mutableStateOf("") }
         var emailLocal by remember { mutableStateOf("") }
         var emailDomain by remember { mutableStateOf("") }
@@ -87,31 +93,54 @@ fun NavGraphBuilder.addFindingIdNavGraph(
         }
 
         LaunchedEffect(key1 = certificationCode) {
-            if (certificationCode.length != 6) return@LaunchedEffect
+            if (certificationCode.length != 6 || !certificationCode.isDigitsOnly()) return@LaunchedEffect
 
             viewModel.runWithScope {
-                runCatching {
-                    val isValid = requestCertificationCodeValidation(
+                showLoading = true
+                isEmailDomainDropdownExpanded = false
+
+                val isValid = runCatching {
+                    requestCertificationCodeValidation(
                         request = CertificationCodeValidationRequestForFindingId(
                             email = "$emailLocal@$emailDomain",
                             code = certificationCode,
                         ),
                     )
+                }.getOrNull()
 
-                    if (!isValid) return@runWithScope
+                if (isValid == true) {
                     val (id, name) = viewModel.findId()
                     MainScope().launch { onNavigatingToFindingIdDone(id, name) }
+                } else if (isValid == false) {
+                    MainScope().launch {
+                        val toast = Toast.makeText(
+                            context,
+                            "인증번호가 올바르지 않습니다.",
+                            Toast.LENGTH_SHORT,
+                        )
+
+                        toast.show()
+                    }
                 }
+
+                showLoading = false
             }
         }
 
         Box(
-            modifier = Modifier.onGloballyPositioned { screenLayoutCoordinates = it },
+            modifier = Modifier
+                .onGloballyPositioned { screenLayoutCoordinates = it }
+                .let {
+                    if (isEmailDomainDropdownExpanded) it.clickable(
+                        indication = null,
+                        interactionSource = null,
+                        onClick = { isEmailDomainDropdownExpanded = false }
+                    ) else it
+                }
         ) {
             FormScreen(
                 topLineMessage = stringResource(id = R.string.find_id),
-                nextButtonLabel = if (isEmailRequested) stringResource(R.string.resend_email)
-                else stringResource(R.string.send_email),
+                nextButtonLabel = if (isEmailRequested) stringResource(R.string.resend_email) else stringResource(R.string.send_email),
                 nextButtonOverMessage = null,
                 formScreenDescriptionMessageProp = FormScreenDescriptionMessageProp(
                     message = stringResource(id = R.string.find_id_description),
@@ -174,7 +203,7 @@ fun NavGraphBuilder.addFindingIdNavGraph(
                         onDomainDropdownButtonCenterOffsetCalculated = {
                             emailDropdownButtonCenterOffset = it
                         },
-                        onCodeChanged = { certificationCode = it },
+                        onCodeChanged = { if (it.length <= 6) certificationCode = it },
                     )
                 }
             }
@@ -190,10 +219,15 @@ fun NavGraphBuilder.addFindingIdNavGraph(
                             screen
                                 .localPositionOf(form)
                                 .plus(emailDropdownButtonCenterOffset)
-                                .plus(Offset(x = -dropdownWidth.toFloat(), y = 16.dp.toPx()))
+                                .plus(
+                                    Offset(
+                                        x = 16.dp.toPx() - dropdownWidth.toFloat(),
+                                        y = 16.dp.toPx(),
+                                    )
+                                )
                                 .round()
                         }
-                        .onSizeChanged { dropdownWidth = it.width / 2 },
+                        .onSizeChanged { dropdownWidth = it.width },
                 ) {
                     EmailDomainDropdown(
                         props = emailDomains.map {

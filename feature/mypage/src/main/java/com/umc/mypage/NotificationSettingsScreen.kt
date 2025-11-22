@@ -1,89 +1,61 @@
 package com.umc.mypage
 
-import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColor
-import androidx.compose.animation.core.animateDp
-import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.key
 import androidx.compose.runtime.snapshotFlow
-
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.umc.mypage.components.TopBar_Mypage_Default
 import com.umc.mypage.components.TopBar_SubScreen
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -102,55 +74,17 @@ fun NotificationSettingsScreen(
     onChallengeHoursChange: (Int) -> Unit,
     onLocationToggle: (Boolean) -> Unit,
     onBackClick: () -> Unit,
-){
+) {
     val systemUiController = rememberSystemUiController()
     val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
-
-    val context = LocalContext.current
     var topBarHeight by remember { mutableStateOf(0.dp) }
-    // 권한 요청 후 실행할 보류 액션
-    val pendingAction = remember { mutableStateOf<(() -> Unit)?>(null) }
-
-    // 멀티 권한 런처 (POST_NOTIFICATIONS/LOCATION 등 한 번에 처리)
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestMultiplePermissions()
-    ) { grants ->
-        val granted = grants.entries.all { (perm, ok) ->
-            // TIRAMISU 미만에서는 POST_NOTIFICATIONS가 필요없으므로 ok로 간주
-            if (perm == Manifest.permission.POST_NOTIFICATIONS &&
-                Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
-            ) true else ok
-        }
-        if (granted) {
-            pendingAction.value?.invoke()
-        } else {
-            Toast.makeText(context, "필수 권한이 없어 기능을 사용할 수 없어요.", Toast.LENGTH_SHORT).show()
-        }
-        pendingAction.value = null
-    }
-
-    // 단일 권한 체크
-    fun hasPermission(perm: String): Boolean =
-        if (perm == Manifest.permission.POST_NOTIFICATIONS &&
-            Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
-        ) true
-        else ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED
-
-    // 공통 보장 함수: 모든 권한이 있으면 onGranted, 아니면 요청
-    fun ensurePermissions(perms: Array<String>, onGranted: () -> Unit) {
-        val allGranted = perms.all { hasPermission(it) }
-        if (allGranted) onGranted()
-        else {
-            pendingAction.value = onGranted
-            permissionLauncher.launch(perms)
-        }
-    }
 
     SideEffect {
         systemUiController.setStatusBarColor(
             color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
         )
     }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
 
@@ -173,14 +107,7 @@ fun NotificationSettingsScreen(
                             title = "일기 작성 알림",
                             description = "매일 일정한 시각에 일기 작성을 알리는 알림을 보내요!",
                             checked = state.dailyOn,
-                            onCheckedChange = { isOn ->
-                                if (!isOn) onDailyToggle(false) else {
-                                    ensurePermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS)) {
-                                        onDailyToggle(true)
-                                    }
-                                }
-                            }
-                            ,
+                            onCheckedChange = onDailyToggle,
                             bottomContent = {
                                 if (state.dailyOn) {
                                     Row(
@@ -189,7 +116,8 @@ fun NotificationSettingsScreen(
                                     ) {
                                         // 화면에서 파생 상태
                                         val dailyIsPm = state.dailyHour24 >= 12
-                                        val dailyHour12 = ((state.dailyHour24 % 12).let { if (it == 0) 12 else it })
+                                        val dailyHour12 =
+                                            ((state.dailyHour24 % 12).let { if (it == 0) 12 else it })
                                         val dailyMinute = state.dailyMinute
 
                                         // 오전/오후 드롭다운
@@ -198,7 +126,11 @@ fun NotificationSettingsScreen(
                                             initialSelectedText = if (dailyIsPm) "오후" else "오전",
                                             onSelected = { ampm ->
                                                 val isPm = ampm == "오후"
-                                                onDailyTimeChange(isPm, dailyHour12, dailyMinute) // ← 이름 제거!
+                                                onDailyTimeChange(
+                                                    isPm,
+                                                    dailyHour12,
+                                                    dailyMinute
+                                                ) // ← 이름 제거!
                                             }
                                         )
 
@@ -222,18 +154,7 @@ fun NotificationSettingsScreen(
                             title = "위치 기반 추억 회상 알림",
                             description = "현재 위치와 가까운 과거 기록을 찾으면 알림을 보내요!",
                             checked = state.locationOn,
-                            onCheckedChange = { isOn ->
-                                if (!isOn) onLocationToggle(false) else {
-                                    ensurePermissions(
-                                        arrayOf(
-                                            Manifest.permission.POST_NOTIFICATIONS,
-                                            Manifest.permission.ACCESS_FINE_LOCATION,
-                                            Manifest.permission.ACCESS_COARSE_LOCATION
-                                        )
-                                    ) { onLocationToggle(true) }
-                                }
-                            }
-
+                            onCheckedChange = onLocationToggle,
                         )
                     }
                     item { Spacer(modifier = Modifier.height(22.dp)) }
@@ -242,13 +163,7 @@ fun NotificationSettingsScreen(
                             title = "챌린지 리마인드 알림",
                             description = "챌린지 달성 마감 전 리마인드 알림을 보내요!",
                             checked = state.challengeOn,
-                            onCheckedChange = { isOn ->
-                                if (!isOn) onChallengeToggle(false) else {
-                                    ensurePermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS)) {
-                                        onChallengeToggle(true)
-                                    }
-                                }
-                            },
+                            onCheckedChange = onChallengeToggle,
                             bottomContent = {
                                 if (state.challengeOn) {
                                     Row(
@@ -256,8 +171,14 @@ fun NotificationSettingsScreen(
                                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                                     ) {
                                         DropdownButtonWithMenu(
-                                            options = (0..48).map { it.toString().padStart(2, '0') }, // 🔧 범위 확대
-                                            initialSelectedText = state.challengeRemainingHours.toString().padStart(2, '0'),
+                                            options = (0..48).map {
+                                                it
+                                                    .toString()
+                                                    .padStart(2, '0')
+                                            }, // 🔧 범위 확대
+                                            initialSelectedText = state.challengeRemainingHours
+                                                .toString()
+                                                .padStart(2, '0'),
                                             onSelected = { sel ->
                                                 onChallengeHoursChange(sel.toInt())
                                             }
@@ -278,13 +199,7 @@ fun NotificationSettingsScreen(
                             title = "하루 요약 알림",
                             description = "매일 일정한 시각에 오늘의 일기 요약 알림을 보내요!",
                             checked = state.summaryOn,
-                            onCheckedChange = { isOn ->
-                                if (!isOn) onSummaryToggle(false) else {
-                                    ensurePermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS)) {
-                                        onSummaryToggle(true)
-                                    }
-                                }
-                            },
+                            onCheckedChange = onSummaryToggle,
                             bottomContent = {
                                 if (state.summaryOn) {
                                     val summaryHour12 = when {
@@ -305,8 +220,14 @@ fun NotificationSettingsScreen(
                                         // 시간만 선택 (1..12)
                                         androidx.compose.runtime.key(summaryHour12) {
                                             DropdownButtonWithMenu(
-                                                options = (1..12).map { it.toString().padStart(2, '0') },
-                                                initialSelectedText = summaryHour12.toString().padStart(2, '0'),
+                                                options = (1..12).map {
+                                                    it
+                                                        .toString()
+                                                        .padStart(2, '0')
+                                                },
+                                                initialSelectedText = summaryHour12
+                                                    .toString()
+                                                    .padStart(2, '0'),
                                                 onSelected = { sel -> onSummaryHourChange(sel.toInt()) }
                                             )
                                         }
@@ -335,6 +256,7 @@ fun NotificationSettingsScreen(
         }
     }
 }
+
 @Composable
 fun NotificationSettingItem(
     title: String,
@@ -351,7 +273,12 @@ fun NotificationSettingItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = title, fontSize = 16.sp, fontWeight = FontWeight.W400)
                 if (description != null) {
-                    Text(text = description, fontSize = 12.sp, fontWeight = FontWeight.W400, color = Color(0xFF8E8E8E))
+                    Text(
+                        text = description,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.W400,
+                        color = Color(0xFF8E8E8E)
+                    )
                 }
             }
 
@@ -397,7 +324,7 @@ fun CustomSwitch(
             )
             .clickable { onCheckedChange(!checked) }
             .padding(horizontal = 2.dp),
-        contentAlignment = Alignment.CenterStart
+        contentAlignment = Alignment.CenterStart,
     ) {
         // Thumb (Circle)
         Box(
@@ -496,9 +423,6 @@ fun DropdownButtonWithMenu(
         }
     }
 }
-
-
-
 
 @Composable
 fun DropdownButton(
@@ -636,8 +560,21 @@ fun TimeWheelDropdown(
     var hourIdx by remember(initialHour12) { mutableStateOf((initialHour12 - 1).coerceIn(0, 11)) }
     var minuteIdx by remember(initialMinute) { mutableStateOf(initialMinute.coerceIn(0, 59)) }
 
-    val hourItems = remember { (1..12).map { it.toString().padStart(2, '0') } }
-    val minuteItems = remember { (0..59).map { it.toString().padStart(2, '0') } }
+    val hourItems = remember {
+        (1..12).map {
+            it
+                .toString()
+                .padStart(2, '0')
+        }
+    }
+
+    val minuteItems = remember {
+        (0..59).map {
+            it
+                .toString()
+                .padStart(2, '0')
+        }
+    }
 
     val headerHeight = 30.dp
     val hPadding = 10.dp
@@ -655,7 +592,11 @@ fun TimeWheelDropdown(
                 .height(headerHeight)
                 .clip(RoundedCornerShape(14.dp))
                 .background(if (expanded) Color(0xFFFFEFE4) else Color(0xFFF5F5F5))
-                .border(1.dp, if (expanded) Color(0xFFFFB1A5) else Color.Transparent, RoundedCornerShape(14.dp))
+                .border(
+                    1.dp,
+                    if (expanded) Color(0xFFFFB1A5) else Color.Transparent,
+                    RoundedCornerShape(14.dp)
+                )
                 .clickable { expanded = !expanded }
                 .padding(horizontal = hPadding),
             contentAlignment = Alignment.Center

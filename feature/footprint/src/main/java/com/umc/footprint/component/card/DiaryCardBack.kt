@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,11 +41,10 @@ fun DiaryCardBack(
         prop = DiaryCardFrameProp(
             date = prop.prop?.date,
             borderColor = categoryColor?.b ?: colors.primary[400],
-            backgroundColor = categoryColor?.c ?: colors.secondary[200],
-            contentContainerColor = categoryColor?.a ?: colors.secondary[300],
+            backgroundColor = Color.White,
+            contentContainerColor = categoryColor?.c ?: colors.secondary[300],
             onModifyButtonClicked = prop.prop?.onModifyButtonClicked,
             content = {
-                // 본문
                 if (prop.prop != null) Box(
                     contentAlignment = Alignment.CenterStart,
                     modifier = Modifier
@@ -81,7 +81,7 @@ fun DiaryCardBack(
                     )
                 } else Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(220.dp),
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     CircularProgressIndicator(
                         color = colors.primary[400],

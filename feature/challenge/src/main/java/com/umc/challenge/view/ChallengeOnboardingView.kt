@@ -61,6 +61,7 @@ import com.umc.design.Secondary300
 import com.umc.design.character.Accessory
 import com.umc.design.character.AccessorySet
 import com.umc.design.character.CharacterView
+import com.umc.design.component.CustomButton
 import com.umc.design.theme.LocalColorTheme
 
 data class ChallengeOnboardingViewProp(
@@ -111,8 +112,6 @@ fun ChallengeOnboardingView(
 
     var columnWidth by remember { mutableStateOf(0.dp) }
 
-    var attended by remember { mutableStateOf(false) } // TODO: ViewModel 상태로 교체
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -152,44 +151,17 @@ fun ChallengeOnboardingView(
                 Spacer(modifier = Modifier.height(21.16.dp))
 
                 // 새 챌린지 버튼
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(if (prop.isNewChallengeButtonEnabled) 4.dp else 0.dp, shape, clip = false)
-                        .background(LocalColorTheme.current.primary[400], RoundedCornerShape(16.dp))
-                        .clip(RoundedCornerShape(16.dp))
-                        .clickable(
-                            enabled = prop.isNewChallengeButtonEnabled,
-                            role = Role.Button
-                        ) { prop.onNewChallengeButtonClicked() }
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp)
-                    ) {
-                        Text(
-                            text = "챌린지 생성하기",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.W700,
-                            color = Color.White
-                        )
-                    }
-                }
+                CustomButton(
+                    text = "챌린지 생성하기",
+                    isEnabled = prop.isNewChallengeButtonEnabled,
+                    onClick = prop.onNewChallengeButtonClicked,
+                )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // 출석체크
-                    AttendanceCard(
-                        attended = attended,
-                        onClick = { attended = !attended } // TODO: 출석 API/로직 연결
-                    )
-
                     // 오늘 챌린지 목록
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -237,22 +209,22 @@ fun ChallengeOnboardingView(
                     }
 
                     // TODO: 말풍선 꼬리 고치기
-                    Box(
-                        modifier = Modifier
-                            .offset {
-                                Offset(
-                                    x = speechBubbleWidth * speechBubbleTailOffsetRatio,
-                                    y = speechBubbleHeight.toPx() + speechBubbleTailVerticalOffset.toPx(),
-                                ).round()
-                            }
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.img_speech_bubble_tail),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.size(speechBubbleTailSize)
-                        )
-                    }
+//                    Box(
+//                        modifier = Modifier
+//                            .offset {
+//                                Offset(
+//                                    x = speechBubbleWidth * speechBubbleTailOffsetRatio,
+//                                    y = speechBubbleHeight.toPx() + speechBubbleTailVerticalOffset.toPx(),
+//                                ).round()
+//                            }
+//                    ) {
+//                        Image(
+//                            painter = painterResource(id = R.drawable.img_speech_bubble_tail),
+//                            contentDescription = null,
+//                            contentScale = ContentScale.Fit,
+//                            modifier = Modifier.size(speechBubbleTailSize)
+//                        )
+//                    }
                 }
             }
         }
