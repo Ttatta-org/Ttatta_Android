@@ -20,7 +20,10 @@ suspend fun <T> ServerApi.withAuth(
 
         val accessToken = e
             .response()
-            ?.raw()?.request?.header("Authorization")
+            ?.raw()?.request
+            ?.header("Authorization")
+            ?.split(" ")
+            ?.lastOrNull()
 
         mutex.withLock {
             if (authPreference.accessToken != null && accessToken != authPreference.accessToken) return@withLock

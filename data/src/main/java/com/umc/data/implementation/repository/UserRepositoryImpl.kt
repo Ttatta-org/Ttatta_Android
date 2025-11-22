@@ -31,11 +31,7 @@ class UserRepositoryImpl @Inject constructor(
 ) : UserRepository {
 
     override suspend fun isAlreadyLogin(): Boolean {
-        return try {
-            getUserInfo()
-        } catch (_: Exception) {
-            null
-        } != null
+        return runCatching { getUserInfo() }.isSuccess
     }
 
     override suspend fun isIdAlreadyOccupied(id: String): Boolean {
@@ -43,16 +39,16 @@ class UserRepositoryImpl @Inject constructor(
         return response.isAvailable != VerifyUsernameOverlapResultDTO.IsAvailable.AVAILABLE
     }
 
-
     override suspend fun login(id: String, password: String) {
         val body = SignInRequestDTO(
             username = id,
             password = password,
         )
+
         val response = serverApi.withCheck { signIn(body = body) }
+
         authPreference.accessToken = response.accessToken
         authPreference.refreshToken = response.refreshToken
-        authPreference.userId = response.userId
     }
 
     override suspend fun join(
@@ -69,13 +65,16 @@ class UserRepositoryImpl @Inject constructor(
             username = id,
             password = password
         )
+
         serverApi.withCheck { signUp(body = body) }
     }
 
     override suspend fun tryLoginWithKakao(openIdToken: String): Boolean {
         val response = serverApi.withCheck { serverApi.loginWithKakao(idToken = openIdToken) }
+
         authPreference.accessToken = response.accessToken
         authPreference.refreshToken = response.refreshToken
+
         return response.isRegistered!!
     }
 
@@ -181,7 +180,6 @@ class UserRepositoryImpl @Inject constructor(
 
         authPreference.accessToken = null
         authPreference.refreshToken = null
-        authPreference.userId = null
 
         settingPreference.pinHash = null
         settingPreference.lastSentFcmToken = null
@@ -231,7 +229,6 @@ class UserRepositoryImpl @Inject constructor(
 
         authPreference.accessToken = null
         authPreference.refreshToken = null
-        authPreference.userId = null
 
         settingPreference.pinHash = null
         settingPreference.lastSentFcmToken = null
