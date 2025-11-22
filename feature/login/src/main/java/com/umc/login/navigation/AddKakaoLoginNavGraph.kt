@@ -38,8 +38,7 @@ fun NavGraphBuilder.addKakaoLoginNavGraph(
         val kakaoInstance = UserApiClient.instance
 
         var kakaoJoinEvent by remember { mutableStateOf<KakaoJoinEvent?>(null) }
-
-        var showLoading by remember { mutableStateOf(false) }
+        var showLoading by remember { mutableStateOf(true) }
 
         LaunchedEffect(key1 = Unit) {
             val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
@@ -70,17 +69,21 @@ fun NavGraphBuilder.addKakaoLoginNavGraph(
             var nickname by remember { mutableStateOf("") }
             val state = remember(nickname) { isNicknameValid(nickname) }
 
+            LaunchedEffect(Unit) {
+                showLoading = false
+            }
+
             FormScreen(
-                topLineMessage = null,
+                topLineMessage = stringResource(id = R.string.join),
                 nextButtonLabel = stringResource(id = R.string.start),
                 nextButtonOverMessage = null,
                 formScreenDescriptionMessageProp = FormScreenDescriptionMessageProp(
                     message = stringResource(id = R.string.join_nickname_description),
-                    color = LocalColorTheme.current.primary[400],
+                    color = LocalColorTheme.current.grey[700],
                 ),
                 animatedProgressBarProp = null,
                 isNextButtonEnabled = state == NicknameValidationState.VALID,
-                isLogoVisible = true,
+                isLogoVisible = false,
                 onNextButtonClicked = {
                     viewModel.runWithScope {
                         showLoading = true
