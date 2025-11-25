@@ -286,6 +286,11 @@ fun ChallengeApp(
         }
 
         composable("past_challenge") {
+            // 화면 진입 시 지난 챌린지 조회
+            LaunchedEffect(Unit) {
+                viewModel.getPastChallenges()
+            }
+
             PastChallengeScreen(
                 topBarProp = PastChallengeScreenTopBarProp(
                     onHeightChanged = { /* 필요 없으면 무시해도 됨 */ },
@@ -293,7 +298,8 @@ fun ChallengeApp(
                         // 뒤로가기 → challenge 화면으로 복귀
                         navController.popBackStack()
                     }
-                )
+                ),
+                pastChallenges = viewModel.pastChallenges
             )
         }
     }

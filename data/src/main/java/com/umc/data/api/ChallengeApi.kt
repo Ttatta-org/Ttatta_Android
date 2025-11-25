@@ -6,6 +6,7 @@ import com.umc.data.api.dto.server.CreateChallengeRequestDTO
 import com.umc.data.api.dto.server.CreateChallengeResultDTO
 import com.umc.data.api.dto.server.FailChallengeListResultDTO
 import com.umc.data.api.dto.server.SuccessChallengeResultDTO
+import com.umc.data.api.dto.server.GetAllPastChallengeListResultDTO
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
@@ -32,4 +33,8 @@ interface ChallengeApi {
     // 가장 최근에 실패한 챌린지 5개 조회
     @GET("/challenges/fail")
     suspend fun getFailChallenges(): BaseResponse<FailChallengeListResultDTO>
+
+    // 지난 챌린지 전체 조회
+    @GET("/challenges/all")
+    suspend fun getAllPastChallenges(): BaseResponse<GetAllPastChallengeListResultDTO>
 }

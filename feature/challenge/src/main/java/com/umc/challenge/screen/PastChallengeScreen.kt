@@ -32,6 +32,7 @@ import com.umc.challenge.component.FailedPastChallengeList
 import com.umc.challenge.component.PastChallengeTopBar
 import com.umc.challenge.component.PastChallengeTopBarProp
 import com.umc.challenge.component.SuccessPastChallengeList
+import com.umc.core.model.Challenge
 import com.umc.design.theme.LocalColorTheme
 
 data class PastChallengeScreenTopBarProp(
@@ -42,20 +43,9 @@ data class PastChallengeScreenTopBarProp(
 @Composable
 fun PastChallengeScreen(
     topBarProp: PastChallengeScreenTopBarProp,
+    pastChallenges: List<Challenge>,
 ) {
     var topBarHeight by remember { mutableStateOf(0.dp) }
-
-    // 예시 데이터
-    val challengeList = listOf(
-        Triple(true, "헬스장 가기", "오늘은 하체 뿌시기"),
-        Triple(false, "영어 단어 30개 외우기", "오늘 분량은 꼭!"),
-        Triple(true, "책 20페이지 읽기", "독서습관 챌린지"),
-        Triple(false, "영어 단어 30개 외우기", "오늘 분량은 꼭!"),
-        Triple(true, "책 20페이지 읽기", "독서습관 챌린지"),
-        Triple(false, "물 2L 마시기", "건강 챌린지"),
-        Triple(true, "헬스장 가기", "오늘은 하체 뿌시기"),
-        Triple(false, "물 2L 마시기", "건강 챌린지")
-    )
 
     // 지금 선택된 아이템 인덱스 (없으면 -1)
     var selectedIndex by remember { mutableStateOf(-1) }
@@ -77,8 +67,10 @@ fun PastChallengeScreen(
         LazyColumn(
             modifier = Modifier.weight(1f)   // 아래 버튼이 항상 보이게 하려고 weight 줌
         ) {
-            itemsIndexed(challengeList) { index, item ->
-                val (isSuccess, title, desc) = item
+            itemsIndexed(pastChallenges) {index, challenge ->
+                val isSuccess = challenge.isCompleted
+                val title = challenge.title
+                val desc = challenge.content
 
                 if (isSuccess) {
                     SuccessPastChallengeList(
@@ -106,7 +98,7 @@ fun PastChallengeScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 22.dp, end = 22.dp, bottom = 15.dp)
+                .padding(start = 22.dp, end = 22.dp, bottom = 70.dp)
         ) {
             // 위쪽 그라데이션 바
             Box(
@@ -153,5 +145,23 @@ val previewPastChallengeScreenTopBarProp = PastChallengeScreenTopBarProp(
 @Preview
 @Composable
 fun PreviewPastChallengeScreen() {
-    PastChallengeScreen(topBarProp = previewPastChallengeScreenTopBarProp)
+    val dummyChallenges = listOf(
+        com.umc.core.model.Challenge(
+            id = 1L,
+            title = "헬스장 가기",
+            content = "오늘은 하체 뿌시기",
+            isCompleted = true
+        ),
+        com.umc.core.model.Challenge(
+            id = 2L,
+            title = "영어 단어 30개 외우기",
+            content = "오늘 분량은 꼭!",
+            isCompleted = false
+        )
+    )
+
+    PastChallengeScreen(
+        topBarProp = previewPastChallengeScreenTopBarProp,
+        pastChallenges = dummyChallenges
+    )
 }

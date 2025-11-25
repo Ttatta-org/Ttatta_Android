@@ -46,4 +46,17 @@ class ChallengeRepositoryImpl @Inject constructor(
             )
         } ?: listOf()
     }
+
+    override suspend fun getPastChallenges(): List<Challenge> {
+        val response = serverApi.withAuth(authPreference) { getAllPastChallenges() }
+        return response.getAllPastChallengeResultDTOList
+            ?.map {
+                Challenge(
+                    id = it.challengeId!!,
+                    title = it.title!!,
+                    content = it.content ?: "",
+                    isCompleted = it.completed!!
+                )
+            } ?: emptyList()
+    }
 }

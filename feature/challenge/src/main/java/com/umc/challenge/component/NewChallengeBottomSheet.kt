@@ -300,6 +300,8 @@ fun NewChallengeBottomSheet(
                     isEnabled = isEnabled,
                     onClick = prop.onCreateButtonClicked
                 )
+
+                Spacer(modifier = Modifier.height(30.dp))
             }
         }
     }
