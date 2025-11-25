@@ -162,16 +162,14 @@ fun TopBarComponent(
                             modifier = Modifier.align(Alignment.CenterEnd), // ✅ 오른쪽 정렬
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            IconButton(
-                                onClick = { onSearchToggle() }, // 검색창 열기
-                                modifier = Modifier.size(24.dp)
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_search),
-                                    contentDescription = "검색",
-                                    modifier = Modifier.width(22.dp).height(24.dp)
-                                )
-                            }
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_search),
+                                contentDescription = "검색",
+                                modifier = Modifier
+                                    .width(22.dp)
+                                    .height(24.dp)
+                                    .clickable { onSearchToggle() }
+                            )
                         }
                     }
                 } else {
@@ -220,22 +218,20 @@ fun TopBarComponent(
                                 )
                             }
                             Spacer(modifier = Modifier.width(20.dp))
-                            IconButton(
-                                onClick = {
-                                    if (topBarState == TopBarState.SearchOpen) {
-                                        onSearchSubmitted(searchQuery)
-                                    } else {
-                                        onSearchToggle()
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_search),
+                                contentDescription = "검색",
+                                modifier = Modifier
+                                    .width(22.dp)
+                                    .height(24.dp)
+                                    .clickable {
+                                        if (topBarState == TopBarState.SearchOpen) {
+                                            onSearchSubmitted(searchQuery)
+                                        } else {
+                                            onSearchToggle()
+                                        }
                                     }
-                                },
-                                modifier = Modifier.size(24.dp)
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.ic_search),
-                                    contentDescription = "검색",
-                                    modifier = Modifier.width(22.dp).height(24.dp)
-                                )
-                            }
+                            )
                         }
                     }
                 }
