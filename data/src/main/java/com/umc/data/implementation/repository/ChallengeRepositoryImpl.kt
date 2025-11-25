@@ -25,7 +25,7 @@ class ChallengeRepositoryImpl @Inject constructor(
             Challenge(
                 id = it.challengeId!!,
                 title = it.title!!,
-                content = "",
+                content = it.content!!,
                 isCompleted = it.isCompleted!!
             )
         } ?: listOf()
