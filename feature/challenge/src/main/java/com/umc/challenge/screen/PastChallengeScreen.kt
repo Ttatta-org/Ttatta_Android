@@ -44,6 +44,7 @@ data class PastChallengeScreenTopBarProp(
 fun PastChallengeScreen(
     topBarProp: PastChallengeScreenTopBarProp,
     pastChallenges: List<Challenge>,
+    onRetryChallenge: (Challenge) -> Unit,
 ) {
     var topBarHeight by remember { mutableStateOf(0.dp) }
 
@@ -120,7 +121,10 @@ fun PastChallengeScreen(
                     .clip(RoundedCornerShape(16.dp))
                     .background(bgColor)
                     .clickable(enabled = isSelected) {
-                        // TODO: 선택된 챌린지로 다시 도전하기 액션
+                        val target = pastChallenges.getOrNull(selectedIndex)
+                        if (target != null) {
+                            onRetryChallenge(target)
+                        }
                     }
                     .padding(vertical = 12.5.dp)
             ) {
@@ -162,6 +166,7 @@ fun PreviewPastChallengeScreen() {
 
     PastChallengeScreen(
         topBarProp = previewPastChallengeScreenTopBarProp,
-        pastChallenges = dummyChallenges
+        pastChallenges = dummyChallenges,
+        onRetryChallenge = {}
     )
 }

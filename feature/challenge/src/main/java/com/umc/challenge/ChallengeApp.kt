@@ -299,7 +299,24 @@ fun ChallengeApp(
                         navController.popBackStack()
                     }
                 ),
-                pastChallenges = viewModel.pastChallenges
+                pastChallenges = viewModel.pastChallenges,
+                onRetryChallenge = { challenge ->
+                    viewModel.createChallenge(
+                        title = challenge.title,
+                        description = challenge.content,
+                        onSucceed = {
+                            // 오늘 챌린지 목록은 createChallenge의 finally에서 getTodayChallenges()로 다시 불러옴
+                            // 지난 챌린지 화면 닫고 challenge 화면으로 복귀
+                            navController.navigate("challenge") {
+                                popUpTo("challenge") {
+                                    inclusive = true   // 기존 challenge까지 같이 제거
+                                }
+                                launchSingleTop = true    // 혹시나 중복 생기는 것 방지용
+                            }
+                        },
+                        onFailed = {}
+                    )
+                }
             )
         }
     }
