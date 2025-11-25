@@ -44,6 +44,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -149,7 +150,7 @@ fun TopBarComponent(
                             text = selectedDate?.format(
                                 DateTimeFormatter.ofPattern("yyyy년 MM월 dd일", Locale.KOREAN)
                             ) ?: "날짜 없음",
-                            style = TextStyle( // 🎨 스크린샷과 유사한 스타일
+                            style = TextStyle(
                                 fontSize = 17.sp,
                                 fontWeight = FontWeight.W700,
                                 color = Color(0xFFF07B7B) // (디자인에 맞게 색상 변경)
@@ -327,9 +328,10 @@ fun SearchBar(
         modifier = modifier
             .background(
                 color = Color(0xFFFEF6F2),
-                shape = RoundedCornerShape(15.5.dp)
+                shape = RoundedCornerShape(18.dp)
             )
-            .padding(horizontal = 17.dp, vertical = 6.dp)
+            .height(36.dp)
+            .padding(horizontal = 15.dp)
             .fillMaxWidth(),
         contentAlignment = Alignment.CenterStart
     ) {
@@ -347,11 +349,13 @@ fun SearchBar(
                         text = "찾고 싶은 내용을 입력해주세요!",
                         style = TextStyle(
                             fontSize = 13.sp,
-                            color = Color(0xFFCACACA),
+                            color = Color(0xFF8E8E8E),
                             fontWeight = FontWeight.W400,
                             lineHeight = 20.sp,
-                            letterSpacing = (-0.4).sp
-                        )
+                            letterSpacing = 0.sp
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
