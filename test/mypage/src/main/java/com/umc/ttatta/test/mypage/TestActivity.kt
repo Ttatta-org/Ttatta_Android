@@ -26,6 +26,7 @@ class TestActivity : ComponentActivity() {
 
     private val viewModel: MyPageViewModel by viewModels()  // ✅ ViewModel 주입
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -34,7 +35,11 @@ class TestActivity : ComponentActivity() {
         setContent {
             MyPageApp(
                 viewModel = viewModel,
-                onLoginCanceled  = {})  // ✅ MyPageApp을 실행하여 UI 확인
+                onLoginCanceled  = {},
+                onBackgroundLocationRequirementChanged = { isRequired ->
+                    false
+                }
+            )
         }
 
         // ✅ 테스트 실행

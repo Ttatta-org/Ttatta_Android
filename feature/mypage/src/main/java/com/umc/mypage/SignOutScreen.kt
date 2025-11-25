@@ -169,7 +169,9 @@ fun SignOutScreen(
     // ✅ 확인 Dialog (제출 → 확인 누르면 탈퇴 실행)
     if (showConfirmDialog) {
         Dialog(
-            message = "계정을 삭제하면 기록, 발자국, 포인트 등\n모든 활동 정보가 삭제됩니다.",
+            message = "정말 계정을 탈퇴하겠습니까?",
+            subMessage = "계정을 탈퇴하면 기록, 발자국, 포인트 등\n" +
+                    "모든 활동 정보가 삭제됩니다.",
             onDismiss = { showConfirmDialog = false },
             onConfirm = {
                 showConfirmDialog = false
