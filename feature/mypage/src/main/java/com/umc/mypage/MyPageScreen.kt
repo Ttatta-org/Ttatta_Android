@@ -149,6 +149,7 @@ fun MyPageScreen(
     if (showLogoutDialog) {
         Dialog(
             message = "로그아웃 하시겠습니까?",
+            subMessage = "언제든 따따와 함께하고 싶다면 찾아와 주세요!",
             onDismiss = { showLogoutDialog = false },
             onConfirm = {
                 showLogoutDialog = false
