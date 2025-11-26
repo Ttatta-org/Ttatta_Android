@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -34,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -102,11 +104,11 @@ fun CategoryScreen(
                     verticalArrangement = Arrangement.spacedBy(space = 48.dp)
                 ) {
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+                        verticalArrangement = Arrangement.spacedBy(space = 24.dp)
                     ) {
                         // 이름 입력 창
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(space = 11.dp)
+                            verticalArrangement = Arrangement.spacedBy(space = 10.dp)
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
@@ -115,11 +117,11 @@ fun CategoryScreen(
                                 Image(
                                     painter = painterResource(id = Res.drawable.ic_header_deco),
                                     contentDescription = null,
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier.size(32.dp)
+                                    contentScale = ContentScale.FillWidth,
+                                    modifier = Modifier.width(39.53.dp)
                                 )
                                 Text(
-                                    text = stringResource(id = R.string.new_category),
+                                    text = stringResource(id = R.string.category_name),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.W600,
                                     color = LocalColorTheme.current.primary[500],
@@ -132,7 +134,7 @@ fun CategoryScreen(
                                 keyboardActions = KeyboardActions(onDone = { keyboard?.hide() }),
                                 textStyle = TextStyle(
                                     fontFamily = LocalFontTheme.current.font,
-                                    fontSize = 12.sp
+                                    fontSize = 13.sp,
                                 )
                             ) { innerTextField ->
                                 Box(
@@ -147,7 +149,12 @@ fun CategoryScreen(
                                             color = Color.White,
                                             shape = RoundedCornerShape(percent = 50)
                                         )
-                                        .padding(vertical = 13.dp, horizontal = 28.dp)
+                                        .padding(
+                                            top = 12.dp,
+                                            start = 19.dp,
+                                            end = 19.dp,
+                                            bottom = 10.dp
+                                        )
                                 ) {
                                     Row(
                                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -184,7 +191,7 @@ fun CategoryScreen(
                         }
                         // 색상 선택 창
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                            verticalArrangement = Arrangement.spacedBy(space = 20.dp)
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
@@ -193,8 +200,8 @@ fun CategoryScreen(
                                 Image(
                                     painter = painterResource(id = Res.drawable.ic_header_deco),
                                     contentDescription = null,
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier.size(32.dp)
+                                    contentScale = ContentScale.FillWidth,
+                                    modifier = Modifier.width(39.53.dp)
                                 )
                                 Text(
                                     text = stringResource(id = R.string.color_choice),
@@ -218,21 +225,22 @@ fun CategoryScreen(
                                             modifier = Modifier.clickable(
                                                 interactionSource = null,
                                                 indication = null,
-                                            ) {
-                                                onCategoryColorClicked(color)
-                                            }
+                                                onClick = { onCategoryColorClicked(color) },
+                                            ),
                                         ) {
                                             Image(
                                                 painter = painterResource(id = color.flowerIconId),
                                                 contentDescription = null,
-                                                contentScale = ContentScale.Fit,
-                                                modifier = Modifier.size(28.dp)
+                                                contentScale = ContentScale.FillWidth,
+                                                modifier = Modifier.width(32.21.dp)
                                             )
                                             if (color == selectedCategoryColor) Icon(
                                                 painter = painterResource(id = R.drawable.ic_check),
                                                 contentDescription = null,
                                                 tint = if (color == CategoryColor.WHITE) Color.Black else Color.White,
-                                                modifier = Modifier.size(12.dp)
+                                                modifier = Modifier
+                                                    .width(10.dp)
+                                                    .height(8.dp)
                                             )
                                         }
                                     }
@@ -292,7 +300,7 @@ fun CategoryScreen(
                 }
                 // 카테고리 목록
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                    verticalArrangement = Arrangement.spacedBy(space = 15.dp)
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
@@ -301,8 +309,8 @@ fun CategoryScreen(
                         Image(
                             painter = painterResource(id = Res.drawable.ic_header_deco),
                             contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.size(32.dp)
+                            contentScale = ContentScale.FillWidth,
+                            modifier = Modifier.width(39.53.dp)
                         )
                         Text(
                             text = stringResource(id = R.string.category_list),
@@ -372,12 +380,12 @@ private fun CategoryListItem(
         modifier = Modifier
             .background(
                 color = Color.White,
-                shape = RoundedCornerShape(18.dp)
+                shape = RoundedCornerShape(18.dp),
             )
             .border(
                 width = 1.dp,
                 color = LocalColorTheme.current.primary[100],
-                shape = RoundedCornerShape(18.dp)
+                shape = RoundedCornerShape(18.dp),
             )
     ) {
         Row(
@@ -388,14 +396,16 @@ private fun CategoryListItem(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(space = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(space = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Image(
-                    painter = painterResource(id = prop.color?.footIconId ?: Res.drawable.ic_foot),
+                    painter = painterResource(
+                        id = prop.color?.footV2IconId ?: Res.drawable.ic_foot
+                    ),
                     contentDescription = null,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.size(32.dp)
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(24.dp)
                 )
                 Text(
                     text = prop.name,
@@ -404,14 +414,16 @@ private fun CategoryListItem(
                     color = LocalColorTheme.current.grey[700],
                 )
             }
-            if (prop.onClicked != null) IconButton(
-                onClick = prop.onClicked,
-                modifier = Modifier.size(32.dp)
+            IconButton(
+                onClick = prop.onClicked ?: {},
+                modifier = Modifier
+                    .size(32.dp)
+                    .let { if (prop.onClicked == null) it.alpha(0f) else it },
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_modify),
+                    painter = painterResource(id = R.drawable.ic_category_modify_kebab),
                     contentDescription = null,
-                    contentScale = ContentScale.Fit,
+                    contentScale = ContentScale.Crop,
                 )
             }
         }

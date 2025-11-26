@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -85,21 +86,21 @@ fun CategoryModificationScreen(
             Column(
                 verticalArrangement = Arrangement.spacedBy(space = 32.dp),
                 modifier = Modifier
-                    .padding(22.dp)
+                    .padding(horizontal = 22.dp, vertical = 32.dp)
                     .weight(1f)
             ) {
                 // 카테고리명
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+                        verticalArrangement = Arrangement.spacedBy(space = 24.dp)
                     ) {
                         // 이름 입력 창
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(space = 11.dp)
+                            verticalArrangement = Arrangement.spacedBy(space = 10.dp)
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
@@ -108,11 +109,11 @@ fun CategoryModificationScreen(
                                 Image(
                                     painter = painterResource(id = Res.drawable.ic_header_deco),
                                     contentDescription = null,
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier.size(32.dp)
+                                    contentScale = ContentScale.FillWidth,
+                                    modifier = Modifier.width(39.53.dp)
                                 )
                                 Text(
-                                    text = stringResource(id = R.string.new_category),
+                                    text = stringResource(id = R.string.category_name),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.W600,
                                     color = LocalColorTheme.current.primary[500],
@@ -125,7 +126,7 @@ fun CategoryModificationScreen(
                                 keyboardActions = KeyboardActions(onDone = { keyboard?.hide() }),
                                 textStyle = TextStyle(
                                     fontFamily = LocalFontTheme.current.font,
-                                    fontSize = 12.sp
+                                    fontSize = 13.sp,
                                 )
                             ) { innerTextField ->
                                 Box(
@@ -140,7 +141,12 @@ fun CategoryModificationScreen(
                                             color = Color.White,
                                             shape = RoundedCornerShape(percent = 50)
                                         )
-                                        .padding(vertical = 13.dp, horizontal = 28.dp)
+                                        .padding(
+                                            top = 12.dp,
+                                            start = 19.dp,
+                                            end = 19.dp,
+                                            bottom = 10.dp
+                                        )
                                 ) {
                                     Row(
                                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -177,7 +183,7 @@ fun CategoryModificationScreen(
                         }
                         // 색상 선택 창
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                            verticalArrangement = Arrangement.spacedBy(space = 20.dp)
                         ) {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
@@ -186,8 +192,8 @@ fun CategoryModificationScreen(
                                 Image(
                                     painter = painterResource(id = Res.drawable.ic_header_deco),
                                     contentDescription = null,
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier.size(32.dp)
+                                    contentScale = ContentScale.FillWidth,
+                                    modifier = Modifier.width(39.53.dp)
                                 )
                                 Text(
                                     text = stringResource(id = R.string.color_choice),
@@ -211,21 +217,22 @@ fun CategoryModificationScreen(
                                             modifier = Modifier.clickable(
                                                 interactionSource = null,
                                                 indication = null,
-                                            ) {
-                                                onCategoryColorClicked(color)
-                                            }
+                                                onClick = { onCategoryColorClicked(color) },
+                                            ),
                                         ) {
                                             Image(
                                                 painter = painterResource(id = color.flowerIconId),
                                                 contentDescription = null,
-                                                contentScale = ContentScale.Fit,
-                                                modifier = Modifier.size(28.dp)
+                                                contentScale = ContentScale.FillWidth,
+                                                modifier = Modifier.width(32.21.dp)
                                             )
                                             if (color == selectedCategoryColor) Icon(
                                                 painter = painterResource(id = R.drawable.ic_check),
                                                 contentDescription = null,
                                                 tint = if (color == CategoryColor.WHITE) Color.Black else Color.White,
-                                                modifier = Modifier.size(12.dp)
+                                                modifier = Modifier
+                                                    .width(10.dp)
+                                                    .height(8.dp)
                                             )
                                         }
                                     }

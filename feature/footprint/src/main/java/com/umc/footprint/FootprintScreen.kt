@@ -1,6 +1,8 @@
 package com.umc.footprint
 
 import android.graphics.BitmapFactory
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +23,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
@@ -39,11 +43,17 @@ fun FootprintScreen(
     isCategorySelected: Boolean,
     diaryCardProp: PositionedDiaryCardProp?,
     onBackScreenClicked: (() -> Unit)?,
+    floatingButtonYOffset: Dp,
     onCategoryButtonClicked: () -> Unit,
     onLocationButtonClicked: () -> Unit,
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
+
+    val animatedFloatingButtonYOffset by animateDpAsState(
+        targetValue = floatingButtonYOffset,
+        animationSpec = tween(durationMillis = 300),
+    )
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -111,6 +121,7 @@ fun FootprintScreen(
             modifier = Modifier
                 .padding(20.dp)
                 .fillMaxSize()
+                .offset(y = animatedFloatingButtonYOffset)
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(15.dp)
@@ -161,6 +172,7 @@ fun PreviewFootprintScreen() {
                 showMarker = true,
                 isMarkerBook = false,
             ),
+            floatingButtonYOffset = 0.dp,
             onBackScreenClicked = null,
             onCategoryButtonClicked = {},
             onLocationButtonClicked = {},

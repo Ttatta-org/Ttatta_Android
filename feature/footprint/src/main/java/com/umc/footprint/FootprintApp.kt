@@ -26,10 +26,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.naver.maps.map.app.LegalNoticeActivity
 import com.umc.design.CategoryColor
 import com.umc.design.R
 import com.umc.footprint.core.DesignConstant
@@ -87,6 +87,7 @@ fun FootprintApp(
 
     var isCategorySelectionBarVisible by remember { mutableStateOf(false) }
     var isRemindDiaryCardFlipped by remember { mutableStateOf(false) }
+    var floatingButtonOffset by remember { mutableStateOf(0.dp) }
 
     var modificationBarOpenEvent: DiaryModificationBarOpenEvent? by remember { mutableStateOf(null) }
     var markerEvent: ModifiedMapMarkerClickedEvent? by remember { mutableStateOf(null) }
@@ -328,6 +329,7 @@ fun FootprintApp(
                 isMarkerBook = false,
             )
         },
+        floatingButtonYOffset = if (isCategorySelectionBarVisible) floatingButtonOffset else 0.dp,
         onBackScreenClicked = remindLoadedEvent?.onDismissed,
         onCategoryButtonClicked = {
             viewModel.runWithScope {
@@ -351,7 +353,7 @@ fun FootprintApp(
                 itemProps = viewModel.categoryList.map { categoryInfo ->
                     CategoryItemProp(
                         name = categoryInfo.name,
-                        icon = categoryInfo.color?.footIconId ?: R.drawable.ic_foot,
+                        icon = categoryInfo.color?.footV2IconId ?: R.raw.ic_foot_default_v2,
                         count = categoryInfo.count,
                         onClicked = {
                             viewModel.runWithScope { selectShowingCategory(categoryId = categoryInfo.id) }
@@ -361,6 +363,7 @@ fun FootprintApp(
                 },
                 onNewCategoryButtonClicked = { onNavigateToCategoryApp() },
                 onDismiss = { isCategorySelectionBarVisible = false },
+                onHeightChanged = { floatingButtonOffset = -it }
             ),
         )
     }
