@@ -8,4 +8,7 @@ interface ChallengeRepository {
     suspend fun getChallenges(): List<Challenge>
     suspend fun completeChallenge(id: Long)
     suspend fun getFailedChallenges(): List<FailedChallenge>
+
+    // 지난 모든 챌린지 조회
+    suspend fun getPastChallenges(): List<Challenge>
 }

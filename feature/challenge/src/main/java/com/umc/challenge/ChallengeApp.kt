@@ -17,6 +17,8 @@ import com.umc.challenge.screen.ChallengeScreenTopBarProp
 import com.umc.challenge.screen.ClickedItemProp
 import com.umc.challenge.screen.MyItemItemItemProp
 import com.umc.challenge.screen.MyItemScreen
+import com.umc.challenge.screen.PastChallengeScreen
+import com.umc.challenge.screen.PastChallengeScreenTopBarProp
 import com.umc.challenge.screen.ShopItemItemProp
 import com.umc.challenge.screen.ShopScreen
 import com.umc.challenge.view.ChallengeItemProp
@@ -171,6 +173,9 @@ fun ChallengeApp(
                                         },
                                         onFailed = { /* 에러 처리 */ }
                                     )
+                                },
+                                onPastChallengeClick = {
+                                    navController.navigate("past_challenge")
                                 }
                             )
                         )
@@ -276,6 +281,41 @@ fun ChallengeApp(
                             inclusive = false
                         }
                     }
+                }
+            )
+        }
+
+        composable("past_challenge") {
+            // 화면 진입 시 지난 챌린지 조회
+            LaunchedEffect(Unit) {
+                viewModel.getPastChallenges()
+            }
+
+            PastChallengeScreen(
+                topBarProp = PastChallengeScreenTopBarProp(
+                    onHeightChanged = { /* 필요 없으면 무시해도 됨 */ },
+                    onBackIconClicked = {
+                        // 뒤로가기 → challenge 화면으로 복귀
+                        navController.popBackStack()
+                    }
+                ),
+                pastChallenges = viewModel.pastChallenges,
+                onRetryChallenge = { challenge ->
+                    viewModel.createChallenge(
+                        title = challenge.title,
+                        description = challenge.content,
+                        onSucceed = {
+                            // 오늘 챌린지 목록은 createChallenge의 finally에서 getTodayChallenges()로 다시 불러옴
+                            // 지난 챌린지 화면 닫고 challenge 화면으로 복귀
+                            navController.navigate("challenge") {
+                                popUpTo("challenge") {
+                                    inclusive = true   // 기존 challenge까지 같이 제거
+                                }
+                                launchSingleTop = true    // 혹시나 중복 생기는 것 방지용
+                            }
+                        },
+                        onFailed = {}
+                    )
                 }
             )
         }

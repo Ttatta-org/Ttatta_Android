@@ -279,7 +279,7 @@ private fun ChallengeItem(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.W400,
                     color = contentColor,
-                    maxLines = 1
+//                    maxLines = 1
                 )
             }
 

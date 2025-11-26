@@ -29,6 +29,7 @@ class ChallengeViewModel @Inject constructor(
     private val equippedAccessorySetState = mutableStateOf(AccessorySet.create())
     private val failedChallengesState = mutableStateOf(listOf<FailedChallenge>())
     private val todayChallengesState = mutableStateOf(listOf<Challenge>())
+    private val pastChallengesState = mutableStateOf(listOf<Challenge>())
 
     val point get() = pointState.intValue
     val ownedItems get() = ownedItemsState.value
@@ -36,6 +37,7 @@ class ChallengeViewModel @Inject constructor(
     val equippedAccessorySet get() = equippedAccessorySetState.value
     val failedChallenges get() = failedChallengesState.value
     val todayChallenges get() = todayChallengesState.value
+    val pastChallenges get() = pastChallengesState.value
 
     fun getPoint(
         onSucceed: () -> Unit = {},
@@ -180,6 +182,21 @@ class ChallengeViewModel @Inject constructor(
                 onFailed(e)
             } finally {
                 getTodayChallenges()
+            }
+        }
+    }
+
+    fun getPastChallenges(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            try {
+                val challenges = challengeRepository.getPastChallenges()
+                pastChallengesState.value = challenges
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
             }
         }
     }

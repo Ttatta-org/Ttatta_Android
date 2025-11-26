@@ -25,7 +25,7 @@ class ChallengeRepositoryImpl @Inject constructor(
             Challenge(
                 id = it.challengeId!!,
                 title = it.title!!,
-                content = "",
+                content = it.content!!,
                 isCompleted = it.isCompleted!!
             )
         } ?: listOf()
@@ -45,5 +45,18 @@ class ChallengeRepositoryImpl @Inject constructor(
                 deadline = it.term!!
             )
         } ?: listOf()
+    }
+
+    override suspend fun getPastChallenges(): List<Challenge> {
+        val response = serverApi.withAuth(authPreference) { getAllPastChallenges() }
+        return response.getAllPastChallengeResultDTOList
+            ?.map {
+                Challenge(
+                    id = it.challengeId!!,
+                    title = it.title!!,
+                    content = it.content ?: "",
+                    isCompleted = it.completed!!
+                )
+            } ?: emptyList()
     }
 }
