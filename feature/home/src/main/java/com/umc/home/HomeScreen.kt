@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -233,17 +234,37 @@ fun HomeScreen(
                         val emptyImage = if (uiState.screenMode is ScreenMode.Search) {
                             R.drawable.no_search_results
                         } else {
-                            R.drawable.invitation
+                            R.drawable.invitation_png
                         }
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center // (기존 BottomCenter에서 수정)
-                        ) {
-                            Image(
-                                painter = painterResource(id = emptyImage),
-                                contentDescription = "빈 화면",
-                                modifier = Modifier.fillMaxWidth()
-                            )
+
+                        val commonModifier = Modifier
+                            .fillMaxSize()
+                            .navigationBarsPadding()
+
+                        // 검색결과가 없을때
+                        if (uiState.screenMode is ScreenMode.Search) {
+                            Box(
+                                modifier = commonModifier,
+                                contentAlignment = Alignment.Center // (기존 BottomCenter에서 수정)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = emptyImage),
+                                    contentDescription = "빈 화면",
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        } else {
+                            // 홈에서 일기가 없는 첫화면일 때
+                            Box(
+                                modifier = commonModifier,
+                                contentAlignment = Alignment.BottomCenter
+                            ) {
+                                Image(
+                                    painter = painterResource(id = emptyImage),
+                                    contentDescription = "빈 화면",
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
                 }
