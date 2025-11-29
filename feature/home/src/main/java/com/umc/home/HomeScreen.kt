@@ -73,6 +73,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.core.model.Diary
 import com.umc.home.components.DetailModal
 import com.umc.home.components.TopBarComponent
+import com.umc.home.components.clickableNoRipple
 import com.umc.home.utils.formatToKorean
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -308,15 +309,17 @@ fun HomeScreen(
                         .background(Color.Transparent),
                     contentAlignment = Alignment.Center
                 ) {
-                    IconButton(
-                        modifier = Modifier.size(50.dp, 16.dp),
-                        onClick = {
-                            when (topBarState) {
-                                TopBarState.SearchOpen -> onSearchToggle()   // 검색창 닫기
-                                TopBarState.CalendarOpen -> onCalendarToggle() // 캘린더 닫기
-                                TopBarState.Closed -> onCalendarToggle()     // 캘린더 열기
-                            }
-                        }
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp, 16.dp)
+                            .clickableNoRipple { // 회색 그림자 제거
+                                when (topBarState) {
+                                    TopBarState.SearchOpen -> onSearchToggle()
+                                    TopBarState.CalendarOpen -> onCalendarToggle()
+                                    TopBarState.Closed -> onCalendarToggle()
+                                }
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
                         Image(
                             painter = painterResource(id = dragIcon), // 드래그 아이콘 변경
@@ -433,7 +436,7 @@ private fun CalendarBody(
                     modifier = Modifier
                         .size(cellSize)
                         .padding(4.dp)
-                        .clickable {
+                        .clickableNoRipple {
                             if (hasDiary) {
                                 onDateSelected(date) // 부모의 selectedDate 갱신
                             }
@@ -509,7 +512,7 @@ fun CalendarView(
         ) {
             Box(
                 modifier = Modifier
-                    .clickable {
+                    .clickableNoRipple {
                         scope.launch {
                             pagerState.animateScrollToPage(pagerState.currentPage - 1)
                         }
@@ -539,7 +542,7 @@ fun CalendarView(
 
             Box(
                 modifier = Modifier
-                    .clickable {
+                    .clickableNoRipple {
                         scope.launch {
                             pagerState.animateScrollToPage(pagerState.currentPage + 1)
                         }
@@ -911,7 +914,7 @@ fun AiSummaryCard(
                     contentDescription = "새로고침",
                     modifier = Modifier
                         .size(15.dp)
-                        .clickable { onRefresh() }
+                        .clickableNoRipple { onRefresh() }
                 )
             }
         }
