@@ -120,6 +120,7 @@ fun CustomPopup(
                             fontFamily = LocalFontTheme.current.font,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.W600,
+                            lineHeight = 20.sp,
                             color = LocalColorTheme.current.primary[200],
                             modifier = Modifier.padding(vertical = 13.dp),
                         )
