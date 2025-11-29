@@ -71,6 +71,7 @@ import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.core.model.Diary
+import com.umc.home.components.DetailModal
 import com.umc.home.components.TopBarComponent
 import com.umc.home.utils.formatToKorean
 import kotlinx.coroutines.launch
@@ -370,73 +371,6 @@ fun HomeScreen(
                         navController.navigate("edit_record/${selectedDiaryId!!}")
                     }
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun DetailModal(
-    onDismiss: () -> Unit,
-    onDelete: () -> Unit,
-    onEdit: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(147.dp) // 모달 높이
-            .background(Color.White, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-            .padding(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center // 가운데 정렬
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_point),
-                    contentDescription = "Point Icon",
-                    modifier = Modifier
-                        .width(39.dp)
-                        .height(16.dp)
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 30.dp, top = 20.dp)
-            ){
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = "수정하기",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF4B4B4B),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                            onEdit()
-                            onDismiss()
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    Text(
-                        text = "삭제하기",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4B4B4B),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onDelete() }
-                    )
-                }
             }
         }
     }
