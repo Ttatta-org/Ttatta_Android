@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,9 +48,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.category.R
-import com.umc.category.component.TopBar
 import com.umc.design.CategoryColor
 import com.umc.design.component.CustomButton
+import com.umc.design.component.CustomHeader
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.LocalFontTheme
 import com.umc.design.theme.ThemeProvider
@@ -72,235 +71,228 @@ fun CategoryModificationScreen(
     val keyboard = LocalSoftwareKeyboardController.current
     val colorSelectionBarScrollState = rememberScrollState()
 
-    var top by remember { mutableStateOf(0.dp) }
-
-    Box(
-        modifier = Modifier.fillMaxSize()
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = LocalColorTheme.current.secondary[100])
     ) {
+        // 상단바
+        CustomHeader(
+            showLogo = false,
+            centerText = topBarTitle,
+            onBackButtonClicked = onBackButtonClicked,
+        )
         Column(
+            verticalArrangement = Arrangement.spacedBy(space = 32.dp),
             modifier = Modifier
-                .fillMaxSize()
-                .background(color = LocalColorTheme.current.secondary[100])
+                .padding(horizontal = 22.dp, vertical = 32.dp)
+                .weight(1f)
         ) {
-            Spacer(modifier = Modifier.height(top))
+            // 카테고리명
             Column(
-                verticalArrangement = Arrangement.spacedBy(space = 32.dp),
-                modifier = Modifier
-                    .padding(horizontal = 22.dp, vertical = 32.dp)
-                    .weight(1f)
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxSize(),
             ) {
-                // 카테고리명
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(space = 24.dp)
                 ) {
+                    // 이름 입력 창
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(space = 24.dp)
+                        verticalArrangement = Arrangement.spacedBy(space = 10.dp)
                     ) {
-                        // 이름 입력 창
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(space = 10.dp)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Image(
-                                    painter = painterResource(id = Res.drawable.ic_header_deco),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.FillWidth,
-                                    modifier = Modifier.width(39.53.dp)
-                                )
-                                Text(
-                                    text = stringResource(id = R.string.category_name),
-                                    fontSize = 15.sp,
-                                    fontWeight = FontWeight.W600,
-                                    color = LocalColorTheme.current.primary[500],
-                                )
-                            }
-                            BasicTextField(
-                                value = categoryNameInputFieldValue,
-                                onValueChange = onCategoryNameInputFieldValueChanged,
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                                keyboardActions = KeyboardActions(onDone = { keyboard?.hide() }),
-                                textStyle = TextStyle(
-                                    fontFamily = LocalFontTheme.current.font,
-                                    fontSize = 13.sp,
-                                )
-                            ) { innerTextField ->
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .border(
-                                            width = 1.dp,
-                                            color = LocalColorTheme.current.primary[300],
-                                            shape = RoundedCornerShape(percent = 50)
-                                        )
-                                        .background(
-                                            color = Color.White,
-                                            shape = RoundedCornerShape(percent = 50)
-                                        )
-                                        .padding(
-                                            top = 12.dp,
-                                            start = 19.dp,
-                                            end = 19.dp,
-                                            bottom = 10.dp
-                                        )
-                                ) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Box(
-                                            contentAlignment = Alignment.CenterStart,
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            if (categoryNameInputFieldValue.isBlank()) Text(
-                                                text = stringResource(id = R.string.footprint_placeholder),
-                                                fontSize = 13.sp,
-                                                lineHeight = 20.sp,
-                                                fontWeight = FontWeight.W400,
-                                                color = LocalColorTheme.current.grey[500],
-                                            )
-                                            innerTextField()
-                                        }
-                                        Text(
-                                            text = buildAnnotatedString {
-                                                append(categoryNameInputFieldValue.length.toString())
-                                                withStyle(
-                                                    style = SpanStyle(color = LocalColorTheme.current.grey[600])
-                                                ) {
-                                                    append("/${maxCategoryNameLength}")
-                                                }
-                                            },
-                                            fontSize = 12.sp,
-                                        )
-                                    }
-                                }
-                            }
+                            Image(
+                                painter = painterResource(id = Res.drawable.ic_header_deco),
+                                contentDescription = null,
+                                contentScale = ContentScale.FillWidth,
+                                modifier = Modifier.width(39.53.dp)
+                            )
+                            Text(
+                                text = stringResource(id = R.string.category_name),
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.W600,
+                                color = LocalColorTheme.current.primary[500],
+                            )
                         }
-                        // 색상 선택 창
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(space = 20.dp)
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Image(
-                                    painter = painterResource(id = Res.drawable.ic_header_deco),
-                                    contentDescription = null,
-                                    contentScale = ContentScale.FillWidth,
-                                    modifier = Modifier.width(39.53.dp)
-                                )
-                                Text(
-                                    text = stringResource(id = R.string.color_choice),
-                                    fontWeight = FontWeight.W600,
-                                    fontSize = 15.sp,
-                                    color = LocalColorTheme.current.primary[500],
-                                )
-                            }
+                        BasicTextField(
+                            value = categoryNameInputFieldValue,
+                            onValueChange = onCategoryNameInputFieldValueChanged,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { keyboard?.hide() }),
+                            textStyle = TextStyle(
+                                fontFamily = LocalFontTheme.current.font,
+                                fontSize = 13.sp,
+                            )
+                        ) { innerTextField ->
                             Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(
+                                        width = 1.dp,
+                                        color = LocalColorTheme.current.primary[300],
+                                        shape = RoundedCornerShape(percent = 50)
+                                    )
+                                    .background(
+                                        color = Color.White,
+                                        shape = RoundedCornerShape(percent = 50)
+                                    )
+                                    .padding(
+                                        top = 12.dp,
+                                        start = 19.dp,
+                                        end = 19.dp,
+                                        bottom = 10.dp
+                                    )
                             ) {
                                 Row(
-                                    horizontalArrangement = Arrangement.spacedBy(space = 10.dp),
-                                    modifier = Modifier
-                                        .horizontalScroll(state = colorSelectionBarScrollState)
-                                ) {
-                                    CategoryColor.entries.forEach { color ->
-                                        Box(
-                                            contentAlignment = Alignment.Center,
-                                            modifier = Modifier.clickable(
-                                                interactionSource = null,
-                                                indication = null,
-                                                onClick = { onCategoryColorClicked(color) },
-                                            ),
-                                        ) {
-                                            Image(
-                                                painter = painterResource(id = color.flowerIconId),
-                                                contentDescription = null,
-                                                contentScale = ContentScale.FillWidth,
-                                                modifier = Modifier.width(32.21.dp)
-                                            )
-                                            if (color == selectedCategoryColor) Icon(
-                                                painter = painterResource(id = R.drawable.ic_check),
-                                                contentDescription = null,
-                                                tint = if (color == CategoryColor.WHITE) Color.Black else Color.White,
-                                                modifier = Modifier
-                                                    .width(10.dp)
-                                                    .height(8.dp)
-                                            )
-                                        }
-                                    }
-                                }
-                                // 좌우 블러
-                                Box(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    if (colorSelectionBarScrollState.canScrollForward) Box(
-                                        contentAlignment = Alignment.CenterEnd,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .background(
-                                                    brush = Brush.horizontalGradient(
-                                                        0f to Color.Transparent,
-                                                        1f to LocalColorTheme.current.secondary[100],
-                                                    )
-                                                )
-                                                .size(32.dp)
-                                        )
-                                    }
-                                    if (colorSelectionBarScrollState.canScrollBackward) Box(
+                                    Box(
                                         contentAlignment = Alignment.CenterStart,
-                                        modifier = Modifier.fillMaxWidth()
+                                        modifier = Modifier.weight(1f)
                                     ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .background(
-                                                    brush = Brush.horizontalGradient(
-                                                        0f to LocalColorTheme.current.secondary[100],
-                                                        1f to Color.Transparent,
-                                                    )
-                                                )
-                                                .size(32.dp)
+                                        if (categoryNameInputFieldValue.isBlank()) Text(
+                                            text = stringResource(id = R.string.footprint_placeholder),
+                                            fontSize = 13.sp,
+                                            lineHeight = 20.sp,
+                                            fontWeight = FontWeight.W400,
+                                            color = LocalColorTheme.current.grey[500],
                                         )
+                                        innerTextField()
                                     }
+                                    Text(
+                                        text = buildAnnotatedString {
+                                            append(categoryNameInputFieldValue.length.toString())
+                                            withStyle(
+                                                style = SpanStyle(color = LocalColorTheme.current.grey[600])
+                                            ) {
+                                                append("/${maxCategoryNameLength}")
+                                            }
+                                        },
+                                        fontSize = 12.sp,
+                                    )
                                 }
                             }
                         }
                     }
-                    // 완료 버튼
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                bottom = WindowInsets.navigationBars
-                                    .asPaddingValues()
-                                    .calculateBottomPadding()
-                            ),
+                    // 색상 선택 창
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(space = 20.dp)
                     ) {
-                        CustomButton(
-                            text = stringResource(id = R.string.done),
-                            isEnabled = isDoneButtonEnabled,
-                            onClick = onDoneButtonClicked,
-                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter = painterResource(id = Res.drawable.ic_header_deco),
+                                contentDescription = null,
+                                contentScale = ContentScale.FillWidth,
+                                modifier = Modifier.width(39.53.dp)
+                            )
+                            Text(
+                                text = stringResource(id = R.string.color_choice),
+                                fontWeight = FontWeight.W600,
+                                fontSize = 15.sp,
+                                color = LocalColorTheme.current.primary[500],
+                            )
+                        }
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(space = 10.dp),
+                                modifier = Modifier
+                                    .horizontalScroll(state = colorSelectionBarScrollState)
+                            ) {
+                                CategoryColor.entries.forEach { color ->
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.clickable(
+                                            interactionSource = null,
+                                            indication = null,
+                                            onClick = { onCategoryColorClicked(color) },
+                                        ),
+                                    ) {
+                                        Image(
+                                            painter = painterResource(id = color.flowerIconId),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.FillWidth,
+                                            modifier = Modifier.width(32.21.dp)
+                                        )
+                                        if (color == selectedCategoryColor) Icon(
+                                            painter = painterResource(id = R.drawable.ic_check),
+                                            contentDescription = null,
+                                            tint = if (color == CategoryColor.WHITE) Color.Black else Color.White,
+                                            modifier = Modifier
+                                                .width(10.dp)
+                                                .height(8.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            // 좌우 블러
+                            Box(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                if (colorSelectionBarScrollState.canScrollForward) Box(
+                                    contentAlignment = Alignment.CenterEnd,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .background(
+                                                brush = Brush.horizontalGradient(
+                                                    0f to Color.Transparent,
+                                                    1f to LocalColorTheme.current.secondary[100],
+                                                )
+                                            )
+                                            .size(32.dp)
+                                    )
+                                }
+                                if (colorSelectionBarScrollState.canScrollBackward) Box(
+                                    contentAlignment = Alignment.CenterStart,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .background(
+                                                brush = Brush.horizontalGradient(
+                                                    0f to LocalColorTheme.current.secondary[100],
+                                                    1f to Color.Transparent,
+                                                )
+                                            )
+                                            .size(32.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
+                }
+                // 완료 버튼
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            bottom = WindowInsets.navigationBars
+                                .asPaddingValues()
+                                .calculateBottomPadding()
+                        ),
+                ) {
+                    CustomButton(
+                        text = stringResource(id = R.string.done),
+                        isEnabled = isDoneButtonEnabled,
+                        onClick = onDoneButtonClicked,
+                    )
                 }
             }
         }
-
-        TopBar(
-            topBarTitle = topBarTitle,
-            onHeightChanged = { top = it },
-            onBackButtonClicked = onBackButtonClicked,
-        )
     }
 }
 

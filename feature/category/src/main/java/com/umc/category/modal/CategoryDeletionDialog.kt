@@ -4,13 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.umc.category.R
+import com.umc.category.model.CategoryDeletionDialogProp
 import com.umc.design.component.CustomPopup
 import com.umc.design.theme.ThemeProvider
-
-data class CategoryDeletionDialogProp(
-    val onDismissed: () -> Unit,
-    val onConfirmed: () -> Unit,
-)
 
 @Composable
 fun CategoryDeletionDialog(

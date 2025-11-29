@@ -18,35 +18,55 @@ class CategoryViewModel @Inject constructor(
 
     val categoryList: StateFlow<List<CategoryInfo>?> = categoryListState
 
+    val newCategoryNameInputFieldValue = MutableStateFlow("")
+    val newCategoryColorSelectedValue = MutableStateFlow(CategoryColor.entries.first())
+    val selectedCategory = MutableStateFlow<CategoryInfo?>(null)
+    val modifyingCategoryNameInputFieldValue = MutableStateFlow("")
+    val modifyingCategoryColorSelectedValue = MutableStateFlow(CategoryColor.entries.first())
+
     suspend fun getCategoryListFromServer() {
         categoryListState.value = null
         categoryListState.value = diaryRepository.getAllCategoryInfo()
     }
 
-    suspend fun createCategory(
-        name: String,
-        color: CategoryColor,
-    ) {
-        diaryRepository.createCategory(name = name, color = color)
+    suspend fun createCategory() {
+        val name = newCategoryNameInputFieldValue.value
+        if (name.isBlank()) throw IllegalStateException()
+        if (name == CategoryConstraints.NON_EDITABLE_CATEGORY_NAME) throw IllegalArgumentException()
+
+        diaryRepository.createCategory(
+            name = newCategoryNameInputFieldValue.value,
+            color = newCategoryColorSelectedValue.value,
+        )
+
         getCategoryListFromServer()
     }
 
-    suspend fun modifyCategory(
-        id: Long,
-        name: String,
-        color: CategoryColor,
-    ) {
-        diaryRepository.modifyCategory(categoryId = id, name = name, color = color)
+    suspend fun modifyCategory() {
+        val selectedCategory = selectedCategory.value ?: throw IllegalStateException()
+
+        val name = modifyingCategoryNameInputFieldValue.value
+        if (name.isBlank()) throw IllegalStateException()
+        if (name == CategoryConstraints.NON_EDITABLE_CATEGORY_NAME) throw IllegalArgumentException()
+
+        diaryRepository.modifyCategory(
+            categoryId = selectedCategory.id,
+            name = name,
+            color = modifyingCategoryColorSelectedValue.value
+        )
+
         getCategoryListFromServer()
     }
 
-    suspend fun deleteCategory(id: Long) {
-        diaryRepository.deleteCategory(categoryId = id)
+    suspend fun deleteCategory() {
+        val selectedCategory = selectedCategory.value ?: throw IllegalStateException()
+        diaryRepository.deleteCategory(categoryId = selectedCategory.id)
         getCategoryListFromServer()
     }
 
-    suspend fun deleteCategoryAndAllIncludedDiaries(id: Long) {
-        diaryRepository.deleteCategoryAndAllIncludedDiaries(categoryId = id)
+    suspend fun deleteCategoryAndAllIncludedDiaries() {
+        val selectedCategory = selectedCategory.value ?: throw IllegalStateException()
+        diaryRepository.deleteCategoryAndAllIncludedDiaries(categoryId = selectedCategory.id)
         getCategoryListFromServer()
     }
 }

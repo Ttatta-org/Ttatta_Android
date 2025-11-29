@@ -4,13 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.umc.category.R
+import com.umc.category.model.CategoryAndAllIncludedDiaryDeletionDialogProp
 import com.umc.design.component.CustomPopup
 import com.umc.design.theme.ThemeProvider
-
-data class CategoryAndAllIncludedDiaryDeletionDialogProp(
-    val onDismissed: () -> Unit,
-    val onConfirmed: () -> Unit,
-)
 
 @Composable
 fun CategoryAndAllIncludedDiaryDeletionDialog(
@@ -26,10 +22,11 @@ fun CategoryAndAllIncludedDiaryDeletionDialog(
     )
 }
 
-val previewCategoryAndAllIncludedDiaryDeletionDialogProp = CategoryAndAllIncludedDiaryDeletionDialogProp(
-    onDismissed = {},
-    onConfirmed = {},
-)
+val previewCategoryAndAllIncludedDiaryDeletionDialogProp =
+    CategoryAndAllIncludedDiaryDeletionDialogProp(
+        onDismissed = {},
+        onConfirmed = {},
+    )
 
 @Preview(backgroundColor = 0xFFFFFFFF, showBackground = true)
 @Composable
