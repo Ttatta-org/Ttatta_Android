@@ -123,11 +123,11 @@ fun TopBarComponent(
                     .statusBarsPadding()
             ) {
                 // --- ✅ 핵심: 두 가지 레이아웃을 조건부로 분리 ---
-                val isFilteredAndSearchClosed =
-                    (screenMode is ScreenMode.Filtered && topBarState != TopBarState.SearchOpen)
+                val showCenterDateLayout =
+                    (screenMode is ScreenMode.Filtered && topBarState != TopBarState.SearchOpen && topBarState != TopBarState.CalendarOpen)
 
-                if (isFilteredAndSearchClosed) {
-                    // --- 1. Filtered 모드 + 검색창 닫힘 (가운데 날짜용 Box 레이아웃) ---
+                if (showCenterDateLayout) {
+                    // --- 1. Filtered 모드 + 검색창 닫힘 + 달력도 닫힘 (가운데 날짜용 Box 레이아웃) ---
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
