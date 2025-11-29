@@ -15,13 +15,16 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
@@ -47,8 +50,14 @@ fun CategorySelectionBar(
     prop: CategorySelectionBarProp,
 ) {
     val density = LocalDensity.current
+    val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
+    )
+
+    val scrollState = rememberLazyListState()
 
     CustomBottomSheet(
+        sheetState = sheetState,
         containerColor = LocalColorTheme.current.secondary[100],
         onDismissRequest = prop.onDismiss,
     ) {
@@ -86,30 +95,46 @@ fun CategorySelectionBar(
                 )
             }
             // 카테고리 목록
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier
-                    .heightIn(max = 500.dp)
-                    .padding(horizontal = 22.dp)
-            ) {
-                items(count = prop.itemProps.size + 1) { index ->
-                    if (index == 0) {
-                        // 새 카테고리 등록 버튼
-                        CategoryItem(
-                            prop = CategoryItemProp(
-                                name = stringResource(id = R.string.new_footprint),
-                                icon = R.drawable.ic_new_category,
-                                count = null,
-                                onClicked = prop.onNewCategoryButtonClicked
-                            ),
-                        )
-                    } else {
-                        CategoryItem(prop = prop.itemProps[index - 1])
+            Box {
+                LazyColumn(
+                    state = scrollState,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier
+                        .heightIn(max = 500.dp)
+                        .padding(horizontal = 22.dp)
+                ) {
+                    items(count = prop.itemProps.size + 1) { index ->
+                        if (index == 0) {
+                            // 새 카테고리 등록 버튼
+                            CategoryItem(
+                                prop = CategoryItemProp(
+                                    name = stringResource(id = R.string.new_footprint),
+                                    icon = R.drawable.ic_new_category,
+                                    count = null,
+                                    onClicked = prop.onNewCategoryButtonClicked
+                                ),
+                            )
+                        } else {
+                            CategoryItem(prop = prop.itemProps[index - 1])
+                        }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.height(22.dp))
                     }
                 }
-
-                item {
-                    Spacer(modifier = Modifier.height(22.dp))
+                if (scrollState.canScrollBackward) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    0f to LocalColorTheme.current.secondary[100],
+                                    1f to LocalColorTheme.current.secondary[100].copy(alpha = 0f),
+                                )
+                            )
+                    )
                 }
             }
         }

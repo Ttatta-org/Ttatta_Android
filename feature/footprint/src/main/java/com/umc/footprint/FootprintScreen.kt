@@ -19,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -27,10 +28,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.round
+import com.umc.design.component.CustomHeader
 import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.component.card.DiaryCard
 import com.umc.footprint.component.ShadowedImage
-import com.umc.footprint.component.TopBar
 import com.umc.footprint.component.card.previewDiaryCardProp
 import com.umc.footprint.core.DesignConstant
 import com.umc.footprint.model.prop.PositionedDiaryCardProp
@@ -114,7 +115,11 @@ fun FootprintScreen(
             }
         }
         // 탑 바
-        TopBar()
+        CustomHeader(
+            showLogoWhiteShadow = true,
+            backgroundColor = Color.Transparent,
+            waveColor = Color.Transparent,
+        )
         // 플로팅 버튼
         Box(
             contentAlignment = Alignment.BottomEnd,
