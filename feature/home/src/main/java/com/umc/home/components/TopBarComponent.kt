@@ -123,11 +123,11 @@ fun TopBarComponent(
                     .statusBarsPadding()
             ) {
                 // --- ✅ 핵심: 두 가지 레이아웃을 조건부로 분리 ---
-                val isFilteredAndSearchClosed =
-                    (screenMode is ScreenMode.Filtered && topBarState != TopBarState.SearchOpen)
+                val showCenterDateLayout =
+                    (screenMode is ScreenMode.Filtered && topBarState != TopBarState.SearchOpen && topBarState != TopBarState.CalendarOpen)
 
-                if (isFilteredAndSearchClosed) {
-                    // --- 1. Filtered 모드 + 검색창 닫힘 (가운데 날짜용 Box 레이아웃) ---
+                if (showCenterDateLayout) {
+                    // --- 1. Filtered 모드 + 검색창 닫힘 + 달력도 닫힘 (가운데 날짜용 Box 레이아웃) ---
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -141,7 +141,7 @@ fun TopBarComponent(
                             modifier = Modifier
                                 .width(10.dp)
                                 .height(16.25.dp)
-                                .clickable { onBackClick() }
+                                .clickableNoRipple { onBackClick() }
                                 .align(Alignment.CenterStart) // ✅ 왼쪽 정렬
                         )
 
@@ -169,7 +169,7 @@ fun TopBarComponent(
                                 modifier = Modifier
                                     .width(22.dp)
                                     .height(24.dp)
-                                    .clickable { onSearchToggle() }
+                                    .clickableNoRipple { onSearchToggle() }
                             )
                         }
                     }
@@ -190,7 +190,7 @@ fun TopBarComponent(
                                 modifier = Modifier
                                     .width(10.dp)
                                     .height(16.25.dp)
-                                    .clickable { onBackClick() }
+                                    .clickableNoRipple { onBackClick() }
                             )
                         } else {
                             Image(
@@ -225,7 +225,7 @@ fun TopBarComponent(
                                 modifier = Modifier
                                     .width(22.dp)
                                     .height(24.dp)
-                                    .clickable {
+                                    .clickableNoRipple {
                                         if (topBarState == TopBarState.SearchOpen) {
                                             onSearchSubmitted(searchQuery)
                                         } else {
@@ -387,7 +387,7 @@ fun SearchBar(
                     contentDescription = "텍스트 지우기",
                     modifier = Modifier
                         .size(16.dp) // 아이콘 크기
-                        .clickable {
+                        .clickableNoRipple {
                             onQueryChange("") // ✅ 클릭 시 텍스트를 비웁니다.
                         }
                 )
@@ -430,7 +430,7 @@ fun RecentSearches(
                             .clip(RoundedCornerShape(13.dp))
                             .border(1.dp, Color(0xFFFFD2AC), RoundedCornerShape(13.dp))
                             .background(Color(0xFFFEF6F2))
-                            .clickable { onRecentSearchClick(search) }
+                            .clickableNoRipple { onRecentSearchClick(search) }
                             .padding(horizontal = 14.dp, vertical = 7.dp)
                     ) {
                         Text(
