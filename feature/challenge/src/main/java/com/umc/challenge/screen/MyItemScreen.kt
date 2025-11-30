@@ -214,7 +214,7 @@ fun MyItemScreen(
                         )
                 ) {
                     Image(
-                        painter = painterResource(id = clickedItemProp.item.res),
+                        painter = painterResource(id = clickedItemProp.item.shopRes),
                         contentDescription = null,
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
@@ -373,7 +373,7 @@ private fun MyItemItemItem(
                 .fillMaxSize()
         ) {
             Image(
-                painter = painterResource(id = prop.accessory.res),
+                painter = painterResource(id = prop.accessory.shopRes),
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize()
@@ -417,7 +417,7 @@ val previewMyItemItemItemPropList = listOf(
         onClicked = {}
     ),
     MyItemItemItemProp(
-        accessory = Accessory.TTUTTU_THREE_COLOR_BALLOONS,
+        accessory = Accessory.TTUTTU_GIANT_RIBBON,
         isEquipped = false,
         onClicked = {}
     )

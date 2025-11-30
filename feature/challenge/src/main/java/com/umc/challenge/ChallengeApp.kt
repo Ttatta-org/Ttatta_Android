@@ -27,7 +27,11 @@ import com.umc.challenge.view.ChallengeOnboardingViewProp
 import com.umc.challenge.view.ChallengeState
 import com.umc.challenge.view.NewChallengeView
 import com.umc.challenge.view.NewChallengeViewProp
+import com.umc.core.util.runWithScope
 import com.umc.design.character.Accessory
+import com.umc.design.character.BodyPart
+import com.umc.design.component.CustomPopup
+import com.umc.design.component.LoadingModal
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -185,53 +189,80 @@ fun ChallengeApp(
         }
 
         composable("shop") {
-            var clickedShopItemInfo by remember { mutableStateOf<ClickedShopItemInfo?>(null) }
+            var clickedShopItemInfo: ClickedShopItemInfo? by remember { mutableStateOf(null) }
+            var selectedBodyPart: BodyPart? by remember { mutableStateOf(null) }
+            var showLackOfPointsPopup by remember { mutableStateOf(false) }
+            var showLoading by remember { mutableStateOf(false) }
 
             LaunchedEffect(key1 = Unit) {
-                viewModel.getEquippedItems()
-                viewModel.getShopItems()
+                launch { runCatching { viewModel.getEquippedItems() } }
+                launch { runCatching { viewModel.getShopItems() } }
             }
 
             ShopScreen(
                 point = viewModel.point,
+                selectedBodyPart = selectedBodyPart,
                 equippedAccessorySet = viewModel.equippedAccessorySet,
-                shopItemItemPropList = remember(viewModel.unownedItems) {
-                    viewModel.unownedItems.map {
+                shopItemItemPropList = viewModel.unownedItems
+                    .filter {
+                        selectedBodyPart == null || it.item.bodyPart == selectedBodyPart
+                    }
+                    .map {
                         ShopItemItemProp(
                             accessory = it.item,
                             cost = it.cost,
+                            isOwned = false,  // TODO: 백엔드 반영 시 변경
                             onClicked = {
                                 if (it.cost <= viewModel.point) {
                                     clickedShopItemInfo = ClickedShopItemInfo(
                                         id = it.id,
-                                        itemName = it.item.title
+                                        itemName = it.item.title,
                                     )
+                                } else {
+                                    showLackOfPointsPopup = true
                                 }
                             }
                         )
-                    }
-                },
+                    },
                 purchaseDialogProp = clickedShopItemInfo?.let { info ->
                     PurchaseDialogProp(
                         itemName = info.itemName,
                         onDismissed = { clickedShopItemInfo = null },
                         onPurchase = {
-                            viewModel.purchaseItem(
-                                id = info.id,
-                                onSucceed = { clickedShopItemInfo = null },
-                                onFailed = { clickedShopItemInfo = null }
-                            )
+                            viewModel.runWithScope {
+                                showLoading = true
+
+                                runCatching { purchaseItem(id = info.id) }
+                                clickedShopItemInfo = null
+
+                                showLoading = false
+                            }
                         }
                     )
                 },
                 onMyItemsIconClicked = {
-                    navController.navigate("my_item") {
-                        popUpTo(id = navController.graph.startDestinationId) {
-                            inclusive = false
+                    MainScope().launch {
+                        navController.navigate("my_item") {
+                            popUpTo(id = navController.graph.startDestinationId) {
+                                inclusive = false
+                            }
                         }
                     }
+                },
+                onBodyPartSelected = { selectedBodyPart = it },
+                onBackButtonClicked = {
+                    MainScope().launch { navController.popBackStack() }
                 }
             )
+
+            if (showLackOfPointsPopup) CustomPopup(
+                title = "포인트가 부족해요!",
+                message = "챌린지를 완료하면 포인트를 모을 수 있어요.",
+                cancelText = "네, 알겠어요.",
+                onDismiss = { showLackOfPointsPopup = false }
+            )
+
+            if (showLoading) LoadingModal()
         }
 
         composable("my_item") {

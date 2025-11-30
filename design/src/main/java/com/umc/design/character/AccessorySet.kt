@@ -13,21 +13,22 @@ class AccessorySet private constructor(
 
     init {
         val set = mutableSetOf<Accessory>()
+
         accessories.forEach { accessory ->
-            if (set.conflict(accessory))
-                throw IllegalArgumentException("AccessorySet conflicted")
-            else
-                set += accessory
+            if (set.conflict(accessory)) throw IllegalArgumentException("AccessorySet conflicted")
+            else set += accessory
         }
+
         values = set.toSet()
     }
 
     fun plusReplacingConflict(accessory: Accessory): AccessorySet {
         val set = mutableSetOf(accessory)
+
         values.forEach { prevAccessory ->
-            if (!set.conflict(prevAccessory))
-                set += prevAccessory
+            if (!set.conflict(prevAccessory)) set += prevAccessory
         }
+
         return AccessorySet(set)
     }
 

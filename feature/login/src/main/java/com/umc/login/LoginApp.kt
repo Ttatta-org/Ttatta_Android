@@ -39,15 +39,13 @@ fun LoginApp(
             viewModel = viewModel,
             onNavigatingBackToLogin = {
                 MainScope().launch {
-                    navController.navigate("login") {
-                        popUpTo("login") { inclusive = true }
-                    }
+                    navController.popBackStack(route = "login", inclusive = false)
                 }
             },
             onNavigatingToJoinDone = { name ->
                 MainScope().launch {
                     navController.navigate("join_done?name=$name") {
-                        popUpTo("login") { inclusive = true }
+                        popUpTo("login") { inclusive = false }
                     }
                 }
             },
@@ -57,22 +55,20 @@ fun LoginApp(
             viewModel = viewModel,
             onNavigatingBackToLogin = {
                 MainScope().launch {
-                    navController.navigate("login") {
-                        popUpTo("login") { inclusive = true }
-                    }
+                    navController.popBackStack(route = "login", inclusive = false)
                 }
             },
             onNavigatingToFindingIdDone = { id, name ->
                 MainScope().launch {
                     navController.navigate("find_id_done?id=$id&name=$name") {
-                        popUpTo("login") { inclusive = true }
+                        popUpTo("login") { inclusive = false }
                     }
                 }
             },
             onNavigatingToFindingPassword = {
                 MainScope().launch {
                     navController.navigate("find_password") {
-                        popUpTo("login") { inclusive = true }
+                        popUpTo("login") { inclusive = false }
                     }
                 }
             },
@@ -82,11 +78,16 @@ fun LoginApp(
             viewModel = viewModel,
             onNavigatingBackToLogin = {
                 MainScope().launch {
-                    navController.navigate("login") {
-                        popUpTo("login") { inclusive = true }
-                    }
+                    navController.popBackStack(route = "login", inclusive = false)
                 }
             },
+            onNavigateToFindingPasswordDone = { name ->
+                MainScope().launch {
+                    navController.navigate("find_password_done?name=$name") {
+                        popUpTo("login") { inclusive = false }
+                    }
+                }
+            }
         )
 
         addKakaoLoginNavGraph(
@@ -94,9 +95,7 @@ fun LoginApp(
             onNavigatingToHome = onNavigatingToHome,
             onNavigatingBackToLogin = {
                 MainScope().launch {
-                    navController.navigate("login") {
-                        popUpTo("login") { inclusive = true }
-                    }
+                    navController.popBackStack(route = "login", inclusive = false)
                 }
             },
         )

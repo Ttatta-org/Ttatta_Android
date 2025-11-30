@@ -63,6 +63,7 @@ import com.umc.design.character.AccessorySet
 import com.umc.design.character.CharacterView
 import com.umc.design.component.CustomButton
 import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.ThemeProvider
 
 data class ChallengeOnboardingViewProp(
     val equippedAccessorySet: AccessorySet,
@@ -132,7 +133,7 @@ fun ChallengeOnboardingView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(32.dp)
+                .padding(22.dp)
                 .onGloballyPositioned {
                     with(density) { columnWidth = it.size.width.toDp() }
                 }
@@ -353,7 +354,7 @@ private fun AttendanceCard(
 val previewAccessorySet = AccessorySet.create(
     Accessory.TTOTTO_COZY_MUFFLER,
     Accessory.TTOTTO_CAP,
-    Accessory.TTUTTU_THREE_COLOR_BALLOONS,
+    Accessory.TTUTTU_LIFESAVER_COFFEE,
     Accessory.TTUTTU_HAT
 )
 
@@ -388,7 +389,9 @@ val previewChallengeOnboardingViewProp = ChallengeOnboardingViewProp(
 @Preview(showBackground = true)
 @Composable
 fun PreviewChallengeOnboardingView() {
-    ChallengeOnboardingView(
-        prop = previewChallengeOnboardingViewProp
-    )
+    ThemeProvider {
+        ChallengeOnboardingView(
+            prop = previewChallengeOnboardingViewProp
+        )
+    }
 }

@@ -74,10 +74,9 @@ fun LoginScreen(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(64.dp),
             modifier = Modifier
                 .widthIn(max = 480.dp)
-                .padding(horizontal = 32.dp)
+                .padding(horizontal = 22.dp)
         ) {
             // 로고
             Column(
@@ -98,115 +97,111 @@ fun LoginScreen(
                     color = LocalColorTheme.current.primary[400],
                 )
             }
-            Column(
-                verticalArrangement = Arrangement.spacedBy(38.dp)
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    CustomTextFieldLabelScope(
-                        underMessageProp = CustomTextFieldUnderMessageProp(
-                            value = stringResource(id = R.string.login_error_message),
-                            color = if (isLoginErrorOccurred) LocalColorTheme.current.negative else Color.Transparent
-                        )
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            // 아이디 입력창
-                            CustomTextField(
-                                prop = CustomTextFieldProp(
-                                    value = id,
-                                    onValueChanged = onIdChanged,
-                                    placeholder = stringResource(id = R.string.login_id_placeholder),
-                                    textAlignment = CustomTextFieldTextAlignment.START,
-                                    isVisible = true,
-                                    tail = { Spacer(modifier = Modifier.height(32.dp)) },
-                                )
-                            )
-                            // 비밀 번호 입력창
-                            CustomTextField(
-                                prop = CustomTextFieldProp(
-                                    value = password,
-                                    onValueChanged = onPasswordChanged,
-                                    placeholder = stringResource(id = R.string.login_password_placeholder),
-                                    textAlignment = CustomTextFieldTextAlignment.START,
-                                    isVisible = isPasswordVisible,
-                                    tail = {
-                                        Box(
-                                            modifier = Modifier.padding(
-                                                vertical = 8.dp,
-                                                horizontal = 16.dp,
-                                            ),
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(
-                                                    id = if (isPasswordVisible) R.drawable.ic_visibility_on
-                                                    else R.drawable.ic_visibility_off
-                                                ),
-                                                contentDescription = null,
-                                                tint = LocalColorTheme.current.grey[400],
-                                                modifier = Modifier
-                                                    .size(16.dp)
-                                                    .clickable { onPasswordVisibilityChanged(!isPasswordVisible) },
-                                            )
-                                        }
-                                    },
-                                )
-                            )
-                        }
-                    }
-                }
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                ) {
-                    // 로그인 버튼
-                    CustomButton(
-                        text = stringResource(id = R.string.login),
-                        isEnabled = id.isNotEmpty() && password.isNotEmpty(),  // TODO: business logic
-                        onClick = onLoginButtonClicked,
-                    )
-                    // ID와 비번 찾기 및 회원 가입
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        val textStyle = TextStyle(
-                            fontSize = 12.sp,
-                            lineHeight = 20.sp,
-                            fontWeight = FontWeight.W400,
-                            fontFamily = LocalFontTheme.current.font,
-                            color = LocalColorTheme.current.grey[500]
-                        )
+            Spacer(modifier = Modifier.height(34.dp))
 
-                        listOf(
-                            stringResource(id = R.string.find_id) to onFindIdButtonClicked,
-                            stringResource(id = R.string.find_password) to onFindPasswordButtonClicked,
-                            stringResource(id = R.string.join) to onJoinButtonClicked,
-                        ).forEachIndexed { index, (text, onClick) ->
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(percent = 50))
-                                    .clickable { onClick() },
-                            ) {
-                                Text(
-                                    text = text,
-                                    style = textStyle,
-                                    modifier = Modifier
-                                        .padding(vertical = 4.dp, horizontal = 8.dp)
-                                )
-                            }
-                            if (index < 2) VerticalDivider(
-                                modifier = Modifier.height(12.dp),
-                                color = LocalColorTheme.current.grey[500],
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CustomTextFieldLabelScope(
+                    underMessageProp = CustomTextFieldUnderMessageProp(
+                        value = stringResource(id = R.string.login_error_message),
+                        color = if (isLoginErrorOccurred) LocalColorTheme.current.negative else Color.Transparent
+                    )
+                ) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        // 아이디 입력창
+                        CustomTextField(
+                            prop = CustomTextFieldProp(
+                                value = id,
+                                onValueChanged = onIdChanged,
+                                placeholder = stringResource(id = R.string.login_id_placeholder),
+                                textAlignment = CustomTextFieldTextAlignment.START,
+                                isVisible = true,
+                                tail = { Spacer(modifier = Modifier.height(32.dp)) },
                             )
-                        }
+                        )
+                        // 비밀 번호 입력창
+                        CustomTextField(
+                            prop = CustomTextFieldProp(
+                                value = password,
+                                onValueChanged = onPasswordChanged,
+                                placeholder = stringResource(id = R.string.login_password_placeholder),
+                                textAlignment = CustomTextFieldTextAlignment.START,
+                                isVisible = isPasswordVisible,
+                                tail = {
+                                    Box(
+                                        modifier = Modifier.padding(
+                                            vertical = 8.dp,
+                                            horizontal = 16.dp,
+                                        ),
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(
+                                                id = if (isPasswordVisible) R.drawable.ic_visibility_on
+                                                else R.drawable.ic_visibility_off
+                                            ),
+                                            contentDescription = null,
+                                            tint = LocalColorTheme.current.grey[400],
+                                            modifier = Modifier
+                                                .size(16.dp)
+                                                .clickable { onPasswordVisibilityChanged(!isPasswordVisible) },
+                                        )
+                                    }
+                                },
+                            )
+                        )
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
             Column(
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(15.dp),
+            ) {
+                // 로그인 버튼
+                CustomButton(
+                    text = stringResource(id = R.string.login),
+                    isEnabled = id.isNotEmpty() && password.isNotEmpty(),  // TODO: business logic
+                    onClick = onLoginButtonClicked,
+                )
+                // ID와 비번 찾기 및 회원 가입
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    listOf(
+                        stringResource(id = R.string.find_id) to onFindIdButtonClicked,
+                        stringResource(id = R.string.find_password) to onFindPasswordButtonClicked,
+                        stringResource(id = R.string.join) to onJoinButtonClicked,
+                    ).forEachIndexed { index, (text, onClick) ->
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(percent = 50))
+                                .clickable { onClick() },
+                        ) {
+                            Text(
+                                text = text,
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight.W400,
+                                letterSpacing = (-0.4).sp,
+                                color = LocalColorTheme.current.grey[500],
+                                modifier = Modifier
+                                    .padding(vertical = 4.dp, horizontal = 8.dp)
+                            )
+                        }
+                        if (index < 2) VerticalDivider(
+                            modifier = Modifier.height(12.dp),
+                            color = LocalColorTheme.current.grey[500],
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(40 .dp))
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // 구분선
                 Row(
@@ -216,18 +211,18 @@ fun LoginScreen(
                 ) {
                     HorizontalDivider(
                         modifier = Modifier.weight(1f),
-                        color = LocalColorTheme.current.grey[300],
+                        color = LocalColorTheme.current.grey[400],
                     )
                     Text(
                         text = stringResource(id = R.string.or),
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
-                        color = LocalColorTheme.current.grey[300],
+                        color = LocalColorTheme.current.grey[400],
                         fontWeight = FontWeight.W400,
                     )
                     HorizontalDivider(
                         modifier = Modifier.weight(1f),
-                        color = LocalColorTheme.current.grey[300],
+                        color = LocalColorTheme.current.grey[400],
                     )
                 }
                 // 카카오 로그인 버튼

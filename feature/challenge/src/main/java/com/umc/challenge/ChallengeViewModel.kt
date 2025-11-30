@@ -13,6 +13,8 @@ import com.umc.core.repository.ItemRepository
 import com.umc.core.repository.UserRepository
 import com.umc.design.character.AccessorySet
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,7 +23,7 @@ class ChallengeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val challengeRepository: ChallengeRepository,
     private val itemRepository: ItemRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val pointState = mutableIntStateOf(0)
     private val ownedItemsState = mutableStateOf(listOf<OwnedItem>())
@@ -68,20 +70,10 @@ class ChallengeViewModel @Inject constructor(
         }
     }
 
-    fun getShopItems(
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            try {
-                val (point, unownedItems) = itemRepository.getUnownedItemsWithPoint()
-                pointState.intValue = point
-                unownedItemsState.value = unownedItems
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            }
-        }
+    suspend fun getShopItems() {
+        val (point, unownedItems) = itemRepository.getUnownedItemsWithPoint()
+        pointState.intValue = point
+        unownedItemsState.value = unownedItems
     }
 
     fun getOwnedItems(
@@ -130,21 +122,12 @@ class ChallengeViewModel @Inject constructor(
         }
     }
 
-    fun purchaseItem(
-        id: Long,
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            try {
-                itemRepository.purchaseItem(id)
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            } finally {
-                getEquippedItems()
-                getShopItems()
-            }
+    suspend fun purchaseItem(id: Long) {
+        try {
+            itemRepository.purchaseItem(id)
+        } finally {
+            CoroutineScope(Dispatchers.IO).launch { getEquippedItems() }
+            CoroutineScope(Dispatchers.IO).launch { getShopItems() }
         }
     }
 

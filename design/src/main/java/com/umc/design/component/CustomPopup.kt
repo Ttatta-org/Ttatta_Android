@@ -3,11 +3,12 @@ package com.umc.design.component
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,13 +17,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -68,6 +69,7 @@ fun CustomPopup(
                 Image(
                     painter = painterResource(id = R.drawable.ic_header_deco),
                     contentDescription = null,
+                    contentScale = ContentScale.FillHeight,
                     modifier = Modifier.height(16.dp)
                 )
                 Spacer(modifier = Modifier.height(15.dp))
@@ -98,28 +100,45 @@ fun CustomPopup(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        shape = RoundedCornerShape(13.dp),
-                        modifier = Modifier.weight(1f),
-                        border = BorderStroke(1.dp, LocalColorTheme.current.primary[200]),
-                        contentPadding = PaddingValues(vertical = 13.dp),
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .border(
+                                shape = RoundedCornerShape(13.dp),
+                                border = BorderStroke(1.dp, LocalColorTheme.current.primary[200]),
+                            )
+                            .clip(RoundedCornerShape(13.dp))
+                            .clickable(
+                                indication = null,
+                                interactionSource = null,
+                                onClick = onDismiss,
+                            ),
                     ) {
                         Text(
                             text = cancelText,
                             fontFamily = LocalFontTheme.current.font,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.W600,
+                            lineHeight = 20.sp,
                             color = LocalColorTheme.current.primary[200],
+                            modifier = Modifier.padding(vertical = 13.dp),
                         )
                     }
-                    if (onConfirm != null) Button(
-                        onClick = onConfirm,
-                        colors = ButtonDefaults.buttonColors(containerColor = LocalColorTheme.current.primary[400]),
-                        shape = RoundedCornerShape(13.dp),
-                        modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(vertical = 13.dp),
+                    if (onConfirm != null) Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .weight(1f)
+                            .background(
+                                shape = RoundedCornerShape(13.dp),
+                                color = LocalColorTheme.current.primary[400],
+                            )
+                            .clip(RoundedCornerShape(13.dp))
+                            .clickable(
+                                indication = null,
+                                interactionSource = null,
+                                onClick = onDismiss,
+                            ),
                     ) {
                         Text(
                             text = confirmText,
@@ -127,6 +146,7 @@ fun CustomPopup(
                             fontSize = 15.sp,
                             fontWeight = FontWeight.W600,
                             color = Color.White,
+                            modifier = Modifier.padding(vertical = 13.dp),
                         )
                     }
                 }

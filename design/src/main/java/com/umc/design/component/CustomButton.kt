@@ -61,7 +61,11 @@ fun CustomButton(
                 else it
             }
             .clip(shape)
-            .clickable { if (isEnabled) onClick() },
+            .clickable(
+                interactionSource = null,
+                indication = null,
+                onClick = { if (isEnabled) onClick() },
+            ),
     ) {
         if (content != null) {
             content.invoke()
@@ -71,7 +75,8 @@ fun CustomButton(
                 fontFamily = LocalFontTheme.current.font,
                 fontSize = 15.sp,
                 lineHeight = 20.sp,
-                fontWeight = FontWeight.W600,
+                fontWeight = FontWeight.W700,
+                letterSpacing = (-0.4).sp,
                 color = if (isEnabled) colors.contentColor else colors.disabledContentColor,
                 modifier = Modifier.padding(vertical = 13.dp)
             )

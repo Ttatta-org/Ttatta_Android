@@ -27,9 +27,11 @@ import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.sp
 import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.umc.core.util.runWithScope
 import com.umc.design.component.CustomPopup
 import com.umc.design.component.LoadingModal
@@ -50,6 +52,7 @@ import com.umc.login.logic.state.IdValidationState
 import com.umc.login.logic.state.PasswordValidationState
 import com.umc.login.logic.state.isIdValid
 import com.umc.login.logic.state.isPasswordValid
+import com.umc.login.screen.DoneScreen
 import com.umc.login.screen.FormScreen
 import com.umc.login.screen.FormScreenDescriptionMessageProp
 import kotlinx.coroutines.MainScope
@@ -85,6 +88,7 @@ private val startDestination = FindingPasswordNavGraphDestination.ID
 fun NavGraphBuilder.addFindingPasswordNavGraph(
     viewModel: LoginViewModel,
     onNavigatingBackToLogin: () -> Unit,
+    onNavigateToFindingPasswordDone: (name: String) -> Unit,
 ) {
     composable(
         route = "find_password"
@@ -202,7 +206,7 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                                 runCatching {
                                     changePassword(password = password)
                                 }.onSuccess {
-                                    onNavigatingBackToLogin()
+                                    onNavigateToFindingPasswordDone(name)
                                 }
                             }
                         }
@@ -405,6 +409,24 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
             message = stringResource(id = R.string.error_content_cannot_find_user),
             cancelText = "확인",
             onDismiss = { showCannotSendMailPopup = false },
+        )
+    }
+
+    composable(
+        route = "find_password_done?name={name}",
+        arguments = listOf(
+            navArgument("name") { type = NavType.StringType },
+        ),
+    ) { backStackEntry ->
+        val name = backStackEntry.arguments!!.getString("name")!!
+
+        DoneScreen(
+            nickname = name,
+            message = "비밀번호 재설정\n완료!",
+            centerChipContent = null,
+            onGoToFindingPasswordButtonClicked = null,
+            onBackButtonClicked = onNavigatingBackToLogin,
+            onGoToLoginButtonClicked = onNavigatingBackToLogin,
         )
     }
 }

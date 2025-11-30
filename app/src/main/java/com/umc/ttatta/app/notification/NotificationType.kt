@@ -41,11 +41,9 @@ enum class NotificationType(
         channelTitle = "하루 요약 도착",
         channelDescription = "일일 요약을 받습니다.",
         channelImportance = NotificationManager.IMPORTANCE_HIGH,
-        getIntent = { remoteMessage ->
+        getIntent = {
             getNewIntent(
-                intentType = IntentType.DailySummary(
-                    date = remoteMessage.data["date"]!!.let { LocalDate.parse(it) },
-                ),
+                intentType = IntentType.DailySummary(date = LocalDate.now()),
             )
         },
     ),
