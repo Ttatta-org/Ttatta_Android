@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -70,7 +71,9 @@ import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.core.model.Diary
+import com.umc.home.components.DetailModal
 import com.umc.home.components.TopBarComponent
+import com.umc.home.components.clickableNoRipple
 import com.umc.home.utils.formatToKorean
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -233,17 +236,37 @@ fun HomeScreen(
                         val emptyImage = if (uiState.screenMode is ScreenMode.Search) {
                             R.drawable.no_search_results
                         } else {
-                            R.drawable.invitation
+                            R.drawable.invitation_png
                         }
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center // (기존 BottomCenter에서 수정)
-                        ) {
-                            Image(
-                                painter = painterResource(id = emptyImage),
-                                contentDescription = "빈 화면",
-                                modifier = Modifier.fillMaxWidth()
-                            )
+
+                        val commonModifier = Modifier
+                            .fillMaxSize()
+                            .navigationBarsPadding()
+
+                        // 검색결과가 없을때
+                        if (uiState.screenMode is ScreenMode.Search) {
+                            Box(
+                                modifier = commonModifier,
+                                contentAlignment = Alignment.Center // (기존 BottomCenter에서 수정)
+                            ) {
+                                Image(
+                                    painter = painterResource(id = emptyImage),
+                                    contentDescription = "빈 화면",
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        } else {
+                            // 홈에서 일기가 없는 첫화면일 때
+                            Box(
+                                modifier = commonModifier,
+                                contentAlignment = Alignment.BottomCenter
+                            ) {
+                                Image(
+                                    painter = painterResource(id = emptyImage),
+                                    contentDescription = "빈 화면",
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
                 }
@@ -286,15 +309,17 @@ fun HomeScreen(
                         .background(Color.Transparent),
                     contentAlignment = Alignment.Center
                 ) {
-                    IconButton(
-                        modifier = Modifier.size(50.dp, 16.dp),
-                        onClick = {
-                            when (topBarState) {
-                                TopBarState.SearchOpen -> onSearchToggle()   // 검색창 닫기
-                                TopBarState.CalendarOpen -> onCalendarToggle() // 캘린더 닫기
-                                TopBarState.Closed -> onCalendarToggle()     // 캘린더 열기
-                            }
-                        }
+                    Box(
+                        modifier = Modifier
+                            .size(50.dp, 16.dp)
+                            .clickableNoRipple { // 회색 그림자 제거
+                                when (topBarState) {
+                                    TopBarState.SearchOpen -> onSearchToggle()
+                                    TopBarState.CalendarOpen -> onCalendarToggle()
+                                    TopBarState.Closed -> onCalendarToggle()
+                                }
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
                         Image(
                             painter = painterResource(id = dragIcon), // 드래그 아이콘 변경
@@ -349,73 +374,6 @@ fun HomeScreen(
                         navController.navigate("edit_record/${selectedDiaryId!!}")
                     }
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun DetailModal(
-    onDismiss: () -> Unit,
-    onDelete: () -> Unit,
-    onEdit: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(147.dp) // 모달 높이
-            .background(Color.White, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
-            .padding(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center // 가운데 정렬
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_point),
-                    contentDescription = "Point Icon",
-                    modifier = Modifier
-                        .width(39.dp)
-                        .height(16.dp)
-                )
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 30.dp, top = 20.dp)
-            ){
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                ) {
-                    Text(
-                        text = "수정하기",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF4B4B4B),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                            onEdit()
-                            onDismiss()
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    Text(
-                        text = "삭제하기",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4B4B4B),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onDelete() }
-                    )
-                }
             }
         }
     }
@@ -478,7 +436,7 @@ private fun CalendarBody(
                     modifier = Modifier
                         .size(cellSize)
                         .padding(4.dp)
-                        .clickable {
+                        .clickableNoRipple {
                             if (hasDiary) {
                                 onDateSelected(date) // 부모의 selectedDate 갱신
                             }
@@ -554,7 +512,7 @@ fun CalendarView(
         ) {
             Box(
                 modifier = Modifier
-                    .clickable {
+                    .clickableNoRipple {
                         scope.launch {
                             pagerState.animateScrollToPage(pagerState.currentPage - 1)
                         }
@@ -584,7 +542,7 @@ fun CalendarView(
 
             Box(
                 modifier = Modifier
-                    .clickable {
+                    .clickableNoRipple {
                         scope.launch {
                             pagerState.animateScrollToPage(pagerState.currentPage + 1)
                         }
@@ -956,7 +914,7 @@ fun AiSummaryCard(
                     contentDescription = "새로고침",
                     modifier = Modifier
                         .size(15.dp)
-                        .clickable { onRefresh() }
+                        .clickableNoRipple { onRefresh() }
                 )
             }
         }
