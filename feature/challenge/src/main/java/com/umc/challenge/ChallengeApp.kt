@@ -2,6 +2,7 @@ package com.umc.challenge
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,6 +30,7 @@ import com.umc.challenge.view.NewChallengeView
 import com.umc.challenge.view.NewChallengeViewProp
 import com.umc.core.util.runWithScope
 import com.umc.design.character.Accessory
+import com.umc.design.character.AccessorySet
 import com.umc.design.character.BodyPart
 import com.umc.design.component.CustomPopup
 import com.umc.design.component.LoadingModal
@@ -63,6 +65,17 @@ fun ChallengeApp(
     onChallengeCompletionRequired: (id: Long) -> Unit,
 ) {
     val navController = rememberNavController()
+
+    val equippedItem by viewModel.equippedItemsState.collectAsState()
+    val accessorySet = remember(equippedItem) {
+        AccessorySet.create(
+            equippedItem.mapNotNull {
+                Accessory.entries.firstOrNull { accessory ->
+                    accessory.code == it.item.code
+                }
+            }
+        )
+    }
 
     LaunchedEffect(key1 = Unit) {
         navController.addOnDestinationChangedListener { _, destination, _ ->
@@ -133,7 +146,7 @@ fun ChallengeApp(
                     composable("onboarding") {
                         ChallengeOnboardingView(
                             prop = ChallengeOnboardingViewProp(
-                                equippedAccessorySet = viewModel.equippedAccessorySet,
+                                equippedAccessorySet = accessorySet,
                                 isNewChallengeButtonEnabled = !isLoading && viewModel.todayChallenges.size < 3,
                                 challengeItemPropList = viewModel.todayChallenges.map {
                                     ChallengeItemProp(
@@ -165,7 +178,7 @@ fun ChallengeApp(
                                 maxTitleLength = 20,
                                 title = title,
                                 description = description,
-                                equippedAccessorySet = viewModel.equippedAccessorySet,
+                                equippedAccessorySet = accessorySet,
                                 onTitleChanged = { if (it.length <= 20) title = it },
                                 onDescriptionChanged = { description = it },
                                 onCreateButtonClicked = {
@@ -202,7 +215,7 @@ fun ChallengeApp(
             ShopScreen(
                 point = viewModel.point,
                 selectedBodyPart = selectedBodyPart,
-                equippedAccessorySet = viewModel.equippedAccessorySet,
+                equippedAccessorySet = accessorySet,
                 shopItemItemPropList = viewModel.unownedItems
                     .filter {
                         selectedBodyPart == null || it.item.bodyPart == selectedBodyPart
@@ -275,7 +288,7 @@ fun ChallengeApp(
 
             MyItemScreen(
                 point = viewModel.point,
-                equippedAccessorySet = viewModel.equippedAccessorySet,
+                equippedAccessorySet = accessorySet,
                 myItemItemItemPropList = remember(viewModel.ownedItems) {
                     viewModel.ownedItems.map {
                         MyItemItemItemProp(

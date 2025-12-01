@@ -11,7 +11,6 @@ import com.umc.core.repository.ChallengeRepository
 import com.umc.core.repository.ItemRepository
 import com.umc.core.repository.SettingRepository
 import com.umc.core.repository.UserRepository
-import com.umc.design.character.AccessorySet
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -35,7 +34,6 @@ class MainViewModel @Inject constructor(
     private val isLockedFlow = MutableStateFlow(false)  // 잠금화면을 띄워야 하는가에 대한 여부
     private val isLocationBasedRemindEnabledFlow = MutableStateFlow(false)
     private val userNameState = mutableStateOf("")
-    private val equippedAccessoriesState = mutableStateOf(AccessorySet.create())
 
     private var isLoggedInBefore: Boolean
         get() = prefs.getBoolean("isLoggedInBefore", false)
@@ -52,8 +50,8 @@ class MainViewModel @Inject constructor(
     val isLoggedInState: StateFlow<Boolean?> get() = isLoggedInFlow
     val isLockedState: StateFlow<Boolean> get() = isLockedFlow
     val isLocationBasedRemindEnabledState: StateFlow<Boolean> get() = isLocationBasedRemindEnabledFlow
+    val equippedItemState get() = itemRepository.equippedItemState
     val userName get() = userNameState.value
-    val equippedAccessories get() = equippedAccessoriesState.value
 
     val isDiaryRecordOccurredState = MutableStateFlow(isDiaryRecordOccurred).also {
         viewModelScope.launch { it.collect { value -> isDiaryRecordOccurred = value } }
@@ -106,10 +104,7 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun getEquippedAccessories() {
-        val equippedItems = itemRepository.getEquippedItems()
-        equippedAccessoriesState.value = AccessorySet.create(
-            equippedItems.map { item -> item.item }
-        )
+        itemRepository.getEquippedItems()
     }
 
     private fun handleFcmToken() {

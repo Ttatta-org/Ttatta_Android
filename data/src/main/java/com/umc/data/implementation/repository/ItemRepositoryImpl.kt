@@ -9,6 +9,8 @@ import com.umc.data.preference.AuthPreference
 import com.umc.data.preference.ItemPreference
 import com.umc.data.util.withAuth
 import com.umc.design.character.Accessory
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 class ItemRepositoryImpl @Inject constructor(
@@ -16,6 +18,11 @@ class ItemRepositoryImpl @Inject constructor(
     private val authPreference: AuthPreference,
     private val itemPreference: ItemPreference,
 ) : ItemRepository {
+
+    private val equippedItemMutableState = MutableStateFlow(itemPreference.itemList)
+
+    override val equippedItemState: StateFlow<List<EquippedItem>>
+        get() = equippedItemMutableState
 
     override suspend fun getUnownedItemsWithPoint(): Pair<Int, List<UnownedItem>> {
         val response = serverApi.withAuth(authPreference) { getShopItems() }
@@ -70,6 +77,7 @@ class ItemRepositoryImpl @Inject constructor(
         } ?: listOf()
 
         itemPreference.itemList = result
+        equippedItemMutableState.value = result
 
         return result
     }
