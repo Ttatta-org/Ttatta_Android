@@ -85,7 +85,7 @@ fun CategoryModificationScreen(
         Column(
             verticalArrangement = Arrangement.spacedBy(space = 32.dp),
             modifier = Modifier
-                .padding(horizontal = 22.dp, vertical = 32.dp)
+                .padding(horizontal = 22.dp, vertical = 24.dp)
                 .weight(1f)
         ) {
             // 카테고리명

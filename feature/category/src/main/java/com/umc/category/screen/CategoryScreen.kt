@@ -91,7 +91,7 @@ fun CategoryScreen(
         )
         Column(
             verticalArrangement = Arrangement.spacedBy(space = 32.dp),
-            modifier = Modifier.padding(top = 32.dp, start = 22.dp, end = 22.dp)
+            modifier = Modifier.padding(top = 24.dp, start = 22.dp, end = 22.dp)
         ) {
             // 카테고리명
             Column(
