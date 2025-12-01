@@ -19,9 +19,6 @@ class ChallengeActivity : ComponentActivity() {
             onShopIconClicked = {
                 // TODO: Shop 아이콘 클릭 시 행동 정의 (필요 시 finish()나 다른 동작)
             },
-            onMyItemsIconClicked = {
-                // TODO: MyItem 아이콘 클릭 시 행동 정의
-            }
         )
 
         val challengeCompletionDialogProp = null // 혹은 기본 dialog 상태

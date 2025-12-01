@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.util.fastAny
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -106,7 +107,6 @@ fun ChallengeApp(
                 topBarProp = ChallengeScreenTopBarProp(
                     point = viewModel.point,
                     onShopIconClicked = { navController.navigate("shop") },
-                    onMyItemsIconClicked = { navController.navigate("my_item") }
                 ),
                 challengeCompletionDialogProp = clickedUncompletedChallengeInfo?.let {
                     ChallengeCompletionDialogProp(
@@ -202,13 +202,63 @@ fun ChallengeApp(
         }
 
         composable("shop") {
+            val equippedItem by viewModel.equippedItemsState.collectAsState()
+            val ownedItems by viewModel.ownedItemsState.collectAsState()
+            val unownedItems by viewModel.unownedItemsState.collectAsState()
+
             var clickedShopItemInfo: ClickedShopItemInfo? by remember { mutableStateOf(null) }
             var selectedBodyPart: BodyPart? by remember { mutableStateOf(null) }
             var showLackOfPointsPopup by remember { mutableStateOf(false) }
             var showLoading by remember { mutableStateOf(false) }
 
+            val shopItems = remember(equippedItem, ownedItems, unownedItems) {
+                val ownedShopItems = ownedItems.map { item ->
+                    val isEquipped = equippedItem.fastAny { it.id == item.id }
+
+                    ShopItemItemProp(
+                        accessory = item.item,
+                        cost = null,
+                        isOwned = true,
+                        isEquipped = isEquipped,
+                        onClicked = {
+                            viewModel.runWithScope {
+                                runCatching { equipItem(id = item.id, equip = !isEquipped) }
+                            }
+                        },
+                    )
+                }
+
+                val unownedShopItems = unownedItems.map { item ->
+                    ShopItemItemProp(
+                        accessory = item.item,
+                        cost = item.cost,
+                        isOwned = false,
+                        isEquipped = false,
+                        onClicked = {
+                            if (viewModel.point >= item.cost) {
+                                clickedShopItemInfo = ClickedShopItemInfo(
+                                    id = item.id,
+                                    itemName = item.item.title,
+                                )
+                            } else {
+                                showLackOfPointsPopup = true
+                            }
+                        }
+                    )
+                }
+
+                (ownedShopItems + unownedShopItems).sortedBy {
+                    Accessory.entries.indexOf(it.accessory)
+                }
+            }
+
+            val filteredShopItems = remember(shopItems, selectedBodyPart) {
+                shopItems.filter {
+                    selectedBodyPart == null || it.accessory.bodyPart == selectedBodyPart
+                }
+            }
+
             LaunchedEffect(key1 = Unit) {
-                launch { runCatching { viewModel.getEquippedItems() } }
                 launch { runCatching { viewModel.getShopItems() } }
             }
 
@@ -216,27 +266,7 @@ fun ChallengeApp(
                 point = viewModel.point,
                 selectedBodyPart = selectedBodyPart,
                 equippedAccessorySet = accessorySet,
-                shopItemItemPropList = viewModel.unownedItems
-                    .filter {
-                        selectedBodyPart == null || it.item.bodyPart == selectedBodyPart
-                    }
-                    .map {
-                        ShopItemItemProp(
-                            accessory = it.item,
-                            cost = it.cost,
-                            isOwned = false,  // TODO: 백엔드 반영 시 변경
-                            onClicked = {
-                                if (it.cost <= viewModel.point) {
-                                    clickedShopItemInfo = ClickedShopItemInfo(
-                                        id = it.id,
-                                        itemName = it.item.title,
-                                    )
-                                } else {
-                                    showLackOfPointsPopup = true
-                                }
-                            }
-                        )
-                    },
+                shopItemItemPropList = filteredShopItems,
                 purchaseDialogProp = clickedShopItemInfo?.let { info ->
                     PurchaseDialogProp(
                         itemName = info.itemName,
@@ -252,15 +282,6 @@ fun ChallengeApp(
                             }
                         }
                     )
-                },
-                onMyItemsIconClicked = {
-                    MainScope().launch {
-                        navController.navigate("my_item") {
-                            popUpTo(id = navController.graph.startDestinationId) {
-                                inclusive = false
-                            }
-                        }
-                    }
                 },
                 onBodyPartSelected = { selectedBodyPart = it },
                 onBackButtonClicked = {
@@ -279,6 +300,8 @@ fun ChallengeApp(
         }
 
         composable("my_item") {
+            val ownedItems by viewModel.ownedItemsState.collectAsState()
+
             var clickedOwnedItemInfo by remember { mutableStateOf<ClickedOwnedItemInfo?>(null) }
 
             LaunchedEffect(key1 = Unit) {
@@ -289,20 +312,18 @@ fun ChallengeApp(
             MyItemScreen(
                 point = viewModel.point,
                 equippedAccessorySet = accessorySet,
-                myItemItemItemPropList = remember(viewModel.ownedItems) {
-                    viewModel.ownedItems.map {
-                        MyItemItemItemProp(
-                            accessory = it.item,
-                            isEquipped = it.isEquipped,
-                            onClicked = {
-                                clickedOwnedItemInfo = ClickedOwnedItemInfo(
-                                    id = it.id,
-                                    item = it.item,
-                                    isEquipped = it.isEquipped
-                                )
-                            }
-                        )
-                    }
+                myItemItemItemPropList = ownedItems.map {
+                    MyItemItemItemProp(
+                        accessory = it.item,
+                        isEquipped = it.isEquipped,
+                        onClicked = {
+                            clickedOwnedItemInfo = ClickedOwnedItemInfo(
+                                id = it.id,
+                                item = it.item,
+                                isEquipped = it.isEquipped
+                            )
+                        }
+                    )
                 },
                 clickedItemProp = clickedOwnedItemInfo?.let { info ->
                     ClickedItemProp(
@@ -310,12 +331,16 @@ fun ChallengeApp(
                         isEquipped = info.isEquipped,
                         onBackPressed = { clickedOwnedItemInfo = null },
                         onConfirmed = {
-                            viewModel.equipItem(
-                                id = info.id,
-                                isEquipping = !info.isEquipped,
-                                onSucceed = { clickedOwnedItemInfo = null },
-                                onFailed = { clickedOwnedItemInfo = null }
-                            )
+                            viewModel.runWithScope {
+                                runCatching {
+                                    equipItem(
+                                        id = info.id,
+                                        equip = !info.isEquipped,
+                                    )
+                                }
+
+                                clickedOwnedItemInfo = null
+                            }
                         }
                     )
                 },
