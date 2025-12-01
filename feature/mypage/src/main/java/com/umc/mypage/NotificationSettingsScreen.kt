@@ -56,7 +56,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.umc.mypage.components.TopBar_SubScreen
+import com.umc.design.component.CustomHeader
+import com.umc.design.theme.LocalColorTheme
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -77,7 +78,6 @@ fun NotificationSettingsScreen(
 ) {
     val systemUiController = rememberSystemUiController()
     val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
-    var topBarHeight by remember { mutableStateOf(0.dp) }
 
     SideEffect {
         systemUiController.setStatusBarColor(
@@ -85,174 +85,165 @@ fun NotificationSettingsScreen(
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .background(Color.White)
+            .fillMaxSize()
+    ) {
+        CustomHeader(
+            showLogo = false,
+            centerText = "알림 설정",
+            backgroundColor = LocalColorTheme.current.secondary[100],
+            onBackButtonClicked = onBackClick,
+        )
+        // ✅ 2. LazyColumn (스크롤 가능한 콘텐츠)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 22.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item { Spacer(modifier = Modifier.height(23.dp)) }
+            item {
+                NotificationSettingItem(
+                    title = "일기 작성 알림",
+                    description = "매일 일정한 시각에 일기 작성을 알리는 알림을 보내요!",
+                    checked = state.dailyOn,
+                    onCheckedChange = onDailyToggle,
+                    bottomContent = {
+                        if (state.dailyOn) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                // 화면에서 파생 상태
+                                val dailyIsPm = state.dailyHour24 >= 12
+                                val dailyHour12 =
+                                    ((state.dailyHour24 % 12).let { if (it == 0) 12 else it })
+                                val dailyMinute = state.dailyMinute
 
-            Box(
-                modifier = Modifier
-                    .weight(1f) // ✅ BottomNavigation을 밀어내지 않도록 LazyColumn에 weight 적용
-            ) {
-                // ✅ 2. LazyColumn (스크롤 가능한 콘텐츠)
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(top = topBarHeight)
-                        .background(Color.White)
-                        .padding(horizontal = 22.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    item { Spacer(modifier = Modifier.height(23.dp)) }
-                    item {
-                        NotificationSettingItem(
-                            title = "일기 작성 알림",
-                            description = "매일 일정한 시각에 일기 작성을 알리는 알림을 보내요!",
-                            checked = state.dailyOn,
-                            onCheckedChange = onDailyToggle,
-                            bottomContent = {
-                                if (state.dailyOn) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                    ) {
-                                        // 화면에서 파생 상태
-                                        val dailyIsPm = state.dailyHour24 >= 12
-                                        val dailyHour12 =
-                                            ((state.dailyHour24 % 12).let { if (it == 0) 12 else it })
-                                        val dailyMinute = state.dailyMinute
-
-                                        // 오전/오후 드롭다운
-                                        DropdownButtonWithMenu(
-                                            options = listOf("오전", "오후"),
-                                            initialSelectedText = if (dailyIsPm) "오후" else "오전",
-                                            onSelected = { ampm ->
-                                                val isPm = ampm == "오후"
-                                                onDailyTimeChange(
-                                                    isPm,
-                                                    dailyHour12,
-                                                    dailyMinute
-                                                ) // ← 이름 제거!
-                                            }
-                                        )
-
-                                        // 시/분 휠
-                                        TimeWheelDropdown(
-                                            width = 130.dp,
-                                            initialHour12 = dailyHour12,
-                                            initialMinute = dailyMinute
-                                        ) { hour12, minute ->
-                                            onDailyTimeChange(dailyIsPm, hour12, minute)
-                                        }
+                                // 오전/오후 드롭다운
+                                DropdownButtonWithMenu(
+                                    options = listOf("오전", "오후"),
+                                    initialSelectedText = if (dailyIsPm) "오후" else "오전",
+                                    onSelected = { ampm ->
+                                        val isPm = ampm == "오후"
+                                        onDailyTimeChange(
+                                            isPm,
+                                            dailyHour12,
+                                            dailyMinute
+                                        ) // ← 이름 제거!
                                     }
+                                )
 
+                                // 시/분 휠
+                                TimeWheelDropdown(
+                                    width = 130.dp,
+                                    initialHour12 = dailyHour12,
+                                    initialMinute = dailyMinute
+                                ) { hour12, minute ->
+                                    onDailyTimeChange(dailyIsPm, hour12, minute)
                                 }
                             }
-                        )
-                    }
-                    item { Spacer(modifier = Modifier.height(22.dp)) }
-                    item {
-                        NotificationSettingItem(
-                            title = "위치 기반 추억 회상 알림",
-                            description = "현재 위치와 가까운 과거 기록을 찾으면 알림을 보내요!",
-                            checked = state.locationOn,
-                            onCheckedChange = onLocationToggle,
-                        )
-                    }
-                    item { Spacer(modifier = Modifier.height(22.dp)) }
-                    item {
-                        NotificationSettingItem(
-                            title = "챌린지 리마인드 알림",
-                            description = "챌린지 달성 마감 전 리마인드 알림을 보내요!",
-                            checked = state.challengeOn,
-                            onCheckedChange = onChallengeToggle,
-                            bottomContent = {
-                                if (state.challengeOn) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                    ) {
-                                        DropdownButtonWithMenu(
-                                            options = (0..48).map {
-                                                it
-                                                    .toString()
-                                                    .padStart(2, '0')
-                                            }, // 🔧 범위 확대
-                                            initialSelectedText = state.challengeRemainingHours
-                                                .toString()
-                                                .padStart(2, '0'),
-                                            onSelected = { sel ->
-                                                onChallengeHoursChange(sel.toInt())
-                                            }
-                                        )
-                                        Text(
-                                            text = "시간 전",
-                                            fontSize = 14.sp,
-                                            color = Color(0xFF8E8E8E)
-                                        )
-                                    }
-                                }
-                            }
-                        )
-                    }
-                    item { Spacer(modifier = Modifier.height(22.dp)) }
-                    item {
-                        NotificationSettingItem(
-                            title = "하루 요약 알림",
-                            description = "매일 일정한 시각에 오늘의 일기 요약 알림을 보내요!",
-                            checked = state.summaryOn,
-                            onCheckedChange = onSummaryToggle,
-                            bottomContent = {
-                                if (state.summaryOn) {
-                                    val summaryHour12 = when {
-                                        state.summaryHour24 == 0 -> 12
-                                        state.summaryHour24 > 12 -> state.summaryHour24 - 12
-                                        else -> state.summaryHour24
-                                    }
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                    ) {
-                                        // PM 고정 표시
-                                        Text(
-                                            text = "오후",
-                                            fontSize = 14.sp,
-                                            color = Color(0xFF8E8E8E)
-                                        )
-                                        // 시간만 선택 (1..12)
-                                        androidx.compose.runtime.key(summaryHour12) {
-                                            DropdownButtonWithMenu(
-                                                options = (1..12).map {
-                                                    it
-                                                        .toString()
-                                                        .padStart(2, '0')
-                                                },
-                                                initialSelectedText = summaryHour12
-                                                    .toString()
-                                                    .padStart(2, '0'),
-                                                onSelected = { sel -> onSummaryHourChange(sel.toInt()) }
-                                            )
-                                        }
-                                        Text(
-                                            text = "시",
-                                            fontSize = 14.sp,
-                                            color = Color(0xFF8E8E8E)
-                                        )
-                                    }
-                                }
-                            }
-                        )
-                    }
-                    item { Spacer(modifier = Modifier.height(150.dp)) }
-                }
 
-                // ✅ 3. TopBar (스크롤 가능한 LazyColumn 위에 배치)
-                TopBar_SubScreen(
-                    title = "알림 설정",
-                    onBackClick = onBackClick,
-                    onHeightChange = { newHeight ->
-                        topBarHeight = newHeight
+                        }
                     }
                 )
             }
+            item { Spacer(modifier = Modifier.height(22.dp)) }
+            item {
+                NotificationSettingItem(
+                    title = "위치 기반 추억 회상 알림",
+                    description = "현재 위치와 가까운 과거 기록을 찾으면 알림을 보내요!",
+                    checked = state.locationOn,
+                    onCheckedChange = onLocationToggle,
+                )
+            }
+            item { Spacer(modifier = Modifier.height(22.dp)) }
+            item {
+                NotificationSettingItem(
+                    title = "챌린지 리마인드 알림",
+                    description = "챌린지 달성 마감 전 리마인드 알림을 보내요!",
+                    checked = state.challengeOn,
+                    onCheckedChange = onChallengeToggle,
+                    bottomContent = {
+                        if (state.challengeOn) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                DropdownButtonWithMenu(
+                                    options = (0..48).map {
+                                        it
+                                            .toString()
+                                            .padStart(2, '0')
+                                    }, // 🔧 범위 확대
+                                    initialSelectedText = state.challengeRemainingHours
+                                        .toString()
+                                        .padStart(2, '0'),
+                                    onSelected = { sel ->
+                                        onChallengeHoursChange(sel.toInt())
+                                    }
+                                )
+                                Text(
+                                    text = "시간 전",
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF8E8E8E)
+                                )
+                            }
+                        }
+                    }
+                )
+            }
+            item { Spacer(modifier = Modifier.height(22.dp)) }
+            item {
+                NotificationSettingItem(
+                    title = "하루 요약 알림",
+                    description = "매일 일정한 시각에 오늘의 일기 요약 알림을 보내요!",
+                    checked = state.summaryOn,
+                    onCheckedChange = onSummaryToggle,
+                    bottomContent = {
+                        if (state.summaryOn) {
+                            val summaryHour12 = when {
+                                state.summaryHour24 == 0 -> 12
+                                state.summaryHour24 > 12 -> state.summaryHour24 - 12
+                                else -> state.summaryHour24
+                            }
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                // PM 고정 표시
+                                Text(
+                                    text = "오후",
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF8E8E8E)
+                                )
+                                // 시간만 선택 (1..12)
+                                androidx.compose.runtime.key(summaryHour12) {
+                                    DropdownButtonWithMenu(
+                                        options = (1..12).map {
+                                            it
+                                                .toString()
+                                                .padStart(2, '0')
+                                        },
+                                        initialSelectedText = summaryHour12
+                                            .toString()
+                                            .padStart(2, '0'),
+                                        onSelected = { sel -> onSummaryHourChange(sel.toInt()) }
+                                    )
+                                }
+                                Text(
+                                    text = "시",
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF8E8E8E)
+                                )
+                            }
+                        }
+                    }
+                )
+            }
+            item { Spacer(modifier = Modifier.height(150.dp)) }
         }
     }
 }

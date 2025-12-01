@@ -38,6 +38,7 @@ import com.umc.core.model.UserInfo
 import com.umc.core.model.UserStatus
 import com.umc.mypage.components.BottomNavigationBarWithFAB
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.umc.design.component.CustomHeader
 import com.umc.mypage.R
 import com.umc.mypage.components.Dialog
 import com.umc.mypage.components.TopBar_Mypage_Default
@@ -60,89 +61,69 @@ fun MyPageScreen(
     val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
 
     var showLogoutDialog by remember { mutableStateOf(false) }
-    var topBarHeight by remember { mutableStateOf(0.dp) }
 
     SideEffect {
         systemUiController.setStatusBarColor(
             color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
         )
     }
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
 
-            Box(
-                modifier = Modifier
-                    .weight(1f) // ✅ BottomNavigation을 밀어내지 않도록 LazyColumn에 weight 적용
-            ) {
-                // ✅ 2. LazyColumn (스크롤 가능한 콘텐츠)
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0xFFFFF6F2))
-                        .padding(horizontal = 22.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    item {
-                        // (충돌 방지를 위해 여기서도 coerceAtLeast 사용)
-                        Spacer(modifier = Modifier.height(topBarHeight.coerceAtLeast(0.dp)))
-                    }
-                    item { Spacer(modifier = Modifier.height(40.dp)) }
-                    item {
-                        if (userInfo != null) {
-                            ProfileSection(
-                                name = userInfo.name,
-                                profileImage = userInfo.profileImageUrl
-                            )
+    Column(
+        modifier = Modifier
+            .background(Color(0xFFFFF6F2))
+            .fillMaxSize()
+    ) {
+        CustomHeader(
+            centerText = "마이페이지",
+        )
 
-                            Spacer(modifier = Modifier.height(26.dp))
+        // ✅ 2. LazyColumn (스크롤 가능한 콘텐츠)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 22.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item { Spacer(modifier = Modifier.height(40.dp)) }
+            item {
+                if (userInfo != null) {
+                    ProfileSection(
+                        name = userInfo.name,
+                        profileImage = userInfo.profileImageUrl
+                    )
 
-                            SummarySection(
-                                diaryCount = userInfo.totalDiaryCount,
-                                points = userInfo.point
-                            )
+                    Spacer(modifier = Modifier.height(26.dp))
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                    SummarySection(
+                        diaryCount = userInfo.totalDiaryCount,
+                        points = userInfo.point
+                    )
 
-                            AppSettingsSection(
-                                themeSubtitle = "기본 테마",
-                                notificationsEnabled = false,
-                                passwordLockEnabled = false,
-                                onThemeChangeClick = { /* 테마 변경 로직 */ },
-                                onNotificationToggle = {  },
-                                onNavigateToNotifications = onNavigateToNotifications,
-                                onPasswordLockToggle = {  },
-                                onNavigateToLockSetting = onNavigateToLockSetting,
-                                onLeaveUser = onLeaveUser,
-                                showLogoutDialog = showLogoutDialog,
-                                setShowLogoutDialog = { showLogoutDialog = it },
-                                onLogout = onLogout
-                            )
-                            Spacer(modifier = Modifier.height(30.dp))
-                        } else {
-                            Text(
-                                text = errorMessage ?: "유저 정보를 불러오는 중입니다..",
-                                color = Color(0xFFFF8072),
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    AppSettingsSection(
+                        themeSubtitle = "기본 테마",
+                        notificationsEnabled = false,
+                        passwordLockEnabled = false,
+                        onThemeChangeClick = { /* 테마 변경 로직 */ },
+                        onNotificationToggle = { },
+                        onNavigateToNotifications = onNavigateToNotifications,
+                        onPasswordLockToggle = { },
+                        onNavigateToLockSetting = onNavigateToLockSetting,
+                        onLeaveUser = onLeaveUser,
+                        showLogoutDialog = showLogoutDialog,
+                        setShowLogoutDialog = { showLogoutDialog = it },
+                        onLogout = onLogout
+                    )
+                    Spacer(modifier = Modifier.height(30.dp))
+                } else {
+                    Text(
+                        text = errorMessage ?: "유저 정보를 불러오는 중입니다..",
+                        color = Color(0xFFFF8072),
+                        fontSize = 12.sp
+                    )
                 }
-
-                // ✅ 3. TopBar (스크롤 가능한 LazyColumn 위에 배치)
-                TopBar_Mypage_Default(
-                    onHeightChange = { newHeight ->
-                        topBarHeight = newHeight
-                    }
-                )
             }
-
-            // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)
-//            BottomNavigationBarWithFAB(
-//                selectedTab = "mypage",
-//                onTabSelected = { /* 탭 변경 로직 */ },
-//                onFabClick = onFabClick
-//            )
-
         }
     }
 
@@ -211,7 +192,8 @@ fun ProfileSection(name: String, profileImage: String?) {
 @Composable
 fun SummarySection(
     diaryCount: Int,
-    points: Long) {
+    points: Long
+) {
 
     Card(
         modifier = Modifier
@@ -275,7 +257,9 @@ fun SummaryItem(label: String, value: Number) {
 
 //SummaryItem에 필요한 숫자 콤마 만들기
 fun pointNumberWithComma(number: Number): String {
-    return NumberFormat.getNumberInstance(Locale.US).format(number)
+    return NumberFormat
+        .getNumberInstance(Locale.US)
+        .format(number)
 }
 
 @Composable
@@ -329,27 +313,27 @@ fun AppSettingsSection(
                 )
 
                 // 테마 변경 설정
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onThemeChangeClick() }
-                        .padding(start = 10.dp, bottom = 7.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "테마",
-                        fontSize = 14.sp,
-                        color = Color(0xFF4B4B4B),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
-                    )
-                    Spacer(modifier = Modifier.weight(1f)) // 여백 추가
-                    Text(
-                        text = themeSubtitle,
-                        fontSize = 14.sp,
-                        color = Color(0xFFFFD0C8), // 서브 텍스트 색상
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
-                    )
-                }
+//                Row(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .clickable { onThemeChangeClick() }
+//                        .padding(start = 10.dp, bottom = 7.dp),
+//                    verticalAlignment = Alignment.CenterVertically
+//                ) {
+//                    Text(
+//                        text = "테마",
+//                        fontSize = 14.sp,
+//                        color = Color(0xFF4B4B4B),
+//                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
+//                    )
+//                    Spacer(modifier = Modifier.weight(1f)) // 여백 추가
+//                    Text(
+//                        text = themeSubtitle,
+//                        fontSize = 14.sp,
+//                        color = Color(0xFFFFD0C8), // 서브 텍스트 색상
+//                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
+//                    )
+//                }
 
                 // 알림 변경 설정
                 Row(

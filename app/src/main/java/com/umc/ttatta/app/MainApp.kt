@@ -82,7 +82,9 @@ fun MainApp(
     val equippedItems by viewModel.equippedItemState.collectAsState()
 
     val accessorySet = remember(equippedItems) {
-        equippedItems.map { it.item }.let { AccessorySet.create(it) }
+        equippedItems
+            .map { it.item }
+            .let { AccessorySet.create(it) }
     }
 
     var currentNavigationItem by remember { mutableStateOf<NavigationItem?>(null) }
@@ -200,7 +202,9 @@ fun MainApp(
             navigationBarProp = if (showNavBar) NavigationBarProp(
                 currentNavigationItem = currentNavigationItem,
                 showTooltip = showRecordTooltip,
-                onNavigate = {
+                onNavigate = onNavigate@{
+                    if (currentNavigationItem == it) return@onNavigate
+
                     val route = when (it) {
                         NavigationItem.DIARY -> NavigationRoute.Home
                         NavigationItem.FOOTPRINT -> NavigationRoute.Footprint.Footprint
@@ -402,6 +406,7 @@ fun MainApp(
                                 runCatching { context.finishLocationTrackingService() }.isSuccess
                             }
                         },
+                        onNavigationBarVisibilityChanged = { showNavBar = it },
                     )
                 }
 
