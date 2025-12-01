@@ -32,6 +32,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.umc.design.component.CustomHeader
+import com.umc.design.theme.LocalColorTheme
 import com.umc.mypage.components.TopBar_Mypage_Default
 import com.umc.mypage.components.TopBar_SubScreen
 
@@ -42,98 +44,78 @@ fun LockSettingsScreen(
     isPinSet: Boolean,
     clearPin: () -> Unit,
     onBackClick: () -> Unit
-){
+) {
     val systemUiController = rememberSystemUiController()
     val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
-
-    var lockSetting by remember { mutableStateOf(false) }
-    var topBarHeight by remember { mutableStateOf(0.dp) }
 
     SideEffect {
         systemUiController.setStatusBarColor(
             color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
         )
     }
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
 
-            Box(
-                modifier = Modifier
-                    .weight(1f) // ✅ BottomNavigation을 밀어내지 않도록 LazyColumn에 weight 적용
-            ) {
-                // ✅ 2. LazyColumn (스크롤 가능한 콘텐츠)
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .navigationBarsPadding()
-                        .padding(top = topBarHeight)
-                        .background(Color.White)
-                        .padding(horizontal = 22.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    item { Spacer(modifier = Modifier.height(23.dp)) }
-                    item {
-                        NotificationSettingItem(
-                            title = "잠금 설정",
-                            checked = isPinSet,
-                            onCheckedChange = { checked ->
-                                if (checked) {
-                                    onLockPassword()
-                                } else {
-                                    clearPin()
-                                }
-                            },
-                            //onSwitchOn = { onLockPassword() },
-                            bottomContent = {
-                                if (isPinSet) {
-                                    Spacer(modifier = Modifier.height(22.dp))
+    Column(
+        modifier = Modifier
+            .background(Color.White)
+            .fillMaxSize()
+    ) {
+        CustomHeader(
+            showLogo = false,
+            centerText = "암호 잠금",
+            backgroundColor = LocalColorTheme.current.secondary[100],
+            onBackButtonClicked = onBackClick,
+        )
+        // ✅ 2. LazyColumn (스크롤 가능한 콘텐츠)
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .navigationBarsPadding()
+                .padding(horizontal = 22.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            item { Spacer(modifier = Modifier.height(23.dp)) }
+            item {
+                NotificationSettingItem(
+                    title = "잠금 설정",
+                    checked = isPinSet,
+                    onCheckedChange = { checked ->
+                        if (checked) {
+                            onLockPassword()
+                        } else {
+                            clearPin()
+                        }
+                    },
+                    //onSwitchOn = { onLockPassword() },
+                    bottomContent = {
+                        if (isPinSet) {
+                            Spacer(modifier = Modifier.height(22.dp))
 
-                                    Row(
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .clickable { onChangePassword() },
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onChangePassword() },
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
 
-                                        Text(text = "암호 변경", fontSize = 16.sp, fontWeight = FontWeight.W400)
+                                Text(text = "암호 변경", fontSize = 16.sp, fontWeight = FontWeight.W400)
 
-                                        Image(
-                                            painter = painterResource(id = R.drawable.ic_next_arrow),
-                                            contentDescription = "다음 화면으로 가기",
-                                            modifier = Modifier
-                                                .width(8.dp)
-                                                .height(16.dp)
-                                        )
-                                    }
-
-                                    Spacer(modifier = Modifier.height(11.dp))
-                                }
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_next_arrow),
+                                    contentDescription = "다음 화면으로 가기",
+                                    modifier = Modifier
+                                        .width(8.dp)
+                                        .height(16.dp)
+                                )
                             }
-                        )
-                    }
-                    item {
-                        PasswordRecoveryNotice()
-                    }
 
-                }
-
-                // ✅ 3. TopBar (스크롤 가능한 LazyColumn 위에 배치)
-                TopBar_SubScreen(
-                    title = "암호 잠금", // ✅ 타이틀 전달
-                    onBackClick = onBackClick, // ✅ 뒤로가기 이벤트 연결
-                    onHeightChange = { newHeight ->
-                        topBarHeight = newHeight
+                            Spacer(modifier = Modifier.height(11.dp))
+                        }
                     }
                 )
             }
-
-            // ✅ 4. BottomNavigationBarWithFAB (항상 하단에 고정)
-//            BottomNavigationBarWithFAB(
-//                selectedTab = "mypage",
-//                onTabSelected = { /* 탭 변경 로직 */ },
-//                onFabClick = onFabClick
-//            )
-
+            item {
+                PasswordRecoveryNotice()
+            }
         }
     }
 }
@@ -159,6 +141,6 @@ fun PasswordRecoveryNotice() {
             color = Color(0xFFB1B1B1),
             lineHeight = 15.sp,
 
-        )
+            )
     }
 }

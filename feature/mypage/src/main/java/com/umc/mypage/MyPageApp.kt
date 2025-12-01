@@ -10,6 +10,7 @@ fun MyPageApp(
     viewModel: MyPageViewModel,
     onLoginCanceled: () -> Unit,
     onBackgroundLocationRequirementChanged: (isRequired: Boolean) -> Boolean,
+    onNavigationBarVisibilityChanged: (Boolean) -> Unit,
 ) {
 
     LaunchedEffect(Unit) {
@@ -25,5 +26,6 @@ fun MyPageApp(
         viewModel = viewModel,
         onLoginCanceled = onLoginCanceled, // 로그아웃 or 탈퇴 시 로그인화면 이동
         onBackgroundLocationRequirementChanged = onBackgroundLocationRequirementChanged,
+        onNavigationBarVisibilityChanged = onNavigationBarVisibilityChanged,
     )
 }

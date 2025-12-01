@@ -29,6 +29,7 @@ import com.umc.category.CategoryApp
 import com.umc.challenge.ChallengeApp
 import com.umc.challenge.PointGrantEvent
 import com.umc.core.util.runWithScope
+import com.umc.design.character.AccessorySet
 import com.umc.design.component.LocationAccessPopup
 import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.FootprintApp
@@ -78,6 +79,13 @@ fun MainApp(
     val isLocked by viewModel.isLockedState.collectAsState()
     val isLocationBasedRemindEnabled by viewModel.isLocationBasedRemindEnabledState.collectAsState()
     val isDiaryRecordOccurred by viewModel.isDiaryRecordOccurredState.collectAsState()
+    val equippedItems by viewModel.equippedItemState.collectAsState()
+
+    val accessorySet = remember(equippedItems) {
+        equippedItems
+            .map { it.item }
+            .let { AccessorySet.create(it) }
+    }
 
     var currentNavigationItem by remember { mutableStateOf<NavigationItem?>(null) }
     var showNavBar by remember { mutableStateOf(false) }
@@ -194,7 +202,9 @@ fun MainApp(
             navigationBarProp = if (showNavBar) NavigationBarProp(
                 currentNavigationItem = currentNavigationItem,
                 showTooltip = showRecordTooltip,
-                onNavigate = {
+                onNavigate = onNavigate@{
+                    if (currentNavigationItem == it) return@onNavigate
+
                     val route = when (it) {
                         NavigationItem.DIARY -> NavigationRoute.Home
                         NavigationItem.FOOTPRINT -> NavigationRoute.Footprint.Footprint
@@ -214,7 +224,7 @@ fun MainApp(
                 CenterButtonProp(
                     recordOptionPickerProp = RecordOptionPickerProp(
                         userName = viewModel.userName,
-                        accessories = viewModel.equippedAccessories,
+                        accessories = accessorySet,
                         onCameraOptionClicked = {
                             isCenterButtonActivated = false
                             requestCamera { uri ->
@@ -396,6 +406,7 @@ fun MainApp(
                                 runCatching { context.finishLocationTrackingService() }.isSuccess
                             }
                         },
+                        onNavigationBarVisibilityChanged = { showNavBar = it },
                     )
                 }
 

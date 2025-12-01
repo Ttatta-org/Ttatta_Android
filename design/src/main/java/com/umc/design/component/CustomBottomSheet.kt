@@ -22,11 +22,13 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.umc.design.R
 
@@ -57,10 +59,14 @@ fun CustomBottomSheet(
             // 본문
             Column(
                 modifier = Modifier
-                    .shadow(
-                        elevation = 20.dp,
+                    .dropShadow(
                         shape = RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp),
-                        spotColor = Color.Black.copy(alpha = 0.5f),
+                        shadow = Shadow(
+                            radius = 15.dp,
+                            color = Color(0xFF9C9C9C),
+                            alpha = 0.2f,
+                            offset = DpOffset(x = 0.dp, y = (-0.2).dp),
+                        ),
                     )
                     .background(
                         color = containerColor,

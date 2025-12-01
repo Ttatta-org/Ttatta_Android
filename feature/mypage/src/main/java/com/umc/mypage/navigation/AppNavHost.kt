@@ -8,6 +8,7 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -15,6 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,6 +41,7 @@ fun AppNavHost(
     viewModel: MyPageViewModel,
     onLoginCanceled: () -> Unit,
     onBackgroundLocationRequirementChanged: (isRequired: Boolean) -> Boolean,
+    onNavigationBarVisibilityChanged: (Boolean) -> Unit,
 ) {
     val userInfo by viewModel.userInfoState.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -66,6 +69,18 @@ fun AppNavHost(
     }
 
     var showLocationPermissionPopup by remember { mutableStateOf(false) }
+
+    DisposableEffect(navController, onNavigationBarVisibilityChanged) {
+        val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
+            when (destination.route) {
+                "mypage" -> onNavigationBarVisibilityChanged(true)
+                else -> onNavigationBarVisibilityChanged(false)
+            }
+        }
+
+        navController.addOnDestinationChangedListener(listener)
+        onDispose { navController.removeOnDestinationChangedListener(listener) }
+    }
 
     NavHost(
         navController = navController,

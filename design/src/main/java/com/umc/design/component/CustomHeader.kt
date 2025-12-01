@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -37,6 +36,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -57,11 +57,14 @@ import kotlin.math.sqrt
 fun CustomHeader(
     showLogo: Boolean = true,
     showLogoWhiteShadow: Boolean = false,
+    showShadow: Boolean = false,
+    shadowColor: Color = Color(0xFFD7806F).copy(alpha = 0.35f),
     centerText: String? = null,
     centerTextColor: Color = LocalColorTheme.current.primary[500],
     onBackButtonClicked: (() -> Unit)? = null,
     backButtonColor: Color = LocalColorTheme.current.primary[400],
     headerTrailing: (@Composable RowScope.() -> Unit)? = null,
+    headerTrailingStartPadding: Dp = 13.4.dp,
     backgroundColor: Color = Color.White,
     waveColor: Color = LocalColorTheme.current.primary[400],
     content: (@Composable ColumnScope.(waveHeight: Dp) -> Unit)? = null,
@@ -74,6 +77,7 @@ fun CustomHeader(
     val waveWidth = remember { 2.dp }
     val wavePeriod = remember { 21.dp }
     val waveRadius = remember { 16.235.dp }
+    val shadowRadius = remember { 10.dp }
 
     val waveHeight = remember(wavePeriod, waveRadius, waveWidth) {
         waveRadius - sqrt(waveRadius.value.pow(2) - (wavePeriod.value / 2).pow(2)).dp + waveWidth
@@ -128,6 +132,18 @@ fun CustomHeader(
                         if (isFill) {
                             lineTo(currentX, 0f)
                             close()
+                        }
+                    }
+                }
+
+                if (showShadow) {
+                    for (i in 1..shadowRadius.roundToPx()) {
+                        translate(top = i.toFloat()) {
+                            drawPath(
+                                path = wavePath,
+                                color = shadowColor.copy(alpha = shadowColor.alpha * (1f - i / shadowRadius.toPx())),
+                                style = Stroke(width = 1f),
+                            )
                         }
                     }
                 }
@@ -206,7 +222,9 @@ fun CustomHeader(
                     }
                     Row(
                         horizontalArrangement = Arrangement.End,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(start = headerTrailingStartPadding)
                     ) {
                         headerTrailing?.invoke(this)
                     }
@@ -235,13 +253,43 @@ fun CustomHeader(
 @Composable
 fun PreviewCustomHeader() {
     ThemeProvider {
-        CustomHeader(
-            showLogo = true,
-            backgroundColor = Color.Yellow,
-            waveColor = Color.Black,
+        Box(
+            modifier = Modifier.height(300.dp)
         ) {
-            Box(modifier = Modifier.background(color = Color.Green.copy(alpha = 0.5f))) {
-                Text(text = "test", modifier = Modifier.padding(50.dp))
+            Image(
+                painter = painterResource(R.raw.test_map_image),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+            CustomHeader(
+                showLogo = true,
+                showShadow = true,
+                backgroundColor = Color.White.copy(alpha = 0.8f),
+                headerTrailing = {
+                    Text(
+                        text = "headerTrailing area",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(color = Color.Green.copy(alpha = 0.5f)),
+                    )
+                }
+            ) { waveHeight ->
+                Column {
+                    Text(
+                        text = "content area",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(color = Color.Green.copy(alpha = 0.5f))
+                            .height(100.dp),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(waveHeight)
+                            .background(color = Color.Yellow.copy(alpha = 0.5f))
+                    )
+                }
             }
         }
     }

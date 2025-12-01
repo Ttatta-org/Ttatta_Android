@@ -59,7 +59,7 @@ fun NaverMapLicenseBar(
                     ) {
                         Text(
                             text = text,
-                            fontWeight = FontWeight.W600,
+                            fontWeight = FontWeight.W700,
                             fontSize = 15.sp,
                             lineHeight = 20.sp,
                             color = LocalColorTheme.current.grey[700],

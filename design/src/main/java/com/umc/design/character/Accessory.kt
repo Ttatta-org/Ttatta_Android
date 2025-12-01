@@ -47,7 +47,7 @@ enum class Accessory(
         size = Size(118f, 85f),
     ),
     TTOTTO_DND_EARPHONE(
-        code = "TTOTTO_DND_EARPHONE",
+        code = "TTOTTO_DND_EARPHONES",
         title = "또또의 방해금지 이어폰",
         characterType = CharacterType.TTOTTO,
         bodyPart = BodyPart.EYE,

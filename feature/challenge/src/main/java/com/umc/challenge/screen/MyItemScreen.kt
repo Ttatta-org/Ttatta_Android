@@ -75,6 +75,7 @@ data class ClickedItemProp(
 private val bottomSheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
 private val itemItemShape = RoundedCornerShape(16.dp)
 
+@Deprecated("화면 미사용")
 @Composable
 fun MyItemScreen(
     point: Int,
