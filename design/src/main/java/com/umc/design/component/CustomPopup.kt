@@ -137,7 +137,7 @@ fun CustomPopup(
                             .clickable(
                                 indication = null,
                                 interactionSource = null,
-                                onClick = onDismiss,
+                                onClick = onConfirm,
                             ),
                     ) {
                         Text(

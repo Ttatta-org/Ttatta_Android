@@ -1,6 +1,7 @@
 package com.umc.mypage
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -203,6 +204,7 @@ private enum class LeaveReason(val label: String) {
     ETC("기타")
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ReasonSection(
     selected: LeaveReason?,
