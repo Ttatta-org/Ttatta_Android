@@ -57,22 +57,8 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 },
-                requestImagePicker = { callback ->
-                    imageLoadedCallback = callback
-                    imagePickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                },
-                requestCamera = { callback ->
-                    imageLoadedCallback = callback
-
-                    if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                    } else {
-                        createImageUri()?.let { uri ->
-                            imageUri = uri
-                            cameraLauncher.launch(uri)
-                        }
-                    }
-                },
+                requestImagePicker = this::requestImagePicker,
+                requestCamera = this::requestCamera,
             )
         }
     }
@@ -130,6 +116,24 @@ class MainActivity : ComponentActivity() {
                     imageUri = uri
                     cameraLauncher.launch(uri)
                 }
+            }
+        }
+    }
+
+    private fun requestImagePicker(callback: (Uri?) -> Unit) {
+        imageLoadedCallback = callback
+        imagePickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    }
+
+    private fun requestCamera(callback: (Uri?) -> Unit) {
+        imageLoadedCallback = callback
+
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        } else {
+            createImageUri()?.let { uri ->
+                imageUri = uri
+                cameraLauncher.launch(uri)
             }
         }
     }
