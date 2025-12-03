@@ -73,7 +73,8 @@ fun PointChip(
                     .fillMaxHeight()
                     .width(47.dp)
                     .clip(RoundedCornerShape(percent = 50))
-                    .background(color = Color.Secondary100)
+                    .background(color = Color.Secondary100),
+                contentAlignment = Alignment.Center
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
