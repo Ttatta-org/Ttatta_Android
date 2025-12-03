@@ -40,22 +40,35 @@ fun RecordApp(
 
     var date by remember(metadata) { mutableStateOf(metadata?.date ?: LocalDateTime.now()) }
 
-    var coordinates by remember(metadata) {
-        mutableStateOf(
-            if (metadata?.latitude != null && metadata.longitude != null) metadata.latitude to metadata.longitude
-            else null
-        )
-    }
+//    var coordinates by remember(metadata) {
+//        mutableStateOf(
+//            if (metadata?.latitude != null && metadata.longitude != null) metadata.latitude to metadata.longitude
+//            else null
+//        )
+//    }
+//
+//    var locationName by remember { mutableStateOf("") }
+    val selectedLocationInfo = viewModel.selectedLocationInfo
+    val coordinates = selectedLocationInfo?.let { it.latitude to it.longitude }
+    val locationName = selectedLocationInfo?.name ?: ""
 
-    var locationName by remember { mutableStateOf("") }
     var showCategoryDropdown by remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = Unit) {
-        coordinates?.let { location ->
+    LaunchedEffect(metadata) {
+        val metaLat = metadata?.latitude
+        val metaLng = metadata?.longitude
+
+        if (viewModel.selectedLocationInfo == null && metaLat != null && metaLng != null) {
             viewModel.searchLocation(
-                latitude = location.first,
-                longitude = location.second,
-                onSucceed = { locationName = it },
+                latitude = metaLat,
+                longitude = metaLng,
+                onSucceed = { address ->
+                    viewModel.updateSelectedLocation(
+                        name = address,
+                        latitude = metaLat,
+                        longitude = metaLng,
+                    )
+                },
                 onFailed = { /* TODO */ }
             )
         }
@@ -97,23 +110,25 @@ fun RecordApp(
                     userName = viewModel.userName,
                     diaryContent = diaryContent,
                     onCreateButtonClicked = {
-                        if (!isUploading && image != null) coordinates?.let { location ->
+                        val selectedLocation = viewModel.selectedLocationInfo
+
+                        if (!isUploading && image != null && selectedLocation != null) {
                             isUploading = true
                             viewModel.saveDiary(
                                 image = image,
                                 content = diaryContent,
                                 categoryId = viewModel.selectedCategory?.id!!,
                                 date = date,
-                                latitude = location.first,
-                                longitude = location.second,
-                                locationName = locationName,
+                                latitude = selectedLocation.latitude,
+                                longitude = selectedLocation.longitude,
+                                locationName = selectedLocation.name ?: "",
                                 onSucceed = onDone,
                                 onFailed = {
                                     isUploading = false
                                     Toast.makeText(context, "등록에 실패했습니다.", Toast.LENGTH_SHORT).show()
                                 }
                             )
-                        } ?: run {
+                        } else if (selectedLocation == null) {
                             Toast.makeText(context, "위치를 설정해 주세요!", Toast.LENGTH_SHORT).show()
                         }
                     },
@@ -153,10 +168,12 @@ fun RecordApp(
                 bottomSheetProp = LocationBottomSheetProp(
                     location = viewModel.currentPinnedLocationInfo?.name,
                     onConfirm = { confirmedLocationName ->
-                        // TODO: 현 코드는 버그의 위험이 있음
                         viewModel.currentPinnedLocationInfo?.let { info ->
-                            coordinates = info.latitude to info.longitude
-                            locationName = confirmedLocationName
+                            viewModel.updateSelectedLocation(
+                                name = confirmedLocationName,
+                                latitude = info.latitude,
+                                longitude = info.longitude,
+                            )
                             navController.popBackStack()
                         }
                     }
