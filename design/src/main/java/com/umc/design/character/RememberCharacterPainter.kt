@@ -38,47 +38,6 @@ fun rememberCharacterPainter(
 }
 
 @Composable
-private fun getCharacterRenderInfo(
-    accessorySet: AccessorySet,
-    characterType: CharacterType,
-): RenderInfo {
-    val (headItemRender, torsoItemRender) = listOf(
-        BodyPart.HEAD,
-        BodyPart.TORSO,
-    ).map { bodyPart ->
-        accessorySet.firstOrNull {
-            it.characterType == characterType && it.bodyPart == bodyPart
-        }?.let { accessory ->
-            ChildRenderInfo(
-                offset = accessory.offset,
-                info = object: RenderInfo {
-                    override val painter = painterResource(id = accessory.res)
-                    override val originalSize = accessory.size
-                },
-            )
-        }
-    }
-
-    val handRender = ChildRenderInfo(
-        offset = characterType.handOffset,
-        info = object: RenderInfo {
-            override val painter = painterResource(id = characterType.handRes)
-            override val originalSize = characterType.handSize
-        },
-    )
-
-    return object: RenderInfo {
-        override val painter = painterResource(id = characterType.bodyRes)
-        override val originalSize = characterType.size
-        override val children = listOfNotNull(
-            headItemRender,
-            torsoItemRender,
-            handRender,
-        )
-    }
-}
-
-@Composable
 private fun getNewCharacterPainter(
     accessorySet: AccessorySet,
     characterType: CharacterType?,
@@ -91,17 +50,74 @@ private fun getNewCharacterPainter(
     )
 
     val renders = characters.map { (characterType, offset) ->
+        val shadowRender = ChildRenderInfo(
+            offset = characterType.shadowOffset,
+            info = object : RenderInfo {
+                override val painter = painterResource(id = characterType.shadowRes)
+                override val originalSize = characterType.shadowSize
+            },
+        )
+
+        val itemRenders = listOf(
+            BodyPart.HEAD,
+            BodyPart.EYE,
+            BodyPart.TORSO,
+        )
+            .map { bodyPart ->
+                listOf(
+                    false,
+                    true,
+                ).map { isOverHand ->
+                    accessorySet
+                        .firstOrNull {
+                            it.characterType == characterType && it.bodyPart == bodyPart && it.isOverHand == isOverHand
+                        }
+                        ?.let { accessory ->
+                            ChildRenderInfo(
+                                offset = accessory.offset,
+                                info = object : RenderInfo {
+                                    override val painter =
+                                        painterResource(id = accessory.equippedRes)
+                                    override val originalSize = accessory.size
+                                },
+                            )
+                        }
+                }
+            }
+
+        val (headItemRender, headOverHandRender) = itemRenders[0]
+        val (eyeItemRender, eyeOverHandItemRender) = itemRenders[1]
+        val (torsoItemRender, torsoOverHandItemRender) = itemRenders[2]
+
+        val handRender = ChildRenderInfo(
+            offset = characterType.handOffset,
+            info = object : RenderInfo {
+                override val painter = painterResource(id = characterType.handRes)
+                override val originalSize = characterType.handSize
+            },
+        )
+
         ChildRenderInfo(
             offset = offset + totalOffset,
-            info = getCharacterRenderInfo(
-                accessorySet = accessorySet,
-                characterType = characterType,
-            ),
+            info = object : RenderInfo {
+                override val painter = painterResource(id = characterType.bodyRes)
+                override val originalSize = characterType.size
+                override val children = listOfNotNull(
+                    shadowRender,
+                    headItemRender,
+                    eyeItemRender,
+                    torsoItemRender,
+                    handRender,
+                    headOverHandRender,
+                    eyeOverHandItemRender,
+                    torsoOverHandItemRender,
+                )
+            },
         )
     }
 
     return RecursivePainter.create(
-        root = object: RenderInfo {
+        root = object : RenderInfo {
             override val originalSize = characterType?.size ?: characterSize
             override val children = renders
         },

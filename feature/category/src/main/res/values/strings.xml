@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">category</string>
-    <string name="new_category">카테고리명</string>
+    <string name="category_name">카테고리명</string>
     <string name="modify_footprint">발자국 이름 수정하기</string>
     <string name="footprint_placeholder">새 발자국 카테고리 명을 입력해주세요</string>
     <string name="color_choice">색상선택</string>
@@ -8,7 +8,7 @@
     <string name="create">생성하기</string>
     <string name="modify">수정하기</string>
     <string name="delete_category">카테고리 삭제하기</string>
-    <string name="delete_category_description">\'카테고리 삭제하기\'는 카테고리만 삭제되며,\n내부 기록은 \'일상\' 카테고리로 이동됩니다.\n정말 삭제하시겠습니까</string>
+    <string name="delete_category_description">\'카테고리 삭제하기\'는 카테고리만 삭제되며,\n내부 기록은 \'일상\' 카테고리로 이동됩니다.\n정말 삭제하시겠습니까?</string>
     <string name="delete_all">모든 기록 삭제하기</string>
     <string name="delete_all_description">‘모든 기록 삭제하기’는 카테고리와 카테고리 내의\n기록도 모두 삭제되며, 복구가 불가능합니다.\n정말 삭제하기겠습니까?</string>
     <string name="delete">삭제하기</string>

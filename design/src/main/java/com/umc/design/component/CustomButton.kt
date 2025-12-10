@@ -15,10 +15,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.theme.LocalColorTheme
@@ -46,10 +48,14 @@ fun CustomButton(
         modifier = Modifier
             .fillMaxWidth()
             .let {
-                if (showShadow) it.shadow(
-                    elevation = 4.dp,
+                if (showShadow) it.dropShadow(
                     shape = shape,
-                    spotColor = Color.Black.copy(alpha = 0.4f),
+                    shadow = Shadow(
+                        radius = 10.dp,
+                        color = Color(0xFFDE8062),
+                        alpha = 0.1f,
+                        offset = DpOffset(0.dp, 2.dp),
+                    ),
                 ) else it
             }
             .background(
@@ -61,7 +67,11 @@ fun CustomButton(
                 else it
             }
             .clip(shape)
-            .clickable { if (isEnabled) onClick() },
+            .clickable(
+                interactionSource = null,
+                indication = null,
+                onClick = { if (isEnabled) onClick() },
+            ),
     ) {
         if (content != null) {
             content.invoke()
@@ -71,7 +81,8 @@ fun CustomButton(
                 fontFamily = LocalFontTheme.current.font,
                 fontSize = 15.sp,
                 lineHeight = 20.sp,
-                fontWeight = FontWeight.W600,
+                fontWeight = FontWeight.W700,
+                letterSpacing = (-0.4).sp,
                 color = if (isEnabled) colors.contentColor else colors.disabledContentColor,
                 modifier = Modifier.padding(vertical = 13.dp)
             )

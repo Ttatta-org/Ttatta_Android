@@ -25,6 +25,7 @@ import com.umc.mypage.R
 @Composable
 fun Dialog(
     message: String,
+    subMessage: String,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
@@ -38,7 +39,7 @@ fun Dialog(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0x4D000000)) // #0000004D = alpha 0.3
+                .background(Color(0x99000000))  // #000000 + 60% opacity
                 .blur(12.dp)
         )
 
@@ -66,16 +67,26 @@ fun Dialog(
                     .height(16.dp)
             )
 
-            Spacer(modifier = Modifier.height(46.dp))
+            Spacer(modifier = Modifier.height(26.dp))
 
             Text(
                 text = message,
                 fontSize = 16.sp,
-                color = Color(0xFF4B4B4B),
+                color = Color(0xFF000000),
                 fontWeight = FontWeight.W700
             )
 
-            Spacer(modifier = Modifier.height(44.dp))
+            Spacer(modifier = Modifier.height(13.dp))
+
+            Text(
+                text = subMessage,
+                fontSize = 13.sp,
+                color = Color(0xFF4B4B4B),
+                fontWeight = FontWeight.W400,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(26.dp))
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -85,9 +96,10 @@ fun Dialog(
                     onClick = onDismiss,
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White),
                     shape = RoundedCornerShape(13.dp),
-                    modifier = Modifier.weight(1f),
-                    border = BorderStroke(1.dp, Color(0xFFFFD0C8)),
-                    contentPadding = PaddingValues(vertical = 13.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(45.dp),
+                    border = BorderStroke(1.dp, Color(0xFFFFD0C8))
                 ) {
                     Text(text = "취소", fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.W600, color = Color(0xFFFFD0C8), textAlign = TextAlign.Center)
                 }
@@ -97,8 +109,9 @@ fun Dialog(
                     onClick = onConfirm,
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9888)),
                     shape = RoundedCornerShape(13.dp),
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(vertical = 13.dp)
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(45.dp)
                 ) {
                     Text(text = "확인", fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.W600, color = Color.White)
                 }
@@ -113,7 +126,9 @@ fun Dialog(
 fun DialogPreview() {
     MaterialTheme {
         Dialog(
-            message = "정말로 로그아웃 하시겠습니까?",
+            message = "로그아웃 하시겠습니까?",
+            subMessage = "계정을 탈퇴하면 기록, 발자국, 포인트 등\n" +
+                    "모든 활동 정보가 삭제됩니다.",
             onDismiss = {},
             onConfirm = {}
         )

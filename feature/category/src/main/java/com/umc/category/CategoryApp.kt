@@ -1,6 +1,5 @@
 package com.umc.category
 
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,23 +14,21 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.umc.category.modal.CategoryAndAllIncludedDiaryDeletionDialog
-import com.umc.category.modal.CategoryAndAllIncludedDiaryDeletionDialogProp
 import com.umc.category.modal.CategoryDeletionDialog
-import com.umc.category.modal.CategoryDeletionDialogProp
 import com.umc.category.modal.CategoryManagementBar
-import com.umc.category.modal.CategoryManagementBarProp
-import com.umc.category.screen.CategoryListItemProp
+import com.umc.category.model.CategoryAndAllIncludedDiaryDeletionDialogProp
+import com.umc.category.model.CategoryDeletionDialogProp
+import com.umc.category.model.CategoryListItemProp
+import com.umc.category.model.CategoryManagementBarProp
 import com.umc.category.screen.CategoryModificationScreen
 import com.umc.category.screen.CategoryScreen
-import com.umc.core.model.CategoryInfo
 import com.umc.core.util.runWithScope
+import com.umc.core.util.showToast
 import com.umc.design.CategoryColor
 import com.umc.design.component.LoadingModal
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-
-const val MAX_CATEGORY_NAME_LENGTH = 20
-const val NON_EDITABLE_CATEGORY_NAME = "일상"
+import java.lang.IllegalStateException
 
 @Composable
 fun CategoryApp(
@@ -44,9 +41,10 @@ fun CategoryApp(
     val navigator = rememberNavController()
     val categoryList by viewModel.categoryList.collectAsState()
 
-    var categoryNameInputFieldValue by remember { mutableStateOf("") }
-    var selectedCategoryColor by remember { mutableStateOf(CategoryColor.entries.first()) }
-    var selectedCategory by remember { mutableStateOf<CategoryInfo?>(null) }
+    val categoryNameInputFieldValue by viewModel.newCategoryNameInputFieldValue.collectAsState()
+    val selectedCategoryColor by viewModel.newCategoryColorSelectedValue.collectAsState()
+    val selectedCategory by viewModel.selectedCategory.collectAsState()
+
     var showCategoryManagementBar by remember { mutableStateOf(false) }
     var showCategoryDeletionDialog by remember { mutableStateOf(false) }
     var showCategoryAndAllIncludedDiaryDeletionDialog by remember { mutableStateOf(false) }
@@ -54,16 +52,9 @@ fun CategoryApp(
 
     LaunchedEffect(Unit) {
         viewModel.runWithScope {
-            runCatching { getCategoryListFromServer() }
-                .onFailure {
-                    val toast = Toast.makeText(
-                        context,
-                        "카테고리 목록을 불러오는데 실패했습니다.",
-                        Toast.LENGTH_SHORT,
-                    )
-
-                    toast.show()
-                }
+            runCatching { getCategoryListFromServer() }.onFailure {
+                context.showToast("카테고리 목록을 불러오는데 실패했습니다.")
+            }
         }
     }
 
@@ -72,47 +63,51 @@ fun CategoryApp(
         startDestination = "/",
     ) {
         composable(
-            route = "/"
+            route = "/",
         ) {
             CategoryScreen(
                 topBarTitle = topBarTitle,
-                maxCategoryNameLength = MAX_CATEGORY_NAME_LENGTH,
+                maxCategoryNameLength = CategoryConstraints.MAX_CATEGORY_NAME_LENGTH,
                 categoryNameInputFieldValue = categoryNameInputFieldValue,
                 selectedCategoryColor = selectedCategoryColor,
                 categoryList = categoryList?.map { category ->
                     CategoryListItemProp(
                         name = category.name,
                         color = category.color,
-                        onClicked = if (category.name != NON_EDITABLE_CATEGORY_NAME) { ->
-                            selectedCategory = category
+                        onClicked = if (category.name != CategoryConstraints.NON_EDITABLE_CATEGORY_NAME) { ->
+                            viewModel.selectedCategory.value = category
                             showCategoryManagementBar = true
                         } else null,
                     )
                 },
                 onCategoryNameInputFieldValueChanged = {
-                    if (it.length <= MAX_CATEGORY_NAME_LENGTH) categoryNameInputFieldValue = it
+                    if (it.length <= CategoryConstraints.MAX_CATEGORY_NAME_LENGTH) {
+                        viewModel.newCategoryNameInputFieldValue.value = it
+                    }
                 },
                 onCategoryColorClicked = {
-                    selectedCategoryColor = it
+                    viewModel.newCategoryColorSelectedValue.value = it
                 },
                 onDoneButtonClicked = {
                     viewModel.runWithScope {
                         showLoading = true
 
-                        runCatching {
-                            createCategory(
-                                name = categoryNameInputFieldValue,
-                                color = selectedCategoryColor,
-                            )
-                        }
+                        runCatching { createCategory() }
                             .onSuccess {
-                                categoryNameInputFieldValue = ""
-                                selectedCategoryColor = CategoryColor.entries.first()
+                                viewModel.newCategoryNameInputFieldValue.value = ""
+                                viewModel.newCategoryColorSelectedValue.value =
+                                    CategoryColor.entries.first()
                             }
-                            .onFailure {
-                                val toast =
-                                    Toast.makeText(context, "카테고리 생성에 실패했습니다.", Toast.LENGTH_SHORT)
-                                toast.show()
+                            .onFailure { e ->
+                                val toastMessage = if (e is IllegalArgumentException) {
+                                    "\"일상\"이라는 이름은 사용할 수 없습니다!"
+                                } else if (e is IllegalStateException) {
+                                    "카테고리 이름을 입력해주세요!"
+                                } else {
+                                    "카테고리 생성에 실패했습니다."
+                                }
+
+                                context.showToast(toastMessage)
                             }
 
                         showLoading = false
@@ -125,15 +120,10 @@ fun CategoryApp(
         }
 
         composable(
-            route = "/modify"
+            route = "/modify",
         ) {
-            var categoryName by remember(selectedCategory) {
-                mutableStateOf(selectedCategory?.name ?: "")
-            }
-
-            var categoryColor by remember(selectedCategory) {
-                mutableStateOf(selectedCategory?.color ?: CategoryColor.entries.first())
-            }
+            val categoryName by viewModel.modifyingCategoryNameInputFieldValue.collectAsState()
+            val categoryColor by viewModel.modifyingCategoryColorSelectedValue.collectAsState()
 
             BackHandler {
                 MainScope().launch { navigator.popBackStack() }
@@ -141,53 +131,34 @@ fun CategoryApp(
 
             CategoryModificationScreen(
                 topBarTitle = topBarTitle,
-                maxCategoryNameLength = MAX_CATEGORY_NAME_LENGTH,
+                maxCategoryNameLength = CategoryConstraints.MAX_CATEGORY_NAME_LENGTH,
                 categoryNameInputFieldValue = categoryName,
                 selectedCategoryColor = categoryColor,
-                isDoneButtonEnabled = categoryName.isNotBlank() && categoryName.length <= MAX_CATEGORY_NAME_LENGTH,
+                isDoneButtonEnabled = categoryName.isNotBlank() && categoryName.length <= CategoryConstraints.MAX_CATEGORY_NAME_LENGTH,
                 onCategoryNameInputFieldValueChanged = {
-                    if (it.length <= MAX_CATEGORY_NAME_LENGTH) categoryName = it
-                },
-                onCategoryColorClicked = { categoryColor = it },
-                onDoneButtonClicked = onDoneButtonClicked@{
-                    val id = selectedCategory?.id ?: return@onDoneButtonClicked
-                    val categoryName = categoryName.trim()
-
-                    if (categoryName == "일상") {
-                        MainScope().launch {
-                            val toast = Toast.makeText(
-                                context,
-                                "\"일상\"이라는 이름은 사용할 수 없습니다!",
-                                Toast.LENGTH_SHORT,
-                            )
-
-                            toast.show()
-                        }
-
-                        return@onDoneButtonClicked
+                    if (it.length <= CategoryConstraints.MAX_CATEGORY_NAME_LENGTH) {
+                        viewModel.modifyingCategoryNameInputFieldValue.value = it
                     }
-
+                },
+                onCategoryColorClicked = {
+                    viewModel.modifyingCategoryColorSelectedValue.value = it
+                },
+                onDoneButtonClicked = onDoneButtonClicked@{
                     viewModel.runWithScope {
                         showLoading = true
 
-                        runCatching {
-                            modifyCategory(
-                                id = id,
-                                name = categoryName,
-                                color = categoryColor,
-                            )
-                        }
+                        runCatching { modifyCategory() }
                             .onSuccess {
                                 MainScope().launch { navigator.popBackStack() }
                             }
-                            .onFailure {
-                                val toast = Toast.makeText(
-                                    context,
-                                    "카테고리 수정에 실패했습니다.",
-                                    Toast.LENGTH_SHORT,
-                                )
+                            .onFailure { e ->
+                                val toastMessage = if (e is IllegalArgumentException) {
+                                    "\"일상\"이라는 이름은 사용할 수 없습니다!"
+                                } else {
+                                    "카테고리 수정에 실패했습니다."
+                                }
 
-                                toast.show()
+                                context.showToast(toastMessage)
                             }
 
                         showLoading = false
@@ -205,11 +176,14 @@ fun CategoryApp(
             CategoryManagementBar(
                 prop = CategoryManagementBarProp(
                     onDismissed = {
-                        selectedCategory = null
+                        viewModel.selectedCategory.value = null
                         showCategoryManagementBar = false
                     },
                     onModifyOptionClicked = {
                         showCategoryManagementBar = false
+                        viewModel.modifyingCategoryNameInputFieldValue.value = category.name
+                        viewModel.modifyingCategoryColorSelectedValue.value =
+                            category.color ?: CategoryColor.entries.first()
                         MainScope().launch {
                             navigator.navigate("/modify")
                         }
@@ -236,14 +210,8 @@ fun CategoryApp(
                         viewModel.runWithScope {
                             showLoading = true
 
-                            runCatching { deleteCategory(id = category.id) }.onFailure {
-                                val toast = Toast.makeText(
-                                    context,
-                                    "카테고리 삭제에 실패했습니다.",
-                                    Toast.LENGTH_SHORT,
-                                )
-
-                                toast.show()
+                            runCatching { deleteCategory() }.onFailure {
+                                context.showToast("카테고리 삭제에 실패했습니다.")
                             }
 
                             showCategoryDeletionDialog = false
@@ -265,15 +233,9 @@ fun CategoryApp(
                             showLoading = true
 
                             runCatching {
-                                deleteCategoryAndAllIncludedDiaries(id = category.id)
+                                deleteCategoryAndAllIncludedDiaries()
                             }.onFailure {
-                                val toast = Toast.makeText(
-                                    context,
-                                    "카테고리 삭제에 실패했습니다.",
-                                    Toast.LENGTH_SHORT,
-                                )
-
-                                toast.show()
+                                context.showToast("카테고리 삭제에 실패했습니다.")
                             }
 
                             showCategoryAndAllIncludedDiaryDeletionDialog = false

@@ -11,8 +11,11 @@ import com.umc.core.model.UnownedItem
 import com.umc.core.repository.ChallengeRepository
 import com.umc.core.repository.ItemRepository
 import com.umc.core.repository.UserRepository
-import com.umc.design.character.AccessorySet
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,21 +24,22 @@ class ChallengeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val challengeRepository: ChallengeRepository,
     private val itemRepository: ItemRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val pointState = mutableIntStateOf(0)
-    private val ownedItemsState = mutableStateOf(listOf<OwnedItem>())
-    private val unownedItemsState = mutableStateOf(listOf<UnownedItem>())
-    private val equippedAccessorySetState = mutableStateOf(AccessorySet.create())
+    private val ownedItemsMutableState = MutableStateFlow(listOf<OwnedItem>())
+    private val unownedItemsMutableState = MutableStateFlow(listOf<UnownedItem>())
     private val failedChallengesState = mutableStateOf(listOf<FailedChallenge>())
     private val todayChallengesState = mutableStateOf(listOf<Challenge>())
+    private val pastChallengesState = mutableStateOf(listOf<Challenge>())
 
+    val equippedItemsState get() = itemRepository.equippedItemState
+    val ownedItemsState: StateFlow<List<OwnedItem>> get() = ownedItemsMutableState
+    val unownedItemsState: StateFlow<List<UnownedItem>> get() = unownedItemsMutableState
     val point get() = pointState.intValue
-    val ownedItems get() = ownedItemsState.value
-    val unownedItems get() = unownedItemsState.value
-    val equippedAccessorySet get() = equippedAccessorySetState.value
     val failedChallenges get() = failedChallengesState.value
     val todayChallenges get() = todayChallengesState.value
+    val pastChallenges get() = pastChallengesState.value
 
     fun getPoint(
         onSucceed: () -> Unit = {},
@@ -57,8 +61,7 @@ class ChallengeViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                val equipped = itemRepository.getEquippedItems()
-                equippedAccessorySetState.value = AccessorySet.create(equipped.map { it.item })
+                itemRepository.getEquippedItems()
                 onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
@@ -66,19 +69,22 @@ class ChallengeViewModel @Inject constructor(
         }
     }
 
-    fun getShopItems(
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            try {
-                val (point, unownedItems) = itemRepository.getUnownedItemsWithPoint()
-                pointState.intValue = point
-                unownedItemsState.value = unownedItems
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            }
+
+    fun getShopItems() {
+        CoroutineScope(Dispatchers.IO).launch {
+            itemRepository.getEquippedItems()
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val (point, ownedItems) = itemRepository.getOwnedItemsWithPoint()
+            pointState.intValue = point
+            ownedItemsMutableState.value = ownedItems
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val (point, unownedItems) = itemRepository.getUnownedItemsWithPoint()
+            pointState.intValue = point
+            unownedItemsMutableState.value = unownedItems
         }
     }
 
@@ -90,7 +96,7 @@ class ChallengeViewModel @Inject constructor(
             try {
                 val (point, ownedItems) = itemRepository.getOwnedItemsWithPoint()
                 pointState.intValue = point
-                ownedItemsState.value = ownedItems
+                ownedItemsMutableState.value = ownedItems
                 onSucceed()
             } catch (e: Exception) {
                 onFailed(e)
@@ -128,42 +134,15 @@ class ChallengeViewModel @Inject constructor(
         }
     }
 
-    fun purchaseItem(
-        id: Long,
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            try {
-                itemRepository.purchaseItem(id)
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            } finally {
-                getEquippedItems()
-                getShopItems()
-            }
-        }
+    suspend fun purchaseItem(id: Long) {
+        itemRepository.purchaseItem(id)
+        getShopItems()
     }
 
-    fun equipItem(
-        id: Long,
-        isEquipping: Boolean,
-        onSucceed: () -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {}
-    ) {
-        viewModelScope.launch {
-            try {
-                if (isEquipping) itemRepository.equipItem(id)
-                else itemRepository.disrobeItem(id)
-                onSucceed()
-            } catch (e: Exception) {
-                onFailed(e)
-            } finally {
-                getOwnedItems()
-                getEquippedItems()
-            }
-        }
+    suspend fun equipItem(id: Long, equip: Boolean) {
+        if (equip) itemRepository.equipItem(id)
+        else itemRepository.disrobeItem(id)
+        getShopItems()
     }
 
     fun createChallenge(
@@ -180,6 +159,21 @@ class ChallengeViewModel @Inject constructor(
                 onFailed(e)
             } finally {
                 getTodayChallenges()
+            }
+        }
+    }
+
+    fun getPastChallenges(
+        onSucceed: () -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
+    ) {
+        viewModelScope.launch {
+            try {
+                val challenges = challengeRepository.getPastChallenges()
+                pastChallengesState.value = challenges
+                onSucceed()
+            } catch (e: Exception) {
+                onFailed(e)
             }
         }
     }

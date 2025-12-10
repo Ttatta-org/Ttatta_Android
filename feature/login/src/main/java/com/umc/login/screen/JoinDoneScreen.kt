@@ -50,6 +50,7 @@ import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.model.event.RenderEvent
 
+@Deprecated("사용하지 않는 화면")
 @Composable
 fun JoinDoneScreen(
     name: String,

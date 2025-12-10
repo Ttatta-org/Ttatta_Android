@@ -9,9 +9,8 @@ import com.umc.data.preference.AuthPreference
 import com.umc.data.preference.ItemPreference
 import com.umc.data.util.withAuth
 import com.umc.design.character.Accessory
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 class ItemRepositoryImpl @Inject constructor(
@@ -20,8 +19,14 @@ class ItemRepositoryImpl @Inject constructor(
     private val itemPreference: ItemPreference,
 ) : ItemRepository {
 
+    private val equippedItemMutableState = MutableStateFlow(itemPreference.itemList)
+
+    override val equippedItemState: StateFlow<List<EquippedItem>>
+        get() = equippedItemMutableState
+
     override suspend fun getUnownedItemsWithPoint(): Pair<Int, List<UnownedItem>> {
         val response = serverApi.withAuth(authPreference) { getShopItems() }
+
         return response.point!!.toInt() to (response.itemShopList?.mapNotNull {
             Accessory.entries
                 .firstOrNull { accessory ->
@@ -39,6 +44,7 @@ class ItemRepositoryImpl @Inject constructor(
 
     override suspend fun getOwnedItemsWithPoint(): Pair<Int, List<OwnedItem>> {
         val response = serverApi.withAuth(authPreference) { getOwnedItems() }
+
         return response.point!!.toInt() to (response.myItemList?.mapNotNull {
             Accessory.entries
                 .firstOrNull { accessory ->
@@ -55,26 +61,25 @@ class ItemRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getEquippedItems(): List<EquippedItem> {
-        CoroutineScope(Dispatchers.IO).launch {
-            runCatching {
-                val response = serverApi.withAuth(authPreference) { getEquippedItems() }
+        val response = serverApi.withAuth(authPreference) { getEquippedItems() }
 
-                itemPreference.itemList = response.idList?.mapNotNull {
-                    Accessory.entries
-                        .firstOrNull { accessory ->
-                            accessory.code == it.itemUniqueId!!
-                        }
-                        ?.let { accessory ->
-                            EquippedItem(
-                                id = it.itemId!!,
-                                item = accessory,
-                            )
-                        }
-                } ?: listOf()
-            }
-        }
+        val result = response.idList?.mapNotNull {
+            Accessory.entries
+                .firstOrNull { accessory ->
+                    accessory.code == it.itemUniqueId!!
+                }
+                ?.let { accessory ->
+                    EquippedItem(
+                        id = it.itemId!!,
+                        item = accessory,
+                    )
+                }
+        } ?: listOf()
 
-        return itemPreference.itemList
+        itemPreference.itemList = result
+        equippedItemMutableState.value = result
+
+        return result
     }
 
     override suspend fun purchaseItem(id: Long) {
@@ -83,10 +88,11 @@ class ItemRepositoryImpl @Inject constructor(
 
     override suspend fun equipItem(id: Long) {
         serverApi.withAuth(authPreference) { equipItem(id) }
-        itemPreference.itemList = getEquippedItems()
+        getEquippedItems()
     }
 
     override suspend fun disrobeItem(id: Long) {
         serverApi.withAuth(authPreference) { disrobeItem(id) }
+        getEquippedItems()
     }
 }

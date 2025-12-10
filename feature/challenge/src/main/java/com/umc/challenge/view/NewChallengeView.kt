@@ -42,6 +42,7 @@ data class NewChallengeViewProp(
     val onTitleChanged: (String) -> Unit,
     val onDescriptionChanged: (String) -> Unit,
     val onCreateButtonClicked: () -> Unit,
+    val onPastChallengeClick: () -> Unit,
 )
 
 private val speechBubbleShape = RoundedCornerShape(percent = 50)
@@ -172,7 +173,8 @@ fun NewChallengeView(
                         prop.onTitleChanged(clipped)
                     },
                     onContentChanged = { text -> prop.onDescriptionChanged(text) },
-                    isButtonEnabled = prop.title.isNotBlank()
+                    isButtonEnabled = prop.title.isNotBlank(),
+                    onPastChallengeClick = prop.onPastChallengeClick
                 )
             )
         }
@@ -186,7 +188,8 @@ val previewNewChallengeViewProp =  NewChallengeViewProp(
     equippedAccessorySet = previewAccessorySet,
     onTitleChanged = {},
     onDescriptionChanged = {},
-    onCreateButtonClicked = {}
+    onCreateButtonClicked = {},
+    onPastChallengeClick = {}
 )
 
 @Preview

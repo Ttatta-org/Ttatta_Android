@@ -2,5 +2,6 @@ package com.umc.design.character
 
 enum class BodyPart {
     HEAD,
-    TORSO
+    TORSO,
+    EYE,
 }

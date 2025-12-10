@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -23,6 +24,7 @@ import com.umc.design.theme.ThemeProvider
 import com.umc.footprint.R
 import com.umc.footprint.model.prop.DiaryModificationBarProp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiaryModificationBar(prop: DiaryModificationBarProp) {
     CustomBottomSheet(
@@ -48,7 +50,7 @@ fun DiaryModificationBar(prop: DiaryModificationBarProp) {
                     ) {
                         Text(
                             text = text,
-                            fontWeight = FontWeight.W600,
+                            fontWeight = FontWeight.W700,
                             fontSize = 15.sp,
                             lineHeight = 20.sp,
                             color = LocalColorTheme.current.grey[700],

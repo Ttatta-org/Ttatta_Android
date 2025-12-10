@@ -58,6 +58,7 @@ import com.umc.login.logic.state.isIdValid
 import com.umc.login.logic.state.isNameValid
 import com.umc.login.logic.state.isNicknameValid
 import com.umc.login.logic.state.isPasswordValid
+import com.umc.login.screen.DoneScreen
 import com.umc.login.screen.FormScreen
 import com.umc.login.screen.FormScreenDescriptionMessageProp
 import com.umc.login.screen.JoinDoneScreen
@@ -466,9 +467,13 @@ fun NavGraphBuilder.addJoinNavGraph(
     ) { backStackEntry ->
         val name = backStackEntry.arguments!!.getString("name")!!
 
-        JoinDoneScreen(
-            name = name,
-            onBackToLoginButtonClicked = onNavigatingBackToLogin,
+        DoneScreen(
+            nickname = name,
+            message = "회원가입\n완료!",
+            centerChipContent = null,
+            onGoToFindingPasswordButtonClicked = null,
+            onBackButtonClicked = onNavigatingBackToLogin,
+            onGoToLoginButtonClicked = onNavigatingBackToLogin,
         )
     }
 }

@@ -34,23 +34,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.category.R
+import com.umc.category.model.CategoryManagementBarProp
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.design.R as Res
-
-data class CategoryManagementBarProp(
-    val onDismissed: () -> Unit,
-    val onModifyOptionClicked: () -> Unit,
-    val onDeleteCategoryOptionClicked: () -> Unit,
-    val onDeleteCategoryAndAllIncludedDiariesOptionClicked: () -> Unit,
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryManagementBar(
     prop: CategoryManagementBarProp
 ) {
-    val bottom = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+    val bottom = WindowInsets.systemBars
+        .asPaddingValues()
+        .calculateBottomPadding()
 
     ModalBottomSheet(
         onDismissRequest = prop.onDismissed,

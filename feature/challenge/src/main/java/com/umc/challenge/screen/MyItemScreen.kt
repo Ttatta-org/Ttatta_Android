@@ -75,6 +75,7 @@ data class ClickedItemProp(
 private val bottomSheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
 private val itemItemShape = RoundedCornerShape(16.dp)
 
+@Deprecated("화면 미사용")
 @Composable
 fun MyItemScreen(
     point: Int,
@@ -214,7 +215,7 @@ fun MyItemScreen(
                         )
                 ) {
                     Image(
-                        painter = painterResource(id = clickedItemProp.item.res),
+                        painter = painterResource(id = clickedItemProp.item.shopRes),
                         contentDescription = null,
                         contentScale = ContentScale.Fit,
                         modifier = Modifier
@@ -373,7 +374,7 @@ private fun MyItemItemItem(
                 .fillMaxSize()
         ) {
             Image(
-                painter = painterResource(id = prop.accessory.res),
+                painter = painterResource(id = prop.accessory.shopRes),
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxSize()
@@ -417,7 +418,7 @@ val previewMyItemItemItemPropList = listOf(
         onClicked = {}
     ),
     MyItemItemItemProp(
-        accessory = Accessory.TTUTTU_THREE_COLOR_BALLOONS,
+        accessory = Accessory.TTUTTU_GIANT_RIBBON,
         isEquipped = false,
         onClicked = {}
     )

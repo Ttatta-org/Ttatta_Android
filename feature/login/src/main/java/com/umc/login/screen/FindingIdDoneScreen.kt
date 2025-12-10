@@ -60,6 +60,7 @@ import com.umc.login.model.event.RenderEvent
 private val cardShape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
 private val textBalloonTailSize = DpSize(49.dp, 61.dp)
 
+@Deprecated("사용하지 않는 화면")
 @Composable
 fun FindingIdDoneScreen(
     id: String,

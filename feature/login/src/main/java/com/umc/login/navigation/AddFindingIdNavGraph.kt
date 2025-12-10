@@ -39,6 +39,7 @@ import com.umc.login.component.emailDomains
 import com.umc.login.component.form.CertificationForm
 import com.umc.login.logic.certification.CertificationCodeValidationRequestForFindingId
 import com.umc.login.logic.certification.CertificationMailRequestForFindingId
+import com.umc.login.screen.DoneScreen
 import com.umc.login.screen.FindingIdDoneScreen
 import com.umc.login.screen.FormScreen
 import com.umc.login.screen.FormScreenDescriptionMessageProp
@@ -264,11 +265,13 @@ fun NavGraphBuilder.addFindingIdNavGraph(
         val id = backStackEntry.arguments!!.getString("id")!!
         val name = backStackEntry.arguments!!.getString("name")!!
 
-        FindingIdDoneScreen(
-            id = id,
-            name = name,
-            onBackToLoginButtonClicked = onNavigatingBackToLogin,
-            onGoToFindPasswordButtonClicked = onNavigatingToFindingPassword,
+        DoneScreen(
+            nickname = name,
+            message = "아이디 찾기\n완료!",
+            centerChipContent = id,
+            onGoToFindingPasswordButtonClicked = onNavigatingToFindingPassword,
+            onBackButtonClicked = onNavigatingBackToLogin,
+            onGoToLoginButtonClicked = onNavigatingBackToLogin,
         )
     }
 }
