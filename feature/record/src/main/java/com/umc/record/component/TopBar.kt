@@ -51,6 +51,7 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.svg.SvgDecoder
 import com.umc.design.Secondary100
+import com.umc.design.theme.ThemeProvider
 import com.umc.record.R
 
 data class TopBarProp(
@@ -237,5 +238,7 @@ val previewTopBarProp = TopBarProp(
 @Preview
 @Composable
 fun PreviewTopBar() {
-    TopBar(prop = previewTopBarProp)
+    ThemeProvider {
+        TopBar(prop = previewTopBarProp)
+    }
 }

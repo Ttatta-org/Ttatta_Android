@@ -34,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.CategoryColor
+import com.umc.design.theme.ThemeProvider
 import com.umc.record.R
 
 data class CategoryDropdownProp(
@@ -205,9 +206,11 @@ val previewCategoryDropdownProp = CategoryDropdownProp(
 @Preview
 @Composable
 fun PreviewCategoryDropdown() {
-    CategoryDropdown(
-        prop = previewCategoryDropdownProp,
-        selectedCategoryForDashes = CategoryColor.NAVY,
-        selectedCategoryForBackground = CategoryColor.NAVY,
-    )
+    ThemeProvider {
+        CategoryDropdown(
+            prop = previewCategoryDropdownProp,
+            selectedCategoryForDashes = CategoryColor.NAVY,
+            selectedCategoryForBackground = CategoryColor.NAVY,
+        )
+    }
 }

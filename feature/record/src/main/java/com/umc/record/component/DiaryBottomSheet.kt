@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -42,6 +43,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.ThemeProvider
 import com.umc.record.R
 import com.umc.design.R as Res
 
@@ -80,22 +83,22 @@ fun DiaryBottomSheet(
         ) {
             // 헤더 이미지
             Box(
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(top = 16.dp)
             ) {
                 Image(
                     painter = painterResource(id = Res.drawable.ic_header_deco), // 헤더 데코 이미지 리소스
                     contentDescription = null,
                     modifier = Modifier
-                        .size(32.dp) // 이미지 크기 설정
+                        .width(32.dp) // 이미지 크기 설정
                 )
             }
             // 안내 텍스트
             Text(
                 text = prop.userName + stringResource(id = R.string.record_here),
                 fontSize = 15.sp,
-                color = Color(0xFFFF9681),
+                color = LocalColorTheme.current.primary[500],
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(top = 15.dp)
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -162,5 +165,7 @@ val previewDiaryBottomSheetProp = DiaryBottomSheetProp(
 @Preview
 @Composable
 fun PreviewDiaryBottomSheet() {
-    DiaryBottomSheet(prop = previewDiaryBottomSheetProp)
+    ThemeProvider {
+        DiaryBottomSheet(prop = previewDiaryBottomSheetProp)
+    }
 }

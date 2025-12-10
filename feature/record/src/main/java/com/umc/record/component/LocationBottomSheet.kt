@@ -42,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.Primary300
+import com.umc.design.theme.ThemeProvider
 import com.umc.record.R
 import com.umc.record.util.hasFinalConsonant
 import com.umc.design.R as Res
@@ -145,13 +146,11 @@ fun LocationBottomSheet(
                     }
                     Text(
                         text = "주소 정보가 없어요! 지역의 이름을 직접 입력해주세요",
-                        style = TextStyle(
-                            fontSize = 12.sp,
-                            color = Color(0xFFFF9681),
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            lineBreak = LineBreak.Heading,
-                        ),
+                        fontSize = 12.sp,
+                        color = Color(0xFFFF9681),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        letterSpacing = (-0.4).sp
                     )
                 }
             }
@@ -191,7 +190,9 @@ val previewLocationBottomSheetProp = LocationBottomSheetProp(
 @Preview
 @Composable
 fun PreviewEditLocationBottomSheet() {
-    LocationBottomSheet(
-        prop = previewLocationBottomSheetProp
-    )
+    ThemeProvider {
+        LocationBottomSheet(
+            prop = previewLocationBottomSheetProp
+        )
+    }
 }
