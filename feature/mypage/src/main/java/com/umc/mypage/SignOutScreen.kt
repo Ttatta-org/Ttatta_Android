@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -26,15 +25,12 @@ import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -57,18 +54,19 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.umc.design.component.CustomButton
 import com.umc.design.component.CustomHeader
 import com.umc.design.component.CustomPopup
 import com.umc.design.theme.LocalColorTheme
-import com.umc.mypage.components.Dialog
+import com.umc.design.theme.LocalFontTheme
+import com.umc.design.theme.ThemeProvider
 import kotlinx.coroutines.launch
 
 @Composable
@@ -100,48 +98,53 @@ fun SignOutScreen(
             .fillMaxSize()
     ) {
         Column(
+            verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 22.dp)
                 .verticalScroll(rememberScrollState()),
         ) {
-            Spacer(modifier = Modifier.height(topBarHeight))
-            Spacer(Modifier.height(30.dp))
-            SignOutHeader()
-            Spacer(Modifier.height(30.dp))
-            ReasonSection(
-                selected = selectedReason,
-                onSelect = { selectedReason = it },
-                etcText = etcText,
-                onEtcChange = { etcText = it },
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            SignOutNotice(
-                agreed = agreed,
-                onAgreedChange = { agreed = it },
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            SignOutButtonRow(
-                onCancel = onCancel,
-                showConfirmDialog = {
-                    if (agreed && selectedReason != null) {
-                        showConfirmDialog = true
-                    }
-                },
-            )
-            Spacer(
-                modifier = Modifier.height(
-                    22.dp +
-                            max(
-                                WindowInsets.navigationBars
-                                    .asPaddingValues()
-                                    .calculateBottomPadding(),
-                                WindowInsets.ime
-                                    .asPaddingValues()
-                                    .calculateBottomPadding()
-                            )
-                ),
-            )
+            Column {
+                Spacer(modifier = Modifier.height(topBarHeight))
+                Spacer(Modifier.height(30.dp))
+                SignOutHeader()
+                Spacer(Modifier.height(30.dp))
+                ReasonSection(
+                    selected = selectedReason,
+                    onSelect = { selectedReason = it },
+                    etcText = etcText,
+                    onEtcChange = { etcText = it },
+                )
+            }
+            Spacer(modifier = Modifier.padding(30.dp))
+            Column {
+                SignOutNotice(
+                    agreed = agreed,
+                    onAgreedChange = { agreed = it },
+                )
+                Spacer(modifier = Modifier.height(20.dp))
+                SignOutButtonRow(
+                    onCancel = onCancel,
+                    showConfirmDialog = {
+                        if (agreed && selectedReason != null) {
+                            showConfirmDialog = true
+                        }
+                    },
+                )
+                Spacer(
+                    modifier = Modifier.height(
+                        22.dp +
+                                max(
+                                    WindowInsets.navigationBars
+                                        .asPaddingValues()
+                                        .calculateBottomPadding(),
+                                    WindowInsets.ime
+                                        .asPaddingValues()
+                                        .calculateBottomPadding()
+                                )
+                    ),
+                )
+            }
         }
 
         Box(
@@ -178,20 +181,23 @@ fun SignOutScreen(
 // 상단 제목
 @Composable
 fun SignOutHeader() {
-    Column() {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
         Text(
             text = "그동안 따따를 이용해주셔서 \n감사합니다.",
             fontSize = 22.sp,
             fontWeight = FontWeight.W800,
-            color = Color.Black
+            color = Color.Black,
+            lineHeight = 29.sp,
         )
-        Spacer(modifier = Modifier.height(22.dp))
         Text(
             text = "따따를 이용하며 느끼신 불편함을 공유해주시면\n" +
                     "더욱 발전된 서비스를 제공할 수 있도록 노력하겠습니다.",
             fontSize = 15.sp,
             fontWeight = FontWeight.W400,
-            color = Color(0xFF8E8E8E)
+            color = Color(0xFF8E8E8E),
+            lineHeight = 20.5.sp,
         )
     }
 }
@@ -218,13 +224,21 @@ private fun ReasonSection(
     val keyboard = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
 
-    Column {
-        ReasonRadioRow("다른 유사 서비스를 이용해요.", LeaveReason.OTHER_SERVICE, selected, onSelect)
-        ReasonRadioRow("사용을 잘 안하게 돼요.", LeaveReason.HARD_TO_USE, selected, onSelect)
-        ReasonRadioRow("잦은 오류와 장애가 발생해요.", LeaveReason.FOUND_BUG, selected, onSelect)
-        ReasonRadioRow("새 계정을 만들고 싶어요.", LeaveReason.MAKE_NEW_ACCOUNT, selected, onSelect)
-        // 기타
-        ReasonRadioRow("기타", LeaveReason.ETC, selected, onSelect)
+    Column(
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+        ) {
+            LeaveReason.entries.forEach { reason ->
+                ReasonRadioRow(
+                    text = reason.label,
+                    value = reason,
+                    selected = selected,
+                    onSelect = onSelect,
+                )
+            }
+        }
 
         // ETC 선택되면 자동 포커스 + bringIntoView
         LaunchedEffect(selected) {
@@ -238,48 +252,53 @@ private fun ReasonSection(
         }
 
         if (selected == LeaveReason.ETC) {
-            OutlinedTextField(
+            BasicTextField(
                 value = etcText,
                 onValueChange = {
                     onEtcChange(it)
                     // 입력 중에도 키보드가 가려버리면 계속 따라오도록
                     scope.launch { bivRequester.bringIntoView() }
                 },
+                textStyle = TextStyle(
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.W400,
+                    fontFamily = LocalFontTheme.current.font,
+                    lineHeight = 20.sp,
+                    color = Color.Black,
+                ),
+                maxLines = 10,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
-                    .border(
-                        width = 1.dp,
-                        color = Color(0xFFFFEFE4),
-                        shape = RoundedCornerShape(14.dp)
-                    )
-                    .background(
-                        color = Color(0xFFFEF6F2),
-                        shape = RoundedCornerShape(14.dp)
-                    )
                     .focusRequester(focusRequester)                         // 포커스 요청
                     .onFocusEvent {
                         if (it.isFocused) scope.launch { bivRequester.bringIntoView() }
                     }
                     .bringIntoViewRequester(bivRequester),
-                placeholder = {
+            ) { innerTextField ->
+                Box(
+                    contentAlignment = Alignment.CenterStart,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            width = 1.dp,
+                            color = LocalColorTheme.current.secondary[200],
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                        .background(
+                            color = LocalColorTheme.current.secondary[100],
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                        .padding(horizontal = 20.dp, vertical = 13.dp)
+                ) {
                     Text(
-                        "탈퇴 사유를 적어주세요.",
+                        text = "탈퇴 사유를 적어주세요.",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.W400,
-                        color = Color(0xFFFFD2AC)
+                        color = LocalColorTheme.current.secondary[400],
+                        modifier = Modifier.alpha(if (etcText.isEmpty()) 1f else 0f)
                     )
-                },
-                textStyle = LocalTextStyle.current.copy(fontSize = 13.sp),
-                shape = RoundedCornerShape(14.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    cursorColor = Color(0xFFFF9888)
-                ),
-                singleLine = false,
-                maxLines = 10
-            )
+                    innerTextField.invoke()
+                }
+            }
         }
     }
 }
@@ -294,17 +313,22 @@ private fun ReasonRadioRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onSelect(value) }
-            .padding(bottom = 20.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .clickable(
+                indication = null,
+                interactionSource = null,
+                onClick = { onSelect(value) },
+            ),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        CustomRadioButton(
-            selected = selected == value
-        )
-
+        CustomRadioButton(selected = selected == value)
         Spacer(modifier = Modifier.width(10.dp))
-
-        Text(text = text, fontSize = 15.sp)
+        Text(
+            text = text,
+            color = Color.Black,
+            fontSize = 15.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.W400,
+        )
     }
 }
 
@@ -317,22 +341,21 @@ fun SignOutNotice(
     Column(
         Modifier
             .background(color = Color(0xFFF5F5F5), shape = RoundedCornerShape(16.dp))
-            .border(1.dp, color = Color(0xFFE1E1E1), RoundedCornerShape(16.dp))
-            .padding(start = 21.dp, top = 21.dp, end = 21.dp, bottom = 13.dp)
+            .border(1.dp, color = Color(0xFFE1E1E1), shape = RoundedCornerShape(16.dp))
+            .padding(13.dp),
     ) {
+        Spacer(modifier = Modifier.height(10.dp))
         Text(
             text = "탈퇴 안내 및 유의사항",
             fontSize = 14.sp,
             fontWeight = FontWeight.W800,
             color = Color.Black,
             lineHeight = 10.sp,
+            modifier = Modifier.padding(start = 8.dp),
         )
         Spacer(modifier = Modifier.height(10.dp))
-
-        SignOutNoticeText()
-
+        Box(modifier = Modifier.padding(horizontal = 4.dp)) { SignOutNoticeText() }
         Spacer(modifier = Modifier.height(10.dp))
-
         SignOutConsentCheckbox(checked = agreed, onCheckedChange = onAgreedChange)
 
     }
@@ -340,20 +363,15 @@ fun SignOutNotice(
 
 @Composable
 fun SignOutNoticeText() {
-    Column()
-    {
+    Column {
         SignOutNoticeRow(
             number = 1,
-            text = buildAnnotatedString {
-                append("탈퇴 아이디는 복구와 재사용이 불가능합니다.")
-            }
+            text = AnnotatedString("탈퇴 아이디는 복구와 재사용이 불가능합니다."),
         )
-
         SignOutNoticeRow(
             number = 2,
             text = AnnotatedString("삭제된 데이터는 복구되지 않습니다.")
         )
-
         SignOutNoticeRow(
             number = 3,
             text = AnnotatedString("소셜 로그인 회원의 경우 서비스에서 관리하는 모든 정보가 삭제되며, 같은 소셜 아이디로 재가입시 신규회원으로 가입됩니다.")
@@ -369,17 +387,17 @@ fun SignOutNoticeRow(number: Int, text: AnnotatedString) {
         Text(
             text = "$number.",
             fontSize = 12.sp,
+            lineHeight = 18.sp,
             modifier = Modifier
                 .alignBy(FirstBaseline)
                 .padding(end = 3.dp),
             color = Color(0xFF4B4B4B),
             fontWeight = FontWeight.W400
         )
-
         Text(
             text = text,
             fontSize = 12.sp,
-            lineHeight = 20.sp,
+            lineHeight = 18.sp,
             modifier = Modifier.alignBy(FirstBaseline),
             color = Color(0xFF4B4B4B),
             fontWeight = FontWeight.W400
@@ -413,16 +431,26 @@ fun CustomCheckboxWithText(
             .background(color = Color.White, shape = RoundedCornerShape(12.dp))
             .border(1.dp, Color(0xFFE1E1E1), RoundedCornerShape(12.dp))
             .padding(vertical = 10.dp, horizontal = 11.dp)
-            .clickable { onCheckedChange(!checked) }
+            .clickable(
+                indication = null,
+                interactionSource = null,
+                onClick = { onCheckedChange(!checked) },
+            ),
     ) {
         Box(
             modifier = Modifier
                 .size(17.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .border(1.dp, Color(0xFFE1E1E1), RoundedCornerShape(6.dp))
-                .background(if (checked) Color(0xFFB1B1B1) else Color.White)
-                .clickable { onCheckedChange(!checked) },
-            contentAlignment = Alignment.Center
+                .let {
+                    if (checked) it
+                    else it.border(
+                        width = 1.dp,
+                        color = Color(0xFFE1E1E1),
+                        shape = RoundedCornerShape(6.dp),
+                    )
+                }
+                .background(if (checked) Color(0xFFB1B1B1) else Color.White),
+            contentAlignment = Alignment.Center,
         ) {
             if (checked) {
                 Icon(
@@ -456,37 +484,24 @@ fun SignOutButtonRow(
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         // 취소 버튼 (오렌지 200)
-        Button(
-            onClick = onCancel,
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-            shape = RoundedCornerShape(13.dp),
-            modifier = Modifier.weight(1f),
-            border = BorderStroke(1.dp, Color(0xFFFFD0C8)),
-            contentPadding = PaddingValues(vertical = 13.dp),
-        ) {
-            Text(
-                text = "취소",
-                fontSize = 15.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.W600,
-                color = Color(0xFFFFD0C8)
+        Box(modifier = Modifier.weight(1f)) {
+            CustomButton(
+                "취소",
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = LocalColorTheme.current.primary[200],
+                ),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = LocalColorTheme.current.primary[200],
+                ),
+                onClick = onCancel,
             )
         }
-
-        // 확인 버튼 (오랜지 400)
-        Button(
-            onClick = { showConfirmDialog(true) },
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9888)),
-            shape = RoundedCornerShape(13.dp),
-            modifier = Modifier.weight(1f),
-            contentPadding = PaddingValues(vertical = 13.dp)
-        ) {
-            Text(
+        Box(modifier = Modifier.weight(1f)) {
+            CustomButton(
                 text = "제출",
-                fontSize = 15.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.W600,
-                color = Color.White
+                onClick = { showConfirmDialog(true) },
             )
         }
     }
@@ -495,30 +510,24 @@ fun SignOutButtonRow(
 @Composable
 fun CustomRadioButton(
     selected: Boolean,
-    modifier: Modifier = Modifier,
-    size: Dp = 20.dp, // 라디오 버튼의 전체 크기
-    selectedColor: Color = Color(0xFFFF9888), // 선택 시 색상
-    unselectedColor: Color = Color(0xFFFFB1A5) // 미선택 시 색상
 ) {
-    // 1. 바깥 원 (테두리)
     Box(
-        modifier = modifier
-            .size(size)
+        modifier = Modifier
+            .size(20.dp)
             .clip(CircleShape)
             .border(
-                width = 2.dp,
-                color = if (selected) selectedColor else unselectedColor,
-                shape = CircleShape
+                width = 1.dp,
+                color = LocalColorTheme.current.primary[300],
+                shape = CircleShape,
             ),
         contentAlignment = Alignment.Center
     ) {
-        // 2. 선택됐을 때만 안쪽 원을 그림
         if (selected) {
             Box(
                 modifier = Modifier
-                    .size(size / 2) // 안쪽 원은 바깥 원의 절반 크기
+                    .size(12.dp)
                     .clip(CircleShape)
-                    .background(selectedColor)
+                    .background(LocalColorTheme.current.primary[400]),
             )
         }
     }
@@ -528,9 +537,11 @@ fun CustomRadioButton(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSignOutScreen() {
-    SignOutScreen(
-        name = "김따따",
-        onLeaveUser = {},
-        onCancel = {}
-    )
+    ThemeProvider {
+        SignOutScreen(
+            name = "김따따",
+            onLeaveUser = {},
+            onCancel = {}
+        )
+    }
 }

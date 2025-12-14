@@ -212,8 +212,7 @@ fun SummarySection(
             )
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly, // 아이템들을 균등하게 배치
             verticalAlignment = Alignment.CenterVertically // 아이템들을 수직 중앙 정렬
         ) {
@@ -340,7 +339,11 @@ fun AppSettingsSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onNavigateToNotifications() }
+                        .clickable(
+                            indication = null,
+                            interactionSource = null,
+                            onClick = onNavigateToNotifications,
+                        )
                         .padding(start = 10.dp, bottom = 7.dp),
                     //verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -355,7 +358,11 @@ fun AppSettingsSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onNavigateToLockSetting() }
+                        .clickable(
+                            indication = null,
+                            interactionSource = null,
+                            onClick = onNavigateToLockSetting,
+                        )
                         .padding(start = 10.dp, bottom = 7.dp),
                     //verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -429,9 +436,12 @@ fun AppSettingsSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { setShowLogoutDialog(true) }
+                        .clickable(
+                            indication = null,
+                            interactionSource = null,
+                            onClick = { setShowLogoutDialog(true) },
+                        )
                         .padding(start = 10.dp, bottom = 7.dp),
-                    //verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "로그아웃",
@@ -444,9 +454,12 @@ fun AppSettingsSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onLeaveUser() }
+                        .clickable(
+                            indication = null,
+                            interactionSource = null,
+                            onClick = onLeaveUser,
+                        )
                         .padding(start = 10.dp, bottom = 7.dp),
-                    //verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "탈퇴하기",
