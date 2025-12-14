@@ -1,20 +1,17 @@
 package com.umc.home.navigation
 
-import android.os.Build
 import android.util.Log
-import androidx.activity.compose.BackHandler
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -22,18 +19,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.umc.home.HomeEditRecordScreen
 import com.umc.home.HomeScreen
-import com.umc.home.TopBarState
-import com.umc.home.ScreenMode
 import com.umc.home.HomeViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.filter
+import com.umc.home.ScreenMode
+import com.umc.home.TopBarState
 import java.io.File
-import java.time.LocalDate
 
 @Composable
 fun AppNavHost(
     navController: NavHostController,
-    viewModel: HomeViewModel
+    viewModel: HomeViewModel,
+    onNavigationBarVisibilityChanged: (Boolean) -> Unit,
+    onNavigateToCategoryApp: () -> Unit,
 ) {
     // --- 데이터 구독 ---
     val uiState by viewModel.uiState.collectAsState()
@@ -100,10 +96,17 @@ fun AppNavHost(
             }
     }
 
+    DisposableEffect(navController, onNavigationBarVisibilityChanged) {
+        val callback = NavController.OnDestinationChangedListener { _, destination, _ ->
+            when (destination.route) {
+                "home" -> onNavigationBarVisibilityChanged(true)
+                else -> onNavigationBarVisibilityChanged(false)
+            }
+        }
 
-
-
-
+        navController.addOnDestinationChangedListener(callback)
+        onDispose { navController.removeOnDestinationChangedListener(callback) }
+    }
 
     NavHost(navController = navController, startDestination = "home") {
         // Home 화면
@@ -190,6 +193,9 @@ fun AppNavHost(
                     selectedCategory = selectedCategoryPair[diary.id]?.second ?: initialCategory,
                     onCategorySelected = { selectedDiaryId, newCategory, newCategoryId ->
                         viewModel.updateSelectedCategory(selectedDiaryId, newCategoryId, newCategory)
+                    },
+                    onNewCategoryButtonClicked = {
+                        onNavigateToCategoryApp()
                     }
                 )
             }

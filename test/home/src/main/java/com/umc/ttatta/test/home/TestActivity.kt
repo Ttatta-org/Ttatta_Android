@@ -46,7 +46,11 @@ class TestActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
 
-            HomeApp(viewModel = viewModel)
+            HomeApp(
+                viewModel = viewModel,
+                onNavigateToCategoryApp = {},
+                onNavigationBarVisibilityChanged = {},
+            )
 
             LaunchedEffect(Unit) {
                 prepareTest()

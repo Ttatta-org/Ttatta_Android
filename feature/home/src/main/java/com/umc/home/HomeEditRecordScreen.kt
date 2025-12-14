@@ -93,7 +93,8 @@ fun HomeEditRecordScreen(
     onModifyDiary: (Long, Long, String, File?) -> Unit,
     categoryList: List<CategoryInfo>,  // ✅ 카테고리 리스트 받기
     selectedCategory: String?,  // ✅ 현재 선택된 카테고리 받기
-    onCategorySelected: (Long, String, Long) -> Unit // ✅ 카테고리 선택 콜백
+    onCategorySelected: (Long, String, Long) -> Unit, // ✅ 카테고리 선택 콜백
+    onNewCategoryButtonClicked: () -> Unit,
 ) {
     var todayRecord by remember { mutableStateOf(diary.content) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(Uri.parse(diary.imageUrl)) }
@@ -169,7 +170,8 @@ fun HomeEditRecordScreen(
                             selectedIcon = getCategoryIcon(categoryList, categoryId)
 
                             Log.d("HomeEditRecordScreen", "✅ 카테고리 변경: $categoryName (ID: $categoryId)")
-                        }
+                        },
+                        onNewCategoryButtonClicked = onNewCategoryButtonClicked,
                     )
                     Spacer(Modifier.height(58.dp))
 
@@ -536,7 +538,8 @@ fun CustomCategoryField(
     initialCategoryId: Long?,
     diaryId: Long,  // ✅ 다이어리 ID 추가
     categoryList: List<CategoryInfo>,
-    onCategorySelected: (Long, String, Long) -> Unit
+    onCategorySelected: (Long, String, Long) -> Unit,
+    onNewCategoryButtonClicked: () -> Unit,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
@@ -749,7 +752,7 @@ fun CustomCategoryField(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 12.dp)
-                                .clickable { /* 새 발자국 생성 로직 추가 */ }
+                                .clickable(onClick = onNewCategoryButtonClicked)
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_new_category),

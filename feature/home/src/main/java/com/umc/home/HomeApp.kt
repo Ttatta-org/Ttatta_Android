@@ -1,28 +1,19 @@
 package com.umc.home
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.annotation.OptIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.umc.home.HomeScreen
 import com.umc.home.navigation.AppNavHost
 
 @OptIn(UnstableApi::class)
 @Composable
-fun HomeApp(viewModel: HomeViewModel) {
-
+fun HomeApp(
+    viewModel: HomeViewModel,
+    onNavigationBarVisibilityChanged: (Boolean) -> Unit,
+    onNavigateToCategoryApp: () -> Unit,
+) {
     // HomeViewModel의 상태는 mutableStateOf로 관리되고 있으므로,
     // 예를 들어 diaryList와 searchResults는 viewModel.diaryList, viewModel.searchResults로 읽어옵니다.
     // 검색어는 viewModel.searchQuery.value를 읽거나 쓸 수 있습니다.
@@ -37,6 +28,10 @@ fun HomeApp(viewModel: HomeViewModel) {
 
     val navController = rememberNavController()
 
-    AppNavHost(navController = navController, viewModel = viewModel)
-
+    AppNavHost(
+        navController = navController,
+        viewModel = viewModel,
+        onNavigationBarVisibilityChanged = onNavigationBarVisibilityChanged,
+        onNavigateToCategoryApp = onNavigateToCategoryApp,
+    )
 }
