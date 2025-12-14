@@ -1,6 +1,7 @@
 package com.umc.home.navigation
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -108,9 +109,24 @@ fun AppNavHost(
         onDispose { navController.removeOnDestinationChangedListener(callback) }
     }
 
+    LaunchedEffect(uiState.screenMode) {
+        if (uiState.screenMode == ScreenMode.Home) onNavigationBarVisibilityChanged(true)
+        else onNavigationBarVisibilityChanged(false)
+    }
+
     NavHost(navController = navController, startDestination = "home") {
         // Home 화면
         composable("home") {
+            BackHandler(
+                enabled = uiState.screenMode != ScreenMode.Home,
+                onBack = { viewModel.onClearMode() },
+            )
+
+            BackHandler(
+                enabled = topBarState != TopBarState.Closed,
+                onBack = { topBarState = TopBarState.Closed }
+            )
+
             HomeScreen(
                 navController = navController,
 
@@ -187,13 +203,9 @@ fun AppNavHost(
             if (diary != null) {
                 HomeEditRecordScreen(
                     diary = diary,
-                    navController = navController,
                     onModifyDiary = onModifyDiary,
                     categoryList = categoryList, // AppNavHost에서 가져온 categoryList
                     selectedCategory = selectedCategoryPair[diary.id]?.second ?: initialCategory,
-                    onCategorySelected = { selectedDiaryId, newCategory, newCategoryId ->
-                        viewModel.updateSelectedCategory(selectedDiaryId, newCategoryId, newCategory)
-                    },
                     onNewCategoryButtonClicked = {
                         onNavigateToCategoryApp()
                     }

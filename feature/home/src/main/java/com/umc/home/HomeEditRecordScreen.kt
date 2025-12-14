@@ -1,6 +1,5 @@
 package com.umc.home
 
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,10 +21,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -34,8 +37,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -53,49 +54,37 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.VerticalAlignmentLine
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
-import androidx.navigation.NavHostController
 import coil3.compose.rememberAsyncImagePainter
-import coil3.request.ImageRequest
-import coil3.svg.SvgDecoder
+import com.umc.core.model.CategoryInfo
 import com.umc.core.model.Diary
-import com.umc.home.components.TopBar_Default
+import com.umc.design.CategoryColor
+import com.umc.design.component.CustomButton
+import com.umc.design.component.CustomHeader
 import com.umc.home.utils.formatToKorean
 import com.umc.home.utils.getFileFromUri
 import java.io.File
-import android.content.Context
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imePadding
-import com.umc.core.model.CategoryInfo
-import com.umc.design.CategoryColor
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import com.umc.design.R as Res
 
 @Composable
 fun HomeEditRecordScreen(
     diary: Diary, // ✅ 클릭된 다이어리 정보
-    navController: NavHostController, // NavController 전달받기
     onModifyDiary: (Long, Long, String, File?) -> Unit,
     categoryList: List<CategoryInfo>,  // ✅ 카테고리 리스트 받기
     selectedCategory: String?,  // ✅ 현재 선택된 카테고리 받기
-    onCategorySelected: (Long, String, Long) -> Unit, // ✅ 카테고리 선택 콜백
     onNewCategoryButtonClicked: () -> Unit,
 ) {
+    val density = LocalDensity.current
+
     var todayRecord by remember { mutableStateOf(diary.content) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(Uri.parse(diary.imageUrl)) }
 
@@ -105,7 +94,13 @@ fun HomeEditRecordScreen(
     // ✅ 카테고리 ID를 remember로 관리
     var selectedCategoryId by remember { mutableStateOf(diary.categoryId) }
     var selectedCategoryName by remember { mutableStateOf(selectedCategory ?: "일상") }
-    var selectedIcon by remember { mutableIntStateOf(getCategoryIcon(categoryList, selectedCategoryId)) }
+    var selectedIcon by remember {
+        mutableIntStateOf(
+            getCategoryIcon(
+                categoryList, selectedCategoryId
+            )
+        )
+    }
 
     val context = LocalContext.current
     var topBarHeight by remember { mutableStateOf(0.dp) }
@@ -113,8 +108,7 @@ fun HomeEditRecordScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
-                modifier = Modifier
-                    .weight(1f) // ✅ BottomNavigation을 밀어내지 않도록 LazyColumn에 weight 적용
+                modifier = Modifier.weight(1f) // ✅ BottomNavigation을 밀어내지 않도록 LazyColumn에 weight 적용
             ) {
                 Column(
                     verticalArrangement = Arrangement.Top,
@@ -123,37 +117,31 @@ fun HomeEditRecordScreen(
                         .fillMaxSize()
                         .background(Color(0xFFFEF6F2))
                         .verticalScroll(rememberScrollState()) // 스크롤 가능하게 설정
-                        .padding(top = topBarHeight + 27.dp, bottom = 38.dp) // topbar 높이만큼 padding 추가하여 가려지지 않게 설정
+                        .padding(top = topBarHeight + 27.dp)
                 ) {
                     // Date (변경 불가)
                     CommonText(
-                        label = "날짜",
-                        text = diary.date.formatToKorean(),
-                        onTextChange = { }
+                        label = "날짜", text = diary.date.formatToKorean()
                     )
                     Spacer(Modifier.height(17.dp))
 
                     // Location (변경 불가)
                     CommonText(
-                        label = "나의 발자국",
-                        text = diary.locationName,
-                        onTextChange = { }
+                        label = "나의 발자국", text = diary.locationName
                     )
                     Spacer(Modifier.height(17.dp))
 
                     // Photo (기존 데이터 받아오기)
                     ImageUploadField(
                         selectedImageUri = selectedImageUri,
-                        onImageSelected = { selectedImageUri = it }
-                    )
+                        onImageSelected = { selectedImageUri = it })
                     Spacer(Modifier.height(17.dp))
 
                     // Today's Record (기존 데이터 받아오기)
                     CommonTextField(
                         label = "오늘의 기록",
                         text = todayRecord,
-                        onTextChange = { todayRecord = it },
-                        placeholder = "오늘을 기록해주세요"
+                        onTextChange = { todayRecord = it }
                     )
 
                     Spacer(Modifier.height(17.dp))
@@ -169,49 +157,51 @@ fun HomeEditRecordScreen(
                             selectedCategoryName = categoryName
                             selectedIcon = getCategoryIcon(categoryList, categoryId)
 
-                            Log.d("HomeEditRecordScreen", "✅ 카테고리 변경: $categoryName (ID: $categoryId)")
+                            Log.d(
+                                "HomeEditRecordScreen", "✅ 카테고리 변경: $categoryName (ID: $categoryId)"
+                            )
                         },
                         onNewCategoryButtonClicked = onNewCategoryButtonClicked,
                     )
                     Spacer(Modifier.height(58.dp))
 
                     // Button
-                    Button(
-                        onClick = {
-                            val imageFile = selectedImageUri?.let { uri -> getFileFromUri(context, uri) }
-                            //val imageFile = selectedImageUri?.let { uri -> File(uri.path!!) })
-
-                            // ✅ 이미지 수정 안 할 경우 null 전달
-                            onModifyDiary(diary.id, selectedCategoryId, todayRecord, imageFile)
-                            //navController.popBackStack()
-                        },
-                        shape = RoundedCornerShape(28.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFCAD98)),
-                        modifier = Modifier
-                            .height(45.dp)
-                            .width(200.dp)
-                            .align(Alignment.CenterHorizontally)
-                            .shadow(
-                                elevation = 6.dp,
-                                shape = RoundedCornerShape(28.dp),
-                                spotColor = Color(0xFFDE806E),
-                                ambientColor = Color(0xFFDE806E),
-                                clip = true
-                            ),
+                    Box(
+                        modifier = Modifier.padding(horizontal = 22.dp, vertical = 8.dp),
                     ) {
-                        Text(
+                        CustomButton(
                             text = "기록하기",
-                            fontSize = 17.sp,
-                            color = Color(0xFFFFFFFF),
-                            fontWeight = FontWeight.SemiBold
+                            onClick = {
+                                val imageFile =
+                                    selectedImageUri?.let { uri -> getFileFromUri(context, uri) }
+                                //val imageFile = selectedImageUri?.let { uri -> File(uri.path!!) })
+
+                                // ✅ 이미지 수정 안 할 경우 null 전달
+                                onModifyDiary(diary.id, selectedCategoryId, todayRecord, imageFile)
+                                //navController.popBackStack()
+                            },
                         )
                     }
+                    Spacer(
+                        modifier = Modifier.height(
+                            max(
+                                WindowInsets.navigationBars
+                                    .asPaddingValues()
+                                    .calculateBottomPadding(),
+                                WindowInsets.ime
+                                    .asPaddingValues()
+                                    .calculateBottomPadding()
+                            )
+                        )
+                    )
                 }
-                TopBar_Default(
-                    onHeightChange = { newHeight ->
-                        topBarHeight = newHeight
-                    }
-                )
+                Box(
+                    modifier = Modifier.onSizeChanged {
+                        topBarHeight = with(density) { it.height.toDp() }
+                    },
+                ) {
+                    CustomHeader()
+                }
             }
         }
     }
@@ -221,7 +211,6 @@ fun HomeEditRecordScreen(
 fun CommonText(
     label: String,
     text: String,
-    onTextChange: (String) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -235,8 +224,7 @@ fun CommonText(
             Image(
                 painter = painterResource(id = Res.drawable.ic_header_deco),
                 contentDescription = "Header Decoration",
-                modifier = Modifier
-                    .size(width = 39.18.dp, height = 16.dp) // 이미지 크기 설정
+                modifier = Modifier.size(width = 39.18.dp, height = 16.dp) // 이미지 크기 설정
             )
 
             // 텍스트
@@ -262,14 +250,14 @@ fun CommonText(
                 )
                 .background(
                     color = Color(0xFFFFFFFF),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(20.dp),
                 )
                 .fillMaxWidth() // 각 카드의 너비 설정
                 .height(45.dp), // 카드 높이 설정
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(
                 containerColor = Color.White // 카드 배경 색상 설정
-            )
+            ),
         ) {
             Row(
                 modifier = Modifier.fillMaxSize(), // Card의 크기에 맞춤
@@ -291,7 +279,6 @@ fun CommonTextField(
     label: String,
     text: String,
     onTextChange: (String) -> Unit,
-    placeholder: String = ""
 ) {
     Column(
         modifier = Modifier
@@ -305,8 +292,7 @@ fun CommonTextField(
             Image(
                 painter = painterResource(id = Res.drawable.ic_header_deco),
                 contentDescription = "Header Decoration",
-                modifier = Modifier
-                    .size(width = 39.18.dp, height = 16.dp) // 이미지 크기 설정
+                modifier = Modifier.size(width = 39.18.dp, height = 16.dp) // 이미지 크기 설정
             )
 
             // 텍스트
@@ -332,13 +318,13 @@ fun CommonTextField(
                 )
                 .background(
                     color = Color(0xFFFFFFFF),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(20.dp),
                 )
                 .padding(horizontal = 20.dp)
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .heightIn(27.dp),
-            contentAlignment = Alignment.CenterStart
+            contentAlignment = Alignment.CenterStart,
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(), // Card의 크기에 맞춤
@@ -349,7 +335,7 @@ fun CommonTextField(
                     Text(
                         text = "오늘을 기록해주세요",
                         fontSize = 14.sp,
-                        color = Color(0xFF4B4B4B)
+                        color = Color(0xFF4B4B4B),
                     )
                 }
 
@@ -358,14 +344,14 @@ fun CommonTextField(
                     onValueChange = { onTextChange(it) },
                     textStyle = androidx.compose.ui.text.TextStyle(
                         color = Color(0xFF4B4B4B),
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
                     ),
                     singleLine = false,
                     maxLines = Int.MAX_VALUE, // 여러 줄 입력 가능
                     minLines = 1, // 기본적으로 한 줄
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 15.dp)
+                        .padding(vertical = 15.dp),
                 )
             }
         }
@@ -394,8 +380,7 @@ fun ImageUploadField(
             Image(
                 painter = painterResource(id = Res.drawable.ic_header_deco),
                 contentDescription = "Header Decoration",
-                modifier = Modifier
-                    .size(width = 39.18.dp, height = 16.dp)
+                modifier = Modifier.size(width = 39.18.dp, height = 16.dp)
             )
 
             Text(
@@ -428,7 +413,7 @@ fun ImageUploadField(
                     modifier = Modifier
                         .padding(12.dp)
                         .background(Color.White, shape = RoundedCornerShape(28.dp))
-                ){
+                ) {
                     Image(
                         painter = rememberAsyncImagePainter(selectedImageUri),
                         contentDescription = "Selected Image",
@@ -436,14 +421,17 @@ fun ImageUploadField(
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(RoundedCornerShape(15.dp))
-                            .clickable { imagePickerLauncher.launch("image/*") }
+                            .clickable { imagePickerLauncher.launch("image/*") },
                     )
 
                     // 검정색 반투명 오버레이
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.3f), shape = RoundedCornerShape(15.dp)) // 투명도 30% 적용
+                            .background(
+                                color = Color.Black.copy(alpha = 0.3f),
+                                shape = RoundedCornerShape(15.dp),
+                            ) // 투명도 30% 적용
                     )
 
                     // 가운데 아이콘과 텍스트
@@ -474,14 +462,17 @@ fun ImageUploadField(
                 Box(
                     modifier = Modifier
                         .padding(12.dp)
-                        .background(Color.White, shape = RoundedCornerShape(28.dp))
-                ){
+                        .background(color = Color.White, shape = RoundedCornerShape(28.dp))
+                ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(206.dp)
                             .padding(horizontal = 12.dp)
-                            .background(Color(0xFFFEEAD9), shape = RoundedCornerShape(15.dp))
+                            .background(
+                                color = Color(0xFFFEEAD9),
+                                shape = RoundedCornerShape(15.dp)
+                            )
                             .clickable { imagePickerLauncher.launch("image/*") },
                         contentAlignment = Alignment.Center
                     ) {
@@ -506,7 +497,6 @@ fun ImageUploadField(
                         }
                     }
                 }
-
             }
         }
     }
@@ -546,24 +536,17 @@ fun CustomCategoryField(
     // ✅ 선택된 카테고리 & ID를 remember로 관리 (변경 사항 유지)
     var selectedCategory by remember { mutableStateOf(initialCategory) }
     var selectedCategoryId by remember { mutableStateOf(initialCategoryId) }
-    var selectedIcon by remember { mutableIntStateOf(getCategoryIcon(categoryList, selectedCategoryId)) }
+    var selectedIcon by remember {
+        mutableIntStateOf(getCategoryIcon(categoryList, selectedCategoryId))
+    }
 
     // ✅ 로그 추가 - 초기 값 확인
     Log.d("CustomCategoryField", "초기 카테고리: $initialCategory ($initialCategoryId)")
 
-
-//    val categoryIcons = mapOf(
-//        "일상" to Res.drawable.ic_foot_red,
-//        "여행" to Res.drawable.ic_foot_blue,
-//        "운동" to Res.drawable.ic_foot_navy,
-//        "취미" to Res.drawable.ic_foot_pink,
-//        "남자친구" to Res.drawable.ic_foot_orange
-//    )
-
     val rotationAngle by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
         animationSpec = tween(durationMillis = 300, easing = LinearOutSlowInEasing),
-        label = "Toggle Rotation"
+        label = "Toggle Rotation",
     )
 
     Column(
@@ -688,7 +671,8 @@ fun CustomCategoryField(
                                         .clickable {
                                             selectedCategory = category.name
                                             selectedCategoryId = category.id
-                                            selectedIcon = getCategoryIcon(categoryList, category.id)
+                                            selectedIcon =
+                                                getCategoryIcon(categoryList, category.id)
                                             isExpanded = false
 
                                             // ✅ 변경된 카테고리 정보 전달
@@ -700,10 +684,12 @@ fun CustomCategoryField(
                                                 "다이어리($diaryId)의 카테고리 변경: ${category.name} (ID: ${category.id}, Icon: ${selectedIcon})"
                                             )
                                         }
-                                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                                        .padding(horizontal = 12.dp, vertical = 6.dp),
                                 ) {
                                     Icon(
-                                        painter = painterResource(id = getCategoryIcon(categoryList, category.id)),
+                                        painter = painterResource(
+                                            id = getCategoryIcon(categoryList, category.id)
+                                        ),
                                         contentDescription = category.name,
                                         modifier = Modifier.size(20.dp),
                                         tint = Color.Unspecified
@@ -777,7 +763,9 @@ fun CustomCategoryField(
                 Image(
                     painter = painterResource(R.drawable.img_categorybottomwhite),
                     contentDescription = "Category Dialog Bottom",
-                    modifier = Modifier.align(Alignment.End).width(220.dp)
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .width(220.dp)
                 )
             }
         }
