@@ -39,6 +39,7 @@ import com.umc.core.model.UserStatus
 import com.umc.mypage.components.BottomNavigationBarWithFAB
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.design.component.CustomHeader
+import com.umc.design.component.CustomPopup
 import com.umc.mypage.R
 import com.umc.mypage.components.Dialog
 import com.umc.mypage.components.TopBar_Mypage_Default
@@ -128,9 +129,9 @@ fun MyPageScreen(
     }
 
     if (showLogoutDialog) {
-        Dialog(
-            message = "로그아웃 하시겠습니까?",
-            subMessage = "언제든 따따와 함께하고 싶다면 찾아와 주세요!",
+        CustomPopup(
+            title = "로그아웃 하시겠습니까?",
+            message = "언제든 따따와 함께하고 싶다면 찾아와 주세요!",
             onDismiss = { showLogoutDialog = false },
             onConfirm = {
                 showLogoutDialog = false

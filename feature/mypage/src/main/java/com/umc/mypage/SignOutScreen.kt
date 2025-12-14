@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.design.component.CustomHeader
+import com.umc.design.component.CustomPopup
 import com.umc.design.theme.LocalColorTheme
 import com.umc.mypage.components.Dialog
 import kotlinx.coroutines.launch
@@ -158,9 +159,9 @@ fun SignOutScreen(
     }
     // ✅ 확인 Dialog (제출 → 확인 누르면 탈퇴 실행)
     if (showConfirmDialog) {
-        Dialog(
-            message = "정말 계정을 탈퇴하겠습니까?",
-            subMessage = "계정을 탈퇴하면 기록, 발자국, 포인트 등\n" +
+        CustomPopup(
+            title = "정말 계정을 탈퇴하겠습니까?",
+            message = "계정을 탈퇴하면 기록, 발자국, 포인트 등\n" +
                     "모든 활동 정보가 삭제됩니다.",
             onDismiss = { showConfirmDialog = false },
             onConfirm = {
