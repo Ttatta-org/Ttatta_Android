@@ -42,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.Primary300
+import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.record.R
 import com.umc.record.util.hasFinalConsonant
@@ -49,7 +50,8 @@ import com.umc.design.R as Res
 
 data class LocationBottomSheetProp(
     val location: String?,
-    val onConfirm: (confirmedLocationName: String) -> Unit
+    val onConfirm: (confirmedLocationName: String) -> Unit,
+    val isConfirming: Boolean = false,
 )
 
 private val bottomSheetShape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
@@ -156,21 +158,19 @@ fun LocationBottomSheet(
             }
             // 버튼
             ElevatedButton(
-                onClick = { prop.onConfirm(prop.location ?: locationName) },
+                onClick = {
+                    if (prop.isConfirming) return@ElevatedButton
+                    prop.onConfirm(prop.location ?: locationName)
+                },
+                enabled = !prop.isConfirming && (prop.location != null || locationName.isNotBlank()),
+                shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFFCAD98),
+                    containerColor = LocalColorTheme.current.primary[400],
                     contentColor = Color.White
                 ),
                 modifier = Modifier
                     .fillMaxWidth(0.6f)
-                    .padding(vertical = 8.dp)
-                    .shadow(
-                        elevation = 6.dp,
-                        shape = RoundedCornerShape(28.dp),
-                        spotColor = Color(0xDE806E38),
-                        ambientColor = Color(0xDE806E38),
-                        clip = true
-                    ),
+                    .padding(vertical = 8.dp),
             ) {
                 Text(
                     text = stringResource(id = R.string.set),
@@ -184,7 +184,8 @@ fun LocationBottomSheet(
 
 val previewLocationBottomSheetProp = LocationBottomSheetProp(
     location = null,
-    onConfirm = {}
+    onConfirm = {},
+    isConfirming = false
 )
 
 @Preview

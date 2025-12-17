@@ -4,6 +4,7 @@
     <string name="record_here">님 이곳에 기록을 남겨주세요</string>
     <string name="record_placeholder">일기 내용을 작성해주세요</string>
     <string name="search_placeholder">찾고 싶은 내용을 입력해주세요!</string>
+    <string name="location_placeholder">찾고 싶은 장소를 입력해주세요!</string>
     <string name="modify_location">위치를 수정하시겠어요?</string>
     <string name="set">설정하기</string>
 </resources>

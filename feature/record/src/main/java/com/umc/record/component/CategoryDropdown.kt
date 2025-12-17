@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -90,6 +91,13 @@ private val categoryBgColorMap: Map<CategoryColor, Color> = mapOf(
 // 기존 기본 배경(선택값이 없을 때)
 private val defaultDropdownBgColor = Color(0xFFFEF6F2).copy(alpha = 0.8f)
 
+private val bubbleShape = SpeechBubbleTopTailShape(
+    cornerRadius = 16.dp,
+    tailWidth = 26.dp,
+    tailHeight = 10.dp,
+    tailOffsetFromRight = 22.dp
+)
+
 @Composable
 fun CategoryDropdown(
     prop: CategoryDropdownProp,
@@ -101,13 +109,14 @@ fun CategoryDropdown(
         ?.let { categoryBgColorMap[it] }
         ?: defaultDropdownBgColor
 
+    val tailHeight = 10.dp
+
     Column(
         modifier = Modifier
             .width(categoryDropdownWidth)
-            .background(
-                color = dynamicDropdownBgColor,
-                shape = RoundedCornerShape(16.dp)
-            )
+            .background(dynamicDropdownBgColor, bubbleShape)
+            .clip(bubbleShape)
+            .padding(top = tailHeight)
     ) {
         LazyColumn(
             modifier = Modifier

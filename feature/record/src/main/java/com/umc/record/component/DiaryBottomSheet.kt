@@ -119,7 +119,7 @@ fun DiaryBottomSheet(
                             color = Color.White,
                             shape = RoundedCornerShape(28.dp) // 둥근 모서리 28dp
                         )
-                        .padding(horizontal = 18.dp, vertical = 13.dp) // 내부 여백
+                        .padding(horizontal = 18.dp, vertical = 12.dp) // 내부 여백
                 ) {
                     BasicTextField(
                         value = prop.diaryContent,

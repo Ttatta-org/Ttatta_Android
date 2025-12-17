@@ -59,7 +59,9 @@ import com.umc.record.component.previewCategoryDropdownProp
 import com.umc.record.component.previewDiaryBottomSheetProp
 import java.io.File
 import java.io.FileOutputStream
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun RecordScreen(
@@ -298,7 +300,9 @@ fun PreviewRecordScreen() {
 //            }
 //        },
             image = null,
-            date = LocalDateTime.now(),
+            date = LocalDate
+                .parse("2025.12.26", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+                .atStartOfDay(),
             location = "Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE",
             selectedCategoryColor = CategoryColor.GREEN,
             showLoadingDialog = false,
