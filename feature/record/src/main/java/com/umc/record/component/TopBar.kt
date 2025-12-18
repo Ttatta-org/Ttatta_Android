@@ -51,6 +51,7 @@ import coil3.compose.rememberAsyncImagePainter
 import coil3.request.ImageRequest
 import coil3.svg.SvgDecoder
 import com.umc.design.Secondary100
+import com.umc.design.theme.ThemeProvider
 import com.umc.record.R
 
 data class TopBarProp(
@@ -141,7 +142,7 @@ fun TopBar(
                                 .onFocusChanged { prop.onSearchModeChanged(it.isFocused) }
                         ) { innerTextField ->
                             if (prop.searchWord.isEmpty()) Text(
-                                text = stringResource(id = R.string.search_placeholder), // 힌트 텍스트
+                                text = stringResource(id = R.string.location_placeholder), // 힌트 텍스트
                                 color = Color(0xFF8E8E8E),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium
@@ -237,5 +238,7 @@ val previewTopBarProp = TopBarProp(
 @Preview
 @Composable
 fun PreviewTopBar() {
-    TopBar(prop = previewTopBarProp)
+    ThemeProvider {
+        TopBar(prop = previewTopBarProp)
+    }
 }
