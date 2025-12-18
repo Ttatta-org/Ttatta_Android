@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.core.model.LocationSearchResult
 import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.ThemeProvider
 import com.umc.record.R
 
 @Composable
@@ -40,11 +41,12 @@ fun LocationSearchResults(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 150.dp, start = 103.dp, end = 102.dp, bottom = 15.dp)
+                .padding(top = 150.dp, start = 100.dp, end = 100.dp, bottom = 15.dp)
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_info),
@@ -54,7 +56,8 @@ fun LocationSearchResults(
                 Text(
                     text = "찾으시는 검색어의 결과가 없어요!",
                     fontSize = 12.sp,
-                    color = Color(0xFFFF6060)
+                    color = Color(0xFFFF6060),
+                    fontWeight = FontWeight.Normal
                 )
             }
         }
@@ -193,25 +196,29 @@ fun PreviewLocationSearchResults_List() {
         )
     )
 
-    LocationSearchResults(
-        results = sample,
-        keyword = "고려대",
-        onSelect = { /* no-op for preview */ },
-        showAll = false,
-        scrollEnabled = false
-    )
+    ThemeProvider {
+        LocationSearchResults(
+            results = sample,
+            keyword = "고려대",
+            onSelect = { /* no-op for preview */ },
+            showAll = false,
+            scrollEnabled = false
+        )
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewLocationSearchResults_Empty() {
-    LocationSearchResults(
-        results = emptyList(),
-        keyword = "아메리카또또",
-        onSelect = { /* no-op for preview */ },
-        showAll = false,
-        scrollEnabled = false
-    )
+    ThemeProvider {
+        LocationSearchResults(
+            results = emptyList(),
+            keyword = "아메리카또또",
+            onSelect = { /* no-op for preview */ },
+            showAll = false,
+            scrollEnabled = false
+        )
+    }
 }
 
 @Preview(showBackground = true)
@@ -248,11 +255,13 @@ fun PreviewLocationSearchResults_Goraewa() {
         )
     )
 
-    LocationSearchResults(
-        results = sample,
-        keyword = "고래와",
-        onSelect = { /* no-op for preview */ },
-        showAll = true,
-        scrollEnabled = true
-    )
+    ThemeProvider {
+        LocationSearchResults(
+            results = sample,
+            keyword = "고래와",
+            onSelect = { /* no-op for preview */ },
+            showAll = true,
+            scrollEnabled = true
+        )
+    }
 }

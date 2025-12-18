@@ -41,7 +41,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
-private val pinSize = DpSize(64.dp, 95.12.dp)
+private val pinSize = DpSize(56.dp, 83.dp)
 private val pinOffsetRatio = PointF(0.5f, 2f/ 3f)
 
 class MapHandlerImpl @Inject constructor(

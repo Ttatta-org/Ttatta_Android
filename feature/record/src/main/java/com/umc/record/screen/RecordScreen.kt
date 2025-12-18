@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -47,6 +48,8 @@ import coil3.compose.AsyncImage
 import com.umc.design.CategoryColor
 import com.umc.design.Primary300
 import com.umc.design.component.LoadingModal
+import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.ThemeProvider
 import com.umc.record.R
 import com.umc.record.component.CategoryDropdown
 import com.umc.record.component.CategoryDropdownProp
@@ -56,7 +59,9 @@ import com.umc.record.component.previewCategoryDropdownProp
 import com.umc.record.component.previewDiaryBottomSheetProp
 import java.io.File
 import java.io.FileOutputStream
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun RecordScreen(
@@ -73,7 +78,7 @@ fun RecordScreen(
 ) {
     val density = LocalDensity.current
 
-    // ✅ 카테고리 이름과 배경색 매핑
+    // 카테고리 이름과 배경색 매핑
     val categoryBackgroundColors = mapOf(
         "RED" to Color(0xE5FFC0C0),
         "ORANGE" to Color(0xE5FFE0D3),
@@ -88,7 +93,7 @@ fun RecordScreen(
         "PINK" to Color(0xE5FFC5E0),
         "BLACK" to Color(0xE5ACACAC)
     )
-    // ✅ 기본 배경색
+    // 기본 배경색
     val defaultBackgroundColor = Color(0xE6FDDDC1)
 
     Box(
@@ -133,10 +138,10 @@ fun RecordScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .background(
-                                color = Color(0xE5FEF6F2),
-                                shape = RoundedCornerShape(percent = 50)
+                                color = LocalColorTheme.current.secondary[100].copy(0.9f),
+                                shape = RoundedCornerShape(14.dp)
                             )
-                            .clip(RoundedCornerShape(percent = 50))
+                            .clip(RoundedCornerShape(14.dp))
                             .clickable { onDateChipClicked() }
                             .onGloballyPositioned {
                                 val height = with(density) { it.size.height.toDp() }
@@ -149,11 +154,13 @@ fun RecordScreen(
                             }
                     ) {
                         Text(
-                            text = date.toLocalDate().toString(),
+                            text = date.toLocalDate().run {
+                                "%04d.%02d.%02d".format(year, monthValue, dayOfMonth)
+                            },
                             textAlign = TextAlign.Center,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color.Primary300,
+                            color = LocalColorTheme.current.primary[500],
                             modifier = Modifier.padding(horizontal = 13.dp, vertical = 8.dp)
                         )
                     }
@@ -162,10 +169,10 @@ fun RecordScreen(
                         modifier = Modifier
                             .weight(1f, fill = false)
                             .background(
-                                color = Color(0xFEF6F2E5),
-                                shape = RoundedCornerShape(percent = 50)
+                                color = LocalColorTheme.current.secondary[100].copy(0.9f),
+                                shape = RoundedCornerShape(14.dp)
                             )
-                            .clip(RoundedCornerShape(percent = 50))
+                            .clip(RoundedCornerShape(14.dp))
                             .clickable { onLocationChipClicked() }
                             .onGloballyPositioned {
                                 val height = with(density) { it.size.height.toDp() }
@@ -178,21 +185,21 @@ fun RecordScreen(
                             }
                     ) {
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_location),
                                 contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = Color.Primary300,
+                                modifier = Modifier.width(10.6.dp),
+                                tint = LocalColorTheme.current.primary[500],
                             )
                             Text(
                                 text = location,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Black,
-                                color = Color.Primary300,
+                                color = LocalColorTheme.current.primary[500],
 //                                modifier = Modifier.padding(end = 4.dp),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -210,9 +217,9 @@ fun RecordScreen(
                         modifier = Modifier
                             .background(
                                 color = categoryBackgroundColor,
-                                shape = RoundedCornerShape(percent = 50)
+                                shape = RoundedCornerShape(14.dp)
                             )
-                            .clip(RoundedCornerShape(percent = 50))
+                            .clip(RoundedCornerShape(14.dp))
                             .clickable { onCategoryChipClicked() }
                             .onGloballyPositioned {
                                 val height = with(density) { it.size.height.toDp() }
@@ -240,7 +247,7 @@ fun RecordScreen(
                                         ?: R.drawable.ic_foot_default
                                 ),
                                 contentDescription = null,
-                                contentScale = ContentScale.Fit,
+                                contentScale = ContentScale.Crop,
                                 modifier = Modifier.size(22.dp)
                             )
                         }
@@ -282,23 +289,28 @@ fun RecordScreen(
 fun PreviewRecordScreen() {
     val context = LocalContext.current
 
-    RecordScreen(
-        image = File(
-            context.cacheDir,
-            "image.jpg"
-        ).apply {
-            FileOutputStream(this).use {
-                context.resources.openRawResource(R.raw.img_test).copyTo(it)
-            }
-        },
-        date = LocalDateTime.now(),
-        location = "Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE",
-        selectedCategoryColor = CategoryColor.GREEN,
-        showLoadingDialog = false,
-        categoryDropdownProp = previewCategoryDropdownProp,
-        diaryBottomSheetProp = previewDiaryBottomSheetProp,
-        onDateChipClicked = {},
-        onLocationChipClicked = {},
-        onCategoryChipClicked = {},
-    )
+    ThemeProvider {
+        RecordScreen(
+//        image = File(
+//            context.cacheDir,
+//            "image.jpg"
+//        ).apply {
+//            FileOutputStream(this).use {
+//                context.resources.openRawResource(R.raw.img_test).copyTo(it)
+//            }
+//        },
+            image = null,
+            date = LocalDate
+                .parse("2025.12.26", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
+                .atStartOfDay(),
+            location = "Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE",
+            selectedCategoryColor = CategoryColor.GREEN,
+            showLoadingDialog = false,
+            categoryDropdownProp = previewCategoryDropdownProp,
+            diaryBottomSheetProp = previewDiaryBottomSheetProp,
+            onDateChipClicked = {},
+            onLocationChipClicked = {},
+            onCategoryChipClicked = {},
+        )
+    }
 }

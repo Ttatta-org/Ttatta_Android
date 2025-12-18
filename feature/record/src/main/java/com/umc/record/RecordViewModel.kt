@@ -46,6 +46,7 @@ class RecordViewModel @Inject constructor(
     private val selectedCategoryState = mutableStateOf<CategoryInfo?>(null)
     private val currentPinnedLocationInfoState = mutableStateOf<CurrentPinnedLocationInfo?>(null)
     private val searchResultsState = mutableStateOf<List<LocationSearchResult>>(emptyList())
+    private val selectedLocationInfoState = mutableStateOf<CurrentPinnedLocationInfo?>(null)
 
     val userName get() = userNameState.value
     val categoryInfos get() = categoryInfosState.value
@@ -53,6 +54,7 @@ class RecordViewModel @Inject constructor(
     val selectedCategory get() = selectedCategoryState.value
     val searchResults: List<LocationSearchResult> get() = searchResultsState.value
     private val searchQueryFlow = MutableStateFlow("")
+    val selectedLocationInfo get() = selectedLocationInfoState.value
 
     private val isSavingState = mutableStateOf(false)
     val isSaving get() = isSavingState.value
@@ -310,5 +312,22 @@ class RecordViewModel @Inject constructor(
                 onFailed(e)
             }
         }
+    }
+
+    // 선택된 위치 업데이트/초기화 함수
+    fun updateSelectedLocation(
+        name: String,
+        latitude: Double,
+        longitude: Double,
+    ) {
+        selectedLocationInfoState.value = CurrentPinnedLocationInfo(
+            name = name,
+            latitude = latitude,
+            longitude = longitude,
+        )
+    }
+
+    fun clearSelectedLocation() {
+        selectedLocationInfoState.value = null
     }
 }
