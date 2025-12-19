@@ -18,6 +18,11 @@ class ItemPreferenceImpl(context: Context) : ItemPreference {
     private val gson = Gson()
 
     override var itemList: List<EquippedItem>
-        get() = gson.fromJson(pref.getString(ITEM_LIST_KET, null), type)
-        set(value) { pref.edit { putString(ITEM_LIST_KET, gson.toJson(value)) } }
+        get() = pref
+            .getString(ITEM_LIST_KET, null)
+            ?.runCatching { gson.fromJson<List<EquippedItem>>(this, type) }
+            ?.getOrNull() ?: emptyList()
+        set(value) {
+            pref.edit { putString(ITEM_LIST_KET, gson.toJson(value)) }
+        }
 }
