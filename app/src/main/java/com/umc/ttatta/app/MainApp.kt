@@ -118,7 +118,7 @@ fun MainApp(
 
                 is IntentType.DailySummary, is IntentType.DiaryWritingReminder, null -> {
                     MainScope().launch {
-                        navigator.navigate(route = NavigationRoute.Home) {
+                        navigator.navigate(route = NavigationRoute.Home.Home) {
                             popUpTo(navigator.graph.startDestinationId) {
                                 inclusive = false
                             }
@@ -206,7 +206,7 @@ fun MainApp(
                     if (currentNavigationItem == it) return@onNavigate
 
                     val route = when (it) {
-                        NavigationItem.DIARY -> NavigationRoute.Home
+                        NavigationItem.DIARY -> NavigationRoute.Home.Home
                         NavigationItem.FOOTPRINT -> NavigationRoute.Footprint.Footprint
                         NavigationItem.CHALLENGE -> NavigationRoute.Challenge
                         NavigationItem.MY_PAGE -> NavigationRoute.MyPage
@@ -300,13 +300,37 @@ fun MainApp(
                     )
                 }
 
-                composable<NavigationRoute.Home> {
-                    LaunchedEffect(Unit) { showNavBar = true }
-                    FinishHandler()
+                navigation<NavigationRoute.Home>(
+                    startDestination = NavigationRoute.Home.Home,
+                ) {
+                    composable<NavigationRoute.Home.Home> {
+                        LaunchedEffect(Unit) { showNavBar = true }
+                        FinishHandler()
 
-                    HomeApp(
-                        viewModel = hiltViewModel(),
-                    )
+                        HomeApp(
+                            viewModel = hiltViewModel(),
+                            onNavigationBarVisibilityChanged = {
+                                showNavBar = it
+                            },
+                            onNavigateToCategoryApp = {
+                                MainScope().launch {
+                                    navigator.navigate(NavigationRoute.Home.Category)
+                                }
+                            },
+                        )
+                    }
+
+                    composable<NavigationRoute.Home.Category> {
+                        LaunchedEffect(Unit) { showNavBar = false }
+
+                        CategoryApp(
+                            viewModel = hiltViewModel(),
+                            topBarTitle = "발자국 새로 만들기 및 수정",
+                            onBackButtonClicked = {
+                                MainScope().launch { navigator.popBackStack() }
+                            },
+                        )
+                    }
                 }
 
                 navigation<NavigationRoute.Footprint>(
@@ -467,7 +491,7 @@ fun MainApp(
                                             onBack(NavigationRoute.Challenge)
                                         }
                                     }
-                                } ?: onBack(NavigationRoute.Home)
+                                } ?: onBack(NavigationRoute.Home.Home)
                             },
                         )
                     }

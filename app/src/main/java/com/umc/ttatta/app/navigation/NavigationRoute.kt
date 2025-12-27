@@ -15,7 +15,14 @@ sealed class NavigationRoute {
     data object Login : NavigationRoute()
 
     @Serializable
-    data object Home : NavigationRoute()
+    open class Home : NavigationRoute() {
+
+        @Serializable
+        data object Home : NavigationRoute.Home()
+
+        @Serializable
+        data object Category : NavigationRoute.Home()
+    }
 
     @Serializable
     open class Footprint : NavigationRoute() {

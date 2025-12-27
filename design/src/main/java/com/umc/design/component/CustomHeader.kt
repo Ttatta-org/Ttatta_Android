@@ -44,6 +44,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.R
@@ -61,6 +62,7 @@ fun CustomHeader(
     shadowColor: Color = Color(0xFFD7806F).copy(alpha = 0.35f),
     centerText: String? = null,
     centerTextColor: Color = LocalColorTheme.current.primary[500],
+    centerTextLetterSpacing: TextUnit = TextUnit.Unspecified,
     onBackButtonClicked: (() -> Unit)? = null,
     backButtonColor: Color = LocalColorTheme.current.primary[400],
     headerTrailing: (@Composable RowScope.() -> Unit)? = null,
@@ -83,10 +85,10 @@ fun CustomHeader(
         waveRadius - sqrt(waveRadius.value.pow(2) - (wavePeriod.value / 2).pow(2)).dp + waveWidth
     }
 
-    var solidHeight: Dp? by remember { mutableStateOf(null) }
+    var solidHeight: Dp by remember { mutableStateOf(statusBarHeight + 66.dp - waveWidth) }
 
     Box {
-        solidHeight?.let { solidHeight ->
+        solidHeight.let { solidHeight ->
             Canvas(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -240,6 +242,7 @@ fun CustomHeader(
                             fontWeight = FontWeight.W800,
                             fontSize = 16.sp,
                             lineHeight = 20.sp,
+                            letterSpacing = centerTextLetterSpacing,
                         )
                     }
                 }

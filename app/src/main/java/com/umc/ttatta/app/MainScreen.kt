@@ -79,7 +79,7 @@ fun MainScreen(
             Box(
                 modifier = Modifier.weight(1f)
             ) {
-                content()
+                content.invoke()
             }
             // 내비게이션 바
             if (navigationBarProp != null) Box(

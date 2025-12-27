@@ -312,7 +312,6 @@ fun ShopScreen(
                         ) {
                             items(
                                 count = shopItemItemPropList.size,
-                                key = { index -> shopItemItemPropList[index].accessory },
                             ) { index ->
                                 ShopItemItem(prop = shopItemItemPropList[index])
                             }
@@ -374,8 +373,6 @@ fun ShopScreen(
 private fun ShopItemItem(
     prop: ShopItemItemProp
 ) {
-    val density = LocalDensity.current
-
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {

@@ -20,8 +20,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.umc.design.component.CustomPopup
 import com.umc.mypage.R
 
+@Deprecated("공용 요소 사용")
 @Composable
 fun Dialog(
     message: String,
