@@ -5,11 +5,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,12 +22,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.umc.challenge.R
 import com.umc.challenge.component.ChallengeCompletionDialog
 import com.umc.challenge.component.ChallengeCompletionDialogProp
@@ -32,13 +35,9 @@ import com.umc.challenge.component.PointChip
 import com.umc.challenge.component.PointGrantedCardDialog
 import com.umc.challenge.component.PointGrantedCardDialogProp
 import com.umc.challenge.component.previewChallengeTopBarProp
-import com.umc.challenge.view.ChallengeOnboardingView
-import com.umc.challenge.view.ChallengeState
-import com.umc.challenge.view.NewChallengeView
-import com.umc.challenge.view.previewChallengeOnboardingViewProp
-import com.umc.challenge.view.previewNewChallengeViewProp
-import com.umc.design.Secondary100
 import com.umc.design.component.CustomHeader
+import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.ThemeProvider
 
 data class ChallengeScreenTopBarProp(
     val point: Int,
@@ -50,15 +49,39 @@ fun ChallengeScreen(
     topBarProp: ChallengeScreenTopBarProp,
     challengeCompletionDialogProp: ChallengeCompletionDialogProp?,
     pointGrantedCardDialogProp: PointGrantedCardDialogProp?,
-    view: @Composable () -> Unit,
+    view: @Composable (headerHeight: Dp) -> Unit,
 ) {
+    val density = LocalDensity.current
+
+    var headerHeight by remember { mutableStateOf(66.dp) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color.Secondary100)
+            .background(color = LocalColorTheme.current.secondary[100])
     ) {
-        // 내용
-        Column {
+        // 뒷배경
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    top = WindowInsets.statusBars
+                        .asPaddingValues()
+                        .calculateTopPadding() + 48.dp
+                ),
+        ) {
+            Image(
+                painter = painterResource(R.drawable.img_challenge_background),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+        view.invoke(headerHeight)
+        Box(
+            modifier = Modifier
+                .onSizeChanged { headerHeight = with(density) { it.height.toDp() } }
+        ) {
             CustomHeader(
                 backgroundColor = Color.White.copy(alpha = 0.5f),
                 headerTrailing = {
@@ -85,7 +108,6 @@ fun ChallengeScreen(
                     }
                 }
             )
-            view()
         }
     }
 
@@ -101,43 +123,13 @@ val previewChallengeScreenTopBarProp = ChallengeScreenTopBarProp(
 @Preview(showBackground = true)
 @Composable
 fun PreviewChallengeScreen() {
-    val navigator = rememberNavController()
-    var showChallengeCompletionDialog by remember { mutableStateOf(false) }
-
-    ChallengeScreen(
-        topBarProp = previewChallengeScreenTopBarProp,
-        challengeCompletionDialogProp = if (showChallengeCompletionDialog) ChallengeCompletionDialogProp(
-            onDismissed = { showChallengeCompletionDialog = false },
-            onConfirmed = { showChallengeCompletionDialog = false },
-        ) else null,
-        pointGrantedCardDialogProp = null,
-    ) {
-        NavHost(
-            navController = navigator,
-            startDestination = "onboarding"
+    ThemeProvider {
+        ChallengeScreen(
+            topBarProp = previewChallengeScreenTopBarProp,
+            challengeCompletionDialogProp = null,
+            pointGrantedCardDialogProp = null,
         ) {
-            composable("onboarding") {
-                ChallengeOnboardingView(
-                    prop = previewChallengeOnboardingViewProp.let {
-                        it.copy(
-                            onNewChallengeButtonClicked = { navigator.navigate("new_challenge") },
-                            challengeItemPropList = it.challengeItemPropList.map { prop ->
-                                if (prop.state == ChallengeState.IN_PROGRESS) {
-                                    prop.copy(onClicked = { showChallengeCompletionDialog = true })
-                                } else prop
-                            }
-                        )
-                    }
-                )
-            }
-
-            composable("new_challenge") {
-                NewChallengeView(
-                    prop = previewNewChallengeViewProp.copy(
-                        onCreateButtonClicked = { navigator.navigate("onboarding") }
-                    )
-                )
-            }
+            Text(text = "test")
         }
     }
 }

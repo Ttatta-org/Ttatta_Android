@@ -16,9 +16,6 @@ import com.umc.challenge.component.PointGrantedCardDialogProp
 import com.umc.challenge.component.PurchaseDialogProp
 import com.umc.challenge.screen.ChallengeScreen
 import com.umc.challenge.screen.ChallengeScreenTopBarProp
-import com.umc.challenge.screen.ClickedItemProp
-import com.umc.challenge.screen.MyItemItemItemProp
-import com.umc.challenge.screen.MyItemScreen
 import com.umc.challenge.screen.PastChallengeScreen
 import com.umc.challenge.screen.PastChallengeScreenTopBarProp
 import com.umc.challenge.screen.ShopItemItemProp
@@ -47,12 +44,6 @@ data class ClickedShopItemInfo(
     val itemName: String,
 )
 
-data class ClickedOwnedItemInfo(
-    val id: Long,
-    val item: Accessory,
-    val isEquipped: Boolean,
-)
-
 data class PointGrantEvent(
     val point: Int,
     val onDismiss: () -> Unit,
@@ -74,7 +65,7 @@ fun ChallengeApp(
                 Accessory.entries.firstOrNull { accessory ->
                     accessory.code == it.item.code
                 }
-            }
+            },
         )
     }
 
@@ -88,8 +79,7 @@ fun ChallengeApp(
     }
 
     NavHost(
-        navController = navController,
-        startDestination = "challenge"
+        navController = navController, startDestination = "challenge"
     ) {
         composable("challenge") {
             var isLoading by remember { mutableStateOf(true) }
@@ -110,11 +100,13 @@ fun ChallengeApp(
                 ),
                 challengeCompletionDialogProp = clickedUncompletedChallengeInfo?.let {
                     ChallengeCompletionDialogProp(
-                        onDismissed = { clickedUncompletedChallengeInfo = null },
+                        onDismissed = {
+                            clickedUncompletedChallengeInfo = null
+                        },
                         onConfirmed = {
                             onChallengeCompletionRequired(it.id)
                             clickedUncompletedChallengeInfo = null
-                        }
+                        },
                     )
                 },
                 pointGrantedCardDialogProp = pointGrantEvent?.let { event ->
@@ -124,47 +116,45 @@ fun ChallengeApp(
                         onGoToShopButtonClicked = {
                             event.onDismiss.invoke()
                             navController.navigate("shop")
-                        }
+                        },
                     )
                 },
-            ) {
+            ) { headerHeight ->
                 val challengeScreenNavController = rememberNavController()
 
                 LaunchedEffect(key1 = Unit) {
                     challengeScreenNavController.addOnDestinationChangedListener { _, destination, _ ->
                         when (destination.route) {
                             "onboarding" -> onNavigationBarVisibilityChanged(true)
-                            else -> onNavigationBarVisibilityChanged(false)
+                            "new_challenge" -> onNavigationBarVisibilityChanged(false)
+                            else -> throw Exception("Unknown destination")
                         }
                     }
                 }
 
                 NavHost(
-                    navController = challengeScreenNavController,
-                    startDestination = "onboarding"
+                    navController = challengeScreenNavController, startDestination = "onboarding"
                 ) {
                     composable("onboarding") {
                         ChallengeOnboardingView(
                             prop = ChallengeOnboardingViewProp(
+                                topPadding = headerHeight,
                                 equippedAccessorySet = accessorySet,
                                 isNewChallengeButtonEnabled = !isLoading && viewModel.todayChallenges.size < 3,
                                 challengeItemPropList = viewModel.todayChallenges.map {
                                     ChallengeItemProp(
                                         title = it.title,
                                         content = it.content,
-                                        state = if (it.isCompleted)
-                                            ChallengeState.COMPLETED
-                                        else
-                                            ChallengeState.IN_PROGRESS,
+                                        state = if (it.isCompleted) ChallengeState.COMPLETED else ChallengeState.IN_PROGRESS,
                                         onClicked = {
                                             if (!it.isCompleted) clickedUncompletedChallengeInfo =
                                                 ClickedUncompletedChallengeInfo(id = it.id)
-                                        }
+                                        },
                                     )
                                 },
                                 onNewChallengeButtonClicked = {
                                     challengeScreenNavController.navigate("new_challenge")
-                                }
+                                },
                             )
                         )
                     }
@@ -175,10 +165,12 @@ fun ChallengeApp(
 
                         NewChallengeView(
                             prop = NewChallengeViewProp(
+                                topPadding = headerHeight,
                                 maxTitleLength = 20,
                                 title = title,
                                 description = description,
                                 equippedAccessorySet = accessorySet,
+                                isButtonEnabled = title.isNotBlank() && description.isNotBlank(),
                                 onTitleChanged = { if (it.length <= 20) title = it },
                                 onDescriptionChanged = { description = it },
                                 onCreateButtonClicked = {
@@ -188,12 +180,11 @@ fun ChallengeApp(
                                         onSucceed = {
                                             MainScope().launch { challengeScreenNavController.popBackStack() }
                                         },
-                                        onFailed = { /* 에러 처리 */ }
-                                    )
+                                        onFailed = { /* 에러 처리 */ })
                                 },
                                 onPastChallengeClick = {
                                     navController.navigate("past_challenge")
-                                }
+                                },
                             )
                         )
                     }
@@ -243,8 +234,7 @@ fun ChallengeApp(
                             } else {
                                 showLackOfPointsPopup = true
                             }
-                        }
-                    )
+                        })
                 }
 
                 (ownedShopItems + unownedShopItems).sortedBy {
@@ -280,78 +270,22 @@ fun ChallengeApp(
 
                                 showLoading = false
                             }
-                        }
+                        },
                     )
                 },
                 onBodyPartSelected = { selectedBodyPart = it },
                 onBackButtonClicked = {
                     MainScope().launch { navController.popBackStack() }
-                }
+                },
             )
 
             if (showLackOfPointsPopup) CustomPopup(
                 title = "포인트가 부족해요!",
                 message = "챌린지를 완료하면 포인트를 모을 수 있어요.",
                 cancelText = "네, 알겠어요.",
-                onDismiss = { showLackOfPointsPopup = false }
-            )
+                onDismiss = { showLackOfPointsPopup = false })
 
             if (showLoading) LoadingModal()
-        }
-
-        composable("my_item") {
-            val ownedItems by viewModel.ownedItemsState.collectAsState()
-
-            var clickedOwnedItemInfo by remember { mutableStateOf<ClickedOwnedItemInfo?>(null) }
-
-            LaunchedEffect(key1 = Unit) {
-                viewModel.getEquippedItems()
-                viewModel.getOwnedItems()
-            }
-
-            MyItemScreen(
-                point = viewModel.point,
-                equippedAccessorySet = accessorySet,
-                myItemItemItemPropList = ownedItems.map {
-                    MyItemItemItemProp(
-                        accessory = it.item,
-                        isEquipped = it.isEquipped,
-                        onClicked = {
-                            clickedOwnedItemInfo = ClickedOwnedItemInfo(
-                                id = it.id,
-                                item = it.item,
-                                isEquipped = it.isEquipped
-                            )
-                        }
-                    )
-                },
-                clickedItemProp = clickedOwnedItemInfo?.let { info ->
-                    ClickedItemProp(
-                        item = info.item,
-                        isEquipped = info.isEquipped,
-                        onBackPressed = { clickedOwnedItemInfo = null },
-                        onConfirmed = {
-                            viewModel.runWithScope {
-                                runCatching {
-                                    equipItem(
-                                        id = info.id,
-                                        equip = !info.isEquipped,
-                                    )
-                                }
-
-                                clickedOwnedItemInfo = null
-                            }
-                        }
-                    )
-                },
-                onShopIconClicked = {
-                    navController.navigate("shop") {
-                        popUpTo(id = navController.graph.startDestinationId) {
-                            inclusive = false
-                        }
-                    }
-                }
-            )
         }
 
         composable("past_challenge") {
@@ -366,7 +300,7 @@ fun ChallengeApp(
                     onBackIconClicked = {
                         // 뒤로가기 → challenge 화면으로 복귀
                         navController.popBackStack()
-                    }
+                    },
                 ),
                 pastChallenges = viewModel.pastChallenges,
                 onRetryChallenge = { challenge ->
@@ -383,9 +317,9 @@ fun ChallengeApp(
                                 launchSingleTop = true    // 혹시나 중복 생기는 것 방지용
                             }
                         },
-                        onFailed = {}
+                        onFailed = {},
                     )
-                }
+                },
             )
         }
     }
