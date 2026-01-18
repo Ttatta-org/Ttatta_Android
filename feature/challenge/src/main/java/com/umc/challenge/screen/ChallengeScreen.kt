@@ -29,12 +29,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.umc.challenge.R
-import com.umc.challenge.component.ChallengeCompletionDialog
-import com.umc.challenge.component.ChallengeCompletionDialogProp
+import com.umc.challenge.modal.ChallengeCompletionDialog
+import com.umc.challenge.modal.ChallengeCompletionDialogProp
 import com.umc.challenge.component.PointChip
-import com.umc.challenge.component.PointGrantedCardDialog
-import com.umc.challenge.component.PointGrantedCardDialogProp
-import com.umc.challenge.component.previewChallengeTopBarProp
+import com.umc.challenge.modal.PointGrantedCardDialog
+import com.umc.challenge.modal.PointGrantedCardDialogProp
 import com.umc.design.component.CustomHeader
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
@@ -116,8 +115,8 @@ fun ChallengeScreen(
 }
 
 val previewChallengeScreenTopBarProp = ChallengeScreenTopBarProp(
-    point = previewChallengeTopBarProp.point,
-    onShopIconClicked = previewChallengeTopBarProp.onShopIconClicked,
+    point = 100,
+    onShopIconClicked = {},
 )
 
 @Preview(showBackground = true)

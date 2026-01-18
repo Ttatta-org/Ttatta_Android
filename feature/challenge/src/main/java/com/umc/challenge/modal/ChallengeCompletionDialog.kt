@@ -1,4 +1,4 @@
-package com.umc.challenge.component
+package com.umc.challenge.modal
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
