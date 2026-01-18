@@ -81,15 +81,16 @@ fun ChallengeApp(
         navController = navController, startDestination = "challenge"
     ) {
         composable("challenge") {
-            var isLoading by remember { mutableStateOf(true) }
-            var clickedUncompletedChallengeInfo by remember {
-                mutableStateOf<ClickedUncompletedChallengeInfo?>(null)
+            var clickedUncompletedChallengeInfo: ClickedUncompletedChallengeInfo? by remember {
+                mutableStateOf(null)
             }
 
             LaunchedEffect(key1 = Unit) {
-                viewModel.getTodayChallenges(onSucceed = { isLoading = false })
-                viewModel.getEquippedItems()
-                viewModel.getPoint()
+                viewModel.runWithScope {
+                    runCatching { getTodayChallenges() }
+                    runCatching { getEquippedItems() }
+                    runCatching { getPoint() }
+                }
             }
 
             ChallengeScreen(
@@ -135,12 +136,16 @@ fun ChallengeApp(
                     navController = challengeScreenNavController, startDestination = "onboarding"
                 ) {
                     composable("onboarding") {
+                        val isUserCanMakeNewChallenge =
+                            viewModel.todayChallenges.let { it != null && it.size < 3 }
+
                         ChallengeOnboardingView(
                             prop = ChallengeOnboardingViewProp(
                                 topPadding = headerHeight,
+                                showChatBubble = isUserCanMakeNewChallenge,
                                 equippedAccessorySet = accessorySet,
-                                isNewChallengeButtonEnabled = !isLoading && viewModel.todayChallenges.size < 3,
-                                challengeItemPropList = viewModel.todayChallenges.map {
+                                isNewChallengeButtonEnabled = isUserCanMakeNewChallenge,
+                                challengeItemPropList = viewModel.todayChallenges?.map {
                                     ChallengeItemProp(
                                         title = it.title,
                                         content = it.content,
@@ -150,7 +155,7 @@ fun ChallengeApp(
                                                 ClickedUncompletedChallengeInfo(id = it.id)
                                         },
                                     )
-                                },
+                                } ?: emptyList(),
                                 onNewChallengeButtonClicked = {
                                     challengeScreenNavController.navigate("new_challenge")
                                 },
@@ -173,16 +178,21 @@ fun ChallengeApp(
                                 onTitleChanged = { if (it.length <= 20) title = it },
                                 onDescriptionChanged = { description = it },
                                 onCreateButtonClicked = {
-                                    viewModel.createChallenge(
-                                        title = title,
-                                        description = description,
-                                        onSucceed = {
+                                    viewModel.runWithScope {
+                                        runCatching {
+                                            createChallenge(
+                                                title = title,
+                                                description = description,
+                                            )
+                                        }.onSuccess {
                                             MainScope().launch { challengeScreenNavController.popBackStack() }
-                                        },
-                                        onFailed = { /* 에러 처리 */ })
+                                        }
+                                    }
                                 },
                                 onPastChallengeClick = {
-                                    navController.navigate("past_challenge")
+                                    MainScope().launch {
+                                        navController.navigate("past_challenge")
+                                    }
                                 },
                             )
                         )
@@ -296,21 +306,21 @@ fun ChallengeApp(
             PastChallengeScreen(
                 pastChallenges = viewModel.pastChallenges,
                 onRetryChallenge = { challenge ->
-                    viewModel.createChallenge(
-                        title = challenge.title,
-                        description = challenge.content,
-                        onSucceed = {
-                            // 오늘 챌린지 목록은 createChallenge의 finally에서 getTodayChallenges()로 다시 불러옴
-                            // 지난 챌린지 화면 닫고 challenge 화면으로 복귀
-                            navController.navigate("challenge") {
-                                popUpTo("challenge") {
-                                    inclusive = true   // 기존 challenge까지 같이 제거
+                    viewModel.runWithScope {
+                        runCatching {
+                            createChallenge(
+                                title = challenge.title,
+                                description = challenge.content,
+                            )
+                        }.onSuccess {
+                            MainScope().launch {
+                                navController.navigate("challenge") {
+                                    popUpTo("challenge") { inclusive = true }
+                                    launchSingleTop = true
                                 }
-                                launchSingleTop = true    // 혹시나 중복 생기는 것 방지용
                             }
-                        },
-                        onFailed = {},
-                    )
+                        }
+                    }
                 },
                 onBackButtonClicked = {
                     MainScope().launch { navController.popBackStack() }
