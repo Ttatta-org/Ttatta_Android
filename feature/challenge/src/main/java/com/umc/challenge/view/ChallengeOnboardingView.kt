@@ -1,10 +1,16 @@
 package com.umc.challenge.view
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.EaseInOutCubic
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -17,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -38,6 +45,7 @@ import com.umc.design.theme.ThemeProvider
 
 data class ChallengeOnboardingViewProp(
     val topPadding: Dp,
+    val showChatBubble: Boolean,
     val equippedAccessorySet: AccessorySet,
     val isNewChallengeButtonEnabled: Boolean,
     val challengeItemPropList: List<ChallengeItemProp>,
@@ -67,10 +75,31 @@ fun ChallengeOnboardingView(
             color = Color(0xFFDE806E).copy(alpha = 0.1f),
             offset = DpOffset(0.dp, 2.dp)
         ) {
+            var isBubbleSizeAnimationEnded by remember { mutableStateOf(prop.showChatBubble) }
+
+            val bubbleAlpha by animateFloatAsState(
+                animationSpec = tween(delayMillis = 100, easing = EaseOutCubic),
+                targetValue = if (isBubbleSizeAnimationEnded) 1f else 0f,
+            )
+
             Box(
-                modifier = Modifier.widthIn(max = 307.dp)
+                contentAlignment = Alignment.TopCenter,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .animateContentSize(
+                        animationSpec = tween(durationMillis = 200, easing = EaseInOutCubic),
+                        finishedListener = { _, targetSize ->
+                            isBubbleSizeAnimationEnded = targetSize.height > 1
+                        }
+                    )
             ) {
-                ChatBubble(text = "오늘의 챌린지를 만들고\n포인트를 얻어보세요!")
+                if (prop.showChatBubble) Box(
+                    modifier = Modifier
+                        .widthIn(max = 307.dp)
+                        .alpha(bubbleAlpha)
+                ) {
+                    ChatBubble(text = "오늘의 챌린지를 만들고\n포인트를 얻어보세요!")
+                }
             }
         }
         // 캐릭터
@@ -111,6 +140,7 @@ val previewAccessorySet = AccessorySet.create(
 
 val previewChallengeOnboardingViewProp = ChallengeOnboardingViewProp(
     topPadding = 50.dp,
+    showChatBubble = false,
     equippedAccessorySet = previewAccessorySet,
     isNewChallengeButtonEnabled = true,
     challengeItemPropList = previewChallengeItemPropList,
