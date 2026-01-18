@@ -1,25 +1,15 @@
 package com.umc.challenge.view
 
-import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,27 +17,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
-import androidx.compose.ui.unit.sp
-import com.umc.challenge.R
+import com.umc.challenge.component.ChallengeItem
+import com.umc.challenge.component.ChallengeItemProp
 import com.umc.challenge.component.ChatBubble
 import com.umc.challenge.component.ShadowBoxScope
+import com.umc.challenge.component.previewChallengeItemPropList
 import com.umc.design.character.Accessory
 import com.umc.design.character.AccessorySet
 import com.umc.design.character.CharacterView
 import com.umc.design.component.CustomButton
-import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 
 data class ChallengeOnboardingViewProp(
@@ -56,30 +42,6 @@ data class ChallengeOnboardingViewProp(
     val isNewChallengeButtonEnabled: Boolean,
     val challengeItemPropList: List<ChallengeItemProp>,
     val onNewChallengeButtonClicked: () -> Unit,
-)
-
-enum class ChallengeState(
-    val borderColor: Color,
-    val backgroundColor: Color,
-    @field:DrawableRes val icon: Int
-) {
-    IN_PROGRESS(
-        borderColor = Color(0xFFFFD0C8),
-        backgroundColor = Color.White,
-        icon = R.drawable.ic_no_stamp
-    ),
-    COMPLETED(
-        borderColor = Color(0xFFFFD0C8),
-        backgroundColor = Color(0xFFFFE6E1),
-        icon = R.drawable.ic_complete_stamp
-    ),
-}
-
-data class ChallengeItemProp(
-    val title: String,
-    val content: String,
-    val state: ChallengeState,
-    val onClicked: () -> Unit,
 )
 
 @Composable
@@ -140,95 +102,11 @@ fun ChallengeOnboardingView(
     }
 }
 
-@Composable
-private fun ChallengeItem(
-    prop: ChallengeItemProp,
-) {
-    val titleColor = if (prop.state == ChallengeState.COMPLETED)
-        LocalColorTheme.current.primary[400] else LocalColorTheme.current.grey[700]
-    val contentColor = if (prop.state == ChallengeState.COMPLETED)
-        LocalColorTheme.current.primary[400] else LocalColorTheme.current.grey[600]
-
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(18.dp))
-            .background(
-                color = prop.state.backgroundColor,
-                shape = RoundedCornerShape(18.dp)
-            )
-            .border(
-                width = 1.dp,
-                color = prop.state.borderColor,
-                shape = RoundedCornerShape(18.dp)
-            )
-            .clickable { prop.onClicked() }
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 13.dp)
-        ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 8.dp)
-            ) {
-                Text(
-                    text = prop.title,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.W700,
-                    color = titleColor,
-                    maxLines = 1,
-                    lineHeight = 18.sp,
-                )
-                Text(
-                    text = prop.content,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.W400,
-                    color = contentColor,
-                    lineHeight = 13.sp,
-                )
-            }
-
-            Image(
-                painter = painterResource(id = prop.state.icon),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.size(38.dp)
-            )
-        }
-    }
-}
-
 val previewAccessorySet = AccessorySet.create(
     Accessory.TTOTTO_COZY_MUFFLER,
     Accessory.TTOTTO_CAP,
     Accessory.TTUTTU_LIFESAVER_COFFEE,
     Accessory.TTUTTU_HAT
-)
-
-val previewChallengeItemPropList = listOf(
-    ChallengeItemProp(
-        title = "1시간 공부하기",
-        content = "CS 요약 정리 + 백준 2문제",
-        state = ChallengeState.IN_PROGRESS,
-        onClicked = {}
-    ),
-    ChallengeItemProp(
-        title = "물 하루 3잔 마시기",
-        content = "점심 전 1잔, 오후에 2잔",
-        state = ChallengeState.COMPLETED,
-        onClicked = {}
-    ),
-    ChallengeItemProp(
-        title = "도서관 가기",
-        content = "3층 열람실 2시간",
-        state = ChallengeState.COMPLETED,
-        onClicked = {}
-    ),
 )
 
 val previewChallengeOnboardingViewProp = ChallengeOnboardingViewProp(

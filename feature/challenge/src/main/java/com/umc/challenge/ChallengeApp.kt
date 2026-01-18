@@ -11,19 +11,18 @@ import androidx.compose.ui.util.fastAny
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.umc.challenge.component.ChallengeCompletionDialogProp
-import com.umc.challenge.component.PointGrantedCardDialogProp
-import com.umc.challenge.component.PurchaseDialogProp
+import com.umc.challenge.modal.ChallengeCompletionDialogProp
+import com.umc.challenge.modal.PointGrantedCardDialogProp
+import com.umc.challenge.modal.PurchaseDialogProp
 import com.umc.challenge.screen.ChallengeScreen
 import com.umc.challenge.screen.ChallengeScreenTopBarProp
 import com.umc.challenge.screen.PastChallengeScreen
-import com.umc.challenge.screen.PastChallengeScreenTopBarProp
 import com.umc.challenge.screen.ShopItemItemProp
 import com.umc.challenge.screen.ShopScreen
-import com.umc.challenge.view.ChallengeItemProp
+import com.umc.challenge.component.ChallengeItemProp
 import com.umc.challenge.view.ChallengeOnboardingView
 import com.umc.challenge.view.ChallengeOnboardingViewProp
-import com.umc.challenge.view.ChallengeState
+import com.umc.challenge.component.ChallengeState
 import com.umc.challenge.view.NewChallengeView
 import com.umc.challenge.view.NewChallengeViewProp
 import com.umc.core.util.runWithScope
@@ -295,13 +294,6 @@ fun ChallengeApp(
             }
 
             PastChallengeScreen(
-                topBarProp = PastChallengeScreenTopBarProp(
-                    onHeightChanged = { /* 필요 없으면 무시해도 됨 */ },
-                    onBackIconClicked = {
-                        // 뒤로가기 → challenge 화면으로 복귀
-                        navController.popBackStack()
-                    },
-                ),
                 pastChallenges = viewModel.pastChallenges,
                 onRetryChallenge = { challenge ->
                     viewModel.createChallenge(
@@ -319,6 +311,9 @@ fun ChallengeApp(
                         },
                         onFailed = {},
                     )
+                },
+                onBackButtonClicked = {
+                    MainScope().launch { navController.popBackStack() }
                 },
             )
         }

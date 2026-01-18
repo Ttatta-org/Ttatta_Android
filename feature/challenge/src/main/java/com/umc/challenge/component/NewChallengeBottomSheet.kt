@@ -211,7 +211,11 @@ fun NewChallengeBottomSheet(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { prop.onPastChallengeClick() },
+                    .clickable(
+                        indication = null,
+                        interactionSource = null,
+                        onClick = { prop.onPastChallengeClick() },
+                    )
             ) {
                 Text(
                     text = "지난 챌린지를 보러가볼까요?",
