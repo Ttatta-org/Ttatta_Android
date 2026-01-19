@@ -36,8 +36,8 @@ import com.umc.footprint.FootprintApp
 import com.umc.footprint.model.event.RemindEvent
 import com.umc.home.HomeApp
 import com.umc.login.LoginApp
-import com.umc.mypage.LockApp
-import com.umc.mypage.MyPageApp
+import com.umc.mypage.app.lock.LockApp
+import com.umc.mypage.app.mypage.MyPageApp
 import com.umc.record.RecordApp
 import com.umc.ttatta.app.component.FinishHandler
 import com.umc.ttatta.app.component.NavigationItem

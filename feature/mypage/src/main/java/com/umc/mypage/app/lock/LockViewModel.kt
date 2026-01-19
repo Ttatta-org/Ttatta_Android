@@ -1,4 +1,4 @@
-package com.umc.mypage
+package com.umc.mypage.app.lock
 
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel

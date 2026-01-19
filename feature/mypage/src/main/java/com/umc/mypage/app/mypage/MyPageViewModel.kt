@@ -1,4 +1,4 @@
-package com.umc.mypage
+package com.umc.mypage.app.mypage
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -10,10 +10,8 @@ import com.umc.core.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import java.time.LocalTime
 import javax.inject.Inject
-
 
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
@@ -116,14 +114,6 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
-
-    suspend fun isPinCorrect(input: Int): Boolean {
-        return settingRepository.getIsPinCorrect(input)
-    }
-
-    suspend fun isPinSet(): Boolean {
-        return settingRepository.getIsPinSet()
-    }
 
     // ===== 알림 설정 UI 상태 =====
     data class NotificationSettingsUiState(

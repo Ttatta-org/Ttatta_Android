@@ -15,12 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
@@ -48,6 +46,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,8 +58,10 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.design.component.CustomHeader
 import com.umc.design.theme.LocalColorTheme
-import com.umc.mypage.MyPageViewModel
+import com.umc.design.theme.ThemeProvider
+import com.umc.mypage.app.mypage.MyPageViewModel
 import com.umc.mypage.R
+import com.umc.mypage.component.ToggleSettingItem
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -108,7 +109,7 @@ fun NotificationSettingsScreen(
         ) {
             item { Spacer(modifier = Modifier.height(23.dp)) }
             item {
-                NotificationSettingItem(
+                ToggleSettingItem(
                     title = "일기 작성 알림",
                     description = "매일 일정한 시각에 일기 작성을 알리는 알림을 보내요!",
                     checked = state.dailyOn,
@@ -148,14 +149,13 @@ fun NotificationSettingsScreen(
                                     onDailyTimeChange(dailyIsPm, hour12, minute)
                                 }
                             }
-
                         }
                     }
                 )
             }
             item { Spacer(modifier = Modifier.height(22.dp)) }
             item {
-                NotificationSettingItem(
+                ToggleSettingItem(
                     title = "위치 기반 추억 회상 알림",
                     description = "현재 위치와 가까운 과거 기록을 찾으면 알림을 보내요!",
                     checked = state.locationOn,
@@ -164,7 +164,7 @@ fun NotificationSettingsScreen(
             }
             item { Spacer(modifier = Modifier.height(22.dp)) }
             item {
-                NotificationSettingItem(
+                ToggleSettingItem(
                     title = "챌린지 리마인드 알림",
                     description = "챌린지 달성 마감 전 리마인드 알림을 보내요!",
                     checked = state.challengeOn,
@@ -191,6 +191,7 @@ fun NotificationSettingsScreen(
                                 Text(
                                     text = "시간 전",
                                     fontSize = 14.sp,
+                                    fontWeight = FontWeight.W700,
                                     color = Color(0xFF8E8E8E)
                                 )
                             }
@@ -200,7 +201,7 @@ fun NotificationSettingsScreen(
             }
             item { Spacer(modifier = Modifier.height(22.dp)) }
             item {
-                NotificationSettingItem(
+                ToggleSettingItem(
                     title = "하루 요약 알림",
                     description = "매일 일정한 시각에 오늘의 일기 요약 알림을 보내요!",
                     checked = state.summaryOn,
@@ -220,6 +221,7 @@ fun NotificationSettingsScreen(
                                 Text(
                                     text = "오후",
                                     fontSize = 14.sp,
+                                    fontWeight = FontWeight.W700,
                                     color = Color(0xFF8E8E8E)
                                 )
                                 // 시간만 선택 (1..12)
@@ -239,6 +241,7 @@ fun NotificationSettingsScreen(
                                 Text(
                                     text = "시",
                                     fontSize = 14.sp,
+                                    fontWeight = FontWeight.W700,
                                     color = Color(0xFF8E8E8E)
                                 )
                             }
@@ -252,92 +255,7 @@ fun NotificationSettingsScreen(
 }
 
 @Composable
-fun NotificationSettingItem(
-    title: String,
-    description: String? = null,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    bottomContent: @Composable (() -> Unit)? = null,
-    onSwitchOn: (() -> Unit)? = null,
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = title, fontSize = 16.sp, fontWeight = FontWeight.W400)
-                if (description != null) {
-                    Text(
-                        text = description,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.W400,
-                        color = Color(0xFF8E8E8E)
-                    )
-                }
-            }
-
-            CustomSwitch(
-                checked = checked,
-                onCheckedChange = {
-                    onCheckedChange(it)
-                    if (it) onSwitchOn?.invoke()
-                }
-            )
-        }
-
-        // ✅ 스위치가 켜졌고, 하위 content가 있다면 보여줌
-        if (checked && bottomContent != null) {
-            Spacer(modifier = Modifier.height(12.dp))
-            bottomContent()
-        }
-    }
-}
-
-@Composable
-fun CustomSwitch(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    // 전체 Switch 박스
-    Box(
-        modifier = modifier
-            .width(46.dp) // Switch 전체 너비
-            .height(26.dp) // Switch 전체 높이
-            .graphicsLayer {
-                shadowElevation = 2.dp.toPx() // ✅ 박스용 shadow
-                shape = RoundedCornerShape(12.dp)
-                clip = false
-            }
-            .clip(
-                RoundedCornerShape(12.dp) // 커스텀 Border-Radius
-            )
-            .background(
-                // 오렌지 400
-                if (checked) Color(0xFFFF9888) else Color(0xFFE1E1E1) // 상태에 따른 배경색
-            )
-            .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 2.dp),
-        contentAlignment = Alignment.CenterStart,
-    ) {
-        // Thumb (Circle)
-        Box(
-            modifier = Modifier
-                .size(21.9.dp) // Thumb 크기
-                .align(if (checked) Alignment.CenterEnd else Alignment.CenterStart) // 상태에 따른 위치
-                .graphicsLayer {
-                    shadowElevation = 2.dp.toPx() // ✅ Thumb용 shadow
-                    shape = CircleShape
-                    clip = false
-                }
-                .clip(CircleShape) // 원형
-                .background(Color(0xFFF5F5F5)) // Thumb 배경색
-        )
-    }
-}
-
-@Composable
-fun DropdownButtonWithMenu(
+private fun DropdownButtonWithMenu(
     options: List<String>,
     initialSelectedText: String = options.first(),
     width: Dp = 72.dp,
@@ -419,7 +337,7 @@ fun DropdownButtonWithMenu(
 }
 
 @Composable
-fun DropdownButton(
+private fun DropdownButton(
     selectedText: String,
     width: Dp,
     expanded: Boolean,
@@ -462,7 +380,7 @@ fun DropdownButton(
 
 
 @Composable
-fun WheelPicker(
+private fun WheelPicker(
     items: List<String>,
     modifier: Modifier = Modifier,
     visibleCount: Int = 5,
@@ -483,7 +401,7 @@ fun WheelPicker(
     LaunchedEffect(state, rowPx) {
         snapshotFlow { state.isScrollInProgress }
             .distinctUntilChanged()
-            .filter { it == false }
+            .filter { !it }
             .map {
                 val offsetPx = state.firstVisibleItemScrollOffset
                 val delta = (offsetPx / rowPx).roundToInt()
@@ -543,7 +461,7 @@ fun WheelPicker(
 }
 
 @Composable
-fun TimeWheelDropdown(
+private fun TimeWheelDropdown(
     modifier: Modifier = Modifier,
     width: Dp,
     initialHour12: Int = 8,
@@ -672,9 +590,7 @@ fun TimeWheelDropdown(
                             hourIdx = idx
                             onChanged(hourIdx + 1, minuteIdx)
                         }
-
                         Text(text = ":", color = Color(0xFF8E8E8E), fontSize = 16.sp)
-
                         WheelPicker(
                             items = minuteItems,
                             visibleCount = 5,
@@ -693,7 +609,7 @@ fun TimeWheelDropdown(
 }
 
 @Stable
-object NotiIconTokens {
+private object NotiIconTokens {
     val CollapsedWidth: Dp = 11.dp
     val CollapsedHeight: Dp = 5.dp
     val ExpandedWidth: Dp = 12.dp
@@ -708,7 +624,7 @@ object NotiIconTokens {
  * 두 개 리소스를 꼭 써야 하면 useSingleAsset=false로 전환.
  */
 @Composable
-fun DropdownChevronIcon(
+private fun DropdownChevronIcon(
     expanded: Boolean,
     tint: Color,
     modifier: Modifier = Modifier,
@@ -746,93 +662,31 @@ fun DropdownChevronIcon(
     }
 }
 
-//@Composable
-//fun DropdownMenuBox(
-//    expanded: Boolean,
-//    onDismissRequest: () -> Unit,
-//    options: List<String>,
-//    onOptionSelected: (String) -> Unit,
-//    width: Dp,
-//    maxHeight: Dp = 150.dp
-//) {
-//    Box(
-//        modifier = Modifier
-//            .width(width)
-//            .wrapContentHeight()
-//    ) {
-//        if (expanded) {
-//            // 뒤 배경 클릭 시 닫기
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .clickable(
-//                        indication = null,
-//                        interactionSource = remember { MutableInteractionSource() }
-//                    ) { onDismissRequest() }
-//            )
-//        }
-//
-//        AnimatedVisibility(
-//            visible = expanded,
-//            enter = fadeIn() + expandVertically(),
-//            exit = fadeOut() + shrinkVertically()
-//        ) {
-//            Surface(
-//                color = Color.White,
-//                shape = RoundedCornerShape(14.dp),
-//                shadowElevation = 4.dp,
-//                modifier = Modifier
-//                    .width(width)
-//                    .heightIn(max = maxHeight)
-//            ) {
-//                val scrollState = rememberScrollState()
-//
-//                Box {
-//                    Column(
-//                        modifier = Modifier
-//                            .heightIn(max = maxHeight)
-//                            .verticalScroll(scrollState)
-//                    ) {
-//                        options.forEachIndexed { index, label ->
-//                            Box(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .height(30.dp)
-//                                    .clickable {
-//                                        onOptionSelected(label)
-//                                        onDismissRequest()
-//                                    }
-//                                    .padding(horizontal = 12.dp, vertical = 3.dp),
-//                                contentAlignment = Alignment.CenterStart
-//                            ) {
-//                                Text(
-//                                    text = label,
-//                                    fontSize = 14.sp,
-//                                    color = Color(0xFF8E8E8E)
-//                                )
-//                            }
-//                            if (index != options.lastIndex) {
-//                                Spacer(modifier = Modifier.height(3.dp))
-//                            }
-//                        }
-//                    }
-//
-//                    // 아래 Fade
-//                    Box(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .height(20.dp)
-//                            .background(
-//                                brush = Brush.verticalGradient(
-//                                    colors = listOf(Color.Transparent, Color.White)
-//                                )
-//                            )
-//                            .align(Alignment.BottomCenter)
-//                    )
-//                }
-//            }
-//
-//        }
-//    }
-//}
-
+@Preview
+@Composable
+private fun PreviewNotificationSettingsScreen() {
+    ThemeProvider {
+        NotificationSettingsScreen(
+            state = MyPageViewModel.NotificationSettingsUiState(
+                isLoading = false,
+                error = null,
+                dailyOn = true,
+                dailyHour24 = 20,
+                dailyMinute = 20,
+                summaryOn = true,
+                summaryHour24 = 20,
+                challengeOn = true,
+                challengeRemainingHours = 20,
+                locationOn = true,
+            ),
+            onDailyToggle = {},
+            onDailyTimeChange = { _, _, _ -> },
+            onSummaryToggle = {},
+            onSummaryHourChange = {},
+            onChallengeToggle = {},
+            onChallengeHoursChange = {},
+            onLocationToggle = {},
+            onBackClick = {},
+        )
+    }
+}

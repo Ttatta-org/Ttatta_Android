@@ -34,7 +34,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,7 +59,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.design.component.CustomButton
 import com.umc.design.component.CustomHeader
 import com.umc.design.component.CustomPopup
@@ -76,8 +74,6 @@ fun SignOutScreen(
     onCancel: () -> Unit
 ) {
     val density = LocalDensity.current
-    val systemUiController = rememberSystemUiController()
-    val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
 
     var showConfirmDialog by remember { mutableStateOf(false) }
     var selectedReason by rememberSaveable { mutableStateOf<LeaveReason?>(null) }
@@ -85,12 +81,6 @@ fun SignOutScreen(
     var agreed by rememberSaveable { mutableStateOf(false) }
 
     var topBarHeight by remember { mutableStateOf(42.dp) }
-
-    SideEffect {
-        systemUiController.setStatusBarColor(
-            color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
-        )
-    }
 
     Box(
         modifier = Modifier
@@ -180,7 +170,7 @@ fun SignOutScreen(
 
 // 상단 제목
 @Composable
-fun SignOutHeader() {
+private fun SignOutHeader() {
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
@@ -334,7 +324,7 @@ private fun ReasonRadioRow(
 
 // 유의사항 안내
 @Composable
-fun SignOutNotice(
+private fun SignOutNotice(
     agreed: Boolean,
     onAgreedChange: (Boolean) -> Unit
 ) {
@@ -362,7 +352,7 @@ fun SignOutNotice(
 }
 
 @Composable
-fun SignOutNoticeText() {
+private fun SignOutNoticeText() {
     Column {
         SignOutNoticeRow(
             number = 1,
@@ -380,7 +370,7 @@ fun SignOutNoticeText() {
 }
 
 @Composable
-fun SignOutNoticeRow(number: Int, text: AnnotatedString) {
+private fun SignOutNoticeRow(number: Int, text: AnnotatedString) {
     Row(
         modifier = Modifier.fillMaxWidth(),
     ) {
@@ -407,7 +397,7 @@ fun SignOutNoticeRow(number: Int, text: AnnotatedString) {
 
 // 동의 체크박스
 @Composable
-fun SignOutConsentCheckbox(
+private fun SignOutConsentCheckbox(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
@@ -419,7 +409,7 @@ fun SignOutConsentCheckbox(
 }
 
 @Composable
-fun CustomCheckboxWithText(
+private fun CustomCheckboxWithText(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     text: String
@@ -475,7 +465,7 @@ fun CustomCheckboxWithText(
 
 // 하단 버튼
 @Composable
-fun SignOutButtonRow(
+private fun SignOutButtonRow(
     onCancel: () -> Unit,
     showConfirmDialog: (Boolean) -> Unit
 ) {
@@ -508,7 +498,7 @@ fun SignOutButtonRow(
 }
 
 @Composable
-fun CustomRadioButton(
+private fun CustomRadioButton(
     selected: Boolean,
 ) {
     Box(
@@ -533,10 +523,9 @@ fun CustomRadioButton(
     }
 }
 
-
-@Preview(showBackground = true)
+@Preview
 @Composable
-fun PreviewSignOutScreen() {
+private fun PreviewSignOutScreen() {
     ThemeProvider {
         SignOutScreen(
             onLeaveUser = {},

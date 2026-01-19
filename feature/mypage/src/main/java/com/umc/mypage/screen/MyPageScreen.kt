@@ -1,197 +1,116 @@
 package com.umc.mypage.screen
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.shadow.Shadow
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.umc.core.model.LoginType
 import com.umc.core.model.UserInfo
+import com.umc.core.model.UserStatus
 import com.umc.design.component.CustomHeader
 import com.umc.design.component.CustomPopup
-import com.umc.mypage.R
-import java.text.NumberFormat
-import java.util.Locale
+import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.ThemeProvider
+import java.text.NumberFormat.getNumberInstance
+import java.util.Locale.US
 
 @Composable
 fun MyPageScreen(
     userInfo: UserInfo?,
     errorMessage: String?,
-    onNavigateToNotifications: () -> Unit,
-    onNavigateToLockSetting: () -> Unit,
-    onLogout: () -> Unit,
-    onLeaveUser: () -> Unit,
+    onUpdateProfileButtonClicked: () -> Unit,
+    onNotificationSettingButtonClicked: () -> Unit,
+    onPinLockButtonClicked: () -> Unit,
+    onLogoutButtonClicked: () -> Unit,
+    onLeaveUserButtonClicked: () -> Unit,
 ) {
-
-    val systemUiController = rememberSystemUiController()
-    val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
-
     var showLogoutDialog by remember { mutableStateOf(false) }
-
-    SideEffect {
-        systemUiController.setStatusBarColor(
-            color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
-        )
-    }
 
     Column(
         modifier = Modifier
-            .background(Color(0xFFFFF6F2))
+            .background(LocalColorTheme.current.secondary[100])
             .fillMaxSize()
     ) {
         CustomHeader(
             centerText = "마이페이지",
         )
-
-        // ✅ 2. LazyColumn (스크롤 가능한 콘텐츠)
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 22.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        if (userInfo != null) Column(
+            modifier = Modifier.padding(horizontal = 22.dp)
         ) {
-            item { Spacer(modifier = Modifier.height(40.dp)) }
-            item {
-                if (userInfo != null) {
-                    ProfileSection(
-                        name = userInfo.name,
-                        profileImage = userInfo.profileImageUrl
-                    )
-
-                    Spacer(modifier = Modifier.height(26.dp))
-
-                    SummarySection(
-                        diaryCount = userInfo.totalDiaryCount,
-                        points = userInfo.point
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    AppSettingsSection(
-                        themeSubtitle = "기본 테마",
-                        notificationsEnabled = false,
-                        passwordLockEnabled = false,
-                        onThemeChangeClick = { /* 테마 변경 로직 */ },
-                        onNotificationToggle = { },
-                        onNavigateToNotifications = onNavigateToNotifications,
-                        onPasswordLockToggle = { },
-                        onNavigateToLockSetting = onNavigateToLockSetting,
-                        onLeaveUser = onLeaveUser,
-                        showLogoutDialog = showLogoutDialog,
-                        setShowLogoutDialog = { showLogoutDialog = it },
-                        onLogout = onLogout
-                    )
-                    Spacer(modifier = Modifier.height(30.dp))
-                } else {
-                    Text(
-                        text = errorMessage ?: "유저 정보를 불러오는 중입니다..",
-                        color = Color(0xFFFF8072),
-                        fontSize = 12.sp
-                    )
-                }
-            }
-        }
-    }
-
-    if (showLogoutDialog) {
-        CustomPopup(
-            title = "로그아웃 하시겠습니까?",
-            message = "언제든 따따와 함께하고 싶다면 찾아와 주세요!",
-            onDismiss = { showLogoutDialog = false },
-            onConfirm = {
-                showLogoutDialog = false
-                onLogout()  // 실제 로그아웃 로직 여기서 호출
-            }
-        )
-    }
-}
-
-@Composable
-fun ProfileSection(name: String, profileImage: String?) {
-
-    val displayName = "$name 님"
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-        AsyncImage(
-            model = profileImage ?: R.drawable.default_profile, // ✅ URL이 없으면 기본 이미지 사용
-            contentDescription = "프로필 이미지",
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop,
-            //contentScale = ContentScale.Fit
-        )
-
-        Spacer(modifier = Modifier.height(15.dp))
-
-        Text(
-            text = displayName,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontSize = 18.sp, // 텍스트 크기
-                fontWeight = FontWeight.W800 // 텍스트 굵기
-            ),
-            color = Color(0xFF333333)
-        )
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Box(
-            modifier = Modifier
-                .clip(
-                    RoundedCornerShape(12.dp)
-                )
-                .background(Color(0xFFFFEFE4)), // 버튼 배경색
-            contentAlignment = Alignment.Center
-        ) {
+            Spacer(modifier = Modifier.height(40.dp))
             Text(
-                modifier = Modifier
-                    .padding(vertical = 3.dp, horizontal = 9.dp),
-                text = "프로필 수정",
-                fontSize = 13.sp,
-                color = Color(0xFFFCA598) // 텍스트 색상
+                text = "${userInfo.name}님",
+                fontWeight = FontWeight.W800,
+                fontSize = 18.sp,
+                color = Color.Black,
+                modifier = Modifier.padding(start = 8.dp),
+            )
+            Spacer(modifier = Modifier.height(15.dp))
+            SummarySection(
+                diaryCount = userInfo.totalDiaryCount,
+                points = userInfo.point,
+            )
+            Spacer(modifier = Modifier.height(36.dp))
+            SettingCard(title = "앱 설정") {
+                SettingCardItem(label = "프로필 수정", onClick = onUpdateProfileButtonClicked)
+                SettingCardItem(label = "알림 설정", onClick = onNotificationSettingButtonClicked)
+                SettingCardItem(label = "암호 잠금", onClick = onPinLockButtonClicked)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            SettingCard(title = "기타") {
+                SettingCardItem(label = "로그아웃", onClick = { showLogoutDialog = true })
+                SettingCardItem(label = "탈퇴하기", onClick = onLeaveUserButtonClicked)
+            }
+        } else {
+            Text(
+                text = errorMessage ?: "유저 정보를 불러오는 중입니다..",
+                color = Color(0xFFFF8072),
+                fontSize = 12.sp
             )
         }
     }
+
+    if (showLogoutDialog) CustomPopup(
+        title = "로그아웃 하시겠습니까?",
+        message = "언제든 따따와 함께하고 싶다면 찾아와 주세요!",
+        onDismiss = { showLogoutDialog = false },
+        onConfirm = {
+            showLogoutDialog = false
+            onLogoutButtonClicked()
+        },
+    )
 }
 
 @Composable
-fun SummarySection(
+private fun SummarySection(
     diaryCount: Int,
-    points: Long
+    points: Long,
 ) {
     Box(
         modifier = Modifier
@@ -212,69 +131,51 @@ fun SummarySection(
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly, // 아이템들을 균등하게 배치
-            verticalAlignment = Alignment.CenterVertically // 아이템들을 수직 중앙 정렬
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             SummaryItem(label = "나의 일기", value = diaryCount)
-
-            // ✅ 세로 구분선
             Box(
                 modifier = Modifier
                     .height(30.dp)
-                    .width(0.5.dp)
+                    .width(1.dp)
                     .background(Color(0xFFFFE6E1))
             )
-
             SummaryItem(label = "포인트", value = points)
         }
     }
 }
 
 @Composable
-fun SummaryItem(label: String, value: Number) {
+private fun SummaryItem(
+    label: String,
+    value: Number,
+) {
     Row(
         modifier = Modifier.padding(vertical = 15.dp),
     ) {
         Text(
             text = label,
             fontSize = 14.sp,
-            color = Color(0xFF4B4B4B),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
+            fontWeight = FontWeight.W400,
+            letterSpacing = (-0.5).sp,
+            color = LocalColorTheme.current.grey[700],
         )
-
         Spacer(modifier = Modifier.width(4.dp))
-
         Text(
-            text = pointNumberWithComma(value),
+            text = getNumberInstance(US).format(value),
             fontSize = 14.sp,
-            color = Color(0xFFFF8072),
-            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W800),
+            fontWeight = FontWeight.W800,
+            letterSpacing = (-0.5).sp,
+            color = LocalColorTheme.current.primary[500],
         )
     }
 }
 
-
-//SummaryItem에 필요한 숫자 콤마 만들기
-fun pointNumberWithComma(number: Number): String {
-    return NumberFormat
-        .getNumberInstance(Locale.US)
-        .format(number)
-}
-
 @Composable
-fun AppSettingsSection(
-    themeSubtitle: String,
-    notificationsEnabled: Boolean,
-    passwordLockEnabled: Boolean,
-    onThemeChangeClick: () -> Unit,
-    onNotificationToggle: (Boolean) -> Unit, // ✅ 알림 설정 변경 이벤트 추가
-    onNavigateToNotifications: () -> Unit,
-    onPasswordLockToggle: (Boolean) -> Unit, // ✅ 암호 잠금 설정 변경 이벤트 추가
-    onNavigateToLockSetting: () -> Unit,
-    onLeaveUser: () -> Unit, // ✅ 탈퇴하기 이벤트 추가
-    showLogoutDialog: Boolean,
-    setShowLogoutDialog: (Boolean) -> Unit,
-    onLogout: () -> Unit // ✅ 로그아웃 이벤트 추가
+private fun SettingCard(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     Box(
         modifier = Modifier
@@ -293,270 +194,72 @@ fun AppSettingsSection(
                 shape = RoundedCornerShape(22.dp),
             )
     ) {
-        Box {
-            Column(
-                modifier = Modifier.padding(
-                    start = 30.dp,
-                    top = 20.dp,
-                    end = 35.dp,
-                    bottom = 19.dp
-                )
-            ) {
-                // "앱 설정" 제목
-                Text(
-                    text = "앱 설정",
-                    fontSize = 15.sp,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W800),
-                    color = Color(0xFF000000), // 제목 색상
-                    modifier = Modifier.padding(bottom = 12.dp) // 아래 여백 추가
-                )
-
-                // 테마 변경 설정
-//                Row(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .clickable { onThemeChangeClick() }
-//                        .padding(start = 10.dp, bottom = 7.dp),
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    Text(
-//                        text = "테마",
-//                        fontSize = 14.sp,
-//                        color = Color(0xFF4B4B4B),
-//                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
-//                    )
-//                    Spacer(modifier = Modifier.weight(1f)) // 여백 추가
-//                    Text(
-//                        text = themeSubtitle,
-//                        fontSize = 14.sp,
-//                        color = Color(0xFFFFD0C8), // 서브 텍스트 색상
-//                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
-//                    )
-//                }
-
-                // 알림 변경 설정
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(
-                            indication = null,
-                            interactionSource = null,
-                            onClick = onNavigateToNotifications,
-                        )
-                        .padding(start = 10.dp, bottom = 7.dp),
-                    //verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "알림 설정",
-                        fontSize = 14.sp,
-                        color = Color(0xFF4B4B4B),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(
-                            indication = null,
-                            interactionSource = null,
-                            onClick = onNavigateToLockSetting,
-                        )
-                        .padding(start = 10.dp, bottom = 7.dp),
-                    //verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "암호 잠금",
-                        fontSize = 14.sp,
-                        color = Color(0xFF4B4B4B),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
-                    )
-                }
-
-//                // 알림 설정
-//                SettingSwitchItem(
-//                    title = "알림 설정",
-//                    isChecked = notificationsEnabled,
-//                    onCheckedChange = onNotificationToggle
-//                )
-//
-//                // 암호 잠금
-//                SettingSwitchItem(
-//                    title = "암호 잠금",
-//                    isChecked = passwordLockEnabled,
-//                    onCheckedChange = onPasswordLockToggle
-//                )
-//
-//                // 점선 구분선
-//                Spacer(modifier = Modifier.height(10.dp))
-//                DashedDivider()
-//                Spacer(modifier = Modifier.height(16.dp))
-            }
-        }
-    }
-
-    Spacer(modifier = Modifier.height(12.dp))
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .dropShadow(
-                shape = RoundedCornerShape(22.dp),
-                shadow = Shadow(
-                    radius = 10.dp,
-                    color = Color(0xFF806E33),
-                    offset = DpOffset(0.dp, 2.dp),
-                    alpha = 0.1f,
-                ),
+        Column(
+            modifier = Modifier.padding(
+                start = 30.dp,
+                top = 20.dp,
+                end = 35.dp,
+                bottom = 19.dp,
             )
-            .background(
-                color = Color.White,
-                shape = RoundedCornerShape(22.dp),
+        ) {
+            Text(
+                text = title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.W800,
+                color = Color.Black,
+                modifier = Modifier.padding(bottom = 12.dp)
             )
-    ) {
-        Box {
-            Column(
-                modifier = Modifier.padding(
-                    start = 30.dp,
-                    top = 20.dp,
-                    end = 35.dp,
-                    bottom = 19.dp
-                )
-            ) {
-                // "기타" 제목
-                Text(
-                    text = "기타",
-                    fontSize = 15.sp,
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W800),
-                    color = Color(0xFF000000), // 제목 색상
-                    modifier = Modifier.padding(bottom = 12.dp) // 아래 여백 추가
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(
-                            indication = null,
-                            interactionSource = null,
-                            onClick = { setShowLogoutDialog(true) },
-                        )
-                        .padding(start = 10.dp, bottom = 7.dp),
-                ) {
-                    Text(
-                        text = "로그아웃",
-                        fontSize = 14.sp,
-                        color = Color(0xFF4B4B4B),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
-                    )
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(
-                            indication = null,
-                            interactionSource = null,
-                            onClick = onLeaveUser,
-                        )
-                        .padding(start = 10.dp, bottom = 7.dp),
-                ) {
-                    Text(
-                        text = "탈퇴하기",
-                        fontSize = 14.sp,
-                        color = Color(0xFF4B4B4B),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.W400)
-                    )
-                }
-            }
+            content.invoke(this)
         }
     }
 }
 
-
-//@Composable
-//fun SettingSwitchItem(
-//    title: String,
-//    isChecked: Boolean,
-//    onCheckedChange: (Boolean) -> Unit
-//) {
-//    Row(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(10.dp),
-//        verticalAlignment = Alignment.CenterVertically
-//    ) {
-//        Text(
-//            text = title,
-//            fontSize = 15.sp,
-//            color = Color(0xFF8E8E8E),
-//            style = MaterialTheme.typography.bodyLarge
-//        )
-//        Spacer(modifier = Modifier.weight(1f)) // 여백 추가
-//
-//        // 커스텀 Switch 사용
-//        CustomSwitch(
-//            checked = isChecked,
-//            onCheckedChange = onCheckedChange,
-//            modifier = Modifier.padding(end = 5.dp)
-//        )
-//    }
-//}
-//
-//@Composable
-//fun CustomSwitch(
-//    checked: Boolean,
-//    onCheckedChange: (Boolean) -> Unit,
-//    modifier: Modifier = Modifier
-//) {
-//    // 전체 Switch 박스
-//    Box(
-//        modifier = modifier
-//            .width(30.dp) // Switch 전체 너비
-//            .height(16.dp) // Switch 전체 높이
-//            .clip(
-//                RoundedCornerShape(8.dp) // 커스텀 Border-Radius
-//            )
-//            .background(
-//                if (checked) Color(0xFFFDDDC1) else Color(0xFFE1E1E1) // 상태에 따른 배경색
-//            )
-//            .clickable { onCheckedChange(!checked) }
-//            .padding(end = 1.dp),
-//        contentAlignment = Alignment.CenterStart
-//    ) {
-//        // Thumb (Circle)
-//        Box(
-//            modifier = Modifier
-//                .size(14.dp) // Thumb 크기
-//                .align(if (checked) Alignment.CenterEnd else Alignment.CenterStart) // 상태에 따른 위치
-//                .padding(1.dp) // Thumb 패딩
-//                .clip(CircleShape) // 원형
-//                .background(Color(0xFFF5F5F5)) // Thumb 배경색
-//        )
-//    }
-//}
-
 @Composable
-fun DashedDivider() {
-    Canvas(
+private fun SettingCardItem(
+    label: String,
+    onClick: () -> Unit,
+) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(1.dp) // Divider의 높이 조정
-    ) {
-        val dashWidth = 10f // 대시의 길이
-        val gapWidth = 6f // 대시 사이의 간격
-        val strokeWidth = 2f // 대시의 두께
-        val color = Color(0xFFFCAD98)
-
-        var currentX = 0f
-        while (currentX < size.width) {
-            // Draw a single dash
-            drawLine(
-                color = color,
-                start = Offset(currentX, size.height / 2),
-                end = Offset(currentX + dashWidth, size.height / 2),
-                strokeWidth = strokeWidth
+            .clickable(
+                indication = null,
+                interactionSource = null,
+                onClick = onClick,
             )
-            currentX += dashWidth + gapWidth // Move to the next dash position
-        }
+            .padding(start = 10.dp, bottom = 7.dp),
+    ) {
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.W400,
+            letterSpacing = (-0.5).sp,
+            color = LocalColorTheme.current.grey[700],
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewMyPageScreen() {
+    ThemeProvider {
+        MyPageScreen(
+            userInfo = UserInfo(
+                id = 0,
+                name = "김따따",
+                loginType = LoginType.KAKAO,
+                email = "email@email.com",
+                profileImageUrl = "",
+                point = 12345,
+                status = UserStatus.ACTIVE,
+                totalDiaryCount = 123,
+            ),
+            errorMessage = null,
+            onUpdateProfileButtonClicked = {},
+            onNotificationSettingButtonClicked = {},
+            onPinLockButtonClicked = {},
+            onLogoutButtonClicked = {},
+            onLeaveUserButtonClicked = {},
+        )
     }
 }

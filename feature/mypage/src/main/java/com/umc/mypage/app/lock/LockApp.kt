@@ -1,4 +1,4 @@
-package com.umc.mypage
+package com.umc.mypage.app.lock
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
