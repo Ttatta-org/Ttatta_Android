@@ -56,8 +56,8 @@ import androidx.compose.ui.unit.sp
 import com.umc.challenge.R
 import com.umc.challenge.component.PointChip
 import com.umc.challenge.component.PointChipTheme
-import com.umc.challenge.component.PurchaseDialog
-import com.umc.challenge.component.PurchaseDialogProp
+import com.umc.challenge.modal.PurchaseDialog
+import com.umc.challenge.modal.PurchaseDialogProp
 import com.umc.challenge.view.previewAccessorySet
 import com.umc.design.character.Accessory
 import com.umc.design.character.AccessorySet

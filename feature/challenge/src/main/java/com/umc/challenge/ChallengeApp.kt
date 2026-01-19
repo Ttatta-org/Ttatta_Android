@@ -11,22 +11,18 @@ import androidx.compose.ui.util.fastAny
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.umc.challenge.component.ChallengeCompletionDialogProp
-import com.umc.challenge.component.PointGrantedCardDialogProp
-import com.umc.challenge.component.PurchaseDialogProp
+import com.umc.challenge.modal.ChallengeCompletionDialogProp
+import com.umc.challenge.modal.PointGrantedCardDialogProp
+import com.umc.challenge.modal.PurchaseDialogProp
 import com.umc.challenge.screen.ChallengeScreen
 import com.umc.challenge.screen.ChallengeScreenTopBarProp
-import com.umc.challenge.screen.ClickedItemProp
-import com.umc.challenge.screen.MyItemItemItemProp
-import com.umc.challenge.screen.MyItemScreen
 import com.umc.challenge.screen.PastChallengeScreen
-import com.umc.challenge.screen.PastChallengeScreenTopBarProp
 import com.umc.challenge.screen.ShopItemItemProp
 import com.umc.challenge.screen.ShopScreen
-import com.umc.challenge.view.ChallengeItemProp
+import com.umc.challenge.component.ChallengeItemProp
 import com.umc.challenge.view.ChallengeOnboardingView
 import com.umc.challenge.view.ChallengeOnboardingViewProp
-import com.umc.challenge.view.ChallengeState
+import com.umc.challenge.component.ChallengeState
 import com.umc.challenge.view.NewChallengeView
 import com.umc.challenge.view.NewChallengeViewProp
 import com.umc.core.util.runWithScope
@@ -45,12 +41,6 @@ data class ClickedUncompletedChallengeInfo(
 data class ClickedShopItemInfo(
     val id: Long,
     val itemName: String,
-)
-
-data class ClickedOwnedItemInfo(
-    val id: Long,
-    val item: Accessory,
-    val isEquipped: Boolean,
 )
 
 data class PointGrantEvent(
@@ -74,7 +64,7 @@ fun ChallengeApp(
                 Accessory.entries.firstOrNull { accessory ->
                     accessory.code == it.item.code
                 }
-            }
+            },
         )
     }
 
@@ -88,19 +78,19 @@ fun ChallengeApp(
     }
 
     NavHost(
-        navController = navController,
-        startDestination = "challenge"
+        navController = navController, startDestination = "challenge"
     ) {
         composable("challenge") {
-            var isLoading by remember { mutableStateOf(true) }
-            var clickedUncompletedChallengeInfo by remember {
-                mutableStateOf<ClickedUncompletedChallengeInfo?>(null)
+            var clickedUncompletedChallengeInfo: ClickedUncompletedChallengeInfo? by remember {
+                mutableStateOf(null)
             }
 
             LaunchedEffect(key1 = Unit) {
-                viewModel.getTodayChallenges(onSucceed = { isLoading = false })
-                viewModel.getEquippedItems()
-                viewModel.getPoint()
+                viewModel.runWithScope {
+                    runCatching { getTodayChallenges() }
+                    runCatching { getEquippedItems() }
+                    runCatching { getPoint() }
+                }
             }
 
             ChallengeScreen(
@@ -110,11 +100,13 @@ fun ChallengeApp(
                 ),
                 challengeCompletionDialogProp = clickedUncompletedChallengeInfo?.let {
                     ChallengeCompletionDialogProp(
-                        onDismissed = { clickedUncompletedChallengeInfo = null },
+                        onDismissed = {
+                            clickedUncompletedChallengeInfo = null
+                        },
                         onConfirmed = {
                             onChallengeCompletionRequired(it.id)
                             clickedUncompletedChallengeInfo = null
-                        }
+                        },
                     )
                 },
                 pointGrantedCardDialogProp = pointGrantEvent?.let { event ->
@@ -124,47 +116,49 @@ fun ChallengeApp(
                         onGoToShopButtonClicked = {
                             event.onDismiss.invoke()
                             navController.navigate("shop")
-                        }
+                        },
                     )
                 },
-            ) {
+            ) { headerHeight ->
                 val challengeScreenNavController = rememberNavController()
 
                 LaunchedEffect(key1 = Unit) {
                     challengeScreenNavController.addOnDestinationChangedListener { _, destination, _ ->
                         when (destination.route) {
                             "onboarding" -> onNavigationBarVisibilityChanged(true)
-                            else -> onNavigationBarVisibilityChanged(false)
+                            "new_challenge" -> onNavigationBarVisibilityChanged(false)
+                            else -> throw Exception("Unknown destination")
                         }
                     }
                 }
 
                 NavHost(
-                    navController = challengeScreenNavController,
-                    startDestination = "onboarding"
+                    navController = challengeScreenNavController, startDestination = "onboarding"
                 ) {
                     composable("onboarding") {
+                        val isUserCanMakeNewChallenge =
+                            viewModel.todayChallenges.let { it != null && it.size < 3 }
+
                         ChallengeOnboardingView(
                             prop = ChallengeOnboardingViewProp(
+                                topPadding = headerHeight,
+                                showChatBubble = isUserCanMakeNewChallenge,
                                 equippedAccessorySet = accessorySet,
-                                isNewChallengeButtonEnabled = !isLoading && viewModel.todayChallenges.size < 3,
-                                challengeItemPropList = viewModel.todayChallenges.map {
+                                isNewChallengeButtonEnabled = isUserCanMakeNewChallenge,
+                                challengeItemPropList = viewModel.todayChallenges?.map {
                                     ChallengeItemProp(
                                         title = it.title,
                                         content = it.content,
-                                        state = if (it.isCompleted)
-                                            ChallengeState.COMPLETED
-                                        else
-                                            ChallengeState.IN_PROGRESS,
+                                        state = if (it.isCompleted) ChallengeState.COMPLETED else ChallengeState.IN_PROGRESS,
                                         onClicked = {
                                             if (!it.isCompleted) clickedUncompletedChallengeInfo =
                                                 ClickedUncompletedChallengeInfo(id = it.id)
-                                        }
+                                        },
                                     )
-                                },
+                                } ?: emptyList(),
                                 onNewChallengeButtonClicked = {
                                     challengeScreenNavController.navigate("new_challenge")
-                                }
+                                },
                             )
                         )
                     }
@@ -175,25 +169,31 @@ fun ChallengeApp(
 
                         NewChallengeView(
                             prop = NewChallengeViewProp(
+                                topPadding = headerHeight,
                                 maxTitleLength = 20,
                                 title = title,
                                 description = description,
                                 equippedAccessorySet = accessorySet,
+                                isButtonEnabled = title.isNotBlank() && description.isNotBlank(),
                                 onTitleChanged = { if (it.length <= 20) title = it },
                                 onDescriptionChanged = { description = it },
                                 onCreateButtonClicked = {
-                                    viewModel.createChallenge(
-                                        title = title,
-                                        description = description,
-                                        onSucceed = {
+                                    viewModel.runWithScope {
+                                        runCatching {
+                                            createChallenge(
+                                                title = title,
+                                                description = description,
+                                            )
+                                        }.onSuccess {
                                             MainScope().launch { challengeScreenNavController.popBackStack() }
-                                        },
-                                        onFailed = { /* 에러 처리 */ }
-                                    )
+                                        }
+                                    }
                                 },
                                 onPastChallengeClick = {
-                                    navController.navigate("past_challenge")
-                                }
+                                    MainScope().launch {
+                                        navController.navigate("past_challenge")
+                                    }
+                                },
                             )
                         )
                     }
@@ -243,8 +243,7 @@ fun ChallengeApp(
                             } else {
                                 showLackOfPointsPopup = true
                             }
-                        }
-                    )
+                        })
                 }
 
                 (ownedShopItems + unownedShopItems).sortedBy {
@@ -280,78 +279,22 @@ fun ChallengeApp(
 
                                 showLoading = false
                             }
-                        }
+                        },
                     )
                 },
                 onBodyPartSelected = { selectedBodyPart = it },
                 onBackButtonClicked = {
                     MainScope().launch { navController.popBackStack() }
-                }
+                },
             )
 
             if (showLackOfPointsPopup) CustomPopup(
                 title = "포인트가 부족해요!",
                 message = "챌린지를 완료하면 포인트를 모을 수 있어요.",
                 cancelText = "네, 알겠어요.",
-                onDismiss = { showLackOfPointsPopup = false }
-            )
+                onDismiss = { showLackOfPointsPopup = false })
 
             if (showLoading) LoadingModal()
-        }
-
-        composable("my_item") {
-            val ownedItems by viewModel.ownedItemsState.collectAsState()
-
-            var clickedOwnedItemInfo by remember { mutableStateOf<ClickedOwnedItemInfo?>(null) }
-
-            LaunchedEffect(key1 = Unit) {
-                viewModel.getEquippedItems()
-                viewModel.getOwnedItems()
-            }
-
-            MyItemScreen(
-                point = viewModel.point,
-                equippedAccessorySet = accessorySet,
-                myItemItemItemPropList = ownedItems.map {
-                    MyItemItemItemProp(
-                        accessory = it.item,
-                        isEquipped = it.isEquipped,
-                        onClicked = {
-                            clickedOwnedItemInfo = ClickedOwnedItemInfo(
-                                id = it.id,
-                                item = it.item,
-                                isEquipped = it.isEquipped
-                            )
-                        }
-                    )
-                },
-                clickedItemProp = clickedOwnedItemInfo?.let { info ->
-                    ClickedItemProp(
-                        item = info.item,
-                        isEquipped = info.isEquipped,
-                        onBackPressed = { clickedOwnedItemInfo = null },
-                        onConfirmed = {
-                            viewModel.runWithScope {
-                                runCatching {
-                                    equipItem(
-                                        id = info.id,
-                                        equip = !info.isEquipped,
-                                    )
-                                }
-
-                                clickedOwnedItemInfo = null
-                            }
-                        }
-                    )
-                },
-                onShopIconClicked = {
-                    navController.navigate("shop") {
-                        popUpTo(id = navController.graph.startDestinationId) {
-                            inclusive = false
-                        }
-                    }
-                }
-            )
         }
 
         composable("past_challenge") {
@@ -361,31 +304,27 @@ fun ChallengeApp(
             }
 
             PastChallengeScreen(
-                topBarProp = PastChallengeScreenTopBarProp(
-                    onHeightChanged = { /* 필요 없으면 무시해도 됨 */ },
-                    onBackIconClicked = {
-                        // 뒤로가기 → challenge 화면으로 복귀
-                        navController.popBackStack()
-                    }
-                ),
                 pastChallenges = viewModel.pastChallenges,
                 onRetryChallenge = { challenge ->
-                    viewModel.createChallenge(
-                        title = challenge.title,
-                        description = challenge.content,
-                        onSucceed = {
-                            // 오늘 챌린지 목록은 createChallenge의 finally에서 getTodayChallenges()로 다시 불러옴
-                            // 지난 챌린지 화면 닫고 challenge 화면으로 복귀
-                            navController.navigate("challenge") {
-                                popUpTo("challenge") {
-                                    inclusive = true   // 기존 challenge까지 같이 제거
+                    viewModel.runWithScope {
+                        runCatching {
+                            createChallenge(
+                                title = challenge.title,
+                                description = challenge.content,
+                            )
+                        }.onSuccess {
+                            MainScope().launch {
+                                navController.navigate("challenge") {
+                                    popUpTo("challenge") { inclusive = true }
+                                    launchSingleTop = true
                                 }
-                                launchSingleTop = true    // 혹시나 중복 생기는 것 방지용
                             }
-                        },
-                        onFailed = {}
-                    )
-                }
+                        }
+                    }
+                },
+                onBackButtonClicked = {
+                    MainScope().launch { navController.popBackStack() }
+                },
             )
         }
     }

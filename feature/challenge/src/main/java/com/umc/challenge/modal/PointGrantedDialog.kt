@@ -1,4 +1,4 @@
-package com.umc.challenge.component
+package com.umc.challenge.modal
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
