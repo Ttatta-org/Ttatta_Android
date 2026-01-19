@@ -13,11 +13,12 @@ import com.umc.core.repository.SettingRepository
 import com.umc.core.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -64,8 +65,8 @@ class MainViewModel @Inject constructor(
             userRepository.isAlreadyLogin()
         }.getOrDefault(defaultValue = false)
 
-        if (isLoggedIn) {
-            CoroutineScope(Dispatchers.IO).launch {
+        if (isLoggedIn) withContext(Dispatchers.IO) {
+            coroutineScope {
                 launch { runCatching { checkIsLocationBasedRemindEnabled() } }
                 launch { runCatching { getUserName() } }
                 launch { runCatching { getEquippedAccessories() } }

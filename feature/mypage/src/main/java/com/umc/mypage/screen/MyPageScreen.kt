@@ -1,4 +1,4 @@
-package com.umc.mypage
+package com.umc.mypage.screen
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -42,19 +42,18 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.core.model.UserInfo
 import com.umc.design.component.CustomHeader
 import com.umc.design.component.CustomPopup
+import com.umc.mypage.R
 import java.text.NumberFormat
 import java.util.Locale
 
 @Composable
 fun MyPageScreen(
     userInfo: UserInfo?,
-    isLoading: Boolean,
     errorMessage: String?,
     onNavigateToNotifications: () -> Unit,
     onNavigateToLockSetting: () -> Unit,
     onLogout: () -> Unit,
     onLeaveUser: () -> Unit,
-    onFabClick: () -> Unit,
 ) {
 
     val systemUiController = rememberSystemUiController()

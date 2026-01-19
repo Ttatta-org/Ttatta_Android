@@ -9,7 +9,6 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.tasks.Tasks
 import com.umc.core.repository.UserRepository
 import com.umc.mypage.MyPageApp
-import com.umc.mypage.MyPageScreen
 import com.umc.mypage.MyPageViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +37,8 @@ class TestActivity : ComponentActivity() {
                 onLoginCanceled  = {},
                 onBackgroundLocationRequirementChanged = { isRequired ->
                     false
-                }
+                },
+                onNavigationBarVisibilityChanged = {}
             )
         }
 

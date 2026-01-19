@@ -1,4 +1,4 @@
-package com.umc.mypage
+package com.umc.mypage.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -67,11 +67,11 @@ import com.umc.design.component.CustomPopup
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.LocalFontTheme
 import com.umc.design.theme.ThemeProvider
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
 fun SignOutScreen(
-    name: String,
     onLeaveUser: (String) -> Unit,
     onCancel: () -> Unit
 ) {
@@ -244,7 +244,7 @@ private fun ReasonSection(
         LaunchedEffect(selected) {
             if (selected == LeaveReason.ETC) {
                 // 약간의 지연을 주면 레이아웃이 확정된 뒤 동작해서 튐 현상이 줄어듭니다.
-                kotlinx.coroutines.delay(80)
+                delay(80)
                 focusRequester.requestFocus()
                 keyboard?.show()
                 bivRequester.bringIntoView()
@@ -539,7 +539,6 @@ fun CustomRadioButton(
 fun PreviewSignOutScreen() {
     ThemeProvider {
         SignOutScreen(
-            name = "김따따",
             onLeaveUser = {},
             onCancel = {}
         )

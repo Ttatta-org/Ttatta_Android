@@ -1,4 +1,4 @@
-package com.umc.mypage
+package com.umc.mypage.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,6 +32,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,6 +59,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.design.component.CustomHeader
 import com.umc.design.theme.LocalColorTheme
+import com.umc.mypage.MyPageViewModel
+import com.umc.mypage.R
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -220,7 +223,7 @@ fun NotificationSettingsScreen(
                                     color = Color(0xFF8E8E8E)
                                 )
                                 // 시간만 선택 (1..12)
-                                androidx.compose.runtime.key(summaryHour12) {
+                                key(summaryHour12) {
                                     DropdownButtonWithMenu(
                                         options = (1..12).map {
                                             it
