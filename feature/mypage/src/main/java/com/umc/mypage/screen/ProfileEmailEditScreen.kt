@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -132,16 +133,18 @@ fun ProfileEmailEditScreen(
                     modifier = Modifier.weight(1f),
                 ) { innerTextField ->
                     Box(
+                        contentAlignment = Alignment.CenterStart,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 20.dp, top = 15.dp, bottom = 15.dp)
                     ) {
-                        if (newEmail.isEmpty()) Text(
+                        Text(
                             text = "이메일 주소를 입력해주세요.",
                             color = LocalColorTheme.current.grey[400],
                             fontWeight = FontWeight.W400,
                             fontSize = 15.sp,
                             lineHeight = 20.sp,
+                            modifier = Modifier.alpha(if (newEmail.isEmpty()) 1f else 0f)
                         )
                         innerTextField.invoke()
                     }
@@ -206,16 +209,18 @@ fun ProfileEmailEditScreen(
                     modifier = Modifier.weight(1f),
                 ) { innerTextField ->
                     Box(
+                        contentAlignment = Alignment.CenterStart,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 20.dp, top = 15.dp, bottom = 15.dp)
                     ) {
-                        if (newEmail.isEmpty()) Text(
+                        Text(
                             text = "인증번호 입력",
                             color = LocalColorTheme.current.grey[400],
                             fontWeight = FontWeight.W400,
                             fontSize = 15.sp,
                             lineHeight = 20.sp,
+                            modifier = Modifier.alpha(if (code.isEmpty()) 1f else 0f),
                         )
                         innerTextField.invoke()
                     }
@@ -228,7 +233,6 @@ fun ProfileEmailEditScreen(
                         color = LocalColorTheme.current.negative,
                         fontWeight = FontWeight.W700,
                         fontSize = 13.sp,
-                        lineHeight = 15.sp,
                     )
                 }
             }

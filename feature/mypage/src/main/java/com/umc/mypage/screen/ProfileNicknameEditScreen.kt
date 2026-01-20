@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -98,14 +99,16 @@ fun ProfileNicknameEditScreen(
                         .padding(horizontal = 20.dp, vertical = 15.dp)
                 ) {
                     Box(
+                        contentAlignment = Alignment.CenterStart,
                         modifier = Modifier.weight(1f),
                     ) {
-                        if (nickname.isEmpty()) Text(
+                        Text(
                             text = "닉네임을 입력해주세요.",
                             color = LocalColorTheme.current.grey[400],
                             fontWeight = FontWeight.W400,
                             fontSize = 15.sp,
                             lineHeight = 20.sp,
+                            modifier = Modifier.alpha(if (nickname.isEmpty()) 1f else 0f)
                         )
                         innerTextField.invoke()
                     }
