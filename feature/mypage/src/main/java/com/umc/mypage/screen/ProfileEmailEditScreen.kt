@@ -43,6 +43,7 @@ fun ProfileEmailEditScreen(
     codeSendingErrorMessage: String?,
     remainTime: Duration?,
     showSendCodeButtonAsResend: Boolean,
+    showTimeOutMessage: Boolean,
     isSendCodeButtonEnabled: Boolean,
     isCodeFieldEditable: Boolean,
     isDoneButtonEnabled: Boolean,
@@ -236,6 +237,17 @@ fun ProfileEmailEditScreen(
                     )
                 }
             }
+            if (showTimeOutMessage) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = "입력 시간이 초과되었습니다.",
+                    color = LocalColorTheme.current.negative,
+                    fontWeight = FontWeight.W700,
+                    fontSize = 13.sp,
+                    lineHeight = 13.sp,
+                    modifier = Modifier.padding(start = 10.dp),
+                )
+            }
             Spacer(modifier = Modifier.height(5.dp))
             Text(
                 text = "※ 닉네임은 8글자 이하로 작성해주세요.",
@@ -276,6 +288,7 @@ private fun ProfileEmailEditScreenPreview() {
             code = "123456",
             codeSendingErrorMessage = "이미 가입된 이메일입니다.",
             remainTime = Duration.ofSeconds(123),
+            showTimeOutMessage = true,
             showSendCodeButtonAsResend = true,
             isSendCodeButtonEnabled = true,
             isCodeFieldEditable = false,

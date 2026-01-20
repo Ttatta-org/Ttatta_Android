@@ -91,7 +91,10 @@ fun MyPageScreen(
             Text(
                 text = errorMessage ?: "유저 정보를 불러오는 중입니다..",
                 color = Color(0xFFFF8072),
-                fontSize = 12.sp
+                fontSize = 12.sp,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(50.dp),
             )
         }
     }

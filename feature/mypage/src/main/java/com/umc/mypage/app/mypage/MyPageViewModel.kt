@@ -8,6 +8,7 @@ import com.umc.core.model.UserInfo
 import com.umc.core.repository.SettingRepository
 import com.umc.core.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.time.LocalTime
@@ -93,7 +94,6 @@ class MyPageViewModel @Inject constructor(
     }
 
     // ----- Pin/유저 메서드 유지 -----
-
     fun refreshPinStatus() {
         viewModelScope.launch {
             _isPinEnabled.value = settingRepository.getIsPinSet()
@@ -114,6 +114,26 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
+    suspend fun updateNickname(nickname: String) {
+        _isLoading.value = true
+        userRepository.modifyUserInfo(name = nickname)
+        _isLoading.value = false
+    }
+
+    suspend fun requestVerificationCodeForUpdateEmail(email: String) {
+        _isLoading.value = true
+        // TODO
+        delay(1000)
+        _isLoading.value = false
+    }
+
+    suspend fun verifyCodeForUpdateEmail(email: String, code: String): Boolean {
+        _isLoading.value = true
+        // TODO
+        delay(1000)
+        _isLoading.value = false
+        return true
+    }
 
     // ===== 알림 설정 UI 상태 =====
     data class NotificationSettingsUiState(
