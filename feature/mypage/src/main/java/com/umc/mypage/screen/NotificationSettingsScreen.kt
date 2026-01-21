@@ -27,7 +27,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -55,7 +54,6 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.design.component.CustomHeader
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
@@ -80,15 +78,6 @@ fun NotificationSettingsScreen(
     onLocationToggle: (Boolean) -> Unit,
     onBackClick: () -> Unit,
 ) {
-    val systemUiController = rememberSystemUiController()
-    val backgroundColor = Color(0xFFFFFFFF) // 상태바 배경색 (배경과 맞춤)
-
-    SideEffect {
-        systemUiController.setStatusBarColor(
-            color = backgroundColor, // ✅ 상태바를 앱 배경색과 동일하게 설정
-        )
-    }
-
     Column(
         modifier = Modifier
             .background(Color.White)
@@ -100,7 +89,6 @@ fun NotificationSettingsScreen(
             backgroundColor = LocalColorTheme.current.secondary[100],
             onBackButtonClicked = onBackClick,
         )
-        // ✅ 2. LazyColumn (스크롤 가능한 콘텐츠)
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
