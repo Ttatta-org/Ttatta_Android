@@ -80,7 +80,7 @@ fun SignOutScreen(
     var etcText by rememberSaveable { mutableStateOf("") }
     var agreed by rememberSaveable { mutableStateOf(false) }
 
-    var topBarHeight by remember { mutableStateOf(42.dp) }
+    var topBarHeight by remember { mutableStateOf(66.dp) }
 
     Box(
         modifier = Modifier
