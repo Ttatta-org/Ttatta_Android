@@ -2,7 +2,6 @@ package com.umc.mypage.app.mypage
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,15 +34,17 @@ fun MyPageApp(
     val userInfo by viewModel.userInfoState.collectAsState()
     var errorMessage: String? by remember { mutableStateOf(null) }
 
-    LaunchedEffect(Unit) {
-        runCatching { viewModel.loadUserInfo() }
-            .onFailure { errorMessage = "유저 정보를 불러오지 못했습니다." }
-    }
-
     DisposableEffect(onNavigationBarVisibilityChanged) {
         val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
             when (destination.route) {
-                "my-page" -> onNavigationBarVisibilityChanged(true)
+                "my-page" -> {
+                    viewModel.runWithScope {
+                        runCatching { viewModel.loadUserInfo() }
+                            .onFailure { errorMessage = "유저 정보를 불러오지 못했습니다." }
+                    }
+                    onNavigationBarVisibilityChanged(true)
+                }
+
                 else -> onNavigationBarVisibilityChanged(false)
             }
         }
