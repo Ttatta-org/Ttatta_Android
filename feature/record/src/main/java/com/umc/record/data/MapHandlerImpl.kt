@@ -37,6 +37,7 @@ import com.umc.record.core.MapHandler
 import com.umc.record.core.locatorHeight
 import com.umc.record.core.locatorWidth
 import com.umc.record.util.loadRawImageAsBitmap
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -45,7 +46,7 @@ private val pinSize = DpSize(56.dp, 83.dp)
 private val pinOffsetRatio = PointF(0.5f, 2f/ 3f)
 
 class MapHandlerImpl @Inject constructor(
-    context: Context,
+    @ApplicationContext context: Context,
     private val locationHandler: LocationHandler,
 ) : MapHandler {
 

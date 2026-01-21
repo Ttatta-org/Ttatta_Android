@@ -14,7 +14,6 @@ import com.umc.record.core.MapHandler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.io.File
 import java.time.LocalDateTime
@@ -22,12 +21,6 @@ import javax.inject.Inject
 
 data class CurrentPinnedLocationInfo(
     val name: String?,
-    val latitude: Double,
-    val longitude: Double,
-)
-
-data class SearchResultInfo(
-    val name: String,
     val latitude: Double,
     val longitude: Double,
 )
@@ -219,21 +212,6 @@ class RecordViewModel @Inject constructor(
         onSucceed: () -> Unit = {},
         onFailed: (e: Exception) -> Unit = {},
     ) {
-//        viewModelScope.launch {
-//            try {
-//                val location = geocoder.searchLocationByKeyword(searchWord).first()
-//                mapHandler.movePin(location.latitude, location.longitude)
-//                onSucceed()
-//            } catch (e: Exception) {
-//                try {
-//                    val (lat, lng) = geocoder.convertAddressToCoordinate(searchWord)
-//                    mapHandler.movePin(lat, lng)
-//                    onSucceed()
-//                } catch (e: Exception) {
-//                    onFailed(e)
-//                }
-//            }
-//        }
         viewModelScope.launch {
             try {
                 val list = geocoder.searchLocationByKeyword(searchWord)

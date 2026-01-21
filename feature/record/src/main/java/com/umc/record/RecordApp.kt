@@ -15,13 +15,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.umc.design.CategoryColor
 import com.umc.design.component.LoadingModal
 import com.umc.record.component.CategoryDropdownItemProp
-import com.umc.record.component.CategoryDropdownProp
-import com.umc.record.component.DiaryBottomSheetProp
-import com.umc.record.component.LocationBottomSheetProp
+import com.umc.record.screen.CategoryDropdownProp
 import com.umc.record.screen.EditLocationScreen
-import com.umc.record.screen.EditLocationScreenTopBarProp
 import com.umc.record.screen.RecordScreen
 import com.umc.record.util.ImageMetadata
 import com.umc.record.util.getImageMetadata
@@ -44,14 +42,6 @@ fun RecordApp(
 
     var date by remember(metadata) { mutableStateOf(metadata?.date ?: LocalDateTime.now()) }
 
-//    var coordinates by remember(metadata) {
-//        mutableStateOf(
-//            if (metadata?.latitude != null && metadata.longitude != null) metadata.latitude to metadata.longitude
-//            else null
-//        )
-//    }
-//
-//    var locationName by remember { mutableStateOf("") }
     val selectedLocationInfo = viewModel.selectedLocationInfo
     val coordinates = selectedLocationInfo?.let { it.latitude to it.longitude }
     val locationName = selectedLocationInfo?.name ?: ""
@@ -95,8 +85,8 @@ fun RecordApp(
                 image = image,
                 date = date,
                 location = locationName,
-                selectedCategoryColor = viewModel.selectedCategory?.color,
-                showLoadingDialog = isUploading,
+                selectedCategoryColor = viewModel.selectedCategory?.color ?: CategoryColor.RED,
+                showLocationMissingTooltip = false,  // TODO
                 categoryDropdownProp = if (showCategoryDropdown) CategoryDropdownProp(
                     itemProps = viewModel.categoryInfos.map {
                         CategoryDropdownItemProp(
@@ -110,35 +100,37 @@ fun RecordApp(
                     },
                     onNewCategoryButtonClicked = onNavigateToCategoryApp
                 ) else null,
-                diaryBottomSheetProp = DiaryBottomSheetProp(
-                    userName = viewModel.userName,
-                    diaryContent = diaryContent,
-                    onCreateButtonClicked = {
-                        val selectedLocation = viewModel.selectedLocationInfo
+                userName = viewModel.userName,
+                diaryContent = diaryContent,
+                onCreateButtonClicked = {
+                    val selectedLocation = viewModel.selectedLocationInfo
 
-                        if (!isUploading && image != null && selectedLocation != null) {
-                            isUploading = true
-                            viewModel.saveDiary(
-                                image = image,
-                                content = diaryContent,
-                                categoryId = viewModel.selectedCategory?.id!!,
-                                date = date,
-                                latitude = selectedLocation.latitude,
-                                longitude = selectedLocation.longitude,
-                                locationName = selectedLocation.name ?: "",
-                                onSucceed = onDone,
-                                onFailed = {
-                                    isUploading = false
-                                    Toast.makeText(context, "등록에 실패했습니다.", Toast.LENGTH_SHORT).show()
-                                }
-                            )
-                        } else if (selectedLocation == null) {
-                            Toast.makeText(context, "위치를 설정해 주세요!", Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    onDiaryContentChanged = onDiaryContentChanged,
-                    isButtonEnabled = !isUploading
-                ),
+                    if (!isUploading && image != null && selectedLocation != null) {
+                        isUploading = true
+                        viewModel.saveDiary(
+                            image = image,
+                            content = diaryContent,
+                            categoryId = viewModel.selectedCategory?.id!!,
+                            date = date,
+                            latitude = selectedLocation.latitude,
+                            longitude = selectedLocation.longitude,
+                            locationName = selectedLocation.name ?: "",
+                            onSucceed = onDone,
+                            onFailed = {
+                                isUploading = false
+                                Toast
+                                    .makeText(context, "등록에 실패했습니다.", Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                        )
+                    } else if (selectedLocation == null) {
+                        Toast
+                            .makeText(context, "위치를 설정해 주세요!", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                },
+                onDiaryContentChanged = onDiaryContentChanged,
+                isSubmitButtonEnabled = !isUploading,
                 onDateChipClicked = { /* TODO */ },
                 onLocationChipClicked = { navController.navigate("location") },
                 onCategoryChipClicked = { showCategoryDropdown = !showCategoryDropdown }
@@ -156,66 +148,35 @@ fun RecordApp(
                             isLocationMarkingEnabled = false,
                         )
                     },
-                    topBarProp = EditLocationScreenTopBarProp(
-                        searchWord = searchWord,
-                        onSearchWordChanged = { new ->
-                            searchWord = new
-                            // 타이핑할 때마다 ViewModel 쪽 실시간 검색 트리거
-                            viewModel.onSearchWordChangedRealtime(new)
-                        },
-                        onSearchButtonClicked = {
-                            viewModel.searchLocation(
-                                searchWord = searchWord,
-                                onSucceed = { /* TODO */ },
-                                onFailed = { /* TODO */ }
-                            )
-                        }
-                    ),
-                    bottomSheetProp = LocationBottomSheetProp(
-                        location = viewModel.currentPinnedLocationInfo?.name,
-                        isConfirming = isConfirming,
-                        onConfirm = { confirmedLocationName ->
-                            if (isConfirming) return@LocationBottomSheetProp // 연타 방지
-
-                            val info = viewModel.currentPinnedLocationInfo
-                            if (info == null) {
-                                Toast.makeText(
-                                    context,
-                                    "위치를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                return@LocationBottomSheetProp
-                            }
-
-                            isConfirming = true
-
-                            viewModel.currentPinnedLocationInfo?.let { info ->
-                                viewModel.updateSelectedLocation(
-                                    name = confirmedLocationName,
-                                    latitude = info.latitude,
-                                    longitude = info.longitude,
-                                )
-                                navController.popBackStack()
-                            }
-                        }
-                    ),
-                    onLocationButtonClicked = {
+                    searchValue = searchWord,
+                    searchResults = TODO(),
+                    location = viewModel.currentPinnedLocationInfo?.name ?: "",
+                    isTopBarExpanded = TODO(),
+                    isEnteringMode = TODO(),
+                    onSearchValueChanged = { new ->
+                        searchWord = new
+                        viewModel.onSearchWordChangedRealtime(new)
+                    },
+                    onSearchButtonClicked = {
+                        viewModel.searchLocation(
+                            searchWord = searchWord,
+                            onSucceed = { /* TODO */ },
+                            onFailed = { /* TODO */ }
+                        )
+                    },
+                    onLocationChanged = {
+                        TODO()
+                    },
+                    onConfirmButtonClicked = {
+                        TODO()
+                    },
+                    onCurrentLocationButtonClicked = {
                         viewModel.movePinToCurrentLocation(
                             onSucceed = { /* TODO */ },
                             onFailed = { /* TODO */ }
                         )
                     },
-                    searchResults = viewModel.searchResults,  // 패널에 표시할 검색 결과 전달
-                    onSelectSearchResult = { result ->  // 검색 결과 선택 시 핀 이동
-                        viewModel.selectSearchResult(
-                            result = result,
-                            onSucceed = { /* 필요 시 패널 닫기 동작은 EditLocationScreen에서 처리됨 */ },
-                            onFailed = { /* TODO */ }
-                        )
-                    },
-                    onClickMoreResults = {  // '더보기' 클릭 처리 (필요 시 구현)
-                        // TODO: 전체 목록 보여주기
-                    }
+                    onMoreResultsButtonClicked = TODO(),
                 )
 
                 if (isConfirming) LoadingModal()

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -21,19 +22,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -42,59 +40,44 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.umc.design.CategoryColor
-import com.umc.design.Primary300
-import com.umc.design.component.LoadingModal
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.record.R
 import com.umc.record.component.CategoryDropdown
-import com.umc.record.component.CategoryDropdownProp
+import com.umc.record.component.CategoryDropdownItemProp
 import com.umc.record.component.DiaryBottomSheet
-import com.umc.record.component.DiaryBottomSheetProp
-import com.umc.record.component.previewCategoryDropdownProp
-import com.umc.record.component.previewDiaryBottomSheetProp
+import com.umc.record.util.RecordCategoryColorScheme
 import java.io.File
-import java.io.FileOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+data class CategoryDropdownProp(
+    val itemProps: List<CategoryDropdownItemProp>,
+    val onNewCategoryButtonClicked: () -> Unit,
+)
 
 @Composable
 fun RecordScreen(
     image: File?,
     date: LocalDateTime,
     location: String,
-    selectedCategoryColor: CategoryColor?,
-    showLoadingDialog: Boolean,
+    selectedCategoryColor: CategoryColor,
+    showLocationMissingTooltip: Boolean,
+    userName: String,
+    diaryContent: String,
+    isSubmitButtonEnabled: Boolean,
     categoryDropdownProp: CategoryDropdownProp?,
-    diaryBottomSheetProp: DiaryBottomSheetProp,
+    onCreateButtonClicked: () -> Unit,
+    onDiaryContentChanged: (String) -> Unit,
     onDateChipClicked: () -> Unit,
     onLocationChipClicked: () -> Unit,
     onCategoryChipClicked: () -> Unit,
 ) {
     val density = LocalDensity.current
-
-    // 카테고리 이름과 배경색 매핑
-    val categoryBackgroundColors = mapOf(
-        "RED" to Color(0xE5FFC0C0),
-        "ORANGE" to Color(0xE5FFE0D3),
-        "YELLOW" to Color(0xE5FFF4D4),
-        "GREEN" to Color(0xE5E3FFCC),
-        "TURQUOISE" to Color(0xE5D6FAF6),
-        "BLUE" to Color(0xE5D4EFFF),
-        "NAVY" to Color(0xE5D1DDFF),
-        "PURPLE" to Color(0xE5EFD9FF),
-        "BROWN" to Color(0xE5EBD9CF),
-        "WHITE" to Color(0xE5FFFFFF),
-        "PINK" to Color(0xE5FFC5E0),
-        "BLACK" to Color(0xE5ACACAC)
-    )
-    // 기본 배경색
-    val defaultBackgroundColor = Color(0xE6FDDDC1)
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -104,7 +87,9 @@ fun RecordScreen(
             model = image,
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .background(LocalColorTheme.current.grey[700])
         )
         // 상단 칩 메뉴
         Box(
@@ -112,15 +97,16 @@ fun RecordScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(horizontal = 16.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.padding(horizontal = 22.dp)
             ) {
-                var categoryChipCenterOffset by remember { mutableStateOf(Offset.Zero) }
+                var chipHeight: Dp? by remember { mutableStateOf(null) }
+                var locationChipCenterOffset: Dp? by remember { mutableStateOf(null) }
+                var categoryChipCenterOffset: Dp? by remember { mutableStateOf(null) }
 
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(
-                        12.dp,
+                        space = 8.4.dp,
                         alignment = Alignment.CenterHorizontally
                     ),
                     verticalAlignment = Alignment.CenterVertically,
@@ -130,42 +116,37 @@ fun RecordScreen(
                                 .asPaddingValues()
                                 .calculateTopPadding()
                         )
+                        .onSizeChanged { chipHeight = with(density) { it.height.toDp() } }
                 ) {
-                    var maxHeight by remember { mutableStateOf<Dp?>(null) }
-
                     // 날짜
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .background(
                                 color = LocalColorTheme.current.secondary[100].copy(0.9f),
-                                shape = RoundedCornerShape(14.dp)
+                                shape = RoundedCornerShape(14.dp),
                             )
                             .clip(RoundedCornerShape(14.dp))
                             .clickable { onDateChipClicked() }
-                            .onGloballyPositioned {
-                                val height = with(density) { it.size.height.toDp() }
-                                maxHeight = maxHeight?.let { maxHeight ->
-                                    max(maxHeight, height)
-                                } ?: height
-                            }
-                            .let {
-                                maxHeight?.let { maxHeight -> it.height(maxHeight) } ?: it
-                            }
+                            .let { chipHeight?.let { height -> it.height(height) } ?: it }
                     ) {
                         Text(
-                            text = date.toLocalDate().run {
-                                "%04d.%02d.%02d".format(year, monthValue, dayOfMonth)
-                            },
+                            text = date
+                                .toLocalDate()
+                                .run { "%d.%02d.%02d".format(year, monthValue, dayOfMonth) },
                             textAlign = TextAlign.Center,
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.ExtraBold,
+                            lineHeight = 14.sp,
+                            fontWeight = FontWeight.W700,
+                            letterSpacing = (-0.4).sp,
                             color = LocalColorTheme.current.primary[500],
                             modifier = Modifier.padding(horizontal = 13.dp, vertical = 8.dp)
                         )
                     }
                     // 위치
                     Row(
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .weight(1f, fill = false)
                             .background(
@@ -174,98 +155,90 @@ fun RecordScreen(
                             )
                             .clip(RoundedCornerShape(14.dp))
                             .clickable { onLocationChipClicked() }
-                            .onGloballyPositioned {
-                                val height = with(density) { it.size.height.toDp() }
-                                maxHeight = maxHeight?.let { maxHeight ->
-                                    max(maxHeight, height)
-                                } ?: height
+                            .onGloballyPositioned { coordinates ->
+                                val position = coordinates.positionInParent().x
+                                val length = coordinates.size.width
+
+                                locationChipCenterOffset = with(density) {
+                                    (position + length / 2f).toDp()
+                                }
                             }
-                            .let {
-                                maxHeight?.let { maxHeight -> it.height(maxHeight) } ?: it
-                            }
+                            .let { chipHeight?.let { height -> it.height(height) } ?: it }
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
                     ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(5.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_location),
-                                contentDescription = null,
-                                modifier = Modifier.width(10.6.dp),
-                                tint = LocalColorTheme.current.primary[500],
-                            )
-                            Text(
-                                text = location,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Black,
-                                color = LocalColorTheme.current.primary[500],
-//                                modifier = Modifier.padding(end = 4.dp),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_location),
+                            contentDescription = null,
+                            contentScale = ContentScale.FillWidth,
+                            modifier = Modifier.width(10.6.dp),
+                        )
+                        Text(
+                            text = location,
+                            fontSize = 14.sp,
+                            lineHeight = 14.sp,
+                            fontWeight = FontWeight.W800,
+                            letterSpacing = (-0.4).sp,
+                            color = LocalColorTheme.current.primary[500],
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                     }
                     // 카테고리
-                    val categoryName = selectedCategoryColor?.name
-                    val categoryBackgroundColor = categoryName?.let {
-                        categoryBackgroundColors[it]
-                    } ?: defaultBackgroundColor
-
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
                             .background(
-                                color = categoryBackgroundColor,
-                                shape = RoundedCornerShape(14.dp)
+                                color = RecordCategoryColorScheme.ChipBackgroundColor[selectedCategoryColor]!!.copy(
+                                    alpha = 0.9f
+                                ),
+                                shape = RoundedCornerShape(14.dp),
                             )
                             .clip(RoundedCornerShape(14.dp))
                             .clickable { onCategoryChipClicked() }
                             .onGloballyPositioned {
-                                val height = with(density) { it.size.height.toDp() }
-                                maxHeight = maxHeight?.let { maxHeight ->
-                                    max(maxHeight, height)
-                                } ?: height
-                                categoryChipCenterOffset = it.positionInParent().let { offset ->
-                                    Offset(
-                                        x = offset.x + it.size.width / 2,
-                                        y = offset.y + it.size.height / 2
-                                    )
+                                val position = it.positionInParent().x
+                                val length = it.size.width
+
+                                categoryChipCenterOffset = with(density) {
+                                    (position + length / 2f).toDp()
                                 }
                             }
-                            .let {
-                                maxHeight?.let { maxHeight -> it.height(maxHeight) } ?: it
-                            }
+                            .let { chipHeight?.let { height -> it.height(height) } ?: it }
+                            .padding(horizontal = 9.dp, vertical = 4.dp)
                     ) {
+                        Icon(
+                            painter = painterResource(CategoryColor.entries.first().footV2IconId),
+                            contentDescription = null,
+                            tint = RecordCategoryColorScheme.ChipFootColor[selectedCategoryColor]!!,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                }
+                Box {
+                    // 위치 정보 추가 툴팁
+                    if (showLocationMissingTooltip) locationChipCenterOffset?.let { offset ->
                         Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
+                            modifier = Modifier.offset(x = offset - 88.5f.dp)
                         ) {
                             Image(
-                                painter = painterResource(
-                                    id = selectedCategoryColor?.footIconId
-                                        ?: R.drawable.ic_foot_default
-                                ),
+                                painter = painterResource(R.raw.img_record_location_info_missing_tooltip),
                                 contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(22.dp)
+                                contentScale = ContentScale.FillWidth,
+                                modifier = Modifier.width(177.dp)
                             )
                         }
                     }
-                }
-                // 카테고리 드롭다운 메뉴
-                categoryDropdownProp?.let { prop ->
-                    var dropdownWidth by remember { mutableIntStateOf(0) }
-
-                    Box(
-                        modifier = Modifier
-                            .onGloballyPositioned { dropdownWidth = it.size.width }
-                    ) {
-                        CategoryDropdown(
-                            prop = prop,
-                            selectedCategoryForDashes = selectedCategoryColor,
-                            selectedCategoryForBackground = selectedCategoryColor,
-                        )
+                    // 카테고리 드롭다운 메뉴
+                    if (categoryDropdownProp != null) categoryChipCenterOffset?.let { offset ->
+                        Box(
+                            modifier = Modifier.offset(x = offset - 190.dp)
+                        ) {
+                            CategoryDropdown(
+                                itemProps = categoryDropdownProp.itemProps,
+                                selectedCategoryColor = selectedCategoryColor,
+                                onNewCategoryButtonClicked = categoryDropdownProp.onNewCategoryButtonClicked,
+                            )
+                        }
                     }
                 }
             }
@@ -276,41 +249,46 @@ fun RecordScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             DiaryBottomSheet(
-                prop = diaryBottomSheetProp
+                userName = userName,
+                diaryContent = diaryContent,
+                isButtonEnabled = isSubmitButtonEnabled,
+                onCreateButtonClicked = onCreateButtonClicked,
+                onDiaryContentChanged = onDiaryContentChanged,
             )
         }
     }
-
-    if (showLoadingDialog) LoadingModal()
 }
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewRecordScreen() {
-    val context = LocalContext.current
-
+private fun PreviewRecordScreen() {
     ThemeProvider {
         RecordScreen(
-//        image = File(
-//            context.cacheDir,
-//            "image.jpg"
-//        ).apply {
-//            FileOutputStream(this).use {
-//                context.resources.openRawResource(R.raw.img_test).copyTo(it)
-//            }
-//        },
             image = null,
             date = LocalDate
                 .parse("2025.12.26", DateTimeFormatter.ofPattern("yyyy.MM.dd"))
                 .atStartOfDay(),
-            location = "Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE Cafe PORTE",
+            location = "Cate PORTE Cate PORTE Cate PORTE",
             selectedCategoryColor = CategoryColor.GREEN,
-            showLoadingDialog = false,
-            categoryDropdownProp = previewCategoryDropdownProp,
-            diaryBottomSheetProp = previewDiaryBottomSheetProp,
+            showLocationMissingTooltip = true,
+            userName = "김따따",
+            diaryContent = "asdf",
+            isSubmitButtonEnabled = true,
+            categoryDropdownProp = CategoryDropdownProp(
+                itemProps = CategoryColor.entries.map {
+                    CategoryDropdownItemProp(
+                        color = it,
+                        name = it.name,
+                        onClicked = {},
+                    )
+                },
+                onNewCategoryButtonClicked = {},
+            ),
             onDateChipClicked = {},
             onLocationChipClicked = {},
             onCategoryChipClicked = {},
+            onCreateButtonClicked = {},
+            onDiaryContentChanged = {},
         )
     }
 }
