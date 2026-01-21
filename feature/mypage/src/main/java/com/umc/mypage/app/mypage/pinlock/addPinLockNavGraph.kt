@@ -1,4 +1,4 @@
-package com.umc.mypage.app.mypage.navigation
+package com.umc.mypage.app.mypage.pinlock
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -16,7 +17,6 @@ import androidx.navigation.navigation
 import com.umc.core.util.runWithScope
 import com.umc.core.util.showToast
 import com.umc.design.component.LoadingModal
-import com.umc.mypage.app.mypage.MyPageViewModel
 import com.umc.mypage.screen.LockPasswordScreen
 import com.umc.mypage.screen.LockSettingsScreen
 import kotlinx.coroutines.MainScope
@@ -24,17 +24,18 @@ import kotlinx.coroutines.launch
 
 fun NavGraphBuilder.addPinLockNavGraph(
     route: String,
-    viewModel: MyPageViewModel,
     navController: NavController,
 ) = navigation(
     startDestination = "${route}/home",
     route = route,
 ) {
-    composable("${route}/home") {
+    composable("${route}/home") { backStackEntry ->
+        val viewModel: PinLockViewModel = hiltViewModel(backStackEntry)
+
         val isPinSet by viewModel.isPinEnabled.collectAsState()
 
         LaunchedEffect(Unit) {
-            viewModel.refreshPinStatus() // 화면 진입 시 최신 상태 반영
+            viewModel.refreshPinStatus()
         }
 
         LockSettingsScreen(
@@ -45,7 +46,7 @@ fun NavGraphBuilder.addPinLockNavGraph(
                 MainScope().launch { navController.navigate("${route}/pin?change=true") }
             },
             isPinSet = isPinSet,
-            clearPin = { viewModel.clearPin() },
+            clearPin = { viewModel.runWithScope { runCatching { clearPin() } } },
             onBackClick = {
                 MainScope().launch { navController.popBackStack() }
             },
@@ -56,6 +57,8 @@ fun NavGraphBuilder.addPinLockNavGraph(
         route = "${route}/pin?change={change}",
         arguments = listOf(navArgument("change") { this.defaultValue = false }),
     ) { backStackEntry ->
+        val viewModel: PinLockViewModel = hiltViewModel(backStackEntry)
+
         val isChangeMode = backStackEntry.arguments?.getBoolean("change") ?: false
         val context = LocalContext.current
         val isLoading by viewModel.isLoading.collectAsState()

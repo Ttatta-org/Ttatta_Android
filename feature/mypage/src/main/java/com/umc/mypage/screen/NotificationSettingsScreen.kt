@@ -59,8 +59,8 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.umc.design.component.CustomHeader
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
-import com.umc.mypage.app.mypage.MyPageViewModel
 import com.umc.mypage.R
+import com.umc.mypage.app.mypage.notification.NotificationSettingViewModel
 import com.umc.mypage.component.ToggleSettingItem
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -70,7 +70,7 @@ import kotlin.math.roundToInt
 
 @Composable
 fun NotificationSettingsScreen(
-    state: MyPageViewModel.NotificationSettingsUiState,
+    state: NotificationSettingViewModel.NotificationSettingsUiState,
     onDailyToggle: (Boolean) -> Unit,
     onDailyTimeChange: (isPm: Boolean, hour12: Int, minute: Int) -> Unit,
     onSummaryToggle: (Boolean) -> Unit,
@@ -667,7 +667,7 @@ private fun DropdownChevronIcon(
 private fun PreviewNotificationSettingsScreen() {
     ThemeProvider {
         NotificationSettingsScreen(
-            state = MyPageViewModel.NotificationSettingsUiState(
+            state = NotificationSettingViewModel.NotificationSettingsUiState(
                 isLoading = false,
                 error = null,
                 dailyOn = true,

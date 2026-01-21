@@ -114,6 +114,7 @@ fun SignOutScreen(
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 SignOutButtonRow(
+                    isConfirmButtonEnabled = agreed,
                     onCancel = onCancel,
                     showConfirmDialog = {
                         if (agreed && selectedReason != null) {
@@ -466,6 +467,7 @@ private fun CustomCheckboxWithText(
 // 하단 버튼
 @Composable
 private fun SignOutButtonRow(
+    isConfirmButtonEnabled: Boolean,
     onCancel: () -> Unit,
     showConfirmDialog: (Boolean) -> Unit
 ) {
@@ -491,6 +493,7 @@ private fun SignOutButtonRow(
         Box(modifier = Modifier.weight(1f)) {
             CustomButton(
                 text = "제출",
+                isEnabled = isConfirmButtonEnabled,
                 onClick = { showConfirmDialog(true) },
             )
         }

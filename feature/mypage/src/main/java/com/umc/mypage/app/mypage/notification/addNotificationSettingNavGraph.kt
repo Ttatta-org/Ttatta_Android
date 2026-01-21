@@ -1,4 +1,4 @@
-package com.umc.mypage.app.mypage.navigation
+package com.umc.mypage.app.mypage.notification
 
 import android.Manifest
 import android.content.Intent
@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -20,9 +21,9 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
+import com.umc.core.util.runWithScope
 import com.umc.core.util.showToast
 import com.umc.design.component.LocationAccessPopup
-import com.umc.mypage.app.mypage.MyPageViewModel
 import com.umc.mypage.screen.NotificationSettingsScreen
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -30,20 +31,22 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalPermissionsApi::class)
 fun NavGraphBuilder.addNotificationSettingNavGraph(
     route: String,
-    viewModel: MyPageViewModel,
     navController: NavController,
     onBackgroundLocationRequirementChanged: (isRequired: Boolean) -> Boolean,
 ) = navigation(
     startDestination = "${route}/toggles",
     route = route,
 ) {
-    composable("${route}/toggles") {
-        val context = LocalContext.current
-        val notiState by viewModel.notificationUi.collectAsState()
+    composable("${route}/toggles") { backStackEntry ->
+        val viewModel: NotificationSettingViewModel = hiltViewModel(backStackEntry)
 
-        val notificationPermissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
-        } else null
+        val context = LocalContext.current
+        val notificationUiState by viewModel.notificationUi.collectAsState()
+
+        val notificationPermissionState =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                rememberPermissionState(Manifest.permission.POST_NOTIFICATIONS)
+            } else null
 
         val notificationAndLocationPermissionState =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -69,54 +72,45 @@ fun NavGraphBuilder.addNotificationSettingNavGraph(
             // ⬇️ 화면이 stateful이라면 이 파트만 먼저 적용:
             // 1) 스위치 상태/초깃값들을 notiState로 치환
             // 2) onCheckedChange / 시간 변경 콜백에서 viewModel 메서드 호출
-            state = notiState,                                // ⬅️ (아래 3번 참고: 화면 시그니처 바꾸는안)
-            onDailyToggle = {
-                if (it) {
-                    if (notificationPermissionState == null || notificationPermissionState.status == PermissionStatus.Granted) {
-                        viewModel.onDailyToggle(true)
-                    } else {
-                        notificationPermissionState.launchPermissionRequest()
-                    }
+            state = notificationUiState,                                // ⬅️ (아래 3번 참고: 화면 시그니처 바꾸는안)
+            onDailyToggle = { isOn ->
+                if (isOn && notificationPermissionState != null && notificationPermissionState.status != PermissionStatus.Granted) {
+                    notificationPermissionState.launchPermissionRequest()
                 } else {
-                    viewModel.onDailyToggle(false)
+                    viewModel.runWithScope { onDailyToggle(isOn) }
                 }
             },
-            onDailyTimeChange = viewModel::onDailyTimeChange,
-            onSummaryToggle = {
-                if (it) {
-                    if (notificationPermissionState == null || notificationPermissionState.status == PermissionStatus.Granted) {
-                        viewModel.onSummaryToggle(true)
-                    } else {
-                        notificationPermissionState.launchPermissionRequest()
-                    }
-                } else {
-                    viewModel.onSummaryToggle(false)
+            onDailyTimeChange = { isPm, hour12, minute ->
+                viewModel.runWithScope {
+                    onDailyTimeChange(isPm, hour12, minute)
                 }
             },
-            onSummaryHourChange = viewModel::onSummaryHourChange,
-            onChallengeToggle = {
-                if (it) {
-                    if (notificationPermissionState == null || notificationPermissionState.status == PermissionStatus.Granted) {
-                        viewModel.onChallengeToggle(true)
-                    } else {
-                        notificationPermissionState.launchPermissionRequest()
-                    }
+            onSummaryToggle = { isOn ->
+                if (isOn && notificationPermissionState != null && notificationPermissionState.status != PermissionStatus.Granted) {
+                    notificationPermissionState.launchPermissionRequest()
                 } else {
-                    viewModel.onChallengeToggle(false)
+                    viewModel.runWithScope { onSummaryToggle(isOn) }
                 }
             },
-            onChallengeHoursChange = viewModel::onChallengeHoursChange,
-            onLocationToggle = {
-                if (it) {
-                    if (notificationAndLocationPermissionState.allPermissionsGranted) {
-                        viewModel.onLocationToggle(true)
-                        onBackgroundLocationRequirementChanged(true)
-                    } else {
-                        showLocationPermissionPopup = true
-                    }
+            onSummaryHourChange = { hour ->
+                viewModel.runWithScope { onSummaryHourChange(hour) }
+            },
+            onChallengeToggle = { isOn ->
+                if (isOn && notificationPermissionState != null && notificationPermissionState.status != PermissionStatus.Granted) {
+                    notificationPermissionState.launchPermissionRequest()
                 } else {
-                    viewModel.onLocationToggle(false)
-                    onBackgroundLocationRequirementChanged(false)
+                    viewModel.runWithScope { onChallengeToggle(isOn) }
+                }
+            },
+            onChallengeHoursChange = { hours ->
+                viewModel.runWithScope { onChallengeHoursChange(hours) }
+            },
+            onLocationToggle = { isOn ->
+                if (isOn && !notificationAndLocationPermissionState.allPermissionsGranted) {
+                    showLocationPermissionPopup = true
+                } else {
+                    viewModel.runWithScope { onLocationToggle(isOn) }
+                    onBackgroundLocationRequirementChanged(isOn)
                 }
             },
             onBackClick = {

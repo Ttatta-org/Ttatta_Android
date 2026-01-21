@@ -1,4 +1,4 @@
-package com.umc.mypage.app.mypage.navigation
+package com.umc.mypage.app.mypage.updateprofile
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -14,7 +15,6 @@ import androidx.navigation.navigation
 import com.umc.core.util.runWithScope
 import com.umc.core.util.showToast
 import com.umc.design.component.LoadingModal
-import com.umc.mypage.app.mypage.MyPageViewModel
 import com.umc.mypage.screen.ProfileEditScreen
 import com.umc.mypage.screen.ProfileEmailEditScreen
 import com.umc.mypage.screen.ProfileNicknameEditScreen
@@ -26,14 +26,14 @@ import java.time.LocalDateTime
 
 fun NavGraphBuilder.addUpdateProfileNavGraph(
     route: String,
-    viewModel: MyPageViewModel,
     navController: NavController,
 ) = navigation(
     startDestination = "$route/info",
     route = route,
 ) {
-    composable("$route/info") {
-        val userInfo by viewModel.userInfoState.collectAsState()
+    composable("$route/info") { backStackEntry ->
+        val viewModel: UpdateProfileViewModel = hiltViewModel(backStackEntry)
+        val userInfo by viewModel.userInfo.collectAsState()
 
         LaunchedEffect(Unit) {
             viewModel.loadUserInfo()
@@ -54,7 +54,8 @@ fun NavGraphBuilder.addUpdateProfileNavGraph(
         )
     }
 
-    composable("$route/nickname") {
+    composable("$route/nickname") { backStackEntry ->
+        val viewModel: UpdateProfileViewModel = hiltViewModel(backStackEntry)
         val context = LocalContext.current
 
         var nickname by remember { mutableStateOf("") }
@@ -83,10 +84,11 @@ fun NavGraphBuilder.addUpdateProfileNavGraph(
         if (isLoading) LoadingModal()
     }
 
-    composable("$route/email") {
+    composable("$route/email") { backStackEntry ->
+        val viewModel: UpdateProfileViewModel = hiltViewModel(backStackEntry)
         val context = LocalContext.current
 
-        val userInfo by viewModel.userInfoState.collectAsState()
+        val userInfo by viewModel.userInfo.collectAsState()
         val isLoading by viewModel.isLoading.collectAsState()
 
         var email by remember { mutableStateOf("") }

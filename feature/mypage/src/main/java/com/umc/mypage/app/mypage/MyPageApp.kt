@@ -5,15 +5,19 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.umc.mypage.app.mypage.navigation.addNotificationSettingNavGraph
-import com.umc.mypage.app.mypage.navigation.addPinLockNavGraph
-import com.umc.mypage.app.mypage.navigation.addSignOutNavGraph
-import com.umc.mypage.app.mypage.navigation.addUpdateProfileNavGraph
+import com.umc.core.util.runWithScope
+import com.umc.mypage.app.mypage.notification.addNotificationSettingNavGraph
+import com.umc.mypage.app.mypage.pinlock.addPinLockNavGraph
+import com.umc.mypage.app.mypage.signout.addSignOutNavGraph
+import com.umc.mypage.app.mypage.updateprofile.addUpdateProfileNavGraph
 import com.umc.mypage.screen.MyPageScreen
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -29,10 +33,11 @@ fun MyPageApp(
     val navController = rememberNavController()
 
     val userInfo by viewModel.userInfoState.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
+    var errorMessage: String? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
-        viewModel.loadUserInfo()
+        runCatching { viewModel.loadUserInfo() }
+            .onFailure { errorMessage = "유저 정보를 불러오지 못했습니다." }
     }
 
     DisposableEffect(onNavigationBarVisibilityChanged) {
@@ -65,10 +70,9 @@ fun MyPageApp(
                     MainScope().launch { navController.navigate("pin-lock") }
                 },
                 onLogoutButtonClicked = {
-                    viewModel.logout(
-                        onSuccess = onLoginCanceled,
-                        onError = { /* 에러 처리 */ },
-                    )
+                    viewModel.runWithScope {
+                        runCatching { logout() }.onSuccess { onLoginCanceled() }
+                    }
                 },
                 onLeaveUserButtonClicked = {
                     MainScope().launch { navController.navigate("sign-out") }
@@ -78,27 +82,23 @@ fun MyPageApp(
 
         addUpdateProfileNavGraph(
             route = "update-profile",
-            viewModel = viewModel,
             navController = navController,
         )
 
         addSignOutNavGraph(
             route = "sign-out",
-            viewModel = viewModel,
             navController = navController,
             onLoginCanceled = onLoginCanceled,
         )
 
         addNotificationSettingNavGraph(
             route = "notification",
-            viewModel = viewModel,
             navController = navController,
             onBackgroundLocationRequirementChanged = onBackgroundLocationRequirementChanged,
         )
 
         addPinLockNavGraph(
             route = "pin-lock",
-            viewModel = viewModel,
             navController = navController,
         )
     }
