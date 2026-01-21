@@ -10,6 +10,7 @@ import javax.inject.Inject
 class LockViewModel @Inject constructor(
     private val settingRepository: SettingRepository
 ): ViewModel() {
+
     suspend fun isPinCorrect(pin: String): Boolean {
         if (!settingRepository.getIsPinSet()) return true
         if (pin.length != 4 || !pin.isDigitsOnly()) return false
