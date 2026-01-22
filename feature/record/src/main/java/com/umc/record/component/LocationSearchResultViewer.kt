@@ -27,9 +27,11 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.theme.LocalColorTheme
+import com.umc.design.theme.ThemeProvider
 import com.umc.record.R
 
 data class LocationSearchResultViewerSearchResult(
@@ -41,106 +43,153 @@ data class LocationSearchResultViewerSearchResult(
 @Composable
 fun LocationSearchResultViewer(
     matchValue: String,
+    isBottomPaddingNeeded: Boolean = false,
     searchResults: List<LocationSearchResultViewerSearchResult>?,
 ) {
     Column {
-        if (searchResults == null) Box(
-            contentAlignment = Alignment.TopCenter,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 100.dp)
-                .weight(1f)
-        ) {
-            CircularProgressIndicator(color = LocalColorTheme.current.primary[500])
-        } else if (searchResults.isNotEmpty()) LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            items(searchResults) { searchResult ->
-                Box(
-                    modifier = Modifier.clickable(
-                        interactionSource = null,
-                        indication = null,
-                        onClick = { searchResult.onClick() })
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(13.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 22.dp, vertical = 8.dp),
+        if (matchValue.isEmpty()) {
+            // DO NOTHING
+        } else if (searchResults == null) {
+            Box(
+                contentAlignment = Alignment.TopCenter,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 50.dp, bottom = 50.dp)
+            ) {
+                CircularProgressIndicator(color = LocalColorTheme.current.primary[500])
+            }
+        } else if (searchResults.isNotEmpty()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                items(searchResults) { searchResult ->
+                    Box(
+                        modifier = Modifier.clickable(
+                            interactionSource = null,
+                            indication = null,
+                            onClick = { searchResult.onClick() })
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_pin),
-                            contentDescription = null,
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(13.dp),
                             modifier = Modifier
-                                .padding(top = 2.dp)
-                                .size(24.dp)
-                        )
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
-                            modifier = Modifier.weight(1f),
+                                .fillMaxWidth()
+                                .padding(horizontal = 22.dp, vertical = 8.dp),
                         ) {
-                            Text(
-                                text = buildAnnotatedString {
-                                    searchResult.name.forEach {
-                                        withStyle(
-                                            style = SpanStyle(
-                                                color = if (matchValue.contains(it)) LocalColorTheme.current.primary[600] else LocalColorTheme.current.grey[700],
-                                                fontWeight = FontWeight.W700,
-                                                fontSize = 14.sp,
-                                            )
-                                        ) {
-                                            append(it)
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_pin),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .padding(top = 2.dp)
+                                    .size(24.dp)
+                            )
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(2.dp),
+                                modifier = Modifier.weight(1f),
+                            ) {
+                                Text(
+                                    text = buildAnnotatedString {
+                                        searchResult.name.forEach {
+                                            withStyle(
+                                                style = SpanStyle(
+                                                    color = if (matchValue.contains(it)) LocalColorTheme.current.primary[600] else LocalColorTheme.current.grey[700],
+                                                    fontWeight = FontWeight.W700,
+                                                    fontSize = 14.sp,
+                                                )
+                                            ) {
+                                                append(it)
+                                            }
                                         }
-                                    }
-                                },
-                                fontSize = 13.sp,
-                                lineHeight = 13.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = Color(0xFF8E8E8E),
-                                maxLines = 1
-                            )
-                            Text(
-                                text = searchResult.address,
-                                fontSize = 13.sp,
-                                lineHeight = 13.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = Color(0xFF8E8E8E),
-                                maxLines = 1
-                            )
+                                    },
+                                    fontSize = 13.sp,
+                                    lineHeight = 13.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    color = Color(0xFF8E8E8E),
+                                    maxLines = 1
+                                )
+                                Text(
+                                    text = searchResult.address,
+                                    fontSize = 13.sp,
+                                    lineHeight = 13.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    color = Color(0xFF8E8E8E),
+                                    maxLines = 1
+                                )
+                            }
                         }
                     }
                 }
-            }
-            item {
-                Spacer(
-                    modifier = Modifier.height(
-                        WindowInsets.navigationBars
-                            .asPaddingValues()
-                            .calculateBottomPadding() + 8.dp,
+                if (isBottomPaddingNeeded) item {
+                    Spacer(
+                        modifier = Modifier.height(
+                            WindowInsets.navigationBars
+                                .asPaddingValues()
+                                .calculateBottomPadding() + 8.dp,
+                        )
                     )
+                }
+            }
+        } else {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(
+                    space = 8.dp,
+                    alignment = Alignment.CenterHorizontally,
+                ),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_info),
+                    contentDescription = null,
+                    modifier = Modifier.size(11.dp)
+                )
+                Text(
+                    text = "찾으시는 검색어의 결과가 없어요!",
+                    fontSize = 12.sp,
+                    color = Color(0xFFFF6060),
+                    fontWeight = FontWeight.Normal
                 )
             }
-        } else Row(
-            horizontalArrangement = Arrangement.spacedBy(
-                space = 8.dp,
-                alignment = Alignment.CenterHorizontally,
-            ),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp),
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_info),
-                contentDescription = null,
-                modifier = Modifier.size(11.dp)
-            )
-            Text(
-                text = "찾으시는 검색어의 결과가 없어요!",
-                fontSize = 12.sp,
-                color = Color(0xFFFF6060),
-                fontWeight = FontWeight.Normal
-            )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewLocationSearchResultViewerEmpty() {
+    ThemeProvider {
+        LocationSearchResultViewer(
+            matchValue = "고래와",
+            searchResults = emptyList(),
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewLocationSearchResultViewerLoading() {
+    ThemeProvider {
+        LocationSearchResultViewer(
+            matchValue = "고래와",
+            searchResults = null,
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewLocationSearchResultViewerContent() {
+    ThemeProvider {
+        LocationSearchResultViewer(
+            matchValue = "고래와",
+            searchResults = listOf(
+                LocationSearchResultViewerSearchResult(
+                    name = "고래와",
+                    address = "서울 용산구 한강대로62길",
+                    onClick = {},
+                )
+            ),
+        )
     }
 }

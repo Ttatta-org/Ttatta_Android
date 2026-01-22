@@ -1,5 +1,6 @@
 package com.umc.record.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -63,8 +64,8 @@ fun CategoryDropdown(
         modifier = Modifier
             .width(categoryDropdownWidth)
             .background(
-                RecordCategoryColorScheme.CategoryDropdownBackgroundColor[selectedCategoryColor]!!,
-                bubbleShape
+                color = RecordCategoryColorScheme.CategoryDropdownBackgroundColor[selectedCategoryColor]!!,
+                shape = bubbleShape,
             )
             .clip(bubbleShape)
             .padding(top = 10.dp)
@@ -76,79 +77,79 @@ fun CategoryDropdown(
                 .heightIn(max = categoryDropdownMaxHeight)
         ) {
             items(count = itemProps.size * 2 + 1) { index ->
-                if (index == itemProps.size * 2) Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onNewCategoryButtonClicked() }
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 2.dp, bottom = 2.dp, start = 16.dp)
+                if (index == itemProps.size * 2) {
+                    CategoryDropdownItem(
+                        icon = R.drawable.ic_record_footprint_new_category,
+                        title = stringResource(id = R.string.new_category),
+                        onClick = onNewCategoryButtonClicked,
+                    )
+                } else if (index and 1 == 1) {
+                    Canvas(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 11.dp)
+                            .height(1.dp)
                     ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_record_footprint_new_category),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Text(
-                            text = stringResource(id = R.string.new_category),
-                            fontSize = 12.sp,
-                        )
-                    }
-                } else if (index and 1 == 1) Canvas(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 11.dp)
-                        .height(1.dp)
-                ) {
-                    val dotSize = 2.dp.toPx()
-                    val spaceSize = 3.dp.toPx()
-                    val strokeWidth = 0.5f.dp.toPx()
-                    val dashColor = RecordCategoryColorScheme.ChipFootColor[selectedCategoryColor]!!
+                        val dotSize = 2.dp.toPx()
+                        val spaceSize = 3.dp.toPx()
+                        val strokeWidth = 0.5f.dp.toPx()
+                        val dashColor = RecordCategoryColorScheme.ChipFootColor[selectedCategoryColor]!!
 
-                    var currentX = 0f
-                    while (currentX < size.width) {
-                        drawLine(
-                            color = dashColor,
-                            start = Offset(currentX, size.height / 2),
-                            end = Offset(currentX + dotSize, size.height / 2),
-                            strokeWidth = strokeWidth
-                        )
+                        var currentX = 0f
+                        while (currentX < size.width) {
+                            drawLine(
+                                color = dashColor,
+                                start = Offset(currentX, size.height / 2),
+                                end = Offset(currentX + dotSize, size.height / 2),
+                                strokeWidth = strokeWidth
+                            )
 
-                        currentX += dotSize + spaceSize
+                            currentX += dotSize + spaceSize
+                        }
                     }
                 } else {
                     val itemProp = itemProps[index / 2]
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { itemProp.onClicked() }
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(vertical = 6.dp, horizontal = 19.dp),
-                        ) {
-                            Image(
-                                painter = painterResource(
-                                    id = itemProp.color?.footV2IconId ?: Res.drawable.ic_foot,
-                                ),
-                                contentDescription = null,
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                text = itemProp.name,
-                                fontSize = 13.sp,
-                                lineHeight = 13.sp,
-                                letterSpacing = (-0.8).sp,
-                                modifier = Modifier.padding(top = 4.dp)
-                            )
-                        }
-                    }
+
+                    CategoryDropdownItem(
+                        icon = itemProp.color?.footV2IconId ?: Res.drawable.ic_foot,
+                        title = itemProp.name,
+                        onClick = itemProp.onClicked,
+                    )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun CategoryDropdownItem(
+    @DrawableRes icon: Int,
+    title: String,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(vertical = 6.dp, horizontal = 19.dp),
+        ) {
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = title,
+                fontSize = 13.sp,
+                lineHeight = 13.sp,
+                letterSpacing = (-0.8).sp,
+                modifier = Modifier.padding(top = 4.dp)
+            )
         }
     }
 }

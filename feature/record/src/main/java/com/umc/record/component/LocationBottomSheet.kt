@@ -11,25 +11,35 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
@@ -51,6 +61,12 @@ fun LocationBottomSheet(
     onLocationChanged: (String) -> Unit,
     onConfirmButtonClicked: () -> Unit,
 ) {
+    var isFocused by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isEditingMode) {
+        if (!isEditingMode) isFocused = false
+    }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -73,9 +89,13 @@ fun LocationBottomSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    bottom = WindowInsets.safeDrawing
-                        .asPaddingValues()
-                        .calculateBottomPadding()
+                    bottom = WindowInsets.run {
+                        val inset = if (isFocused) ime.union(navigationBars) else navigationBars
+
+                        inset
+                            .asPaddingValues()
+                            .calculateBottomPadding()
+                    }
                 )
         ) {
             // 헤더 이미지
@@ -90,71 +110,85 @@ fun LocationBottomSheet(
                 )
             }
             // 안내 텍스트
-            if (isEditingMode) Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(
-                    4.dp, Alignment.CenterVertically
-                ),
-                modifier = Modifier.padding(horizontal = 32.dp)
-            ) {
-                BasicTextField(
-                    value = location, onValueChange = onLocationChanged,
-                    textStyle = TextStyle(
-                        fontFamily = LocalFontTheme.current.font,
-                        fontSize = 13.sp,
-                        lineHeight = 13.sp,
-                        color = Color.Black,
-                        fontWeight = FontWeight.W400,
+            if (isEditingMode) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(
+                        4.dp, Alignment.CenterVertically
                     ),
-                ) { innerTextField ->
-                    Box(
-                        contentAlignment = Alignment.CenterStart,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(percent = 50))
-                            .background(
-                                color = Color.White,
-                                shape = RoundedCornerShape(percent = 50),
-                            )
-                            .border(
-                                width = 1.dp,
-                                color = LocalColorTheme.current.primary[500],
-                                shape = RoundedCornerShape(percent = 50)
-                            )
-                            .padding(start = 15.dp, end = 15.dp, top = 10.dp, bottom = 9.dp)
-                    ) {
-                        Text(
-                            text = "지역의 이름을 입력해주세요",
+                    modifier = Modifier.padding(horizontal = 32.dp)
+                ) {
+                    BasicTextField(
+                        value = location, onValueChange = onLocationChanged,
+                        textStyle = TextStyle(
+                            fontFamily = LocalFontTheme.current.font,
                             fontSize = 13.sp,
                             lineHeight = 13.sp,
+                            color = Color.Black,
                             fontWeight = FontWeight.W400,
-                            color = LocalColorTheme.current.grey[600],
-                            modifier = Modifier.alpha(if (location.isEmpty()) 1f else 0f)
-                        )
-                        innerTextField.invoke()
+                        ),
+                        modifier = Modifier.onFocusChanged { isFocused = it.isFocused }
+                    ) { innerTextField ->
+                        Box(
+                            contentAlignment = Alignment.CenterStart,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(percent = 50))
+                                .background(
+                                    color = Color.White,
+                                    shape = RoundedCornerShape(percent = 50),
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = LocalColorTheme.current.primary[500],
+                                    shape = RoundedCornerShape(percent = 50)
+                                )
+                                .padding(start = 15.dp, end = 15.dp, top = 10.dp, bottom = 9.dp)
+                        ) {
+                            Text(
+                                text = "지역의 이름을 입력해주세요",
+                                fontSize = 13.sp,
+                                lineHeight = 13.sp,
+                                fontWeight = FontWeight.W400,
+                                color = LocalColorTheme.current.grey[600],
+                                modifier = Modifier.alpha(if (location.isEmpty()) 1f else 0f)
+                            )
+                            innerTextField.invoke()
+                        }
                     }
+                    Text(
+                        text = "주소 정보가 없어요! 지역의 이름을 직접 입력해주세요",
+                        fontSize = 12.sp,
+                        color = Color(0xFFFF9681),
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        letterSpacing = (-0.4).sp
+                    )
                 }
+            } else {
                 Text(
-                    text = "주소 정보가 없어요! 지역의 이름을 직접 입력해주세요",
-                    fontSize = 12.sp,
-                    color = Color(0xFFFF9681),
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    letterSpacing = (-0.4).sp
+                    text = buildString {
+                        append("\'${location}\'")
+                        append(if (location.hasFinalConsonant()) "으로 " else "로 ")
+                        append(stringResource(id = R.string.modify_location))
+                    },
+                    style = TextStyle(
+                        fontFamily = LocalFontTheme.current.font,
+                        color = Color(0xFFFF9681),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.W700,
+                        lineHeight = 24.sp,
+                        letterSpacing = (-0.4).sp,
+                        textAlign = TextAlign.Center,
+                        lineBreak = LineBreak(
+                            strategy = LineBreak.Strategy.HighQuality,
+                            strictness = LineBreak.Strictness.Strict,
+                            wordBreak = LineBreak.WordBreak.Phrase,
+                        ),
+                    ),
+                    modifier = Modifier.padding(horizontal = 22.dp)
                 )
-            } else Text(
-                text = buildString {
-                    append("\'${location}\'")
-                    append(if (location.hasFinalConsonant()) "으로\n" else "로\n")
-                    append(stringResource(id = R.string.modify_location))
-                },
-                color = Color(0xFFFF9681),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.W700,
-                lineHeight = 24.sp,
-                letterSpacing = (-0.4).sp,
-                textAlign = TextAlign.Center,
-            )
+            }
             Spacer(modifier = Modifier.height(14.dp))
             Box(
                 modifier = Modifier
@@ -190,7 +224,7 @@ private fun PreviewEditLocationBottomSheetEntering() {
 private fun PreviewEditLocationBottomSheetShowing() {
     ThemeProvider {
         LocationBottomSheet(
-            location = "서울특별시 강남구 테헤란로",
+            location = "서울특별시 강남구 테헤란로 서울특별시 강남구 테헤란로 서울특별시 강남구 테헤란로 서울특별시 강남구 테헤란로",
             isEditingMode = false,
             isConfirmButtonEnabled = true,
             onLocationChanged = {},

@@ -147,6 +147,7 @@ fun EditLocationSearchResultScreen(
         )
         LocationSearchResultViewer(
             matchValue = searchValue,
+            isBottomPaddingNeeded = true,
             searchResults = searchResults,
         )
     }

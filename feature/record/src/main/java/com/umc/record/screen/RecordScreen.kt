@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
@@ -49,7 +50,9 @@ import com.umc.record.R
 import com.umc.record.component.CategoryDropdown
 import com.umc.record.component.CategoryDropdownItemProp
 import com.umc.record.component.DiaryBottomSheet
+import com.umc.record.component.ShadowedImage
 import com.umc.record.util.RecordCategoryColorScheme
+import com.umc.record.util.translucentShadow
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -64,7 +67,7 @@ data class CategoryDropdownProp(
 fun RecordScreen(
     image: File?,
     date: LocalDateTime,
-    location: String,
+    location: String?,
     selectedCategoryColor: CategoryColor,
     showLocationMissingTooltip: Boolean,
     userName: String,
@@ -97,8 +100,11 @@ fun RecordScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.padding(horizontal = 22.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 22.dp),
             ) {
                 var chipHeight: Dp? by remember { mutableStateOf(null) }
                 var locationChipCenterOffset: Dp? by remember { mutableStateOf(null) }
@@ -116,12 +122,14 @@ fun RecordScreen(
                                 .asPaddingValues()
                                 .calculateTopPadding()
                         )
+                        .fillMaxWidth()
                         .onSizeChanged { chipHeight = with(density) { it.height.toDp() } }
                 ) {
                     // 날짜
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
+                            .translucentShadow(borderRadius = 14.dp)
                             .background(
                                 color = LocalColorTheme.current.secondary[100].copy(0.9f),
                                 shape = RoundedCornerShape(14.dp),
@@ -149,6 +157,7 @@ fun RecordScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .weight(1f, fill = false)
+                            .translucentShadow(borderRadius = 14.dp)
                             .background(
                                 color = LocalColorTheme.current.secondary[100].copy(0.9f),
                                 shape = RoundedCornerShape(14.dp)
@@ -172,7 +181,7 @@ fun RecordScreen(
                             contentScale = ContentScale.FillWidth,
                             modifier = Modifier.width(10.6.dp),
                         )
-                        Text(
+                        if (location != null) Text(
                             text = location,
                             fontSize = 14.sp,
                             lineHeight = 14.sp,
@@ -187,6 +196,7 @@ fun RecordScreen(
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
+                            .translucentShadow(borderRadius = 14.dp)
                             .background(
                                 color = RecordCategoryColorScheme.ChipBackgroundColor[selectedCategoryColor]!!.copy(
                                     alpha = 0.9f
@@ -214,17 +224,21 @@ fun RecordScreen(
                         )
                     }
                 }
-                Box {
+                Box(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     // 위치 정보 추가 툴팁
                     if (showLocationMissingTooltip) locationChipCenterOffset?.let { offset ->
                         Box(
                             modifier = Modifier.offset(x = offset - 88.5f.dp)
                         ) {
-                            Image(
-                                painter = painterResource(R.raw.img_record_location_info_missing_tooltip),
+                            ShadowedImage(
+                                id = R.raw.img_record_location_info_missing_tooltip,
                                 contentDescription = null,
-                                contentScale = ContentScale.FillWidth,
-                                modifier = Modifier.width(177.dp)
+                                width = 177.dp,
+                                height = 40.5.dp,
+                                shadowBlur = 10.dp,
+                                shadowColor = Color(0xFFDE806E).copy(alpha = 0.4f),
                             )
                         }
                     }

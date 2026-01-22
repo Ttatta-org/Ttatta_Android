@@ -7,9 +7,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,15 +29,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import com.umc.design.component.CustomHeader
 import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.LocalFontTheme
@@ -46,14 +50,18 @@ import com.umc.record.component.LocationSearchResultViewer
 import com.umc.record.component.LocationSearchResultViewerSearchResult
 import com.umc.record.component.ShadowedImage
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EditLocationScreen(
     mapView: @Composable () -> Unit,
     searchValue: String,
-    searchResults: List<LocationSearchResultViewerSearchResult>,
+    searchResults: List<LocationSearchResultViewerSearchResult>?,
     location: String,
     isTopBarExpanded: Boolean,
     isEnteringMode: Boolean,
+    isConfirmButtonEnabled: Boolean,
+    onSearchBarFocused: () -> Unit,
+    onSearchBarDismissed: () -> Unit,
     onSearchButtonClicked: () -> Unit,
     onSearchValueChanged: (String) -> Unit,
     onLocationChanged: (String) -> Unit,
@@ -69,7 +77,7 @@ fun EditLocationScreen(
         Column(
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.Bottom,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             // 플로팅 버튼
             Box(
@@ -93,13 +101,13 @@ fun EditLocationScreen(
             LocationBottomSheet(
                 location = location,
                 isEditingMode = isEnteringMode,
-                isConfirmButtonEnabled = true,
+                isConfirmButtonEnabled = isConfirmButtonEnabled,
                 onLocationChanged = onLocationChanged,
                 onConfirmButtonClicked = onConfirmButtonClicked,
             )
         }
-        Box(
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
             CustomHeader(
                 showLogo = true,
@@ -128,7 +136,9 @@ fun EditLocationScreen(
                                 color = Color.Black,
                                 fontWeight = FontWeight.W400,
                             ),
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .onFocusChanged { if (it.hasFocus || it.isFocused) onSearchBarFocused() },
                         ) { inner ->
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -187,7 +197,7 @@ fun EditLocationScreen(
                                 .clickable(
                                     indication = null,
                                     interactionSource = null,
-                                    onClick = onSearchButtonClicked
+                                    onClick = onSearchButtonClicked,
                                 ),
                         )
                     }
@@ -200,35 +210,43 @@ fun EditLocationScreen(
                             animationSpec = tween(durationMillis = 300, easing = EaseInOutCubic),
                         )
                 ) {
-                    if (isTopBarExpanded) {
-                        Column {
-                            LocationSearchResultViewer(
-                                matchValue = searchValue,
-                                searchResults = searchResults,
-                            )
-                            if (onMoreResultsButtonClicked != null) Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(
-                                        interactionSource = null,
-                                        indication = null,
-                                        onClick = onMoreResultsButtonClicked,
-                                    )
-                                    .padding(top = 5.dp, bottom = 10.dp),
-                            ) {
-                                Text(
-                                    text = "더보기",
-                                    fontWeight = FontWeight.W400,
-                                    fontSize = 13.sp,
-                                    color = LocalColorTheme.current.primary[500],
+                    if (isTopBarExpanded) Column {
+                        LocationSearchResultViewer(
+                            matchValue = searchValue,
+                            searchResults = searchResults,
+                        )
+                        if (onMoreResultsButtonClicked != null) Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(
+                                    interactionSource = null,
+                                    indication = null,
+                                    onClick = onMoreResultsButtonClicked,
                                 )
-                            }
+                                .padding(top = 5.dp, bottom = 10.dp),
+                        ) {
+                            Text(
+                                text = "더보기",
+                                fontWeight = FontWeight.W400,
+                                fontSize = 13.sp,
+                                color = LocalColorTheme.current.primary[500],
+                            )
                         }
                     }
                 }
                 Spacer(modifier = Modifier.height(waveHeight))
             }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .let {
+                        if (isTopBarExpanded) it.pointerInput(onSearchBarDismissed) {
+                            detectTapGestures(onPress = { onSearchBarDismissed() })
+                        } else it
+                    }
+            )
         }
     }
 }
@@ -239,7 +257,11 @@ private fun PreviewRecordEditLocationScreen() {
     ThemeProvider {
         EditLocationScreen(
             mapView = {
-                Box(modifier = Modifier.background(Color.Green).fillMaxSize())
+                Box(
+                    modifier = Modifier
+                        .background(Color.Green)
+                        .fillMaxSize()
+                )
             },
             searchValue = "고래와",
             searchResults = List(3) {
@@ -252,6 +274,9 @@ private fun PreviewRecordEditLocationScreen() {
             location = "서울",
             isTopBarExpanded = true,
             isEnteringMode = true,
+            isConfirmButtonEnabled = true,
+            onSearchBarFocused = {},
+            onSearchBarDismissed = {},
             onSearchButtonClicked = {},
             onSearchValueChanged = {},
             onLocationChanged = {},
