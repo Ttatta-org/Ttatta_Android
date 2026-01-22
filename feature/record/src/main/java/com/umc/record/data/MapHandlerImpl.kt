@@ -43,7 +43,7 @@ import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 private val pinSize = DpSize(56.dp, 83.dp)
-private val pinOffsetRatio = PointF(0.5f, 2f/ 3f)
+private val pinOffsetRatio = PointF(0.5f, 0.5f)
 
 class MapHandlerImpl @Inject constructor(
     @ApplicationContext context: Context,
@@ -158,7 +158,7 @@ class MapHandlerImpl @Inject constructor(
                 }
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.img_pin_marker),
+                    painter = painterResource(id = R.raw.img_record_map_pin),
                     contentDescription = null,
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.size(pinSize)
@@ -190,5 +190,10 @@ class MapHandlerImpl @Inject constructor(
         cameraListener?.let { getMap().removeOnCameraIdleListener(it) }
         cameraListener = listener
         getMap().addOnCameraIdleListener(listener)
+    }
+
+    override suspend fun removeCameraIdleListener(listener: () -> Unit) {
+        cameraListener?.let { getMap().removeOnCameraIdleListener(it) }
+        cameraListener = null
     }
 }
