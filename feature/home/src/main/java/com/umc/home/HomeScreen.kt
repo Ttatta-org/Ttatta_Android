@@ -1,6 +1,8 @@
 package com.umc.home
 
 import android.util.Log
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -32,6 +34,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -45,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
@@ -627,18 +631,41 @@ fun DiaryCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
                 Log.d("ImageDebug", "Loading image with URL: ${diary.imageUrl}")
-                AsyncImage(
-                    model = diary.imageUrl,
-                    contentDescription = "Diary Image",
+                Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
+                        .background(
+                            color = LocalColorTheme.current.secondary[300],
+                            shape = RoundedCornerShape(15.dp),
+                        )
                         .fillMaxWidth()
                         .heightIn(max = 300.dp)
-                        //.height(280.dp)
-                        .clip(RoundedCornerShape(15.dp)),
-                    contentScale = ContentScale.Crop,
+                        .clip(RoundedCornerShape(15.dp))
+                ) {
+                    var isLoaded by remember { mutableStateOf(false) }
 
-                    error = painterResource(id = R.drawable.if_image_error)
-                )
+                    val alpha by animateFloatAsState(
+                        targetValue = if (isLoaded) 1f else 0f,
+                        animationSpec = tween(durationMillis = 100)
+                    )
+
+                    CircularProgressIndicator(
+                        color = Color(0xFFFF9681).copy(alpha = 0.5f),
+                        strokeWidth = 5.dp,
+                        modifier = Modifier.size(50.dp),
+                    )
+                    AsyncImage(
+                        model = diary.imageUrl,
+                        contentDescription = "Diary Image",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .alpha(alpha),
+                        contentScale = ContentScale.Crop,
+                        onSuccess = { isLoaded = true },
+                        onError = { isLoaded = true },
+                        error = painterResource(id = R.drawable.if_image_error),
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
