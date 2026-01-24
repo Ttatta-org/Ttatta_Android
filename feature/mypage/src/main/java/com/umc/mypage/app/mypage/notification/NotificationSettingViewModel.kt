@@ -1,130 +1,17 @@
-package com.umc.mypage
+package com.umc.mypage.app.mypage.notification
 
-import android.util.Log
-import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.launch
-import androidx.lifecycle.viewModelScope
-import com.umc.core.model.UserInfo
 import com.umc.core.repository.SettingRepository
-import com.umc.core.repository.UserRepository
+import com.umc.mypage.util.LoadingViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import java.time.LocalTime
 import javax.inject.Inject
 
-
 @HiltViewModel
-class MyPageViewModel @Inject constructor(
-    private val userRepository: UserRepository,
+class NotificationSettingViewModel @Inject constructor(
     private val settingRepository: SettingRepository
-) : ViewModel() {
-
-    // ✅ 유저 정보를 저장할 StateFlow
-    private val _userInfoState = MutableStateFlow<UserInfo?>(null)
-    val userInfoState: StateFlow<UserInfo?> = _userInfoState
-
-    // ✅ API 요청 중인지 확인하는 로딩 상태
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
-    // ✅ API 에러 메시지 저장
-    private val _errorMessage = MutableStateFlow<String?>(null)
-    val errorMessage: StateFlow<String?> = _errorMessage
-
-    private val _isPinEnabled = MutableStateFlow(false)
-    val isPinEnabled: StateFlow<Boolean> = _isPinEnabled
-
-    /**
-     * ✅ 유저 정보 불러오기 (백엔드 API 호출)
-     */
-    fun loadUserInfo() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                Log.d("MyPageViewModel", "🚀 유저 정보 불러오는 중...")
-                val userInfo = userRepository.getUserInfo()
-                _userInfoState.value = userInfo // ✅ UI에 반영
-                Log.d("MyPageViewModel", "✅ 유저 정보 로드 성공: $userInfo")
-            } catch (e: Exception) {
-                _errorMessage.value = "유저 정보를 불러오는 데 실패했습니다."
-                Log.e("MyPageViewModel", "❌ 유저 정보 불러오기 실패: ${e.message}")
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-    /**
-     * ✅ 로그아웃 기능 (백엔드 API 호출)
-     */
-    fun logout(onSuccess: () -> Unit, onError: (String) -> Unit) {
-        viewModelScope.launch {
-            try {
-                Log.d("MyPageViewModel", "🚀 로그아웃 중...")
-                userRepository.logout()
-                Log.d("MyPageViewModel", "✅ 로그아웃 성공")
-                onSuccess()
-            } catch (e: Exception) {
-                Log.e("MyPageViewModel", "❌ 로그아웃 실패: ${e.message}")
-                onError("로그아웃에 실패했습니다.")
-            }
-        }
-    }
-
-    /**
-     * ✅ 유저 탈퇴 기능
-     */
-    fun leaveUser(
-        reason: String,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        viewModelScope.launch {
-            try {
-                Log.d("MyPageViewModel", "🚀 회원 탈퇴 중...")
-                userRepository.leaveUser(reason)
-                Log.d("MyPageViewModel", "✅ 회원 탈퇴 성공")
-                onSuccess()
-            } catch (e: Exception) {
-                Log.e("MyPageViewModel", "❌ 회원 탈퇴 실패: ${e.message}")
-                onError("회원 탈퇴에 실패했습니다.")
-            }
-        }
-    }
-
-    // ----- Pin/유저 메서드 유지 -----
-
-    fun refreshPinStatus() {
-        viewModelScope.launch {
-            _isPinEnabled.value = settingRepository.getIsPinSet()
-        }
-    }
-
-    fun savePin(pin: Int) {
-        viewModelScope.launch {
-            settingRepository.setPin(pin)
-            _isPinEnabled.value = true
-        }
-    }
-
-    fun clearPin() {
-        viewModelScope.launch {
-            settingRepository.clearPin()
-            _isPinEnabled.value = false
-        }
-    }
-
-
-    suspend fun isPinCorrect(input: Int): Boolean {
-        return settingRepository.getIsPinCorrect(input)
-    }
-
-    suspend fun isPinSet(): Boolean {
-        return settingRepository.getIsPinSet()
-    }
-
+) : LoadingViewModel() {
     // ===== 알림 설정 UI 상태 =====
     data class NotificationSettingsUiState(
         val isLoading: Boolean = true,
@@ -146,9 +33,9 @@ class MyPageViewModel @Inject constructor(
     private val _notificationUi = MutableStateFlow(NotificationSettingsUiState())
     val notificationUi: StateFlow<NotificationSettingsUiState> = _notificationUi
 
-    /** 화면 진입 시 서버 요약 한 방에 로드 */
-    fun loadNotificationSettings() = viewModelScope.launch {
+    suspend fun loadNotificationSettings() = runWithLoading {
         _notificationUi.value = _notificationUi.value.copy(isLoading = true, error = null)
+
         runCatching {
             val s = settingRepository.getAlarmSummary()
             _notificationUi.value = NotificationSettingsUiState(
@@ -167,9 +54,9 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
-    // ===== 일기 작성 알림 =====
-    fun onDailyToggle(isOn: Boolean) = viewModelScope.launch {
+    suspend fun onDailyToggle(isOn: Boolean) = runWithLoading {
         val prev = _notificationUi.value
+
         if (isOn) {
             // 서버가 내려주는 기본 시간으로 세팅
             runCatching {
@@ -186,15 +73,15 @@ class MyPageViewModel @Inject constructor(
         } else {
             runCatching { settingRepository.turnOffWritingDiary() }
                 .onSuccess { _notificationUi.value = prev.copy(dailyOn = false) }
-                .onFailure { _notificationUi.value = prev } // 롤백
+                .onFailure { _notificationUi.value = prev }
         }
     }
 
-    fun onDailyTimeChange(isPm: Boolean, hour12: Int, minute: Int) = viewModelScope.launch {
+    suspend fun onDailyTimeChange(isPm: Boolean, hour12: Int, minute: Int) = runWithLoading {
         val h24 = to24h(isPm, hour12)
         val prev = _notificationUi.value
-        // 낙관적 반영
         _notificationUi.value = prev.copy(dailyHour24 = h24, dailyMinute = minute)
+
         runCatching {
             settingRepository.updateWritingDiaryTime(LocalTime.of(h24, minute))
         }.onFailure {
@@ -203,9 +90,9 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
-    // ===== 하루 요약 알림 (오후 고정) =====
-    fun onSummaryToggle(isOn: Boolean) = viewModelScope.launch {
+    suspend fun onSummaryToggle(isOn: Boolean) = runWithLoading {
         val prev = _notificationUi.value
+
         if (isOn) {
             runCatching {
                 val r = settingRepository.turnOnDailySummary()
@@ -224,10 +111,11 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
-    fun onSummaryHourChange(hour12: Int) = viewModelScope.launch {
+    suspend fun onSummaryHourChange(hour12: Int) = runWithLoading {
         val h24 = to24hPm(hour12) // 오후 고정
         val prev = _notificationUi.value
         _notificationUi.value = prev.copy(summaryHour24 = h24)
+
         runCatching {
             settingRepository.updateDailySummaryTime(LocalTime.of(h24, 0))
         }.onFailure {
@@ -235,9 +123,9 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
-    // ===== 챌린지 리마인드 =====
-    fun onChallengeToggle(isOn: Boolean) = viewModelScope.launch {
+    suspend fun onChallengeToggle(isOn: Boolean) = runWithLoading {
         val prev = _notificationUi.value
+
         if (isOn) {
             runCatching {
                 val r = settingRepository.turnOnChallengeRemind()
@@ -256,9 +144,10 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
-    fun onChallengeHoursChange(hours: Int) = viewModelScope.launch {
+    suspend fun onChallengeHoursChange(hours: Int) =  runWithLoading {
         val prev = _notificationUi.value
         _notificationUi.value = prev.copy(challengeRemainingHours = hours)
+
         runCatching {
             settingRepository.updateChallengeHoursAgo(hours)
         }.onFailure {
@@ -266,10 +155,10 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
-    // ===== 위치 기반(토글형) =====
-    fun onLocationToggle(isOn: Boolean) = viewModelScope.launch {
+    suspend fun onLocationToggle(isOn: Boolean) = runWithLoading {
         val prev = _notificationUi.value
         _notificationUi.value = prev.copy(locationOn = isOn)
+
         runCatching {
             settingRepository.setMemoryDiaryActive(isOn)
         }.onFailure {
@@ -286,5 +175,4 @@ class MyPageViewModel @Inject constructor(
     // 오후(PM) 고정: 12 -> 12, 1..11 -> 13..23
     private fun to24hPm(hour12: Int): Int =
         if (hour12 == 12) 12 else hour12 + 12
-
 }
