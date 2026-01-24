@@ -95,7 +95,6 @@ fun MainApp(
     var showRecordTooltip by remember { mutableStateOf(false) }
 
     var recordingDiaryImage: Uri? by remember { mutableStateOf(null) }
-    var recordingDiaryContent by remember { mutableStateOf("") }
     var recordingChallengeId: Long? by remember { mutableStateOf(null) }
     var earnedPoint: Int? by remember { mutableStateOf(null) }
 
@@ -441,7 +440,7 @@ fun MainApp(
                         // NOTHING
                     }
 
-                    composable<NavigationRoute.Record.Record> {
+                    composable<NavigationRoute.Record.Record> { backStackEntry ->
                         val image: File? = remember(recordingDiaryImage) {
                             recordingDiaryImage?.let { uri -> context.uriToFile(uri) }
                         }
@@ -450,7 +449,6 @@ fun MainApp(
                             { route ->
                                 recordingChallengeId = null
                                 recordingDiaryImage = null
-                                recordingDiaryContent = ""
 
                                 MainScope().launch {
                                     route?.let {
@@ -470,10 +468,11 @@ fun MainApp(
                         BackHandler { onBack(null) }
 
                         RecordApp(
-                            viewModel = hiltViewModel(),
+                            viewModel = hiltViewModel(backStackEntry),
                             image = image,
-                            diaryContent = recordingDiaryContent,
-                            onDiaryContentChanged = { recordingDiaryContent = it },
+                            onBackToHome = {
+                                MainScope().launch { navigator.popBackStack() }
+                            },
                             onNavigateToCategoryApp = {
                                 MainScope().launch {
                                     navigator.navigate(route = NavigationRoute.Record.Category)

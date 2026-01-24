@@ -9,6 +9,12 @@ plugins {
     // Hilt
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+
+    // Serialization
+    alias(libs.plugins.kotlin.serialization)
+
+    // kotlin-parcelize
+    id("kotlin-parcelize")
 }
 
 val recordMapProperties = Properties()
@@ -89,9 +95,6 @@ dependencies {
     // 네이버 지도 SDK
     implementation(libs.naver.map)
 
-    // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-    // implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
-
     // Play Services Location
     implementation(libs.play.services.location)
     implementation(libs.kotlinx.coroutines.play.services)
@@ -101,4 +104,8 @@ dependencies {
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.complier)
     implementation(libs.androidx.hilt.navigation)
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+
+    // Serialization
+    implementation(libs.kotlinx.serialization.json)
 }
