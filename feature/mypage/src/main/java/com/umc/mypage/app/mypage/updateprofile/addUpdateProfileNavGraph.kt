@@ -49,7 +49,8 @@ fun NavGraphBuilder.addUpdateProfileNavGraph(
                 MainScope().launch { navController.navigate("$route/nickname") }
             },
             onEmailClicked = {
-                MainScope().launch { navController.navigate("$route/email") }
+                // TODO: 백엔드 대응 후 주석 제거
+                // MainScope().launch { navController.navigate("$route/email") }
             }
         )
     }
@@ -62,7 +63,7 @@ fun NavGraphBuilder.addUpdateProfileNavGraph(
         val isLoading by viewModel.isLoading.collectAsState()
 
         val isNicknameValid = remember(nickname) {
-            nickname.isNotBlank()
+            nickname.length in 1..8
         }
 
         ProfileNicknameEditScreen(
