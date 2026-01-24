@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -16,7 +17,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ShadowedIcon(
+fun ShadowedImage(
     @DrawableRes id: Int,
     contentDescription: String?,
     width: Dp,
@@ -34,7 +35,10 @@ fun ShadowedIcon(
                 .width(width)
                 .height(height)
                 .offset(x = offsetX, y = offsetY)
-                .blur(shadowBlur),
+                .blur(
+                    radius = shadowBlur,
+                    edgeTreatment = BlurredEdgeTreatment.Unbounded,
+                ),
             tint = shadowColor,
         )
         Image(

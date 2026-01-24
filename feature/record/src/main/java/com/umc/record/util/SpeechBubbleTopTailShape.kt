@@ -1,4 +1,4 @@
-package com.umc.record.component
+package com.umc.record.util
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -45,7 +45,6 @@ class SpeechBubbleTopTailShape(
         val offR = tailOffsetFromRight.toPx()
 
         val left = 0f
-        val top = th
         val right = size.width
         val bottom = size.height
 
@@ -67,7 +66,6 @@ class SpeechBubbleTopTailShape(
         }
 
         val pL = polarPoint(startDeg)
-        val pR = polarPoint(startDeg + sweepDeg)
 
         val capRect = Rect(
             left = capCenter.x - capR,
@@ -77,10 +75,10 @@ class SpeechBubbleTopTailShape(
         )
 
         val path = Path().apply {
-            moveTo(left + r, top)
+            moveTo(left + r, th)
 
             // --- 꼬리 부분(팁만 둥글게) ---
-            lineTo(tailStartX, top)    // 베이스 왼쪽
+            lineTo(tailStartX, th)    // 베이스 왼쪽
             lineTo(pL.x, pL.y)         // 팁 캡 시작점까지 올라감
 
             arcTo(
@@ -90,12 +88,12 @@ class SpeechBubbleTopTailShape(
                 forceMoveTo = false
             )
 
-            lineTo(tailStartX + tw, top) // 베이스 오른쪽 복귀
+            lineTo(tailStartX + tw, th) // 베이스 오른쪽 복귀
 
             // --- 상단 우측 라운드 ---
-            lineTo(right - r, top)
+            lineTo(right - r, th)
             arcTo(
-                rect = Rect(right - 2 * r, top, right, top + 2 * r),
+                rect = Rect(right - 2 * r, th, right, th + 2 * r),
                 startAngleDegrees = -90f,
                 sweepAngleDegrees = 90f,
                 forceMoveTo = false
@@ -120,9 +118,9 @@ class SpeechBubbleTopTailShape(
             )
 
             // --- 좌측 ---
-            lineTo(left, top + r)
+            lineTo(left, th + r)
             arcTo(
-                rect = Rect(left, top, left + 2 * r, top + 2 * r),
+                rect = Rect(left, th, left + 2 * r, th + 2 * r),
                 startAngleDegrees = 180f,
                 sweepAngleDegrees = 90f,
                 forceMoveTo = false
@@ -137,12 +135,12 @@ class SpeechBubbleTopTailShape(
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewSpeechBubbleTopTailShape() {
+private fun PreviewSpeechBubbleTopTailShape() {
     val shape = SpeechBubbleTopTailShape(
         cornerRadius = 16.dp,
         tailWidth = 22.dp,
         tailHeight = 10.dp,
-        tailOffsetFromRight = 12.dp
+        tailOffsetFromRight = 0.dp
     )
 
     val bg = Color(0xCCDFE8FF)

@@ -13,4 +13,5 @@ interface MapHandler {
     suspend fun movePin(latitude: Double, longitude: Double)
 
     suspend fun addCameraIdleListener(listener: () -> Unit)
+    suspend fun removeCameraIdleListener(listener: () -> Unit)
 }

@@ -15,8 +15,7 @@ import androidx.compose.ui.graphics.Color
 import com.umc.core.repository.DiaryRepository
 import com.umc.core.repository.UserRepository
 import com.umc.design.CategoryColor
-import com.umc.record.RecordApp
-import com.umc.record.RecordViewModel
+import com.umc.record.navigation.record.RecordViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
