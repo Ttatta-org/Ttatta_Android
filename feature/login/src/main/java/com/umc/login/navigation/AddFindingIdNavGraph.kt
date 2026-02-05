@@ -34,13 +34,12 @@ import com.umc.design.theme.LocalColorTheme
 import com.umc.login.LoginViewModel
 import com.umc.login.R
 import com.umc.login.component.EmailDomainDropdown
-import com.umc.login.component.EmailDomainDropdownItemProp
+import com.umc.login.model.prop.EmailDomainDropdownItemProp
 import com.umc.login.component.emailDomains
 import com.umc.login.component.form.CertificationForm
 import com.umc.login.logic.certification.CertificationCodeValidationRequestForFindingId
 import com.umc.login.logic.certification.CertificationMailRequestForFindingId
 import com.umc.login.screen.DoneScreen
-import com.umc.login.screen.FindingIdDoneScreen
 import com.umc.login.screen.FormScreen
 import com.umc.login.screen.FormScreenDescriptionMessageProp
 import kotlinx.coroutines.MainScope

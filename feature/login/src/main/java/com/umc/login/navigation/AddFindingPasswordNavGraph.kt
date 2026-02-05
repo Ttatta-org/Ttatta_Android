@@ -39,10 +39,9 @@ import com.umc.design.theme.LocalColorTheme
 import com.umc.login.LoginViewModel
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
-import com.umc.login.component.CustomTextFieldProp
-import com.umc.login.component.CustomTextFieldTextAlignment
+import com.umc.login.model.prop.CustomTextFieldProp
 import com.umc.login.component.EmailDomainDropdown
-import com.umc.login.component.EmailDomainDropdownItemProp
+import com.umc.login.model.prop.EmailDomainDropdownItemProp
 import com.umc.login.component.emailDomains
 import com.umc.login.component.form.CertificationForm
 import com.umc.login.component.form.PasswordForm
@@ -63,8 +62,8 @@ import java.time.LocalTime
 
 private enum class FindingPasswordNavGraphDestination(
     val route: String,
-    @StringRes val topLineMessageId: Int,
-    @StringRes val descriptionMessageId: Int,
+    @field:StringRes val topLineMessageId: Int,
+    @field:StringRes val descriptionMessageId: Int,
 ) {
     ID(
         route = "id",
@@ -353,7 +352,6 @@ fun NavGraphBuilder.addFindingPasswordNavGraph(
                             state = state,
                             passwordPlaceholder = stringResource(id = R.string.new_password_placeholder),
                             confirmPasswordPlaceholder = stringResource(id = R.string.new_password_confirm_placeholder),
-                            textAlignment = CustomTextFieldTextAlignment.START,
                             isPasswordVisible = isPasswordVisible,
                             isConfirmPasswordVisible = isConfirmPasswordVisible,
                             isConfirmPasswordFieldShowing = true,

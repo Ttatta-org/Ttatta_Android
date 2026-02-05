@@ -36,9 +36,8 @@ import com.umc.design.theme.LocalColorTheme
 import com.umc.login.LoginViewModel
 import com.umc.login.R
 import com.umc.login.component.AnimatedProgressBarProp
-import com.umc.login.component.CustomTextFieldTextAlignment
 import com.umc.login.component.EmailDomainDropdown
-import com.umc.login.component.EmailDomainDropdownItemProp
+import com.umc.login.model.prop.EmailDomainDropdownItemProp
 import com.umc.login.component.emailDomains
 import com.umc.login.component.form.CertificationCodeForm
 import com.umc.login.component.form.EmailForm
@@ -61,7 +60,6 @@ import com.umc.login.logic.state.isPasswordValid
 import com.umc.login.screen.DoneScreen
 import com.umc.login.screen.FormScreen
 import com.umc.login.screen.FormScreenDescriptionMessageProp
-import com.umc.login.screen.JoinDoneScreen
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -282,7 +280,6 @@ fun NavGraphBuilder.addJoinNavGraph(
                             state = passwordValidationState,
                             passwordPlaceholder = stringResource(id = R.string.password),
                             confirmPasswordPlaceholder = stringResource(id = R.string.password_check),
-                            textAlignment = CustomTextFieldTextAlignment.START,
                             isPasswordVisible = isPasswordVisible,
                             isConfirmPasswordVisible = isConfirmPasswordVisible,
                             isConfirmPasswordFieldShowing = isConfirmPasswordFieldShowing,

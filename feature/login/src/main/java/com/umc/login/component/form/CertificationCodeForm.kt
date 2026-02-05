@@ -17,7 +17,7 @@ import com.umc.design.Primary500
 import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
-import com.umc.login.component.CustomTextFieldProp
+import com.umc.login.model.prop.CustomTextFieldProp
 import java.time.Duration
 
 @Composable

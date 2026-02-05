@@ -35,8 +35,7 @@ import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldLabelScope
-import com.umc.login.component.CustomTextFieldProp
-import com.umc.login.component.CustomTextFieldTextAlignment
+import com.umc.login.model.prop.CustomTextFieldProp
 import com.umc.login.component.PreviewEmailDomainDropdown
 import com.umc.login.component.toCustomTextFieldUnderMessageProp
 import com.umc.login.logic.state.EmailValidationState
@@ -91,7 +90,6 @@ fun EmailForm(
                         value = domain,
                         onValueChanged = onDomainChanged,
                         placeholder = stringResource(id = R.string.enter_yourself),
-                        textAlignment = CustomTextFieldTextAlignment.START,
                         tail = {
                             Box(
                                 modifier = Modifier

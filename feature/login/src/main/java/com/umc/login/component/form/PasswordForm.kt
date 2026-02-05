@@ -18,8 +18,7 @@ import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldLabelScope
-import com.umc.login.component.CustomTextFieldProp
-import com.umc.login.component.CustomTextFieldTextAlignment
+import com.umc.login.model.prop.CustomTextFieldProp
 import com.umc.login.component.toCustomTextFieldUnderMessageProp
 import com.umc.login.logic.state.PasswordValidationState
 
@@ -30,7 +29,6 @@ fun PasswordForm(
     state: PasswordValidationState,
     passwordPlaceholder: String,
     confirmPasswordPlaceholder: String,
-    textAlignment: CustomTextFieldTextAlignment,
     isPasswordVisible: Boolean,
     isConfirmPasswordVisible: Boolean,
     isConfirmPasswordFieldShowing: Boolean,
@@ -50,7 +48,6 @@ fun PasswordForm(
                     value = password,
                     onValueChanged = onPasswordChanged,
                     placeholder = passwordPlaceholder,
-                    textAlignment = textAlignment,
                     isVisible = isPasswordVisible,
                     tail = {
                         Box(
@@ -82,7 +79,6 @@ fun PasswordForm(
                     value = confirmPassword,
                     onValueChanged = onConfirmPasswordChanged,
                     placeholder = confirmPasswordPlaceholder,
-                    textAlignment = textAlignment,
                     isVisible = isConfirmPasswordVisible,
                     tail = {
                         Box(
@@ -121,7 +117,6 @@ fun PreviewPasswordForm() {
             state = PasswordValidationState.CONFIRM_PASSWORD_NOT_ENTERED,
             passwordPlaceholder = stringResource(id = R.string.password),
             confirmPasswordPlaceholder = stringResource(id = R.string.password_check),
-            textAlignment = CustomTextFieldTextAlignment.START,
             isPasswordVisible = false,
             isConfirmPasswordVisible = false,
             isConfirmPasswordFieldShowing = true,

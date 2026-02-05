@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,9 +41,8 @@ import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldLabelScope
-import com.umc.login.component.CustomTextFieldProp
-import com.umc.login.component.CustomTextFieldTextAlignment
-import com.umc.login.component.CustomTextFieldUnderMessageProp
+import com.umc.login.model.prop.CustomTextFieldProp
+import com.umc.login.model.prop.CustomTextFieldUnderMessageProp
 
 @Composable
 fun LoginScreen(
@@ -117,9 +115,7 @@ fun LoginScreen(
                                 value = id,
                                 onValueChanged = onIdChanged,
                                 placeholder = stringResource(id = R.string.login_id_placeholder),
-                                textAlignment = CustomTextFieldTextAlignment.START,
                                 isVisible = true,
-                                tail = { Spacer(modifier = Modifier.height(32.dp)) },
                             )
                         )
                         // 비밀 번호 입력창
@@ -128,7 +124,6 @@ fun LoginScreen(
                                 value = password,
                                 onValueChanged = onPasswordChanged,
                                 placeholder = stringResource(id = R.string.login_password_placeholder),
-                                textAlignment = CustomTextFieldTextAlignment.START,
                                 isVisible = isPasswordVisible,
                                 tail = {
                                     Box(

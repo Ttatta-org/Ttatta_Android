@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,7 +40,10 @@ import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.AnimatedProgressBar
 import com.umc.login.component.AnimatedProgressBarProp
-import com.umc.login.component.PreviewCustomTextField
+import com.umc.login.component.CustomTextField
+import com.umc.login.component.CustomTextFieldLabelScope
+import com.umc.login.model.prop.CustomTextFieldProp
+import com.umc.login.model.prop.CustomTextFieldUnderMessageProp
 
 data class FormScreenDescriptionMessageProp(
     val message: String,
@@ -191,7 +195,33 @@ fun PreviewFormScreen() {
             onNextButtonClicked = {},
             onBackButtonClicked = {},
         ) {
-            PreviewCustomTextField()
+            CustomTextFieldLabelScope(
+                underMessageProp = CustomTextFieldUnderMessageProp(
+                    value = "이것은 통과 메시지입니다",
+                    color = LocalColorTheme.current.positive,
+                ),
+                customTextField = {
+                    CustomTextField(
+                        prop = CustomTextFieldProp(
+                            value = "따따따따따따따",
+                            onValueChanged = {},
+                            placeholder = "입력해주세요",
+                            isVisible = true,
+                            tail = {
+                                IconButton(
+                                    onClick = {},
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_visibility_off),
+                                        contentDescription = null,
+                                        tint = LocalColorTheme.current.grey[400],
+                                    )
+                                }
+                            },
+                        )
+                    )
+                },
+            )
         }
     }
 }

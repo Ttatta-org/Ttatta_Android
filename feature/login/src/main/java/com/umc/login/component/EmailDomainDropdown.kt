@@ -22,11 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.umc.design.theme.ThemeProvider
-
-data class EmailDomainDropdownItemProp(
-    val onClicked: () -> Unit,
-    val domain: String,
-)
+import com.umc.login.model.prop.EmailDomainDropdownItemProp
 
 val emailDomains = listOf(
     "naver.com",

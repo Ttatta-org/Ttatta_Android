@@ -7,7 +7,7 @@ import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldLabelScope
-import com.umc.login.component.CustomTextFieldProp
+import com.umc.login.model.prop.CustomTextFieldProp
 import com.umc.login.component.toCustomTextFieldUnderMessageProp
 import com.umc.login.logic.state.NicknameValidationState
 
@@ -25,9 +25,9 @@ fun NicknameForm(
                 value = nickname,
                 onValueChanged = onNicknameChanged,
                 placeholder = stringResource(id = R.string.nickname),
-                tail = {
-                    if (nickname.isNotEmpty()) ClearButton(onClick = { onNicknameChanged("") })
-                }
+                tail = if (nickname.isNotEmpty()) { ->
+                    ClearButton(onClick = { onNicknameChanged("") })
+                } else null,
             )
         )
     }

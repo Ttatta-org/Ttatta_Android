@@ -59,7 +59,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation("com.google.accompanist:accompanist-navigation-animation:0.32.0")
-    implementation ("androidx.navigation:navigation-compose:2.5.3")
 
     // 의존성 정의
     implementation(project(":core"))
@@ -70,6 +69,7 @@ dependencies {
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.complier)
     implementation(libs.androidx.hilt.navigation)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     // 카카오 로그인
     implementation("com.kakao.sdk:v2-user:2.20.6")

@@ -24,10 +24,9 @@ import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldLabelScope
-import com.umc.login.component.CustomTextFieldProp
-import com.umc.login.component.CustomTextFieldTextAlignment
 import com.umc.login.component.toCustomTextFieldUnderMessageProp
 import com.umc.login.logic.state.IdValidationState
+import com.umc.login.model.prop.CustomTextFieldProp
 
 @Composable
 fun IdForm(
@@ -50,10 +49,9 @@ fun IdForm(
                         value = id,
                         onValueChanged = onIdChanged,
                         placeholder = stringResource(id = R.string.id),
-                        textAlignment = CustomTextFieldTextAlignment.START,
-                        tail = {
-                            if (id.isNotEmpty()) ClearButton(onClick = { onIdChanged("") })
-                        }
+                        tail = if (id.isNotEmpty()) { ->
+                            ClearButton(onClick = { onIdChanged("") })
+                        } else null,
                     )
                 )
             }

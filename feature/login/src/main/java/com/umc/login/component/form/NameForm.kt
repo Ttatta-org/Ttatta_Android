@@ -7,8 +7,7 @@ import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
 import com.umc.login.component.CustomTextFieldLabelScope
-import com.umc.login.component.CustomTextFieldProp
-import com.umc.login.component.CustomTextFieldTextAlignment
+import com.umc.login.model.prop.CustomTextFieldProp
 import com.umc.login.component.toCustomTextFieldUnderMessageProp
 import com.umc.login.logic.state.NameValidationState
 
@@ -25,11 +24,10 @@ fun NameForm(
             prop = CustomTextFieldProp(
                 value = name,
                 onValueChanged = onNameChanged,
-                textAlignment = CustomTextFieldTextAlignment.START,
                 placeholder = stringResource(id = R.string.name_placeholder),
-                tail = {
-                    if (name.isNotEmpty()) ClearButton(onClick = { onNameChanged("") })
-                }
+                tail = if (name.isNotEmpty()) { ->
+                    ClearButton(onClick = { onNameChanged("") })
+                } else null,
             )
         )
     }

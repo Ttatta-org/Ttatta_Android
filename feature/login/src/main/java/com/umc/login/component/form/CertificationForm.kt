@@ -38,8 +38,7 @@ import com.umc.design.theme.LocalColorTheme
 import com.umc.design.theme.ThemeProvider
 import com.umc.login.R
 import com.umc.login.component.CustomTextField
-import com.umc.login.component.CustomTextFieldProp
-import com.umc.login.component.CustomTextFieldTextAlignment
+import com.umc.login.model.prop.CustomTextFieldProp
 import java.time.Duration
 
 @Composable
@@ -79,7 +78,6 @@ fun CertificationForm(
                 value = name,
                 onValueChanged = onNameChanged,
                 placeholder = stringResource(id = R.string.name_placeholder),
-                textAlignment = CustomTextFieldTextAlignment.START,
                 isEditable = isEditable,
             )
         )
@@ -100,7 +98,6 @@ fun CertificationForm(
                             value = local,
                             onValueChanged = onLocalChanged,
                             placeholder = stringResource(id = R.string.email_placeholder),
-                            textAlignment = CustomTextFieldTextAlignment.START,
                             isEditable = isEditable,
                         )
                     )
@@ -120,7 +117,6 @@ fun CertificationForm(
                             value = domain,
                             onValueChanged = onDomainChanged,
                             placeholder = stringResource(id = R.string.enter_yourself),
-                            textAlignment = CustomTextFieldTextAlignment.START,
                             isEditable = isEditable,
                             tail = {
                                 Box(
@@ -158,7 +154,6 @@ fun CertificationForm(
                         value = code,
                         onValueChanged = onCodeChanged,
                         placeholder = stringResource(id = R.string.certification_placeholder),
-                        textAlignment = CustomTextFieldTextAlignment.START,
                         isEditable = isEditable,
                         keyboardType = KeyboardType.Number,
                         tail = {
