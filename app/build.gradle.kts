@@ -28,8 +28,8 @@ android {
         applicationId = "com.umc.ttatta.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 12
-        versionName = "1.0.0+12"
+        versionCode = 23
+        versionName = "1.0.0+23"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -52,13 +52,16 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
     kotlinOptions {
         jvmTarget = "11"
     }
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -103,7 +106,7 @@ dependencies {
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.complier)
     implementation(libs.androidx.hilt.navigation)
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+    implementation(libs.androidx.hilt.navigation.compose)
 
     // 네이버 지도 SDK
     implementation(libs.naver.map)
