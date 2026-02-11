@@ -12,6 +12,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.umc.core.model.EmailRequestResult
 import com.umc.core.util.runWithScope
 import com.umc.core.util.showToast
 import com.umc.design.component.LoadingModal
@@ -49,14 +50,19 @@ fun NavGraphBuilder.addUpdateProfileNavGraph(
                 MainScope().launch { navController.navigate("$route/nickname") }
             },
             onEmailClicked = {
-                // TODO: 백엔드 대응 후 주석 제거
-                // MainScope().launch { navController.navigate("$route/email") }
+                MainScope().launch {
+                    navController
+                        .takeIf { it.currentBackStackEntry == backStackEntry }
+                        ?.navigate("$route/email")
+                }
             }
         )
     }
 
-    composable("$route/nickname") { backStackEntry ->
-        val viewModel: UpdateProfileViewModel = hiltViewModel(backStackEntry)
+    composable("$route/nickname") {
+        val rootBackStackEntry = remember { navController.getBackStackEntry("$route/info") }
+        val viewModel: UpdateProfileViewModel = hiltViewModel(rootBackStackEntry)
+
         val context = LocalContext.current
 
         var nickname by remember { mutableStateOf("") }
@@ -85,8 +91,10 @@ fun NavGraphBuilder.addUpdateProfileNavGraph(
         if (isLoading) LoadingModal()
     }
 
-    composable("$route/email") { backStackEntry ->
-        val viewModel: UpdateProfileViewModel = hiltViewModel(backStackEntry)
+    composable("$route/email") {
+        val rootBackStackEntry = remember { navController.getBackStackEntry("$route/info") }
+        val viewModel: UpdateProfileViewModel = hiltViewModel(rootBackStackEntry)
+
         val context = LocalContext.current
 
         val userInfo by viewModel.userInfo.collectAsState()
@@ -106,6 +114,7 @@ fun NavGraphBuilder.addUpdateProfileNavGraph(
         }
 
         LaunchedEffect(email) {
+            isEmailDuplicated = false
             isCodeSent = false
             emailSentTime = null
             code = ""
@@ -150,14 +159,14 @@ fun NavGraphBuilder.addUpdateProfileNavGraph(
             onSendCodeButtonClicked = {
                 viewModel.runWithScope {
                     runCatching { viewModel.requestVerificationCodeForUpdateEmail(email) }
-                        .onSuccess {
-                            isCodeSent = true
-                            emailSentTime = LocalDateTime.now()
-                            isEmailDuplicated = false
-                        }
-                        .onFailure {
-                            // TODO: 이메일 중복 여부 및 실패 여부 판별
-                            isEmailDuplicated = true
+                        .onSuccess { result ->
+                            if (result == EmailRequestResult.DUPLICATED) {
+                                isEmailDuplicated = true
+                            } else {
+                                isCodeSent = true
+                                emailSentTime = LocalDateTime.now()
+                                isEmailDuplicated = false
+                            }
                         }
                 }
             },

@@ -57,7 +57,8 @@ fun NavGraphBuilder.addPinLockNavGraph(
         route = "${route}/pin?change={change}",
         arguments = listOf(navArgument("change") { this.defaultValue = false }),
     ) { backStackEntry ->
-        val viewModel: PinLockViewModel = hiltViewModel(backStackEntry)
+        val rootBackStackEntry = remember { navController.getBackStackEntry("${route}/home") }
+        val viewModel: PinLockViewModel = hiltViewModel(rootBackStackEntry)
 
         val isChangeMode = backStackEntry.arguments?.getBoolean("change") ?: false
         val context = LocalContext.current

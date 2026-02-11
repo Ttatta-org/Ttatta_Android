@@ -1,10 +1,10 @@
 package com.umc.mypage.app.mypage.updateprofile
 
+import com.umc.core.model.EmailRequestResult
 import com.umc.core.model.UserInfo
 import com.umc.core.repository.UserRepository
 import com.umc.mypage.util.LoadingViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -25,14 +25,13 @@ class UpdateProfileViewModel @Inject constructor(
         userRepository.modifyUserInfo(name = nickname)
     }
 
-    suspend fun requestVerificationCodeForUpdateEmail(email: String) = runWithLoading {
-        // TODO
-        delay(1000)
+    suspend fun requestVerificationCodeForUpdateEmail(email: String): EmailRequestResult = runWithLoading {
+        val result = userRepository.requestVerificationCodeForChangeEmail(email = email)
+        result
     }
 
     suspend fun verifyCodeForUpdateEmail(email: String, code: String): Boolean = runWithLoading {
-        // TODO
-        delay(1000)
-        return@runWithLoading true
+        val result = userRepository.changeEmailWithVerificationCode(email = email, code = code.toInt())
+        result
     }
 }
