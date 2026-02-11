@@ -10,8 +10,8 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 
-    // FCM
-    id("com.google.gms.google-services")
+    // Serialization
+    alias(libs.plugins.kotlin.serialization)
 }
 
 val localProperties = Properties()
@@ -92,9 +92,6 @@ dependencies {
 
     // SharedPreference
     implementation(libs.preference.ktx)
-
-    // FCM
-    implementation("com.google.firebase:firebase-messaging-ktx")
 
     // Bcrypt
     implementation("org.mindrot:jbcrypt:0.4")

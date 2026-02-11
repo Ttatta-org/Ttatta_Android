@@ -19,9 +19,9 @@ import com.umc.data.api.dto.server.RemindDiaryDTO
 import com.umc.data.api.dto.server.SummarizeDTO
 import com.umc.data.exception.ServerException
 import com.umc.data.preference.AuthPreference
+import com.umc.data.util.AuthenticatedRepository
 import com.umc.data.util.getMimeTypeFromExtension
 import com.umc.data.util.toOffsetDateTimeInKorea
-import com.umc.data.util.withAuth
 import com.umc.design.CategoryColor
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -32,13 +32,13 @@ import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class DiaryRepositoryImpl @Inject constructor(
+    override val authPreference: AuthPreference,
     private val serverApi: ServerApi,
     private val imageUploadApi: ImageUploadApi,
-    private val authPreference: AuthPreference,
-) : DiaryRepository {
+) : DiaryRepository, AuthenticatedRepository {
 
     override suspend fun getDiaries(page: Int, date: LocalDate?): List<Diary> {
-        val response = serverApi.withAuth(authPreference) {
+        val response = serverApi.withAuth {
             getKeepDiaryList(requestNum = page, date = date?.atStartOfDay())
         }
         return response.diaryList?.map {
@@ -54,7 +54,7 @@ class DiaryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getDiaries(page: Int, searchWord: String): List<Diary> {
-        val response = serverApi.withAuth(authPreference) {
+        val response = serverApi.withAuth {
             getSearchDiaryList(requestNum = page, searchContent = searchWord)
         }
         return response.searchDiaryList?.map {
@@ -72,7 +72,7 @@ class DiaryRepositoryImpl @Inject constructor(
     override suspend fun getDailySummary(date: LocalDate): DailySummary? {
         val date = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         val response = try {
-            serverApi.withAuth(authPreference) { getDailySummary(date = date) }
+            serverApi.withAuth { getDailySummary(date = date) }
         } catch (_: Exception) {
             null
         }
@@ -89,7 +89,7 @@ class DiaryRepositoryImpl @Inject constructor(
         val dateString = date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 
         val existingSummary = try {
-            serverApi.withAuth(authPreference) { getDailySummary(date = dateString) }
+            serverApi.withAuth { getDailySummary(date = dateString) }
         } catch (e : Exception) {
             if (e is ServerException && e.code == "SUMMARY_8001") null else throw e
         }
@@ -98,21 +98,21 @@ class DiaryRepositoryImpl @Inject constructor(
 
         if (existingSummary != null) {
             val response =
-                serverApi.withAuth(authPreference) { regenerateDailySummary(body = body) }
+                serverApi.withAuth { regenerateDailySummary(body = body) }
 
             return DailySummary(
                 summary = response.content!!,
                 createdTime = response.createdAt!!.toLocalDateTime(),
             )
         } else {
-            serverApi.withAuth(authPreference) { generateDailySummary(body = body) }
+            serverApi.withAuth { generateDailySummary(body = body) }
 
             return getDailySummary(date = date)!!
         }
     }
 
     override suspend fun getDiaries(page: Int, clusterId: Long, categoryId: Long?): DiaryForCard {
-        val response = serverApi.withAuth(authPreference) {
+        val response = serverApi.withAuth {
             getMapDiary(requestNum = page, clusterId = clusterId, diaryCategoryId = categoryId)
         }
 
@@ -140,7 +140,7 @@ class DiaryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getDiaryForRemind(id: Long): DiaryForRemind {
-        val diary = serverApi.withAuth(authPreference) {
+        val diary = serverApi.withAuth {
             getRemindDiary(diaryId = id)
         }
 
@@ -171,12 +171,12 @@ class DiaryRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAllRecordedDates(): List<LocalDate> {
-        val response = serverApi.withAuth(authPreference) { getDiariesDate() }
+        val response = serverApi.withAuth { getDiariesDate() }
         return response.diaryDateList?.mapNotNull { it.date } ?: listOf()
     }
 
     override suspend fun getAllFootprints(categoryId: Long?): List<Footprint> {
-        val response = serverApi.withAuth(authPreference) {
+        val response = serverApi.withAuth {
             getFootprintDiaryList(
                 diaryCategoryId = categoryId,
                 lat1 = 40.0,
@@ -229,7 +229,7 @@ class DiaryRepositoryImpl @Inject constructor(
         val mime = getMimeTypeFromExtension(image.extension)
             ?: throw IllegalArgumentException("Invalid image extension")
 
-        val presignedUrl = serverApi.withAuth(authPreference) { getPresignedUrl(imageType = mime) }
+        val presignedUrl = serverApi.withAuth { getPresignedUrl(imageType = mime) }
 
         imageUploadApi.uploadImage(
             url = presignedUrl.presignedUrl!!,
@@ -247,7 +247,7 @@ class DiaryRepositoryImpl @Inject constructor(
             objectKey = presignedUrl.objectKey!!
         )
 
-        serverApi.withAuth(authPreference) { createDiary(body = request) }
+        serverApi.withAuth { createDiary(body = request) }
     }
 
     override suspend fun modifyDiary(
@@ -261,7 +261,7 @@ class DiaryRepositoryImpl @Inject constructor(
                 ?: throw IllegalArgumentException("Invalid image extension")
 
             val presignedUrl =
-                serverApi.withAuth(authPreference) { getEditPresignedUrl(diaryId, mime) }
+                serverApi.withAuth { getEditPresignedUrl(diaryId, mime) }
 
             imageUploadApi.uploadImage(
                 url = presignedUrl.presignedUrl!!,
@@ -271,17 +271,17 @@ class DiaryRepositoryImpl @Inject constructor(
         }
 
         val request = EditDTO(content = content, diaryCategoryId = categoryId)
-        serverApi.withAuth(authPreference) { updateDiary(diaryId = diaryId, body = request) }
+        serverApi.withAuth { updateDiary(diaryId = diaryId, body = request) }
     }
 
     override suspend fun deleteDiary(diaryId: Long) {
-        serverApi.withAuth(authPreference) {
+        serverApi.withAuth {
             deleteDiary(diaryId = diaryId)
         }
     }
 
     override suspend fun getAllCategoryInfo(): List<CategoryInfo> {
-        val response = serverApi.withAuth(authPreference) { getDiaryCount() }
+        val response = serverApi.withAuth { getDiaryCount() }
         return response.categoryDetails?.map {
             CategoryInfo(
                 id = it.categoryId!!,
@@ -325,7 +325,7 @@ class DiaryRepositoryImpl @Inject constructor(
                 else -> null
             }
         )
-        serverApi.withAuth(authPreference) {
+        serverApi.withAuth {
             createCategory(body = body)
         }
     }
@@ -353,19 +353,19 @@ class DiaryRepositoryImpl @Inject constructor(
                 else -> null
             }
         )
-        serverApi.withAuth(authPreference) {
+        serverApi.withAuth {
             updateCategory(categoryId = categoryId, body = body)
         }
     }
 
     override suspend fun deleteCategory(categoryId: Long) {
-        serverApi.withAuth(authPreference) {
+        serverApi.withAuth {
             deleteCategoryOnly(categoryId = categoryId)
         }
     }
 
     override suspend fun deleteCategoryAndAllIncludedDiaries(categoryId: Long) {
-        serverApi.withAuth(authPreference) {
+        serverApi.withAuth {
             deleteCategoryAndAllIncludedDiaries(categoryId = categoryId)
         }
     }

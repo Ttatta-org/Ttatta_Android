@@ -1,8 +1,10 @@
 package com.umc.data.api.dto
 
-data class BaseResponse<T>(
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class ErrorResponse(
     val isSuccess: Boolean,
     val code: String,
     val message: String,
-    val result: T,
 )

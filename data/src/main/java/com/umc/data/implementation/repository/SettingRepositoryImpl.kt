@@ -1,9 +1,9 @@
 package com.umc.data.implementation.repository
 
-import com.umc.core.model.NotificationSetting
-import com.umc.core.model.Theme
 import com.umc.core.model.AlarmResult
 import com.umc.core.model.AlarmSummary
+import com.umc.core.model.NotificationSetting
+import com.umc.core.model.Theme
 import com.umc.core.repository.SettingRepository
 import com.umc.data.api.AlarmApi
 import com.umc.data.api.ServerApi
@@ -14,25 +14,26 @@ import com.umc.data.api.dto.server.DailySummaryAlarmOnResponseDTO
 import com.umc.data.api.dto.server.GetAllAlarmsResponseDTO
 import com.umc.data.api.dto.server.GetFcmTokenRequestDTO
 import com.umc.data.api.dto.server.MemoryDiaryAlarm
+import com.umc.data.api.dto.server.RemindDTO
 import com.umc.data.api.dto.server.SetPinRequestDTO
 import com.umc.data.api.dto.server.UpdateChallengeRemindAlarmRequestDTO
 import com.umc.data.api.dto.server.UpdateDailySummaryAlarmRequestDTO
 import com.umc.data.api.dto.server.UpdateWritingAlarmRequestDTO
+import com.umc.data.api.dto.server.WritingDiaryAlarm
 import com.umc.data.api.dto.server.WrittingDiaryAlarmOnResponseDTO
 import com.umc.data.preference.AuthPreference
 import com.umc.data.preference.SettingPreference
+import com.umc.data.util.AuthenticatedRepository
 import org.mindrot.jbcrypt.BCrypt
-import com.umc.data.api.dto.server.RemindDTO
-import com.umc.data.api.dto.server.WritingDiaryAlarm
-import com.umc.data.util.withAuth
 import java.time.LocalTime
 import javax.inject.Inject
 
 class SettingRepositoryImpl @Inject constructor(
-    private val authPreference: AuthPreference,
+    override val authPreference: AuthPreference,
     private val settingPreference: SettingPreference,   // last-known 캐시
     private val serverApi: ServerApi,
-) : SettingRepository {
+) : SettingRepository,
+    AuthenticatedRepository {
 
     // -------------------- 공통 유틸 --------------------
     private fun LocalTime.toHms(): String =
@@ -45,19 +46,19 @@ class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun sendFcmToken(token: String) {
         val body = GetFcmTokenRequestDTO(fcmToken = token)
-        serverApi.withAuth(authPreference) { sendFcmToken(body) }
+        serverApi.withAuth { sendFcmToken(body) }
         // 알림 ON 가드 등에 사용되므로 로컬에도 저장
         settingPreference.lastSentFcmToken = token
     }
 
     override suspend fun setPin(pin: Int) {
         val body = SetPinRequestDTO(pin = pin.toString())
-        serverApi.withAuth(authPreference) { setPin(body) }
+        serverApi.withAuth { setPin(body) }
         settingPreference.pinHash = BCrypt.hashpw(pin.toString(), BCrypt.gensalt())
     }
 
     override suspend fun clearPin() {
-        runCatching { serverApi.withAuth(authPreference) { clearPin() } }
+        runCatching { serverApi.withAuth { clearPin() } }
         settingPreference.pinHash = null
     }
 
@@ -68,7 +69,7 @@ class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun syncPinWithServer() {
         runCatching {
-            val response = serverApi.withAuth(authPreference) { getPin() }
+            val response = serverApi.withAuth { getPin() }
             response.pinHash
         }.onSuccess { pinHash ->
             settingPreference.pinHash = pinHash
@@ -78,7 +79,7 @@ class SettingRepositoryImpl @Inject constructor(
     // -------------------- 알림 요약(화면 진입) --------------------
     override suspend fun getAlarmSummary(): AlarmSummary {
         val dto: GetAllAlarmsResponseDTO =
-            serverApi.withAuth(authPreference) { getAllAlarms() }
+            serverApi.withAuth { getAllAlarms() }
 
         val writingActive   = dto.writingDiaryAlarm?.isActive == WritingDiaryAlarm.IsActive.ON
         val writingTime     = dto.writingDiaryAlarm?.alarmTime
@@ -136,7 +137,7 @@ class SettingRepositoryImpl @Inject constructor(
     // -------------------- 일기 작성 알림 --------------------
     override suspend fun turnOnWritingDiary(): AlarmResult {
         val res: WrittingDiaryAlarmOnResponseDTO =
-            serverApi.withAuth(authPreference) { turnOnDiaryWriteAlarm() }
+            serverApi.withAuth { turnOnDiaryWriteAlarm() }
 
         val time = res.alarmTime
             ?: (settingPreference.notificationSettings
@@ -153,7 +154,7 @@ class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun updateWritingDiaryTime(time: LocalTime): AlarmResult {
         val body = UpdateWritingAlarmRequestDTO(alarmTime = time.toHms())
-        serverApi.withAuth(authPreference) { changeTimeOfDiaryWriteAlarm(body) }
+        serverApi.withAuth { changeTimeOfDiaryWriteAlarm(body) }
 
         settingPreference.setNotificationSetting(
             NotificationSetting.DiaryWriting(isOn = true, hour = time.hour, minute = time.minute)
@@ -162,7 +163,7 @@ class SettingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun turnOffWritingDiary() {
-        serverApi.withAuth(authPreference) { turnOffDiaryWriteAlarm() }
+        serverApi.withAuth { turnOffDiaryWriteAlarm() }
         val prev = settingPreference.notificationSettings
             .find { it is NotificationSetting.DiaryWriting } as? NotificationSetting.DiaryWriting
 
@@ -179,7 +180,7 @@ class SettingRepositoryImpl @Inject constructor(
     // -------------------- 위치 기반(토글형) --------------------
     override suspend fun setMemoryDiaryActive(active: Boolean) {
         val status = if (active) AlarmApi.MemoryDiaryAlarmStatus.ON else AlarmApi.MemoryDiaryAlarmStatus.OFF
-        serverApi.withAuth(authPreference) { toggleMemoryDiaryAlarm(status) }
+        serverApi.withAuth { toggleMemoryDiaryAlarm(status) }
 
         settingPreference.setNotificationSetting(
             NotificationSetting.LocationBasedRemind(isOn = active)
@@ -189,7 +190,7 @@ class SettingRepositoryImpl @Inject constructor(
     // -------------------- 챌린지 리마인드 --------------------
     override suspend fun turnOnChallengeRemind(): AlarmResult {
         val res: ChallengeRemindAlarmOnResponseDTO =
-            serverApi.withAuth(authPreference) { turnOnChallengeRemindAlarm() }
+            serverApi.withAuth { turnOnChallengeRemindAlarm() }
 
         val hours = res.hoursAgo?.toIntOrNull()
             ?: (settingPreference.notificationSettings
@@ -205,7 +206,7 @@ class SettingRepositoryImpl @Inject constructor(
 
     override suspend fun updateChallengeHoursAgo(hoursAgo: Int): AlarmResult {
         val body = UpdateChallengeRemindAlarmRequestDTO(hoursAgo = hoursAgo.toString())
-        serverApi.withAuth(authPreference) { changeTimeOfChallengeRemindAlarm(body) }
+        serverApi.withAuth { changeTimeOfChallengeRemindAlarm(body) }
 
         settingPreference.setNotificationSetting(
             NotificationSetting.ChallengeRemind(isOn = true, remainingHours = hoursAgo)
@@ -214,7 +215,7 @@ class SettingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun turnOffChallengeRemind() {
-        serverApi.withAuth(authPreference) { turnOffChallengeRemindAlarm() }
+        serverApi.withAuth { turnOffChallengeRemindAlarm() }
         val prev = settingPreference.notificationSettings
             .find { it is NotificationSetting.ChallengeRemind } as? NotificationSetting.ChallengeRemind
 
@@ -226,7 +227,7 @@ class SettingRepositoryImpl @Inject constructor(
     // -------------------- 하루 요약 --------------------
     override suspend fun turnOnDailySummary(): AlarmResult {
         val res: DailySummaryAlarmOnResponseDTO =
-            serverApi.withAuth(authPreference) { turnOnDailySummaryAlarm() }
+            serverApi.withAuth { turnOnDailySummaryAlarm() }
 
         val time = res.alarmTime
             ?: (settingPreference.notificationSettings
@@ -244,7 +245,7 @@ class SettingRepositoryImpl @Inject constructor(
         // 백 스펙이 정시만 허용이라면 분/초 00으로 정규화
         val normalized = time.withMinute(0).withSecond(0)
         val body = UpdateDailySummaryAlarmRequestDTO(alarmTime = normalized.toHms())
-        serverApi.withAuth(authPreference) { changeTimeOfDailySummaryAlarm(body) }
+        serverApi.withAuth { changeTimeOfDailySummaryAlarm(body) }
 
         settingPreference.setNotificationSetting(
             NotificationSetting.DailySummary(isOn = true, hour = normalized.hour)
@@ -253,7 +254,7 @@ class SettingRepositoryImpl @Inject constructor(
     }
 
     override suspend fun turnOffDailySummary() {
-        serverApi.withAuth(authPreference) { turnOffDailySummaryAlarm() }
+        serverApi.withAuth { turnOffDailySummaryAlarm() }
         val prev = settingPreference.notificationSettings
             .find { it is NotificationSetting.DailySummary } as? NotificationSetting.DailySummary
 
@@ -268,8 +269,6 @@ class SettingRepositoryImpl @Inject constructor(
             longitude = longitude,
         )
 
-        serverApi.withAuth(authPreference) {
-            updateLocationForRemind(body = body)
-        }
+        serverApi.withAuth { updateLocationForRemind(body = body) }
     }
 }
