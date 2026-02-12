@@ -11,6 +11,8 @@ import com.umc.data.api.dto.server.FindPwRequestDTO
 import com.umc.data.api.dto.server.GetPinResultDTO
 import com.umc.data.api.dto.server.IsPendingResultDTO
 import com.umc.data.api.dto.server.KaKaoFinalSignUpResultDTO
+import com.umc.data.api.dto.server.MypageSendVerificationCodeRequestDTO
+import com.umc.data.api.dto.server.MypageVerifyVerificationCodeAndUpdateEmailRequestDTO
 import com.umc.data.api.dto.server.RefreshResultDTO
 import com.umc.data.api.dto.server.SendVerificationMailFindIdRequestDTO
 import com.umc.data.api.dto.server.SendVerificationMailFindPwRequestDTO
@@ -98,6 +100,18 @@ interface UserApi {
     // 핀번호 삭제하기
     @DELETE("/users/pin")
     suspend fun clearPin(): BaseResponse<Any?>
+
+    // 마이페이지 이메일 수정용 인증번호 발송
+    @POST("/users/mypage/send/code")
+    suspend fun sendVerificationMailForChangeEmail(
+        @Body body: MypageSendVerificationCodeRequestDTO,
+    ): BaseResponse<Any?>
+
+    // 마이페이지 이메일 수정용 인증번호 확인 및 이메일 변경
+    @POST("/users/mypage/email")
+    suspend fun checkVerificationCodeForChangeEmail(
+        @Body body: MypageVerifyVerificationCodeAndUpdateEmailRequestDTO,
+    ): BaseResponse<Any?>
 
     // PW 찾기용 인증메일 발송
     @POST("/users/find/send-pw")

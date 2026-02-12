@@ -1,5 +1,6 @@
 package com.umc.core.repository
 
+import com.umc.core.model.EmailRequestResult
 import com.umc.core.model.UserInfo
 
 interface UserRepository {
@@ -20,22 +21,26 @@ interface UserRepository {
     suspend fun tryLoginWithKakao(openIdToken: String): Boolean  // 기존 가입 여부
     suspend fun postUserInfoWhenFirstKakaoLogin(openIdToken: String, nickname: String)
 
-    suspend fun requestVerificationCodeForJoining(email: String): Boolean
+    suspend fun requestVerificationCodeForJoining(email: String): EmailRequestResult
     suspend fun checkVerificationCodeForJoining(email: String, code: Int): Boolean
 
-    suspend fun requestEmailForFindingId(name: String, email: String): Boolean
+    suspend fun requestEmailForFindingId(name: String, email: String): EmailRequestResult
     suspend fun checkVerificationCodeForFindingId(email: String, code: Int): Pair<String, String>?  // (이름, ID)
 
     suspend fun checkIdForFindingPassword(id: String): Boolean
-    suspend fun requestEmailForFindingPassword(name: String, email: String, id: String): Boolean
+    suspend fun requestEmailForFindingPassword(name: String, email: String, id: String): EmailRequestResult
     suspend fun checkVerificationCodeForFindingPassword(email: String, code: Int): Boolean
     suspend fun changePassword(email: String, newPassword: String)
 
+    suspend fun requestVerificationCodeForChangeEmail(email: String): EmailRequestResult
+    suspend fun changeEmailWithVerificationCode(email: String, code: Int): Boolean
+
     suspend fun getUserInfo(): UserInfo
+
     suspend fun modifyUserInfo(
         name: String? = null,
-        email: String? = null,
     )
+
     suspend fun leaveUser(
         reason: String? = null
     )

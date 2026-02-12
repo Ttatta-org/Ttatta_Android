@@ -7,17 +7,17 @@ import com.umc.core.repository.ItemRepository
 import com.umc.data.api.ServerApi
 import com.umc.data.preference.AuthPreference
 import com.umc.data.preference.ItemPreference
-import com.umc.data.util.withAuth
+import com.umc.data.util.AuthenticatedRepository
 import com.umc.design.character.Accessory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 class ItemRepositoryImpl @Inject constructor(
+    override val authPreference: AuthPreference,
     private val serverApi: ServerApi,
-    private val authPreference: AuthPreference,
     private val itemPreference: ItemPreference,
-) : ItemRepository {
+) : ItemRepository, AuthenticatedRepository {
 
     private val equippedItemMutableState = MutableStateFlow(itemPreference.itemList)
 
@@ -25,7 +25,7 @@ class ItemRepositoryImpl @Inject constructor(
         get() = equippedItemMutableState
 
     override suspend fun getUnownedItemsWithPoint(): Pair<Int, List<UnownedItem>> {
-        val response = serverApi.withAuth(authPreference) { getShopItems() }
+        val response = serverApi.withAuth { getShopItems() }
 
         return response.point!!.toInt() to (response.itemShopList?.mapNotNull {
             Accessory.entries
@@ -43,7 +43,7 @@ class ItemRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getOwnedItemsWithPoint(): Pair<Int, List<OwnedItem>> {
-        val response = serverApi.withAuth(authPreference) { getOwnedItems() }
+        val response = serverApi.withAuth { getOwnedItems() }
 
         return response.point!!.toInt() to (response.myItemList?.mapNotNull {
             Accessory.entries
@@ -61,7 +61,7 @@ class ItemRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getEquippedItems(): List<EquippedItem> {
-        val response = serverApi.withAuth(authPreference) { getEquippedItems() }
+        val response = serverApi.withAuth { getEquippedItems() }
 
         val result = response.idList?.mapNotNull {
             Accessory.entries
@@ -83,16 +83,16 @@ class ItemRepositoryImpl @Inject constructor(
     }
 
     override suspend fun purchaseItem(id: Long) {
-        serverApi.withAuth(authPreference) { buyItem(id) }
+        serverApi.withAuth { buyItem(id) }
     }
 
     override suspend fun equipItem(id: Long) {
-        serverApi.withAuth(authPreference) { equipItem(id) }
+        serverApi.withAuth { equipItem(id) }
         getEquippedItems()
     }
 
     override suspend fun disrobeItem(id: Long) {
-        serverApi.withAuth(authPreference) { disrobeItem(id) }
+        serverApi.withAuth { disrobeItem(id) }
         getEquippedItems()
     }
 }

@@ -1,6 +1,7 @@
 package com.umc.login
 
 import androidx.lifecycle.ViewModel
+import com.umc.core.model.EmailRequestResult
 import com.umc.core.repository.UserRepository
 import com.umc.login.logic.certification.CertificationCodeValidationRequest
 import com.umc.login.logic.certification.CertificationCodeValidationRequestForFindingId
@@ -62,7 +63,7 @@ class LoginViewModel @Inject constructor(
     suspend fun requestCertificationMail(
         request: CertificationMailRequest,
     ): Boolean {
-        return when (request) {
+        val result = when (request) {
             is CertificationMailRequestForJoin -> run {
                 userRepository.requestVerificationCodeForJoining(
                     email = request.email,
@@ -84,6 +85,8 @@ class LoginViewModel @Inject constructor(
                 )
             }
         }
+
+        return result == EmailRequestResult.SENT
     }
 
     suspend fun requestCertificationCodeValidation(

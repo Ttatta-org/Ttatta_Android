@@ -4,7 +4,6 @@ import com.umc.core.model.UserInfo
 import com.umc.core.repository.UserRepository
 import com.umc.mypage.util.LoadingViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
@@ -17,22 +16,6 @@ class UpdateProfileViewModel @Inject constructor(
     val userInfo: StateFlow<UserInfo?> = _userInfo
 
     suspend fun loadUserInfo() = runWithLoading {
-        val userInfo = userRepository.getUserInfo()
-        _userInfo.value = userInfo
-    }
-
-    suspend fun updateNickname(nickname: String) = runWithLoading {
-        userRepository.modifyUserInfo(name = nickname)
-    }
-
-    suspend fun requestVerificationCodeForUpdateEmail(email: String) = runWithLoading {
-        // TODO
-        delay(1000)
-    }
-
-    suspend fun verifyCodeForUpdateEmail(email: String, code: String): Boolean = runWithLoading {
-        // TODO
-        delay(1000)
-        return@runWithLoading true
+        _userInfo.value = userRepository.getUserInfo()
     }
 }

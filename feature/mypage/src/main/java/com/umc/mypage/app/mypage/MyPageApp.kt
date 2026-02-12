@@ -18,8 +18,7 @@ import com.umc.mypage.app.mypage.pinlock.addPinLockNavGraph
 import com.umc.mypage.app.mypage.signout.addSignOutNavGraph
 import com.umc.mypage.app.mypage.updateprofile.addUpdateProfileNavGraph
 import com.umc.mypage.screen.MyPageScreen
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
+import com.umc.mypage.util.NavigationUtil.getSafeNavigatorCallback
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -57,27 +56,31 @@ fun MyPageApp(
         navController = navController,
         startDestination = "my-page",
     ) {
-        composable("my-page") {
+        composable("my-page") { backStackEntry ->
             MyPageScreen(
                 userInfo = userInfo,
                 errorMessage = errorMessage,
-                onUpdateProfileButtonClicked = {
-                    MainScope().launch { navController.navigate("update-profile") }
-                },
-                onNotificationSettingButtonClicked = {
-                    MainScope().launch { navController.navigate("notification") }
-                },
-                onPinLockButtonClicked = {
-                    MainScope().launch { navController.navigate("pin-lock") }
-                },
+                onUpdateProfileButtonClicked = navController.getSafeNavigatorCallback(
+                    backStackEntry = backStackEntry,
+                    route = "update-profile",
+                ),
+                onNotificationSettingButtonClicked = navController.getSafeNavigatorCallback(
+                    backStackEntry = backStackEntry,
+                    route = "notification",
+                ),
+                onPinLockButtonClicked = navController.getSafeNavigatorCallback(
+                    backStackEntry = backStackEntry,
+                    route = "pin-lock",
+                ),
                 onLogoutButtonClicked = {
                     viewModel.runWithScope {
                         runCatching { logout() }.onSuccess { onLoginCanceled() }
                     }
                 },
-                onLeaveUserButtonClicked = {
-                    MainScope().launch { navController.navigate("sign-out") }
-                },
+                onLeaveUserButtonClicked = navController.getSafeNavigatorCallback(
+                    backStackEntry = backStackEntry,
+                    route = "sign-out",
+                ),
             )
         }
 
