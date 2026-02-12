@@ -8,8 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.umc.core.util.runWithScope
 import com.umc.mypage.screen.SignOutScreen
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
+import com.umc.mypage.util.NavigationUtil.getSafeBackNavigatorCallback
 
 fun NavGraphBuilder.addSignOutNavGraph(
     route: String,
@@ -30,9 +29,7 @@ fun NavGraphBuilder.addSignOutNavGraph(
                         .onFailure { e -> Log.e("SignOut", "❌ 탈퇴 실패: $e") }
                 }
             },
-            onCancel = {
-                MainScope().launch { navController.popBackStack() }
-            },
+            onCancel = navController.getSafeBackNavigatorCallback(backStackEntry)
         )
     }
 }

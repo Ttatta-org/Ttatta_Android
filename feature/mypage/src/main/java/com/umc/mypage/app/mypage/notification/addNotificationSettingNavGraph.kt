@@ -25,8 +25,7 @@ import com.umc.core.util.runWithScope
 import com.umc.core.util.showToast
 import com.umc.design.component.LocationAccessPopup
 import com.umc.mypage.screen.NotificationSettingsScreen
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
+import com.umc.mypage.util.NavigationUtil.getSafeBackNavigatorCallback
 
 @OptIn(ExperimentalPermissionsApi::class)
 fun NavGraphBuilder.addNotificationSettingNavGraph(
@@ -113,9 +112,7 @@ fun NavGraphBuilder.addNotificationSettingNavGraph(
                     onBackgroundLocationRequirementChanged(isOn)
                 }
             },
-            onBackClick = {
-                MainScope().launch { navController.popBackStack() }
-            },
+            onBackClick = navController.getSafeBackNavigatorCallback(backStackEntry),
         )
 
         if (showLocationPermissionPopup) LocationAccessPopup(
